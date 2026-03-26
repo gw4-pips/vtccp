@@ -12,17 +12,32 @@ using ExcelEngine.Writer;
 ///
 /// Responsibilities:
 ///   1. Track current operator, job name, roll number, and other session metadata.
-///   2. Resolve the output file path from the session context (Webscan convention).
+///   2. Resolve the output file path at session-open time; pin it for the lifetime
+///      of the session so sidecar operations always target the correct file.
 ///   3. Append VerificationRecords to the active output file.
 ///   4. Persist all session state to a JSON sidecar so an interrupted session
 ///      can be fully resumed (all context fields, not just counters).
-///   5. Roll number semantics:
-///        - A new session (no sidecar) starts with the caller-supplied RollNumber.
-///        - When the same output file already exists AND a sidecar exists (resume),
-///          the saved roll number is restored; it is NOT auto-incremented on resume
-///          because the operator did not physically "start a new roll".
-///        - `SetNewOperatorAndRoll()` increments the roll number mid-session,
-///          matching the Webscan "Set New Operator/Roll" button behaviour.
+///
+/// Roll number semantics (matches Webscan TruCheck "Set New Operator/Roll" behaviour):
+///   - StartSession with a fresh (no sidecar) file: caller controls initial RollNumber.
+///   - StartSession that finds a matching sidecar (resume): saved roll is restored.
+///     Roll is NOT incremented on resume, because the operator did not start a new roll —
+///     they are continuing the interrupted one.
+///   - SetNewOperatorAndRoll() increments the roll number mid-session and updates the sidecar.
+///
+/// File path stability guarantee:
+///   The output path and sidecar path are resolved ONCE at StartSession and stored
+///   in _outputPath / _sidecarPath.  No subsequent call re-derives these paths, so
+///   state changes (e.g. pattern tokens changing) cannot orphan sidecars or target
+///   the wrong file.
+///
+/// Resume path consistency:
+///   1. Initial path resolved from caller-supplied state (minimal context).
+///   2. Sidecar loaded and merged into state.
+///   3. Path re-resolved from merged state.
+///   4. If path changed, update _outputPath / _sidecarPath; re-check for a sidecar
+///      at the new path (second-chance resume).
+///   5. Open the file at the final stable path.
 ///
 /// Usage:
 ///   var mgr = new SessionManager(schema);
@@ -36,6 +51,11 @@ public sealed class SessionManager : IDisposable
     private SessionState? _currentSession;
     private IExcelAdapter? _adapter;
     private ExcelWriter? _writer;
+
+    // Pinned at StartSession; never re-derived during a session.
+    private string? _outputPath;
+    private string? _sidecarPath;
+
     private bool _disposed;
 
     public SessionState? CurrentSession => _currentSession;
@@ -52,14 +72,16 @@ public sealed class SessionManager : IDisposable
     /// <summary>
     /// Start a new job session (or resume an interrupted one).
     ///
-    /// Resume behaviour: if both the output file and its sidecar already exist for
-    /// this session, all saved context is merged back onto <paramref name="state"/>
-    /// (operator, job, company, product, batch, notes, device metadata, roll number,
-    /// and record count). Callers can still override any field before calling AddRecord.
+    /// Resume behaviour:
+    ///   If a sidecar exists for the resolved output file, all saved context is merged
+    ///   back onto <paramref name="state"/> before the file is opened.  The path is then
+    ///   re-resolved from the merged state (in case naming fields change), and the final
+    ///   stable path is pinned for the session lifetime.
     ///
-    /// Roll number: for a brand-new session the caller supplies <c>state.RollNumber</c>;
-    /// for a resume the sidecar's roll number is restored. Call
-    /// <see cref="SetNewOperatorAndRoll"/> to advance the roll mid-session.
+    /// Roll number:
+    ///   - New session: uses state.RollNumber as supplied by the caller.
+    ///   - Resume: restored from sidecar; not auto-incremented.
+    ///   - Call SetNewOperatorAndRoll() to advance the roll mid-session.
     ///
     /// Returns the resolved absolute output file path.
     /// </summary>
@@ -71,37 +93,38 @@ public sealed class SessionManager : IDisposable
 
         _currentSession = state;
 
-        // Resolve the output file path (may depend on FileNamePattern, if set).
-        string outputPath = ExcelFileManager.ResolveOutputPath(state, state.OutputFormat);
-        string sidecarPath = GetSidecarPath(outputPath);
+        // Step 1: Resolve initial path from caller-supplied state.
+        string initialPath   = ExcelFileManager.ResolveOutputPath(state, state.OutputFormat);
+        string initialSidecar = GetSidecarPath(initialPath);
 
-        // Attempt resume if both the output file and sidecar exist.
-        if (File.Exists(sidecarPath) && File.Exists(outputPath))
-        {
-            try
-            {
-                var saved = LoadSidecar(sidecarPath);
-                if (saved is not null)
-                    ApplySidecarToState(saved, state);
-            }
-            catch (JsonException)
-            {
-                // Corrupt sidecar — start fresh (file will be appended from scratch).
-            }
-        }
+        // Step 2: Attempt to load and merge sidecar from initial path.
+        bool resumed = TryMergeSidecar(initialSidecar, state);
 
-        // Open (or create) the Excel file via the correct adapter.
+        // Step 3: Re-resolve the path from merged state (naming fields may have changed).
+        string finalPath    = ExcelFileManager.ResolveOutputPath(state, state.OutputFormat);
+        string finalSidecar = GetSidecarPath(finalPath);
+
+        // Step 4: If path changed and no sidecar was loaded yet, attempt second-chance
+        // sidecar lookup at the new path.
+        if (!resumed && finalPath != initialPath)
+            TryMergeSidecar(finalSidecar, state);
+
+        // Step 5: Pin the stable path for this session.
+        _outputPath  = finalPath;
+        _sidecarPath = finalSidecar;
+
+        // Step 6: Open (or create) the Excel file via the correct adapter.
         _adapter = state.OutputFormat == OutputFormat.Xls
             ? new XlsAdapter()
             : new XlsxAdapter();
 
         _writer = new ExcelWriter(_adapter, _schema, state);
-        _writer.Open(outputPath);
+        _writer.Open(_outputPath);
 
-        // Persist the sidecar immediately after opening.
-        SaveSidecar(sidecarPath, state);
+        // Step 7: Persist sidecar immediately after opening.
+        SaveSidecar(_sidecarPath!, state);
 
-        return outputPath;
+        return _outputPath;
     }
 
     /// <summary>
@@ -113,9 +136,7 @@ public sealed class SessionManager : IDisposable
         EnsureOpen();
         _writer!.AppendRecord(record);
         _currentSession!.RecordCount++;
-        // Update sidecar after each record for crash-safety.
-        string outputPath = ExcelFileManager.ResolveOutputPath(_currentSession!, _currentSession!.OutputFormat);
-        SaveSidecar(GetSidecarPath(outputPath), _currentSession!);
+        SaveSidecar(_sidecarPath!, _currentSession!);
     }
 
     /// <summary>
@@ -133,35 +154,35 @@ public sealed class SessionManager : IDisposable
         _adapter = null;
 
         // Remove sidecar — job is closed cleanly.
-        if (_currentSession is not null)
-        {
-            string outputPath = ExcelFileManager.ResolveOutputPath(_currentSession, _currentSession.OutputFormat);
-            string sidecarPath = GetSidecarPath(outputPath);
-            if (File.Exists(sidecarPath))
-                File.Delete(sidecarPath);
-        }
+        if (_sidecarPath is not null && File.Exists(_sidecarPath))
+            File.Delete(_sidecarPath);
 
         _currentSession = null;
+        _outputPath     = null;
+        _sidecarPath    = null;
     }
 
     /// <summary>
-    /// Set or change the operator for the current session (matching Webscan "Set New Operator/Roll").
-    /// Increments the roll number and updates the sidecar.
+    /// Set or change the operator and advance the roll number (matching Webscan
+    /// "Set New Operator/Roll" button behaviour). The sidecar is updated immediately.
     /// </summary>
     public void SetNewOperatorAndRoll(string operatorId)
     {
         EnsureOpen();
         _currentSession!.OperatorId = operatorId;
         _currentSession!.RollNumber++;
-        // Persist the roll change immediately.
-        string outputPath = ExcelFileManager.ResolveOutputPath(_currentSession!, _currentSession!.OutputFormat);
-        SaveSidecar(GetSidecarPath(outputPath), _currentSession!);
+        // Note: _outputPath and _sidecarPath do NOT change — the operator change
+        // does not rename the already-open file.
+        SaveSidecar(_sidecarPath!, _currentSession!);
     }
 
     // ── Public path utilities ─────────────────────────────────────────────────
 
+    /// <summary>Returns the pinned output file path for the current session, or null if closed.</summary>
+    public string? OutputPath => _outputPath;
+
     /// <summary>
-    /// Returns the output file path for the given session (without opening it).
+    /// Returns the output file path for the given session state (without opening it).
     /// </summary>
     public static string GetOutputPath(SessionState state)
         => ExcelFileManager.ResolveOutputPath(state, state.OutputFormat);
@@ -184,7 +205,7 @@ public sealed class SessionManager : IDisposable
     {
         var sidecar = new SessionSidecar
         {
-            // Job / operator context
+            // Job / operator context — full snapshot
             JobName         = state.JobName,
             OperatorId      = state.OperatorId,
             RollNumber      = state.RollNumber,
@@ -195,7 +216,7 @@ public sealed class SessionManager : IDisposable
             User1           = state.User1,
             User2           = state.User2,
 
-            // Device metadata
+            // Device metadata (Phase 2)
             DeviceSerial    = state.DeviceSerial,
             DeviceName      = state.DeviceName,
             FirmwareVersion = state.FirmwareVersion,
@@ -220,28 +241,54 @@ public sealed class SessionManager : IDisposable
     }
 
     /// <summary>
+    /// Try to load the sidecar at <paramref name="sidecarPath"/> and merge it into
+    /// <paramref name="state"/>. Returns true if a sidecar was found and applied.
+    /// </summary>
+    private static bool TryMergeSidecar(string sidecarPath, SessionState state)
+    {
+        // Both the output file AND sidecar must exist to resume.
+        string outputPath = sidecarPath[..^".vtccp.json".Length]; // strip suffix
+        if (!File.Exists(sidecarPath) || !File.Exists(outputPath))
+            return false;
+
+        try
+        {
+            var saved = LoadSidecar(sidecarPath);
+            if (saved is not null)
+            {
+                ApplySidecarToState(saved, state);
+                return true;
+            }
+        }
+        catch (JsonException)
+        {
+            // Corrupt sidecar — ignore and start fresh.
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Restore all saved fields from the sidecar onto the live session state.
-    /// Only non-null sidecar fields overwrite the caller-supplied values, so
-    /// callers can pre-set fields they want to override before StartSession.
-    /// Record count and roll number are always restored (they are authoritative
-    /// in the sidecar — the caller cannot know the current file row count or roll).
+    /// Counters (RecordCount, RollNumber, SessionStarted) are always restored as
+    /// authoritative. Context fields restore only if the caller left them null,
+    /// allowing callers to pre-set overrides before StartSession.
     /// </summary>
     private static void ApplySidecarToState(SessionSidecar saved, SessionState state)
     {
         // Counters are authoritative in the sidecar.
-        state.RecordCount  = saved.RecordCount;
-        state.RollNumber   = saved.RollNumber;
+        state.RecordCount    = saved.RecordCount;
+        state.RollNumber     = saved.RollNumber;
         state.SessionStarted = saved.SessionStarted;
 
-        // Context fields: restore from sidecar only if caller left them null/default.
-        if (state.JobName     is null && saved.JobName     is not null) state.JobName     = saved.JobName;
-        if (state.OperatorId  is null && saved.OperatorId  is not null) state.OperatorId  = saved.OperatorId;
-        if (state.BatchNumber is null && saved.BatchNumber is not null) state.BatchNumber = saved.BatchNumber;
-        if (state.CompanyName is null && saved.CompanyName is not null) state.CompanyName = saved.CompanyName;
-        if (state.ProductName is null && saved.ProductName is not null) state.ProductName = saved.ProductName;
-        if (state.CustomNote  is null && saved.CustomNote  is not null) state.CustomNote  = saved.CustomNote;
-        if (state.User1       is null && saved.User1       is not null) state.User1       = saved.User1;
-        if (state.User2       is null && saved.User2       is not null) state.User2       = saved.User2;
+        // Context fields: restore from sidecar only if caller left them null.
+        if (state.JobName        is null && saved.JobName        is not null) state.JobName        = saved.JobName;
+        if (state.OperatorId     is null && saved.OperatorId     is not null) state.OperatorId     = saved.OperatorId;
+        if (state.BatchNumber    is null && saved.BatchNumber    is not null) state.BatchNumber    = saved.BatchNumber;
+        if (state.CompanyName    is null && saved.CompanyName    is not null) state.CompanyName    = saved.CompanyName;
+        if (state.ProductName    is null && saved.ProductName    is not null) state.ProductName    = saved.ProductName;
+        if (state.CustomNote     is null && saved.CustomNote     is not null) state.CustomNote     = saved.CustomNote;
+        if (state.User1          is null && saved.User1          is not null) state.User1          = saved.User1;
+        if (state.User2          is null && saved.User2          is not null) state.User2          = saved.User2;
 
         // Device metadata (Phase 2)
         if (state.DeviceSerial    is null && saved.DeviceSerial    is not null) state.DeviceSerial    = saved.DeviceSerial;
@@ -249,10 +296,10 @@ public sealed class SessionManager : IDisposable
         if (state.FirmwareVersion is null && saved.FirmwareVersion is not null) state.FirmwareVersion = saved.FirmwareVersion;
         if (state.CalibrationDate is null && saved.CalibrationDate is not null) state.CalibrationDate = saved.CalibrationDate;
 
-        // Output config
+        // Output configuration
         if (state.OutputDirectory is null && saved.OutputDirectory is not null) state.OutputDirectory = saved.OutputDirectory;
         if (state.FileNamePattern is null && saved.FileNamePattern is not null) state.FileNamePattern = saved.FileNamePattern;
-        if (saved.OutputFormat is not null && Enum.TryParse<OutputFormat>(saved.OutputFormat, out var fmt))
+        if (saved.OutputFormat    is not null && Enum.TryParse<OutputFormat>(saved.OutputFormat, out var fmt))
             state.OutputFormat = fmt;
     }
 

@@ -1136,6 +1136,22 @@ Console.WriteLine($"  Records written: {recordsWrittenBeforeClose} (expect 6)");
 bool sidecarStillPresent = File.Exists(t4SidecarPath);
 Console.WriteLine($"  Sidecar present while open:     {sidecarStillPresent}");
 
+// ── Roll semantics test ───────────────────────────────────────────────────────
+// Rule 1: New session — roll stays at whatever caller supplied.
+int rollBefore = t4Mgr.CurrentSession!.RollNumber;
+Console.WriteLine($"  Roll before SetNewOperatorAndRoll: {rollBefore} (expect 1)");
+
+// Rule 2: SetNewOperatorAndRoll increments roll and changes operator.
+t4Mgr.SetNewOperatorAndRoll("OP2");
+int rollAfterSet = t4Mgr.CurrentSession!.RollNumber;
+string opAfterSet = t4Mgr.CurrentSession!.OperatorId ?? "";
+Console.WriteLine($"  Roll after SetNewOperatorAndRoll:  {rollAfterSet} (expect 2), Operator: '{opAfterSet}'");
+
+bool rollNewSession = rollBefore == 1;
+bool rollIncrement  = rollAfterSet == 2;
+bool opChanged      = opAfterSet == "OP2";
+Console.WriteLine($"  Roll semantics: new-session={rollNewSession} increment={rollIncrement} op-changed={opChanged}");
+
 t4Mgr.CloseSession();
 
 // Sidecar must be deleted after clean close.
@@ -1299,6 +1315,8 @@ bool t4Pass =
     sanSlash && sanSpace && sanBracket && sanGlob && sanAmpersand &&
     // Custom filename pattern
     patternOk &&
+    // Roll semantics
+    rollNewSession && rollIncrement && opChanged &&
     // SessionManager lifecycle
     recordsWrittenBeforeClose == 6 &&
     sidecarCreated        == true &&
