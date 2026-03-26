@@ -26,6 +26,13 @@ public sealed class SessionState
     public OutputFormat OutputFormat { get; set; } = OutputFormat.Xlsx;
     public string? OutputDirectory { get; set; }
 
+    /// <summary>
+    /// Optional custom file-name pattern.  Supported tokens: {Job}, {Op}, {Roll}, {Date}, {DateTime}.
+    /// When null the default Webscan TruCheck convention is used ({Job}_{Date} or VTCCP_{Date}).
+    /// Example: "{Job}_{Op}_Roll{Roll}_{Date}"
+    /// </summary>
+    public string? FileNamePattern { get; set; }
+
     // Session tracking
     public DateTime SessionStarted { get; set; } = DateTime.Now;
     public int RecordCount { get; set; } = 0;

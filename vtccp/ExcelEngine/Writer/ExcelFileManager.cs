@@ -6,26 +6,56 @@ using ExcelEngine.Models;
 /// Generates output file paths and names following the Webscan TruCheck naming convention,
 /// and provides helper utilities for file management.
 ///
-/// Webscan convention (replicated):
+/// Default naming convention (replicates Webscan TruCheck):
 ///   {JobName}_{YYYY-MM-DD}.xlsx
 ///   e.g. "CalCardProd_2026-03-17.xlsx"
 ///
 /// VTCCP extensions when no job name is set:
-///   VTCCP_{OperatorId}_{YYYY-MM-DD}.xlsx
-///   e.g. "VTCCP_GW4_2026-03-17.xlsx"
+///   VTCCP_{OperatorId}_{YYYY-MM-DD}.xlsx    (operator known)
+///   VTCCP_{YYYY-MM-DD}.xlsx                 (neither set)
+///
+/// Custom pattern:
+///   Set <see cref="SessionState.FileNamePattern"/> to a format string accepted by
+///   <see cref="ApplyPattern"/>.  Supported tokens:
+///     {Job}        — SanitizeFileName(JobName)  or "VTCCP"
+///     {Op}         — SanitizeFileName(OperatorId) or ""
+///     {Roll}       — RollNumber
+///     {Date}       — SessionStarted "yyyy-MM-dd"
+///     {DateTime}   — SessionStarted "yyyy-MM-dd_HH-mm"
+///   Example: "{Job}_{Op}_Roll{Roll}_{Date}"
 /// </summary>
 public static class ExcelFileManager
 {
+    // Explicit set of characters that are illegal in Windows file names and
+    // commonly problematic across platforms. Using a fixed set (rather than
+    // Path.GetInvalidFileNameChars) ensures deterministic, platform-independent
+    // behaviour on both Windows and Linux (CI/mono) targets.
+    private static readonly char[] _illegalChars =
+    [
+        '/', '\\', ':', '*', '?', '"', '<', '>', '|',  // Windows-illegal
+        '[', ']',                                        // Excel range syntax / NTFS edge-cases
+        '\0', '\x01', '\x02', '\x03', '\x04', '\x05',  // NUL and other control chars
+        '\x06', '\x07', '\x08', '\x09', '\x0A', '\x0B',
+        '\x0C', '\x0D', '\x0E', '\x0F',
+    ];
+
     /// <summary>
     /// Generate the output filename (no directory path) from session state and format.
+    /// If <see cref="SessionState.FileNamePattern"/> is set it is used; otherwise the
+    /// Webscan TruCheck default pattern is applied.
     /// </summary>
     public static string GenerateFileName(SessionState session, OutputFormat format)
     {
-        var ext = format == OutputFormat.Xls ? ".xls" : ".xlsx";
+        var ext  = format == OutputFormat.Xls ? ".xls" : ".xlsx";
         var date = session.SessionStarted.ToString("yyyy-MM-dd");
 
         string baseName;
-        if (!string.IsNullOrWhiteSpace(session.JobName))
+
+        if (!string.IsNullOrWhiteSpace(session.FileNamePattern))
+        {
+            baseName = ApplyPattern(session.FileNamePattern, session);
+        }
+        else if (!string.IsNullOrWhiteSpace(session.JobName))
         {
             baseName = SanitizeFileName(session.JobName) + "_" + date;
         }
@@ -87,14 +117,48 @@ public static class ExcelFileManager
     }
 
     /// <summary>
-    /// Sanitize a string for use in a filename — replace filesystem-illegal characters and
-    /// spaces with underscores. Characters such as &amp;, /, \, *, ?, [, ] are all handled.
-    /// Note: these characters are preserved as-is in Excel cell content (EPPlus handles escaping).
+    /// Sanitize a string for use as a filename component. Uses a fixed, explicit character
+    /// set (not <c>Path.GetInvalidFileNameChars()</c>) so behaviour is identical on Windows,
+    /// Linux, and macOS. Illegal characters are replaced with '_'; spaces are also replaced
+    /// with '_'; leading and trailing underscores are trimmed.
+    ///
+    /// Characters that are illegal in filenames: / \ : * ? " &lt; &gt; | [ ] and NUL/control chars.
+    /// Note: '&amp;' is legal in a Windows filename and is therefore preserved here;
+    ///       it is safe for the filesystem but may need escaping in other contexts (e.g. XML).
     /// </summary>
     public static string SanitizeFileName(string input)
     {
-        var invalid = Path.GetInvalidFileNameChars();
-        var result = string.Concat(input.Select(c => invalid.Contains(c) ? '_' : c));
-        return result.Replace(' ', '_').Trim('_');
+        if (string.IsNullOrEmpty(input)) return string.Empty;
+        var chars = input.ToCharArray();
+        for (int i = 0; i < chars.Length; i++)
+        {
+            if (Array.IndexOf(_illegalChars, chars[i]) >= 0 || char.IsControl(chars[i]))
+                chars[i] = '_';
+            else if (chars[i] == ' ')
+                chars[i] = '_';
+        }
+        return new string(chars).Trim('_');
+    }
+
+    /// <summary>
+    /// Apply a custom file-name pattern. Replaces known tokens; any remaining text is
+    /// left verbatim (callers should only use characters legal in file names).
+    /// </summary>
+    public static string ApplyPattern(string pattern, SessionState session)
+    {
+        var job      = string.IsNullOrWhiteSpace(session.JobName)    ? "VTCCP"
+                       : SanitizeFileName(session.JobName);
+        var op       = string.IsNullOrWhiteSpace(session.OperatorId) ? string.Empty
+                       : SanitizeFileName(session.OperatorId);
+        var roll     = session.RollNumber.ToString();
+        var date     = session.SessionStarted.ToString("yyyy-MM-dd");
+        var dateTime = session.SessionStarted.ToString("yyyy-MM-dd_HH-mm");
+
+        return pattern
+            .Replace("{Job}",      job,      StringComparison.OrdinalIgnoreCase)
+            .Replace("{Op}",       op,       StringComparison.OrdinalIgnoreCase)
+            .Replace("{Roll}",     roll,     StringComparison.OrdinalIgnoreCase)
+            .Replace("{DateTime}", dateTime, StringComparison.OrdinalIgnoreCase)
+            .Replace("{Date}",     date,     StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -876,11 +876,38 @@ var t4Session = new SessionState
 };
 
 // ── Filename sanitization check ───────────────────────────────────────────────
+// Uses explicit character set (not Path.GetInvalidFileNameChars) for platform-
+// independent determinism.  '&' is legal in Windows filenames and preserved.
 Console.WriteLine("\nFilename sanitization tests:");
-Console.WriteLine($"  'My Job & Co.' -> '{ExcelFileManager.SanitizeFileName("My Job & Co.")}'");
+Console.WriteLine($"  'My Job & Co.' -> '{ExcelFileManager.SanitizeFileName("My Job & Co.")}'   (& preserved — legal in filenames)");
 Console.WriteLine($"  'Roll/3'       -> '{ExcelFileManager.SanitizeFileName("Roll/3")}'");
 Console.WriteLine($"  'A B C'        -> '{ExcelFileManager.SanitizeFileName("A B C")}'");
-Console.WriteLine($"  T4 session file: {ExcelFileManager.GenerateFileName(t4Session, OutputFormat.Xlsx)}");
+Console.WriteLine($"  'x[1].xlsx'    -> '{ExcelFileManager.SanitizeFileName("x[1].xlsx")}'");
+Console.WriteLine($"  'a*b?c'        -> '{ExcelFileManager.SanitizeFileName("a*b?c")}'");
+
+// Verify specific sanitization expectations
+bool sanSlash     = ExcelFileManager.SanitizeFileName("Roll/3")    == "Roll_3";
+bool sanSpace     = ExcelFileManager.SanitizeFileName("A B C")     == "A_B_C";
+bool sanBracket   = ExcelFileManager.SanitizeFileName("x[1].xlsx") == "x_1_.xlsx";
+bool sanGlob      = ExcelFileManager.SanitizeFileName("a*b?c")     == "a_b_c";
+bool sanAmpersand = ExcelFileManager.SanitizeFileName("My & Co.")  == "My_&_Co."; // & is legal
+Console.WriteLine($"  Sanitization assertions: slash={sanSlash} space={sanSpace} bracket={sanBracket} glob={sanGlob} ampersand={sanAmpersand}");
+
+// Default filename for T4 session (uses JobName + date)
+Console.WriteLine($"  T4 session file (default): {ExcelFileManager.GenerateFileName(t4Session, OutputFormat.Xlsx)}");
+
+// Custom filename pattern test
+var patternSession = new SessionState
+{
+    JobName = "CalCard Prod", OperatorId = "GW4", RollNumber = 3,
+    SessionStarted = new DateTime(2026, 1, 15),
+    FileNamePattern = "{Job}_{Op}_Roll{Roll}_{Date}",
+    OutputDirectory = t4Session.OutputDirectory,
+    OutputFormat = OutputFormat.Xlsx,
+};
+string customFileName = ExcelFileManager.GenerateFileName(patternSession, OutputFormat.Xlsx);
+bool patternOk = customFileName == "CalCard_Prod_GW4_Roll3_2026-01-15.xlsx";
+Console.WriteLine($"  Custom pattern file: '{customFileName}' — {(patternOk ? "PASS" : "FAIL")}");
 
 // ── Build the 6 test records ──────────────────────────────────────────────────
 // 3 × GS1 DataMatrix  (records 1–3)
@@ -1156,12 +1183,128 @@ Console.WriteLine($"  Row 13 symbology (EAN-13):   '{t4Main?.Cells[13, 9].Text}'
 Console.WriteLine($"  Row 14 col 1 (EAN Scan 1):   '{t4Main?.Cells[14, 1].Text}' (expect 'Scan 1')");
 Console.WriteLine($"  Row 18 col 1 (EAN Scan 5):   '{t4Main?.Cells[18, 1].Text}' (expect 'Scan 5')");
 
+// ── Sidecar full-state resume test ────────────────────────────────────────────
+// Simulate a resume: write a sidecar with full context, then call StartSession
+// with a nearly-empty state; verify all fields are restored.
+var resumeTestSession = new SessionState
+{
+    OutputDirectory = t4Session.OutputDirectory,
+    OutputFormat    = OutputFormat.Xlsx,
+    SessionStarted  = new DateTime(2026, 1, 15),
+    // Leave context fields null — they should be restored from sidecar.
+};
+var resumeTestOutputPath  = ExcelFileManager.ResolveOutputPath(resumeTestSession, OutputFormat.Xlsx);
+var resumeTestSidecarPath = SessionManager.GetSidecarPath(resumeTestOutputPath);
+
+// Clean up any leftover files from prior test runs before setting up the resume test.
+if (File.Exists(resumeTestOutputPath))  File.Delete(resumeTestOutputPath);
+if (File.Exists(resumeTestSidecarPath)) File.Delete(resumeTestSidecarPath);
+
+// Write a synthetic sidecar mimicking a prior session.
+var priorState = new SessionState
+{
+    JobName         = "ResumeTestJob",
+    OperatorId      = "OP99",
+    RollNumber      = 7,
+    BatchNumber     = "BTC-RT",
+    CompanyName     = "Resume Corp",
+    ProductName     = "ResumeProduct",
+    CustomNote      = "Resumed note",
+    User1           = "U1Val",
+    User2           = "U2Val",
+    DeviceSerial    = "SN-RT-001",
+    DeviceName      = "DM-RT",
+    FirmwareVersion = "1.2.3",
+    CalibrationDate = new DateTime(2026, 1, 10),
+    OutputDirectory = t4Session.OutputDirectory,
+    OutputFormat    = OutputFormat.Xlsx,
+    SessionStarted  = new DateTime(2026, 1, 15),
+    RecordCount     = 42,
+};
+// Create a real (minimal) Excel file at resumeTestOutputPath so the resume path
+// has a valid xlsx to open. This simulates a crash scenario.
+using (var resumeSetupAdapter = new XlsxAdapter())
+{
+    var resumeSetupState = new SessionState
+    {
+        SessionStarted = new DateTime(2026, 1, 15),
+        OutputDirectory = t4Session.OutputDirectory, OutputFormat = OutputFormat.Xlsx,
+    };
+    using var resumeSetupWriter = new ExcelWriter(resumeSetupAdapter, schema, resumeSetupState);
+    resumeSetupWriter.Open(resumeTestOutputPath);  // opens the exact target path
+    resumeSetupWriter.Save();
+}
+// Write the sidecar directly as JSON to simulate what SessionManager persists.
+string syntheticSidecarJson = System.Text.Json.JsonSerializer.Serialize(new
+{
+    priorState.JobName, priorState.OperatorId, priorState.RollNumber,
+    priorState.BatchNumber, priorState.CompanyName, priorState.ProductName,
+    priorState.CustomNote, priorState.User1, priorState.User2,
+    priorState.DeviceSerial, priorState.DeviceName, priorState.FirmwareVersion,
+    priorState.CalibrationDate,
+    OutputFormat    = priorState.OutputFormat.ToString(),
+    priorState.OutputDirectory,
+    FileNamePattern = (string?)null,
+    priorState.SessionStarted,
+    priorState.RecordCount,
+    IsNewRollSaved  = false,
+}, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+File.WriteAllText(resumeTestSidecarPath, syntheticSidecarJson);
+
+// Now do a real StartSession with empty context — should restore from sidecar.
+// Use t4Session output path so the real Excel adapter can open it.
+var resumeCheckState = new SessionState
+{
+    OutputDirectory = t4Session.OutputDirectory,
+    OutputFormat    = OutputFormat.Xlsx,
+    SessionStarted  = new DateTime(2026, 1, 15),
+};
+using (var resumeMgr = new SessionManager(schema))
+{
+    resumeMgr.StartSession(resumeCheckState);
+    resumeMgr.CloseSession();
+}
+// The sidecar is deleted by CloseSession; verify state was restored before close.
+// (We check resumeCheckState directly since it's the live reference.)
+bool resumeJobName     = resumeCheckState.JobName         == "ResumeTestJob";
+bool resumeOperator    = resumeCheckState.OperatorId      == "OP99";
+bool resumeRoll        = resumeCheckState.RollNumber      == 7;
+bool resumeCompany     = resumeCheckState.CompanyName     == "Resume Corp";
+bool resumeProduct     = resumeCheckState.ProductName     == "ResumeProduct";
+bool resumeNote        = resumeCheckState.CustomNote      == "Resumed note";
+bool resumeUser1       = resumeCheckState.User1           == "U1Val";
+bool resumeDevice      = resumeCheckState.DeviceSerial    == "SN-RT-001";
+bool resumeCount       = resumeCheckState.RecordCount     == 42;
+bool resumeAll = resumeJobName && resumeOperator && resumeRoll && resumeCompany &&
+                 resumeProduct && resumeNote && resumeUser1 && resumeDevice && resumeCount;
+Console.WriteLine($"\nSidecar full-state resume: {(resumeAll ? "PASS" : "FAIL")}");
+if (!resumeAll)
+{
+    if (!resumeJobName)  Console.WriteLine($"  JobName   = '{resumeCheckState.JobName}'");
+    if (!resumeOperator) Console.WriteLine($"  OperatorId= '{resumeCheckState.OperatorId}'");
+    if (!resumeRoll)     Console.WriteLine($"  RollNumber= {resumeCheckState.RollNumber}");
+    if (!resumeCompany)  Console.WriteLine($"  CompanyName= '{resumeCheckState.CompanyName}'");
+    if (!resumeNote)     Console.WriteLine($"  CustomNote= '{resumeCheckState.CustomNote}'");
+    if (!resumeUser1)    Console.WriteLine($"  User1     = '{resumeCheckState.User1}'");
+    if (!resumeDevice)   Console.WriteLine($"  DeviceSerial= '{resumeCheckState.DeviceSerial}'");
+    if (!resumeCount)    Console.WriteLine($"  RecordCount= {resumeCheckState.RecordCount}");
+}
+// Clean up resume test files.
+if (File.Exists(resumeTestOutputPath))  File.Delete(resumeTestOutputPath);
+if (File.Exists(resumeTestSidecarPath)) File.Delete(resumeTestSidecarPath);
+
 // ── Full Task 4 pass/fail ─────────────────────────────────────────────────────
 bool t4Pass =
+    // Sanitization
+    sanSlash && sanSpace && sanBracket && sanGlob && sanAmpersand &&
+    // Custom filename pattern
+    patternOk &&
+    // SessionManager lifecycle
     recordsWrittenBeforeClose == 6 &&
     sidecarCreated        == true &&
     sidecarStillPresent   == true &&
     sidecarDeleted        == true &&
+    // Output file structure
     t4Rows                == 18 &&
     svMarker              == "VTCCP" &&
     svName                == schema.Name &&
@@ -1175,12 +1318,17 @@ bool t4Pass =
     t4Main.Cells[12, 1].Text == "Scan 5" &&
     t4Main.Cells[13, 9].Text == "EAN13" &&
     t4Main.Cells[14, 1].Text == "Scan 1" &&
-    t4Main.Cells[18, 1].Text == "Scan 5";
+    t4Main.Cells[18, 1].Text == "Scan 5" &&
+    // Sidecar full-state resume
+    resumeAll;
 
 Console.WriteLine($"\nTask 4 verification: {(t4Pass ? "PASS" : "FAIL")}");
 if (!t4Pass)
 {
     Console.WriteLine("  Diagnostics:");
+    if (!sanSlash || !sanSpace || !sanBracket || !sanGlob)
+                                         Console.WriteLine($"    Sanitization failures: slash={sanSlash} space={sanSpace} bracket={sanBracket} glob={sanGlob}");
+    if (!patternOk)                      Console.WriteLine($"    Custom pattern: '{customFileName}'");
     if (recordsWrittenBeforeClose != 6)  Console.WriteLine($"    RecordsWritten = {recordsWrittenBeforeClose} (expect 6)");
     if (!sidecarCreated)                 Console.WriteLine("    Sidecar not created on StartSession");
     if (!sidecarStillPresent)            Console.WriteLine("    Sidecar missing while session open");
@@ -1189,6 +1337,7 @@ if (!t4Pass)
     if (svMarker  != "VTCCP")            Console.WriteLine($"    svMarker  = '{svMarker}'");
     if (svName    != schema.Name)        Console.WriteLine($"    svName    = '{svName}'");
     if (svVersion != schema.Version)     Console.WriteLine($"    svVersion = '{svVersion}'");
+    if (!resumeAll)                      Console.WriteLine("    Sidecar resume: FAIL");
 }
 
 Console.WriteLine("\nTask 4 complete.");
