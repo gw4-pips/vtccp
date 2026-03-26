@@ -727,7 +727,23 @@ using (var pkg3 = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsx1DPath)))
         Console.WriteLine($"  EW row 4 (LGB): '{wsEW.Cells[4, 1].Text}' | BAR={wsEW.Cells[4, 3].Text}");
     }
 
+    // ── Per-scan sub-table verification ───────────────────────────────────────
+    // Layout: row 3 = UPC-A summary, rows 4..13 = 10 scan sub-rows, row 14 = EAN-13 summary
+    int scanLabelCol = 1;   // "Scan N" written to Date column (col 1)
+    Console.WriteLine($"\n  Per-scan sub-table verification:");
+    Console.WriteLine($"  Row 4 col 1 (Scan 1 label):  '{wsMain?.Cells[4, scanLabelCol].Text}'");
+    Console.WriteLine($"  Row 4 Edge value (col {avgEdgeCol}): '{wsMain?.Cells[4, avgEdgeCol].Text}' (expect 4)");
+    Console.WriteLine($"  Row 4 SC value (col {avgScCol}):   '{wsMain?.Cells[4, avgScCol].Text}' (expect 4)");
+    Console.WriteLine($"  Row 13 col 1 (Scan 10 label): '{wsMain?.Cells[13, scanLabelCol].Text}'");
+    Console.WriteLine($"  Row 14 Symbology (EAN-13):    '{wsMain?.Cells[14, 9].Text}' (expect EAN13)");
+    Console.WriteLine($"  Row 14 Data:                  '{wsMain?.Cells[14, 10].Text}'");
+
     // 1D verification assertions
+    bool scan1Label = wsMain?.Cells[4, scanLabelCol].Text == "Scan 1";
+    bool scan1Edge  = wsMain?.Cells[4, avgEdgeCol].Text == "4";
+    bool scan10Label= wsMain?.Cells[13, scanLabelCol].Text == "Scan 10";
+    bool ean13Row   = wsMain?.Cells[14, 9].Text == "EAN13";
+
     bool oneDPass =
         mainCols == schema.Columns.Count &&
         wsMain!.Cells[3, 9].Text == "UPCA" &&
@@ -736,26 +752,41 @@ using (var pkg3 = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsx1DPath)))
         avgScCol   > 0 && wsMain.Cells[3, avgScCol].Text   == "84" &&
         bwgPctCol  > 0 && wsMain.Cells[3, bwgPctCol].Text  == "8" &&
         string.IsNullOrEmpty(uecVal) &&
+        scan1Label && scan1Edge && scan10Label && ean13Row &&
         ewSheetExists &&
         wsEW!.Cells[4, 1].Text == "LGB";  // first data row element name
 
     Console.WriteLine($"\n  1D verification: {(oneDPass ? "PASS" : "FAIL")}");
+    if (!scan1Label)   Console.WriteLine($"    FAIL: scan 1 label = '{wsMain?.Cells[4, scanLabelCol].Text}'");
+    if (!scan1Edge)    Console.WriteLine($"    FAIL: scan 1 edge  = '{wsMain?.Cells[4, avgEdgeCol].Text}'");
+    if (!scan10Label)  Console.WriteLine($"    FAIL: scan 10 label= '{wsMain?.Cells[13, scanLabelCol].Text}'");
+    if (!ean13Row)     Console.WriteLine($"    FAIL: EAN-13 at row 14 = '{wsMain?.Cells[14, 9].Text}'");
 
     // Mixed-symbology file check
+    // Row layout with scan sub-rows:
+    //   Row 1 = Title, Row 2 = Header
+    //   Row 3 = 2D record 1 (GS1 DataMatrix)
+    //   Row 4 = 2D record 2 (GS1 DataMatrix)
+    //   Row 5 = UPC-A summary, Rows 6-15 = UPC-A scans (10)
+    //   Row 16 = EAN-13 summary, Rows 17-26 = EAN-13 scans (10)
     using var pkgMixed = new OfficeOpenXml.ExcelPackage(new FileInfo(mixedPath));
     var wsMixed = pkgMixed.Workbook.Worksheets["Main"];
     int mixedRows = wsMixed?.Dimension?.Rows ?? 0;
     int mixedCols = wsMixed?.Dimension?.Columns ?? 0;
     Console.WriteLine($"\n  Mixed file Main: {mixedRows} rows x {mixedCols} columns");
-    Console.WriteLine($"  Row 3 (2D DM): '{wsMixed?.Cells[3, 9].Text}' (should be 'GS1 DataMatrix')");
-    Console.WriteLine($"  Row 5 (1D UPC-A): '{wsMixed?.Cells[5, 9].Text}' (should be 'UPCA')");
-    Console.WriteLine($"  Row 6 (1D EAN-13): '{wsMixed?.Cells[6, 9].Text}' (should be 'EAN13')");
+    Console.WriteLine($"  Row 3 (2D DM rec1):  '{wsMixed?.Cells[3, 9].Text}' (expect 'GS1 DataMatrix')");
+    Console.WriteLine($"  Row 4 (2D DM rec2):  '{wsMixed?.Cells[4, 9].Text}' (expect 'GS1 DataMatrix')");
+    Console.WriteLine($"  Row 5 (1D UPC-A):    '{wsMixed?.Cells[5, 9].Text}' (expect 'UPCA')");
+    Console.WriteLine($"  Row 6 (UPC-A scan1): '{wsMixed?.Cells[6, scanLabelCol].Text}' (expect 'Scan 1')");
+    Console.WriteLine($"  Row 16 (1D EAN-13):  '{wsMixed?.Cells[16, 9].Text}' (expect 'EAN13')");
 
     bool mixedPass =
-        mixedRows == 6 &&  // title + header + 4 data rows
-        wsMixed!.Cells[3, 9].Text == "GS1 DataMatrix" &&
-        wsMixed.Cells[5, 9].Text  == "UPCA" &&
-        wsMixed.Cells[6, 9].Text  == "EAN13";
+        mixedRows == 26 &&  // title + header + 2 2D rows + 2 UPC-A (summary+10scans) + 2 EAN-13 (summary+10scans)
+        wsMixed!.Cells[3, 9].Text  == "GS1 DataMatrix" &&
+        wsMixed.Cells[4, 9].Text   == "GS1 DataMatrix" &&
+        wsMixed.Cells[5, 9].Text   == "UPCA" &&
+        wsMixed.Cells[6, scanLabelCol].Text == "Scan 1" &&
+        wsMixed.Cells[16, 9].Text  == "EAN13";
 
     Console.WriteLine($"  Mixed-symbology verification: {(mixedPass ? "PASS" : "FAIL")}");
 }

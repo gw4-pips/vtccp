@@ -28,6 +28,7 @@ public sealed class ExcelWriter : IDisposable
     private readonly SessionState _session;
     private readonly string _sheetName;
     private readonly ElementWidthsWriter _ewWriter;
+    private readonly PerScanTableWriter _perScanWriter;
 
     private int _nextDataRow;
     private int _dataRowCount;
@@ -46,6 +47,7 @@ public sealed class ExcelWriter : IDisposable
         _session = session;
         _sheetName = sheetName;
         _ewWriter = new ElementWidthsWriter(adapter);
+        _perScanWriter = new PerScanTableWriter(adapter, schema);
     }
 
     /// <summary>
@@ -106,6 +108,19 @@ public sealed class ExcelWriter : IDisposable
         if (record.DataFormatCheck is not null)
             WriteDfcColumns(_nextDataRow, record.DataFormatCheck);
 
+        // Advance past the summary row (always counts as 1 data row)
+        int mainDataRow = _nextDataRow;
+        _nextDataRow++;
+        _dataRowCount++;
+
+        // For 1D records: write per-scan sub-table rows immediately below the summary row.
+        // These are auxiliary rows (not counted as additional data records).
+        if (record.SymbologyFamily == SymbologyFamily.Linear1D && record.ScanResults.Count > 0)
+        {
+            int scanRowsWritten = _perScanWriter.WriteScans(record.ScanResults, _nextDataRow);
+            _nextDataRow += scanRowsWritten;
+        }
+
         // For 1D records with element width data, write to "Element Widths" sheet
         // then restore the Main sheet as the active adapter target.
         if (record.SymbologyFamily == SymbologyFamily.Linear1D && record.ElementWidths is not null)
@@ -113,9 +128,6 @@ public sealed class ExcelWriter : IDisposable
             _ewWriter.WriteRecord(record.ElementWidths);
             _adapter.EnsureSheet(_sheetName);  // restore Main as active sheet
         }
-
-        _nextDataRow++;
-        _dataRowCount++;
     }
 
     /// <summary>Save and close the underlying file.</summary>
