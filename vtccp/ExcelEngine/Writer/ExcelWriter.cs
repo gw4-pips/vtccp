@@ -27,6 +27,7 @@ public sealed class ExcelWriter : IDisposable
     private readonly ColumnSchema _schema;
     private readonly SessionState _session;
     private readonly string _sheetName;
+    private readonly ElementWidthsWriter _ewWriter;
 
     private int _nextDataRow;
     private int _dataRowCount;
@@ -44,6 +45,7 @@ public sealed class ExcelWriter : IDisposable
         _schema = schema;
         _session = session;
         _sheetName = sheetName;
+        _ewWriter = new ElementWidthsWriter(adapter);
     }
 
     /// <summary>
@@ -79,6 +81,8 @@ public sealed class ExcelWriter : IDisposable
     /// <summary>
     /// Write a single VerificationRecord as the next data row.
     /// Writes title + header rows first if this is a new file.
+    /// Supports both 1D (ISO 15416) and 2D (ISO 15415 / Data Matrix) records in the same file.
+    /// For 1D records with ElementWidths data, also writes to the "Element Widths" sheet.
     /// </summary>
     public void AppendRecord(VerificationRecord record)
     {
@@ -91,14 +95,24 @@ public sealed class ExcelWriter : IDisposable
             _headersWritten = true;
         }
 
+        Dictionary<string, object?> values;
         if (record.SymbologyFamily == SymbologyFamily.Linear1D)
-            throw new NotSupportedException("Use the 1D mapper for ISO 15416 records (Task 3).");
+            values = ISO15416Mapper.Map(record, _schema);
+        else
+            values = DataMatrix2DMapper.Map(record, _schema);
 
-        var values = DataMatrix2DMapper.Map(record, _schema);
         WriteDataRow(_nextDataRow, values);
 
         if (record.DataFormatCheck is not null)
             WriteDfcColumns(_nextDataRow, record.DataFormatCheck);
+
+        // For 1D records with element width data, write to "Element Widths" sheet
+        // then restore the Main sheet as the active adapter target.
+        if (record.SymbologyFamily == SymbologyFamily.Linear1D && record.ElementWidths is not null)
+        {
+            _ewWriter.WriteRecord(record.ElementWidths);
+            _adapter.EnsureSheet(_sheetName);  // restore Main as active sheet
+        }
 
         _nextDataRow++;
         _dataRowCount++;

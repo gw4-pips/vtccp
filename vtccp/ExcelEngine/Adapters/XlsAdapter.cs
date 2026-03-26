@@ -132,6 +132,40 @@ public sealed class XlsAdapter : IExcelAdapter
         }
     }
 
+    public void SetCellBold(int row, int col)
+    {
+        var r = GetOrCreateRow(row - 1);
+        var cell = r.GetCell(col - 1) ?? r.CreateCell(col - 1);
+        var style = _wb!.CreateCellStyle();
+        style.CloneStyleFrom(cell.CellStyle ?? _wb.CreateCellStyle());
+        style.SetFont(_boldFont!);
+        cell.CellStyle = style;
+    }
+
+    public void SetCellBackground(int row, int col, uint argbColor)
+    {
+        var r = GetOrCreateRow(row - 1);
+        var cell = r.GetCell(col - 1) ?? r.CreateCell(col - 1);
+        byte red = (byte)((argbColor >> 16) & 0xFF);
+        byte green = (byte)((argbColor >> 8) & 0xFF);
+        byte blue = (byte)(argbColor & 0xFF);
+        var hssf = (HSSFWorkbook)_wb!;
+        var palette = hssf.GetCustomPalette();
+        short colorIndex = HSSFColor.LightBlue.Index;
+        try
+        {
+            palette.SetColorAtIndex(colorIndex, red, green, blue);
+        }
+        catch
+        {
+            colorIndex = HSSFColor.LightBlue.Index;
+        }
+        var style = _wb!.CreateCellStyle();
+        style.FillForegroundColor = colorIndex;
+        style.FillPattern = FillPattern.SolidForeground;
+        cell.CellStyle = style;
+    }
+
     public void Save()
     {
         using var fs = new FileStream(_filePath, FileMode.Create, FileAccess.Write);

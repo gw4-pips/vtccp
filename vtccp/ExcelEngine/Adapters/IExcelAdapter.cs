@@ -36,6 +36,12 @@ public interface IExcelAdapter : IDisposable
     /// <summary>Apply background fill colour to a row (used for header rows).</summary>
     void SetRowBackground(int row, int colCount, uint argbColor);
 
+    /// <summary>Apply bold formatting to a single cell.</summary>
+    void SetCellBold(int row, int col);
+
+    /// <summary>Apply background fill colour to a single cell.</summary>
+    void SetCellBackground(int row, int col, uint argbColor);
+
     /// <summary>Save the workbook to the path provided in OpenOrCreate.</summary>
     void Save();
 

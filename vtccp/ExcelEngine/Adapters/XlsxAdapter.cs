@@ -77,6 +77,21 @@ public sealed class XlsxAdapter : IExcelAdapter
         cells.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(255, r, g, b));
     }
 
+    public void SetCellBold(int row, int col)
+    {
+        _ws!.Cells[row, col].Style.Font.Bold = true;
+    }
+
+    public void SetCellBackground(int row, int col, uint argbColor)
+    {
+        var cell = _ws!.Cells[row, col];
+        cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+        var r = (byte)((argbColor >> 16) & 0xFF);
+        var g = (byte)((argbColor >> 8) & 0xFF);
+        var b = (byte)(argbColor & 0xFF);
+        cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(255, r, g, b));
+    }
+
     public void Save()
     {
         _pkg!.SaveAs(new FileInfo(_filePath));

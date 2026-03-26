@@ -329,7 +329,7 @@ Console.WriteLine($"  No-job xlsx: {ExcelFileManager.GenerateFileName(noJob, Out
 var noJobNoOp = new SessionState { SessionStarted = new DateTime(2025, 8, 11) };
 Console.WriteLine($"  Fallback:    {ExcelFileManager.GenerateFileName(noJobNoOp, OutputFormat.Xlsx)}");
 
-Console.WriteLine("\nTask 2 complete.");
+Console.WriteLine("\nTask 2 complete. (2D Data Matrix records verified)");
 
 // ─── DFC column verification ───────────────────────────────────────────────────
 Console.WriteLine("\nVerifying GS1 DFC columns...");
@@ -368,3 +368,397 @@ using (var pkg2 = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsxPath)))
                    string.IsNullOrEmpty(ws2.Cells[3, dfcCol].Text);
     Console.WriteLine($"  DFC verification: {(dfcPass ? "PASS" : "FAIL")}");
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Task 3 — 1D ISO 15416 Excel Engine
+// Test: UPC-A Master + EAN-13 Master from OMNI Wide Angle PDFs, plus mixed file
+// ═══════════════════════════════════════════════════════════════════════════════
+
+Console.WriteLine("\n─────────────────────────────────────────────────────────");
+Console.WriteLine("Task 3: 1D ISO 15416 Engine (UPC-A + EAN-13 + mixed file)");
+Console.WriteLine("─────────────────────────────────────────────────────────");
+
+var grade4_1D = GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS");
+
+// ── Element width data helpers ────────────────────────────────────────────────
+// UPC/EAN column layout from Webscan reference PDFs:
+//   CHAR | SPACE | BAR | SPACE (left half) | SPACE | BAR | SPACE (right half)
+// i.e. 6 value columns after the row-label column
+var ew1DHeaders = new[] { "SPACE", "BAR", "SPACE", "SPACE", "BAR", "SPACE" };
+
+// UPC-A Master element sizes (from OMNI_Wide_Angle_UPC-A_Master PDF)
+var upcaEwSizes = new ExcelEngine.Models.ElementWidthData
+{
+    RecordLabel  = "UPC-A | 012345678905 | OMNI Wide Angle | 2023-06-21",
+    ColumnHeaders = ew1DHeaders,
+    ElementSizes =
+    [
+        new() { ElementName = "LGB",  Values = [null, 14m,  null, null, 12m,  null, 14m]  },
+        new() { ElementName = "0",    Values = [38m,  27m,  null, null, 12m,  null, 14m]  },
+        new() { ElementName = "1",    Values = [26m,  26m,  null, null, 26m,  null, 13m]  },
+        new() { ElementName = "2",    Values = [26m,  13m,  null, null, 26m,  null, 26m]  },
+        new() { ElementName = "3",    Values = [12m,  52m,  null, null, 12m,  null, 14m]  },
+        new() { ElementName = "4",    Values = [12m,  14m,  null, null, 38m,  null, 27m]  },
+        new() { ElementName = "5",    Values = [12m,  27m,  null, null, 38m,  null, 14m]  },
+        new() { ElementName = "CGB",  Values = [12m,  14m,  null, 12m, 14m,   12m, null]  },
+        new() { ElementName = "6",    Values = [null, 14m,  null, null, 12m,  null, 50m]  },
+        new() { ElementName = "7",    Values = [null, 13m,  null, null, 38m,  null, 26m]  },
+        new() { ElementName = "8",    Values = [null, 13m,  null, null, 26m,  null, 39m]  },
+        new() { ElementName = "9",    Values = [null, 40m,  null, null, 12m,  null, 25m]  },
+        new() { ElementName = "0",    Values = [null, 40m,  null, null, 25m,  null, 12m]  },
+        new() { ElementName = "5",    Values = [null, 14m,  null, null, 25m,  null, 12m]  },
+        new() { ElementName = "RGB",  Values = [null, 14m,  null, null, 12m,  null, 14m]  },
+    ],
+    ElementDeviations =
+    [
+        new() { ElementName = "LGB",  Values = [null, 0.9m,  null, null, -0.7m, null, 0.7m]  },
+        new() { ElementName = "0",    Values = [-1.1m, 0.9m, null, null, -0.6m, null, 0.9m]  },
+        new() { ElementName = "1",    Values = [-0.8m, 1.1m, null, null, -1.0m, null, 1.2m]  },
+        new() { ElementName = "2",    Values = [-0.9m, 1.4m, null, null, -1.0m, null, 1.0m]  },
+        new() { ElementName = "3",    Values = [-0.5m, 0.5m, null, null, -0.5m, null, 0.7m]  },
+        new() { ElementName = "4",    Values = [-0.7m, 1.1m, null, null, -1.2m, null, 0.9m]  },
+        new() { ElementName = "5",    Values = [-0.6m, 0.9m, null, null, -1.2m, null, 1.0m]  },
+        new() { ElementName = "CGB",  Values = [-0.8m, 0.9m, null, -0.7m, 0.7m, -0.6m, null] },
+        new() { ElementName = "6",    Values = [null, 0.8m,  null, null, -0.7m, null, -1.1m] },
+        new() { ElementName = "7",    Values = [null, 1.4m,  null, null, -1.3m, null, -1.1m] },
+        new() { ElementName = "8",    Values = [null, 1.3m,  null, null, -1.1m, null, -1.0m] },
+        new() { ElementName = "9",    Values = [null, 0.8m,  null, null, -0.5m, null, -1.0m] },
+        new() { ElementName = "0",    Values = [null, 0.9m,  null, null, -1.0m, null, -0.6m] },
+        new() { ElementName = "5",    Values = [null, 1.0m,  null, null, -1.0m, null, -0.6m] },
+        new() { ElementName = "RGB",  Values = [null, 0.6m,  null, null, -0.6m, null,  1.1m] },
+    ],
+};
+
+// EAN-13 Master element sizes (from OMNI_Wide_Angle_EAN-13_Master PDF)
+var ean13EwSizes = new ExcelEngine.Models.ElementWidthData
+{
+    RecordLabel  = "EAN-13 | 5012345678900 | OMNI Wide Angle | 2023-06-21",
+    ColumnHeaders = ew1DHeaders,
+    ElementSizes =
+    [
+        new() { ElementName = "LGB",  Values = [null, 14m,  null, null, 12m,  null, 14m]  },
+        new() { ElementName = "0",    Values = [37m,  27m,  null, null, 12m,  null, 14m]  },
+        new() { ElementName = "1",    Values = [11m,  28m,  null, null, 24m,  null, 28m]  },
+        new() { ElementName = "2",    Values = [23m,  28m,  null, null, 11m,  null, 28m]  },
+        new() { ElementName = "3",    Values = [12m,  52m,  null, null, 12m,  null, 14m]  },
+        new() { ElementName = "4",    Values = [12m,  14m,  null, null, 37m,  null, 27m]  },
+        new() { ElementName = "5",    Values = [13m,  39m,  null, null, 25m,  null, 14m]  },
+        new() { ElementName = "CGB",  Values = [12m,  14m,  null, 12m, 14m,   12m, null]  },
+        new() { ElementName = "6",    Values = [null, 14m,  null, null, 12m,  null, 52m]  },
+        new() { ElementName = "7",    Values = [null, 13m,  null, null, 39m,  null, 25m]  },
+        new() { ElementName = "8",    Values = [null, 13m,  null, null, 26m,  null, 38m]  },
+        new() { ElementName = "9",    Values = [null, 40m,  null, null, 12m,  null, 24m]  },
+        new() { ElementName = "0",    Values = [null, 40m,  null, null, 25m,  null, 12m]  },
+        new() { ElementName = "0",    Values = [null, 40m,  null, null, 25m,  null, 12m]  },
+        new() { ElementName = "RGB",  Values = [null, 14m,  null, null, 12m,  null, 14m]  },
+    ],
+    ElementDeviations =
+    [
+        new() { ElementName = "LGB",  Values = [null, 0.9m,  null, null, -0.7m, null, 0.8m]  },
+        new() { ElementName = "0",    Values = [-1.3m, 1.2m, null, null, -0.5m, null, 0.7m]  },
+        new() { ElementName = "1",    Values = [-0.9m, 1.1m, null, null, -1.2m, null, 1.4m]  },
+        new() { ElementName = "2",    Values = [-1.3m, 1.3m, null, null, -0.5m, null, 1.0m]  },
+        new() { ElementName = "3",    Values = [-0.7m, 0.7m, null, null, -0.5m, null, 0.7m]  },
+        new() { ElementName = "4",    Values = [-0.9m, 1.1m, null, null, -1.1m, null, 0.9m]  },
+        new() { ElementName = "5",    Values = [-0.4m, 0.6m, null, null, -0.9m, null, 0.8m]  },
+        new() { ElementName = "CGB",  Values = [-0.6m, 0.6m, null, -0.6m, 0.7m, -0.6m, null] },
+        new() { ElementName = "6",    Values = [null, 0.5m,  null, null, -0.9m, null, -0.3m] },
+        new() { ElementName = "7",    Values = [null, 1.3m,  null, null, -0.8m, null, -1.2m] },
+        new() { ElementName = "8",    Values = [null, 1.1m,  null, null, -0.8m, null, -1.1m] },
+        new() { ElementName = "9",    Values = [null, 1.0m,  null, null, -0.4m, null, -1.4m] },
+        new() { ElementName = "0",    Values = [null, 1.2m,  null, null, -1.0m, null, -1.0m] },
+        new() { ElementName = "0",    Values = [null, 1.0m,  null, null, -0.9m, null, -0.8m] },
+        new() { ElementName = "RGB",  Values = [null, 0.7m,  null, null, -0.6m, null,  1.2m] },
+    ],
+};
+
+// ── Test Record 1D-1: UPC-A Master (all A/4.0) ────────────────────────────────
+// Source: OMNI_Wide_Angle_UPC-A_Master_23-06-21_15_15_01 PDF
+var upcaSession = new SessionState
+{
+    JobName      = "OMNI Wide Angle",
+    OperatorId   = "GW4",
+    RollNumber   = 1,
+    CompanyName  = "Product Identification and Processing Systems, Inc.",
+    DeviceSerial = "TC-833-0620-018",
+    DeviceName   = "TruCheck USB",
+    FirmwareVersion = "3.03.66",
+    OutputDirectory = Path.Combine(Path.GetTempPath(), "vtccp_test_output"),
+    SessionStarted = new DateTime(2023, 6, 21),
+};
+
+var upcaRecord = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2023, 6, 21, 15, 15, 1),
+    Symbology       = "UPCA",
+    SymbologyFamily = SymbologyFamily.Linear1D,
+    DecodedData     = "012345678905",
+    FormalGrade     = "4.0/06/660",
+    OverallGrade    = grade4_1D,
+    CustomPassFail  = OverallPassFail.Pass,
+    OperatorId      = upcaSession.OperatorId,
+    JobName         = upcaSession.JobName,
+    BatchNumber     = "UPC-A Master",
+    CompanyName     = upcaSession.CompanyName,
+    ProductName     = "Elmer Chocolate, Post-calibration Conformance Challenge",
+    DeviceSerial    = upcaSession.DeviceSerial,
+    DeviceName      = upcaSession.DeviceName,
+    FirmwareVersion = upcaSession.FirmwareVersion,
+    CalibrationDate = new DateTime(2023, 6, 21, 15, 9, 56),
+    Aperture        = 6,
+    Wavelength      = 660,
+    Standard        = "ANSI/ISO",
+
+    // SymbolAnsiGrade — the overall grade for 1D is A/4.0
+    SymbolAnsiGrade = grade4_1D,
+
+    // Per-scan results: 10 scans, all 4.0 for all parameters
+    ScanResults = Enumerable.Range(1, 10).Select(i => new ScanResult1D
+    {
+        ScanNumber   = i,
+        Edge         = 4.0m,
+        Reflectance  = "87/3",
+        SC           = 4.0m,
+        MinEC        = 4.0m,
+        MOD          = 4.0m,
+        Defect       = 4.0m,
+        DCOD         = "10/10",
+        DEC          = 4.0m,
+        LQZ          = 4.0m,
+        RQZ          = 4.0m,
+        HQZ          = 4.0m,
+        PerScanGrade = grade4_1D,
+    }).ToList(),
+
+    // Summary averages (from PDF)
+    Avg_Edge    = 59m,
+    Avg_RlRd    = "87/3",
+    Avg_SC      = 84m,
+    Avg_MinEC   = 71m,
+    Avg_MOD     = 84m,
+    Avg_Defect  = 0m,
+    Avg_DCOD    = "10/10",
+    Avg_DEC     = 82m,
+    Avg_MinQZ   = 10m,
+
+    // General Characteristics
+    BWG_Percent           = 8m,
+    BWG_Mil               = 1.0m,
+    Magnification         = 102m,
+    NominalXDim_1D        = 13.2m,
+    InspectionZoneHeight  = 293m,
+    DecodableSymbolHeight = 369.7m,
+
+    // GS1 DFC
+    DataFormatCheck = new ExcelEngine.Models.DataFormatCheckResult
+    {
+        Overall  = OverallPassFail.Pass,
+        Standard = "GS1 Application Data Format",
+        Rows =
+        [
+            new() { Name = "GTIN",      Data = "01234567890",  Check = "PASS" },
+            new() { Name = "Chk Digit", Data = "5",            Check = "PASS" },
+        ],
+    },
+
+    // Element widths
+    ElementWidths = upcaEwSizes,
+};
+
+// ── Test Record 1D-2: EAN-13 Master (all A/4.0) ───────────────────────────────
+// Source: OMNI_Wide_Angle_EAN-13_Master_23-06-21_15_13_47 PDF
+var ean13Record = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2023, 6, 21, 15, 13, 47),
+    Symbology       = "EAN13",
+    SymbologyFamily = SymbologyFamily.Linear1D,
+    DecodedData     = "5012345678900",
+    FormalGrade     = "4.0/06/660",
+    OverallGrade    = grade4_1D,
+    CustomPassFail  = OverallPassFail.Pass,
+    OperatorId      = upcaSession.OperatorId,
+    JobName         = upcaSession.JobName,
+    BatchNumber     = "EAN-13 Master",
+    CompanyName     = upcaSession.CompanyName,
+    ProductName     = "Elmer Chocolate, Post-calibration Conformance Challenge",
+    DeviceSerial    = upcaSession.DeviceSerial,
+    DeviceName      = upcaSession.DeviceName,
+    FirmwareVersion = upcaSession.FirmwareVersion,
+    CalibrationDate = new DateTime(2023, 6, 21, 15, 9, 56),
+    Aperture        = 6,
+    Wavelength      = 660,
+    Standard        = "ANSI/ISO",
+
+    SymbolAnsiGrade = grade4_1D,
+
+    ScanResults = Enumerable.Range(1, 10).Select(i => new ScanResult1D
+    {
+        ScanNumber   = i,
+        Edge         = 4.0m,
+        Reflectance  = "86/3",
+        SC           = 4.0m,
+        MinEC        = 4.0m,
+        MOD          = 4.0m,
+        Defect       = 4.0m,
+        DCOD         = "10/10",
+        DEC          = 4.0m,
+        LQZ          = 4.0m,
+        RQZ          = 4.0m,
+        HQZ          = 4.0m,
+        PerScanGrade = grade4_1D,
+    }).ToList(),
+
+    Avg_Edge    = 59m,
+    Avg_RlRd    = "86/3",
+    Avg_SC      = 84m,
+    Avg_MinEC   = 69m,
+    Avg_MOD     = 83m,
+    Avg_Defect  = 0m,
+    Avg_DCOD    = "10/10",
+    Avg_DEC     = 84m,
+    Avg_MinQZ   = 8m,
+
+    BWG_Percent           = 8m,
+    BWG_Mil               = 1.0m,
+    Magnification         = 102m,
+    NominalXDim_1D        = 13.4m,
+    InspectionZoneHeight  = 281m,
+    DecodableSymbolHeight = 352.5m,
+
+    DataFormatCheck = new ExcelEngine.Models.DataFormatCheckResult
+    {
+        Overall  = OverallPassFail.Pass,
+        Standard = "GS1 Application Data Format",
+        Rows =
+        [
+            new() { Name = "GTIN",      Data = "501234567890",  Check = "PASS" },
+            new() { Name = "Chk Digit", Data = "0",             Check = "PASS" },
+        ],
+    },
+
+    ElementWidths = ean13EwSizes,
+};
+
+var records1D = new[] { upcaRecord, ean13Record };
+
+// ── Write 1D-only XLSX ────────────────────────────────────────────────────────
+var xlsx1DPath = Path.Combine(session.OutputDirectory!,
+    ExcelFileManager.GenerateFileName(upcaSession, OutputFormat.Xlsx));
+Console.WriteLine($"\nWriting 1D XLSX: {xlsx1DPath}");
+
+using (var adapter = new XlsxAdapter())
+using (var writer  = new ExcelWriter(adapter, schema, upcaSession))
+{
+    writer.Open(xlsx1DPath);
+    foreach (var rec in records1D)
+        writer.AppendRecord(rec);
+    writer.Save();
+}
+var info1D = new FileInfo(xlsx1DPath);
+Console.WriteLine($"  Done. Size: {info1D.Length:N0} bytes, rows: {records1D.Length} data rows");
+
+// ── Write mixed-symbology XLSX (2D records + 1D records in same file) ─────────
+var mixedPath = Path.Combine(session.OutputDirectory!, "Mixed_2D_and_1D_2025-08-11.xlsx");
+Console.WriteLine($"\nWriting mixed XLSX: {mixedPath}");
+
+using (var adapter = new XlsxAdapter())
+using (var writer  = new ExcelWriter(adapter, schema, session))
+{
+    writer.Open(mixedPath);
+    writer.AppendRecord(record1);   // 2D record
+    writer.AppendRecord(record2);   // 2D record
+    writer.AppendRecord(upcaRecord); // 1D record
+    writer.AppendRecord(ean13Record);// 1D record
+    writer.Save();
+}
+var mixedInfo = new FileInfo(mixedPath);
+Console.WriteLine($"  Done. Size: {mixedInfo.Length:N0} bytes, rows: 4 data rows (2 x 2D + 2 x 1D)");
+
+// ── Verify 1D XLSX structure ──────────────────────────────────────────────────
+Console.WriteLine("\nVerifying 1D XLSX structure...");
+OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+using (var pkg3 = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsx1DPath)))
+{
+    var wsMain = pkg3.Workbook.Worksheets["Main"];
+    var wsEW   = pkg3.Workbook.Worksheets["Element Widths"];
+
+    int mainRows = wsMain?.Dimension?.Rows ?? 0;
+    int mainCols = wsMain?.Dimension?.Columns ?? 0;
+    Console.WriteLine($"  Main sheet: {mainRows} rows x {mainCols} columns");
+    Console.WriteLine($"  Columns match schema: {(mainCols == schema.Columns.Count ? "YES" : $"NO ({mainCols} vs {schema.Columns.Count})")}");
+
+    // Row 3 = UPC-A record
+    Console.WriteLine($"  Row 3 Symbology: '{wsMain?.Cells[3, 9].Text}'");
+    Console.WriteLine($"  Row 3 Data:      '{wsMain?.Cells[3, 10].Text}'");
+    Console.WriteLine($"  Row 3 FormalGrade: '{wsMain?.Cells[3, 11].Text}'");
+
+    // Find 1D summary columns by header labels
+    int avgEdgeCol = -1, avgScCol = -1, bwgPctCol = -1, ratioCol = -1;
+    for (int c = 1; c <= mainCols; c++)
+    {
+        var hdr = wsMain?.Cells[2, c].Text ?? "";
+        if (hdr == "Edge")   avgEdgeCol = c;
+        if (hdr == "SC")     avgScCol   = c;
+        if (hdr == "BWG%")   bwgPctCol  = c;
+        if (hdr == "Ratio")  ratioCol   = c;
+    }
+    Console.WriteLine($"  Avg_Edge col: {avgEdgeCol}, value (row 3): '{wsMain?.Cells[3, avgEdgeCol].Text}'");
+    Console.WriteLine($"  Avg_SC col:   {avgScCol},   value (row 3): '{wsMain?.Cells[3, avgScCol].Text}'");
+    Console.WriteLine($"  BWG% col:     {bwgPctCol},  value (row 3): '{wsMain?.Cells[3, bwgPctCol].Text}'");
+    Console.WriteLine($"  Ratio col:    {ratioCol},   value (row 3): '{wsMain?.Cells[3, ratioCol].Text}' (should be blank for UPC-A)");
+
+    // Verify 2D columns are blank for 1D record
+    int uecPctCol = -1;
+    for (int c = 1; c <= mainCols; c++)
+        if ((wsMain?.Cells[2, c].Text ?? "") == "UEC%") { uecPctCol = c; break; }
+    string uecVal = wsMain?.Cells[3, uecPctCol].Text ?? "";
+    Console.WriteLine($"  UEC% (2D col, should be blank for 1D): '{uecVal}'");
+
+    // Element Widths sheet
+    bool ewSheetExists = wsEW is not null;
+    int ewRows = wsEW?.Dimension?.Rows ?? 0;
+    Console.WriteLine($"\n  Element Widths sheet exists: {ewSheetExists}");
+    Console.WriteLine($"  Element Widths rows: {ewRows}");
+    if (wsEW is not null && ewRows > 0)
+    {
+        Console.WriteLine($"  EW row 1 (label): '{wsEW.Cells[1, 1].Text}'");
+        Console.WriteLine($"  EW row 2 (section): '{wsEW.Cells[2, 1].Text}'");
+        Console.WriteLine($"  EW row 3 (col hdr): '{wsEW.Cells[3, 1].Text}' | '{wsEW.Cells[3, 2].Text}'");
+        Console.WriteLine($"  EW row 4 (LGB): '{wsEW.Cells[4, 1].Text}' | BAR={wsEW.Cells[4, 3].Text}");
+    }
+
+    // 1D verification assertions
+    bool oneDPass =
+        mainCols == schema.Columns.Count &&
+        wsMain!.Cells[3, 9].Text == "UPCA" &&
+        wsMain.Cells[3, 10].Text == "012345678905" &&
+        avgEdgeCol > 0 && wsMain.Cells[3, avgEdgeCol].Text == "59" &&
+        avgScCol   > 0 && wsMain.Cells[3, avgScCol].Text   == "84" &&
+        bwgPctCol  > 0 && wsMain.Cells[3, bwgPctCol].Text  == "8" &&
+        string.IsNullOrEmpty(uecVal) &&
+        ewSheetExists &&
+        wsEW!.Cells[4, 1].Text == "LGB";  // first data row element name
+
+    Console.WriteLine($"\n  1D verification: {(oneDPass ? "PASS" : "FAIL")}");
+
+    // Mixed-symbology file check
+    using var pkgMixed = new OfficeOpenXml.ExcelPackage(new FileInfo(mixedPath));
+    var wsMixed = pkgMixed.Workbook.Worksheets["Main"];
+    int mixedRows = wsMixed?.Dimension?.Rows ?? 0;
+    int mixedCols = wsMixed?.Dimension?.Columns ?? 0;
+    Console.WriteLine($"\n  Mixed file Main: {mixedRows} rows x {mixedCols} columns");
+    Console.WriteLine($"  Row 3 (2D DM): '{wsMixed?.Cells[3, 9].Text}' (should be 'GS1 DataMatrix')");
+    Console.WriteLine($"  Row 5 (1D UPC-A): '{wsMixed?.Cells[5, 9].Text}' (should be 'UPCA')");
+    Console.WriteLine($"  Row 6 (1D EAN-13): '{wsMixed?.Cells[6, 9].Text}' (should be 'EAN13')");
+
+    bool mixedPass =
+        mixedRows == 6 &&  // title + header + 4 data rows
+        wsMixed!.Cells[3, 9].Text == "GS1 DataMatrix" &&
+        wsMixed.Cells[5, 9].Text  == "UPCA" &&
+        wsMixed.Cells[6, 9].Text  == "EAN13";
+
+    Console.WriteLine($"  Mixed-symbology verification: {(mixedPass ? "PASS" : "FAIL")}");
+}
+
+Console.WriteLine("\nTask 3 complete.");
+
