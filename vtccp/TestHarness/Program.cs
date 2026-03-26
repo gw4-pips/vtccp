@@ -1,5 +1,5 @@
-// VTCCP TestHarness — Phase 1 scaffold verification
-// This stub will be expanded in Tasks 2-4 with actual Excel writing and sample data.
+// VTCCP TestHarness -- Phase 1 scaffold verification
+// Expanded in Tasks 2-4 with actual Excel writing and sample data.
 
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
@@ -7,37 +7,53 @@ using ExcelEngine.Schema;
 Console.WriteLine("VTCCP Excel Engine - Phase 1 Scaffold");
 Console.WriteLine("======================================");
 
-// Verify the column schema manager initializes correctly
+// --- Schema load and column count ---
 var manager = new ColumnSchemaManager();
 var schema = manager.GetActive();
 
 Console.WriteLine($"Active schema: {schema.Name}");
 Console.WriteLine($"Total columns: {schema.Columns.Count}");
 
-// Print column block summary
 var groups = schema.Columns
     .GroupBy(c => c.Group)
     .OrderBy(g => (int)g.Key);
 
 foreach (var group in groups)
-{
     Console.WriteLine($"  {group.Key}: {group.Count()} columns");
-}
 
-// Validate the schema
+// --- Schema validation ---
 var errors = ColumnSchemaManager.Validate(schema);
-if (errors.Count == 0)
-{
-    Console.WriteLine("\nSchema validation: PASS -- no errors");
-}
-else
-{
-    Console.WriteLine($"\nSchema validation: FAIL -- {errors.Count} error(s)");
-    foreach (var err in errors)
-        Console.WriteLine($"  ! {err}");
-}
+Console.WriteLine(errors.Count == 0
+    ? "\nSchema validation: PASS -- no errors"
+    : $"\nSchema validation: FAIL -- {errors.Count} error(s)");
+foreach (var err in errors)
+    Console.WriteLine($"  ! {err}");
 
-// Verify a sample VerificationRecord constructs cleanly
+// --- Schema round-trip: SaveToFile -> LoadFromFile ---
+var tmpPath = Path.Combine(Path.GetTempPath(), "vtccp_schema_rt.json");
+ColumnSchemaManager.SaveToFile(schema, tmpPath);
+Console.WriteLine($"\nSchema saved to: {tmpPath}");
+
+// Rename so it doesn't collide with the built-in schema name
+var json = File.ReadAllText(tmpPath);
+json = json.Replace($"\"Name\": \"{schema.Name}\"", "\"Name\": \"WebscanCompatible_RoundTrip\"");
+var rtPath = Path.Combine(Path.GetTempPath(), "vtccp_schema_rt2.json");
+File.WriteAllText(rtPath, json);
+
+var manager2 = new ColumnSchemaManager();
+manager2.LoadFromFile(rtPath);
+manager2.SetActive("WebscanCompatible_RoundTrip");
+var rt = manager2.GetActive();
+
+Console.WriteLine($"Reloaded schema: {rt.Name}, columns: {rt.Columns.Count}");
+Console.WriteLine(rt.Columns.Count == schema.Columns.Count
+    ? "Schema round-trip: PASS"
+    : $"Schema round-trip: FAIL (expected {schema.Columns.Count}, got {rt.Columns.Count})");
+
+File.Delete(tmpPath);
+File.Delete(rtPath);
+
+// --- Sample VerificationRecord ---
 var record = new VerificationRecord
 {
     Symbology = "GS1 DataMatrix",
@@ -65,9 +81,8 @@ Console.WriteLine($"  IsLargeMatrix: {record.IsLargeMatrix}");
 Console.WriteLine($"  Is2D: {record.Is2D}");
 Console.WriteLine($"  UEC: {record.UEC_Grade?.NumericGradeString} ({record.UEC_Grade?.LetterGradeString}) {record.UEC_Grade?.PassFailString}");
 
-// EPPlus license context (NonCommercial -- flag for production licensing review)
-// PRODUCTION NOTE: Replace with ExcelPackage.LicenseContext = LicenseContext.Commercial
-//                  when a commercial EPPlus license is acquired.
+// --- EPPlus license ---
+// PRODUCTION NOTE: Replace with LicenseContext.Commercial when commercial EPPlus license is acquired.
 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 Console.WriteLine("\nEPPlus license context: NonCommercial (development only)");
 

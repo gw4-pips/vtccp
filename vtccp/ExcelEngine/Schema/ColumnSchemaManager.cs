@@ -32,6 +32,13 @@ public sealed class ColumnSchemaManager
 
     public IReadOnlyList<string> AvailableSchemaNames => [.. _schemas.Keys];
 
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        WriteIndented = true,
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+    };
+
     /// <summary>
     /// Load a custom schema from a JSON file and register it.
     /// JSON format: { "name": "...", "description": "...", "columns": [ { "fieldId": "...", "displayName": "...", ... } ] }
@@ -39,11 +46,27 @@ public sealed class ColumnSchemaManager
     public void LoadFromFile(string filePath)
     {
         var json = File.ReadAllText(filePath);
-        var schema = JsonSerializer.Deserialize<ColumnSchema>(json,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+        var schema = JsonSerializer.Deserialize<ColumnSchema>(json, SerializerOptions)
             ?? throw new InvalidDataException($"Could not deserialize schema from {filePath}");
         Register(schema);
     }
+
+    /// <summary>
+    /// Save a schema to a JSON file for later reload via <see cref="LoadFromFile"/>.
+    /// The file is written with indented formatting for human readability.
+    /// </summary>
+    public static void SaveToFile(ColumnSchema schema, string filePath)
+    {
+        var json = JsonSerializer.Serialize(schema, SerializerOptions);
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)
+            ?? throw new ArgumentException("Invalid file path", nameof(filePath)));
+        File.WriteAllText(filePath, json);
+    }
+
+    /// <summary>
+    /// Save the currently active schema to a file.
+    /// </summary>
+    public void SaveActiveToFile(string filePath) => SaveToFile(GetActive(), filePath);
 
     /// <summary>
     /// Validate a schema: check for duplicate field ids and empty display names.
