@@ -4,6 +4,7 @@
 using ExcelEngine.Adapters;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
+using ExcelEngine.Session;
 using ExcelEngine.Writer;
 
 // ─── Schema / session setup ────────────────────────────────────────────────────
@@ -317,7 +318,8 @@ using (var pkg = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsxPath)))
     Console.WriteLine($"  Data row 3, col 10 (Data): '{ws.Cells[3,10].Text}'");
     Console.WriteLine($"  Data row 3, col 11 (FormalGrade): '{ws.Cells[3,11].Text}'");
     Console.WriteLine($"  Data row 4, col 12 (OverallLetter): '{ws.Cells[4,12].Text}'");  // row4 = record2
-    Console.WriteLine($"  Columns match schema: {(headerCols == schema.Columns.Count ? "YES" : $"NO ({headerCols} vs {schema.Columns.Count})")}");
+    // headerCols >= schema.Columns.Count because SchemaVersionWriter adds cells past col 163.
+    Console.WriteLine($"  Columns >= schema: {(headerCols >= schema.Columns.Count ? "YES" : $"NO ({headerCols} vs {schema.Columns.Count})")}");
 }
 
 // ─── File naming test ──────────────────────────────────────────────────────────
@@ -697,7 +699,9 @@ using (var pkg3 = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsx1DPath)))
     int mainRows = wsMain?.Dimension?.Rows ?? 0;
     int mainCols = wsMain?.Dimension?.Columns ?? 0;
     Console.WriteLine($"  Main sheet: {mainRows} rows x {mainCols} columns");
-    Console.WriteLine($"  Columns match schema: {(mainCols == schema.Columns.Count ? "YES" : $"NO ({mainCols} vs {schema.Columns.Count})")}");
+    // mainCols may be > schema.Columns.Count now that SchemaVersionWriter adds cells in row 1
+    // past the last data column; those extra cells are intentional metadata and not data columns.
+    Console.WriteLine($"  Columns >= schema: {(mainCols >= schema.Columns.Count ? "YES" : $"NO ({mainCols} vs {schema.Columns.Count})")}");
 
     // Row 3 = UPC-A record
     Console.WriteLine($"  Row 3 Symbology: '{wsMain?.Cells[3, 9].Text}'");
@@ -785,7 +789,7 @@ using (var pkg3 = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsx1DPath)))
     bool upcaAvgMinQz  = avgMinQzCol > 0 && wsMain?.Cells[3, avgMinQzCol].Text == "10";
 
     bool oneDPass =
-        mainCols == schema.Columns.Count &&
+        mainCols >= schema.Columns.Count &&
         wsMain!.Cells[3, 9].Text == "UPCA" &&
         wsMain.Cells[3, 10].Text == "012345678905" &&
         avgEdgeCol > 0 && wsMain.Cells[3, avgEdgeCol].Text == "59" &&
@@ -842,4 +846,350 @@ using (var pkg3 = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsx1DPath)))
 }
 
 Console.WriteLine("\nTask 3 complete.");
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Task 4 — Session management & test harness
+// Tests: SessionManager lifecycle (start / add 6 records / close),
+//        JSON sidecar written + cleaned up, SchemaVersion header in row 1,
+//        filename sanitization, and a 6-record full harness run.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+Console.WriteLine("\n─────────────────────────────────────────────────────────");
+Console.WriteLine("Task 4: Session management & full 6-record harness");
+Console.WriteLine("─────────────────────────────────────────────────────────");
+
+var t4Session = new SessionState
+{
+    JobName         = "T4 Harness & Co.",   // contains '.' — tests sanitization
+    OperatorId      = "GW4",
+    RollNumber      = 1,
+    BatchNumber     = "BATCH-T4",
+    CompanyName     = "Product Identification and Processing Systems, Inc.",
+    ProductName     = "Phase 1 Integration Test",
+    DeviceSerial    = "1A2202PP003652",
+    DeviceName      = "DM475-8E9364",
+    FirmwareVersion = "6.1.16_sr3",
+    CalibrationDate = new DateTime(2025, 8, 11, 16, 50, 0),
+    OutputDirectory = Path.Combine(Path.GetTempPath(), "vtccp_t4_output"),
+    OutputFormat    = OutputFormat.Xlsx,
+    SessionStarted  = new DateTime(2026, 1, 15),
+};
+
+// ── Filename sanitization check ───────────────────────────────────────────────
+Console.WriteLine("\nFilename sanitization tests:");
+Console.WriteLine($"  'My Job & Co.' -> '{ExcelFileManager.SanitizeFileName("My Job & Co.")}'");
+Console.WriteLine($"  'Roll/3'       -> '{ExcelFileManager.SanitizeFileName("Roll/3")}'");
+Console.WriteLine($"  'A B C'        -> '{ExcelFileManager.SanitizeFileName("A B C")}'");
+Console.WriteLine($"  T4 session file: {ExcelFileManager.GenerateFileName(t4Session, OutputFormat.Xlsx)}");
+
+// ── Build the 6 test records ──────────────────────────────────────────────────
+// 3 × GS1 DataMatrix  (records 1–3)
+// 1 × plain DataMatrix
+// 1 × UPC-A (1D)
+// 1 × EAN-13 (1D)
+
+var t4Pass4A = GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS");
+var t4Fail1D = GradingResult.FromLetterAndNumeric("D", 1.0m, "FAIL");
+
+// Record T4-1: GS1 DataMatrix grade A
+var t4Rec1 = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2026, 1, 15, 9, 0, 0),
+    Symbology       = "GS1 DataMatrix",
+    SymbologyFamily = SymbologyFamily.GS1DataMatrix,
+    DecodedData     = "<F1>0101234567890128",
+    FormalGrade     = "4.0/16/660/45Q",
+    OverallGrade    = t4Pass4A, CustomPassFail = OverallPassFail.Pass,
+    OperatorId      = t4Session.OperatorId, JobName = t4Session.JobName,
+    RollNumber      = t4Session.RollNumber, CompanyName = t4Session.CompanyName,
+    DeviceSerial    = t4Session.DeviceSerial, DeviceName = t4Session.DeviceName,
+    FirmwareVersion = t4Session.FirmwareVersion, CalibrationDate = t4Session.CalibrationDate,
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+    MatrixSize = "22x22", HorizontalBWG = -8, VerticalBWG = -8,
+    EncodedCharacters = 15, TotalCodewords = 50, DataCodewords = 30,
+    ErrorCorrectionBudget = 20, ErrorsCorrected = 0, ErrorCapacityUsed = 0,
+    ErrorCorrectionType = "ECC 200", ImagePolarity = ImagePolarity.WhiteOnBlack,
+    NominalXDim_2D = 19.8m, PixelsPerModule = 33.0m,
+    UEC_Percent = 100, UEC_Grade = t4Pass4A, SC_Percent = 90, SC_Grade = t4Pass4A,
+    MOD_Grade = t4Pass4A, RM_Grade = t4Pass4A, ANU_Percent = 0.1m, ANU_Grade = t4Pass4A,
+    GNU_Percent = 1.5m, GNU_Grade = t4Pass4A, FPD_Grade = t4Pass4A,
+    LLS_Grade = t4Pass4A, BLS_Grade = t4Pass4A, LQZ_Grade = t4Pass4A,
+    BQZ_Grade = t4Pass4A, TQZ_Grade = t4Pass4A, RQZ_Grade = t4Pass4A,
+    TTR_Percent = 0, TTR_Grade = t4Pass4A, RTR_Percent = 0, RTR_Grade = t4Pass4A,
+    TCT_Grade = t4Pass4A, RCT_Grade = t4Pass4A, AG_Value = 4.0m, AG_Grade = t4Pass4A,
+    DECODE_Grade = t4Pass4A,
+    DataFormatCheck = new ExcelEngine.Models.DataFormatCheckResult
+    {
+        Overall = OverallPassFail.Pass, Standard = "GS1 Application Data Format",
+        Rows =
+        [
+            new() { Name = "GS1 Header", Data = "<F1>", Check = "PASS" },
+            new() { Name = "AI:GTIN",    Data = "01",   Check = "PASS" },
+            new() { Name = "GTIN",       Data = "0123456789012", Check = "PASS" },
+            new() { Name = "Chk Digit",  Data = "8",   Check = "PASS" },
+        ],
+    },
+};
+
+// Record T4-2: GS1 DataMatrix grade D (ANU fail)
+var t4Rec2 = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2026, 1, 15, 9, 1, 0),
+    Symbology       = "GS1 DataMatrix",
+    SymbologyFamily = SymbologyFamily.GS1DataMatrix,
+    DecodedData     = "<F1>0101234567890128BATCHT42",
+    FormalGrade     = "1.0/17/660/45Q",
+    OverallGrade    = t4Fail1D, CustomPassFail = OverallPassFail.Fail,
+    OperatorId      = t4Session.OperatorId, JobName = t4Session.JobName,
+    RollNumber      = t4Session.RollNumber, CompanyName = t4Session.CompanyName,
+    DeviceSerial    = t4Session.DeviceSerial, DeviceName = t4Session.DeviceName,
+    FirmwareVersion = t4Session.FirmwareVersion, CalibrationDate = t4Session.CalibrationDate,
+    Aperture = 17, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+    MatrixSize = "22x22", HorizontalBWG = 7, VerticalBWG = 7,
+    EncodedCharacters = 20, TotalCodewords = 50, DataCodewords = 30,
+    ErrorCorrectionBudget = 20, ErrorsCorrected = 0, ErrorCapacityUsed = 0,
+    ErrorCorrectionType = "ECC 200", ImagePolarity = ImagePolarity.BlackOnWhite,
+    NominalXDim_2D = 20.9m, PixelsPerModule = 35.0m,
+    UEC_Percent = 100, UEC_Grade = t4Pass4A, SC_Percent = 84, SC_Grade = t4Pass4A,
+    MOD_Grade = t4Pass4A, RM_Grade = t4Pass4A, ANU_Percent = 11.0m, ANU_Grade = t4Fail1D,
+    GNU_Percent = 2.8m, GNU_Grade = t4Pass4A, FPD_Grade = t4Pass4A,
+    LLS_Grade = t4Pass4A, BLS_Grade = t4Pass4A, LQZ_Grade = t4Pass4A,
+    BQZ_Grade = t4Pass4A, TQZ_Grade = t4Pass4A, RQZ_Grade = t4Pass4A,
+    TTR_Percent = 0, TTR_Grade = t4Pass4A, RTR_Percent = 0, RTR_Grade = t4Pass4A,
+    TCT_Grade = t4Pass4A, RCT_Grade = t4Pass4A, AG_Value = 4.0m, AG_Grade = t4Pass4A,
+    DECODE_Grade = t4Pass4A,
+};
+
+// Record T4-3: GS1 DataMatrix grade A (another device)
+var t4Rec3 = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2026, 1, 15, 9, 2, 0),
+    Symbology       = "GS1 DataMatrix",
+    SymbologyFamily = SymbologyFamily.GS1DataMatrix,
+    DecodedData     = "<F1>0101234567890128BATCHT43",
+    FormalGrade     = "4.0/16/660/45Q",
+    OverallGrade    = t4Pass4A, CustomPassFail = OverallPassFail.Pass,
+    OperatorId      = t4Session.OperatorId, JobName = t4Session.JobName,
+    RollNumber      = t4Session.RollNumber, BatchNumber = "BATCH-T4C",
+    CompanyName = t4Session.CompanyName, DeviceSerial = t4Session.DeviceSerial,
+    DeviceName = "DM475-866D76", FirmwareVersion = t4Session.FirmwareVersion,
+    CalibrationDate = t4Session.CalibrationDate,
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+    MatrixSize = "22x22", HorizontalBWG = -5, VerticalBWG = -5,
+    EncodedCharacters = 20, TotalCodewords = 50, DataCodewords = 30,
+    ErrorCorrectionBudget = 20, ErrorsCorrected = 0, ErrorCapacityUsed = 0,
+    ErrorCorrectionType = "ECC 200", ImagePolarity = ImagePolarity.WhiteOnBlack,
+    NominalXDim_2D = 19.6m, PixelsPerModule = 33.0m,
+    UEC_Percent = 100, UEC_Grade = t4Pass4A, SC_Percent = 94, SC_Grade = t4Pass4A,
+    MOD_Grade = t4Pass4A, RM_Grade = t4Pass4A, ANU_Percent = 0.2m, ANU_Grade = t4Pass4A,
+    GNU_Percent = 2.1m, GNU_Grade = t4Pass4A, FPD_Grade = t4Pass4A,
+    LLS_Grade = t4Pass4A, BLS_Grade = t4Pass4A, LQZ_Grade = t4Pass4A,
+    BQZ_Grade = t4Pass4A, TQZ_Grade = t4Pass4A, RQZ_Grade = t4Pass4A,
+    TTR_Percent = 0, TTR_Grade = t4Pass4A, RTR_Percent = 0, RTR_Grade = t4Pass4A,
+    TCT_Grade = t4Pass4A, RCT_Grade = t4Pass4A, AG_Value = 4.0m, AG_Grade = t4Pass4A,
+    DECODE_Grade = t4Pass4A,
+};
+
+// Record T4-4: plain Data Matrix (not GS1)
+var t4Rec4 = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2026, 1, 15, 9, 3, 0),
+    Symbology       = "DataMatrix",
+    SymbologyFamily = SymbologyFamily.DataMatrix,
+    DecodedData     = "PLAIN-DM-T4-TEST",
+    FormalGrade     = "3.5/16/660/45Q",
+    OverallGrade    = GradingResult.FromLetterAndNumeric("B", 3.5m, "PASS"),
+    CustomPassFail  = OverallPassFail.Pass,
+    OperatorId      = t4Session.OperatorId, JobName = t4Session.JobName,
+    RollNumber      = t4Session.RollNumber, CompanyName = t4Session.CompanyName,
+    DeviceSerial    = t4Session.DeviceSerial, DeviceName = t4Session.DeviceName,
+    FirmwareVersion = t4Session.FirmwareVersion, CalibrationDate = t4Session.CalibrationDate,
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+    MatrixSize = "16x16", HorizontalBWG = -3, VerticalBWG = -3,
+    EncodedCharacters = 12, TotalCodewords = 24, DataCodewords = 12,
+    ErrorCorrectionBudget = 12, ErrorsCorrected = 0, ErrorCapacityUsed = 0,
+    ErrorCorrectionType = "ECC 200", ImagePolarity = ImagePolarity.BlackOnWhite,
+    NominalXDim_2D = 25.0m, PixelsPerModule = 41.5m,
+    UEC_Percent = 100, UEC_Grade = t4Pass4A,
+    SC_Percent = 80, SC_Grade = GradingResult.FromLetterAndNumeric("B", 3.5m, "PASS"),
+    MOD_Grade = t4Pass4A, RM_Grade = t4Pass4A, ANU_Percent = 0.5m, ANU_Grade = t4Pass4A,
+    GNU_Percent = 1.0m, GNU_Grade = t4Pass4A, FPD_Grade = t4Pass4A,
+    LLS_Grade = t4Pass4A, BLS_Grade = t4Pass4A, LQZ_Grade = t4Pass4A,
+    BQZ_Grade = t4Pass4A, TQZ_Grade = t4Pass4A, RQZ_Grade = t4Pass4A,
+    TTR_Percent = 0, TTR_Grade = t4Pass4A, RTR_Percent = 0, RTR_Grade = t4Pass4A,
+    TCT_Grade = t4Pass4A, RCT_Grade = t4Pass4A,
+    AG_Value = 3.5m, AG_Grade = GradingResult.FromLetterAndNumeric("B", 3.5m, "PASS"),
+    DECODE_Grade = t4Pass4A,
+};
+
+// Record T4-5: UPC-A (1D, 5 scans)
+var t4Rec5 = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2026, 1, 15, 9, 4, 0),
+    Symbology       = "UPCA",
+    SymbologyFamily = SymbologyFamily.Linear1D,
+    DecodedData     = "012345678905",
+    FormalGrade     = "4.0/06/660",
+    OverallGrade    = t4Pass4A, CustomPassFail = OverallPassFail.Pass,
+    OperatorId      = t4Session.OperatorId, JobName = t4Session.JobName,
+    RollNumber      = t4Session.RollNumber, CompanyName = t4Session.CompanyName,
+    DeviceSerial    = t4Session.DeviceSerial, DeviceName = t4Session.DeviceName,
+    FirmwareVersion = t4Session.FirmwareVersion, CalibrationDate = t4Session.CalibrationDate,
+    Aperture = 6, Wavelength = 660, Standard = "ANSI/ISO",
+    SymbolAnsiGrade = t4Pass4A,
+    ScanResults = Enumerable.Range(1, 5).Select(i => new ScanResult1D
+    {
+        ScanNumber = i, Edge = 4.0m, Reflectance = "87/3",
+        SC = 4.0m, MinEC = 4.0m, MOD = 4.0m, Defect = 4.0m,
+        DCOD = "10/10", DEC = 4.0m, LQZ = 4.0m, RQZ = 4.0m, HQZ = null,
+        PerScanGrade = t4Pass4A,
+    }).ToList(),
+    Avg_Edge = 59m, Avg_RlRd = "87/3", Avg_SC = 84m, Avg_MinEC = 71m,
+    Avg_MOD = 84m, Avg_Defect = 0m, Avg_DCOD = "10/10", Avg_DEC = 82m,
+    Avg_LQZ = 10m, Avg_RQZ = 11m, Avg_HQZ = null, Avg_MinQZ = 10m,
+    BWG_Percent = 8m, BWG_Mil = 1.0m, Magnification = 102m,
+    NominalXDim_1D = 13.2m, InspectionZoneHeight = 293m, DecodableSymbolHeight = 369.7m,
+};
+
+// Record T4-6: EAN-13 (1D, 5 scans)
+var t4Rec6 = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2026, 1, 15, 9, 5, 0),
+    Symbology       = "EAN13",
+    SymbologyFamily = SymbologyFamily.Linear1D,
+    DecodedData     = "5012345678900",
+    FormalGrade     = "4.0/06/660",
+    OverallGrade    = t4Pass4A, CustomPassFail = OverallPassFail.Pass,
+    OperatorId      = t4Session.OperatorId, JobName = t4Session.JobName,
+    RollNumber      = t4Session.RollNumber, CompanyName = t4Session.CompanyName,
+    DeviceSerial    = t4Session.DeviceSerial, DeviceName = t4Session.DeviceName,
+    FirmwareVersion = t4Session.FirmwareVersion, CalibrationDate = t4Session.CalibrationDate,
+    Aperture = 6, Wavelength = 660, Standard = "ANSI/ISO",
+    SymbolAnsiGrade = t4Pass4A,
+    ScanResults = Enumerable.Range(1, 5).Select(i => new ScanResult1D
+    {
+        ScanNumber = i, Edge = 4.0m, Reflectance = "86/3",
+        SC = 4.0m, MinEC = 4.0m, MOD = 4.0m, Defect = 4.0m,
+        DCOD = "10/10", DEC = 4.0m, LQZ = 4.0m, RQZ = 4.0m, HQZ = 4.0m,
+        PerScanGrade = t4Pass4A,
+    }).ToList(),
+    Avg_Edge = 59m, Avg_RlRd = "86/3", Avg_SC = 84m, Avg_MinEC = 69m,
+    Avg_MOD = 83m, Avg_Defect = 0m, Avg_DCOD = "10/10", Avg_DEC = 84m,
+    Avg_LQZ = 8m, Avg_RQZ = 9m, Avg_HQZ = null, Avg_MinQZ = 8m,
+    BWG_Percent = 8m, BWG_Mil = 1.0m, Magnification = 102m,
+    NominalXDim_1D = 13.4m, InspectionZoneHeight = 281m, DecodableSymbolHeight = 352.5m,
+};
+
+var t4Records = new[] { t4Rec1, t4Rec2, t4Rec3, t4Rec4, t4Rec5, t4Rec6 };
+
+// ── Clean up any leftover test file from previous runs ────────────────────────
+var t4OutputPath = ExcelFileManager.ResolveOutputPath(t4Session, OutputFormat.Xlsx);
+var t4SidecarPath = SessionManager.GetSidecarPath(t4OutputPath);
+if (File.Exists(t4OutputPath)) File.Delete(t4OutputPath);
+if (File.Exists(t4SidecarPath)) File.Delete(t4SidecarPath);
+
+// ── SessionManager lifecycle test ─────────────────────────────────────────────
+Console.WriteLine("\nSessionManager lifecycle:");
+using var t4Mgr = new SessionManager(schema);
+
+string openedPath = t4Mgr.StartSession(t4Session);
+Console.WriteLine($"  Session opened: {openedPath}");
+
+// Sidecar must exist immediately after StartSession.
+bool sidecarCreated = File.Exists(t4SidecarPath);
+Console.WriteLine($"  Sidecar created on StartSession: {sidecarCreated}");
+
+foreach (var rec in t4Records)
+    t4Mgr.AddRecord(rec);
+
+int recordsWrittenBeforeClose = t4Mgr.RecordsWritten;
+Console.WriteLine($"  Records written: {recordsWrittenBeforeClose} (expect 6)");
+
+// Sidecar must still exist while session is open.
+bool sidecarStillPresent = File.Exists(t4SidecarPath);
+Console.WriteLine($"  Sidecar present while open:     {sidecarStillPresent}");
+
+t4Mgr.CloseSession();
+
+// Sidecar must be deleted after clean close.
+bool sidecarDeleted = !File.Exists(t4SidecarPath);
+Console.WriteLine($"  Sidecar deleted after close:    {sidecarDeleted}");
+
+// ── Verify output file structure ──────────────────────────────────────────────
+Console.WriteLine("\nVerifying Task 4 output file...");
+var t4FileInfo = new FileInfo(t4OutputPath);
+Console.WriteLine($"  File size: {t4FileInfo.Length:N0} bytes");
+
+using var t4Pkg = new OfficeOpenXml.ExcelPackage(t4FileInfo);
+var t4Main = t4Pkg.Workbook.Worksheets["Main"];
+int t4Rows = t4Main?.Dimension?.Rows ?? 0;
+int t4Cols = t4Main?.Dimension?.Columns ?? 0;
+Console.WriteLine($"  Main sheet: {t4Rows} rows x {t4Cols} columns");
+
+// Row layout:
+//   Row 1 = Title + SchemaVersion
+//   Row 2 = Header
+//   Rows 3-6 = 4× 2D records (T4-1..T4-4)
+//   Row 7 = UPC-A summary, Rows 8..12 = 5 scan sub-rows
+//   Row 13 = EAN-13 summary, Rows 14..18 = 5 scan sub-rows
+// Total = 18 rows
+Console.WriteLine($"  Expected 18 rows (2 hdr + 4 2D + 1+5 UPC-A + 1+5 EAN-13)");
+
+// SchemaVersion header check (cells in title row past last schema column)
+int svCol = schema.Columns.Count + 2; // startCol in SchemaVersionWriter
+string svMarker  = t4Main?.Cells[1, svCol    ].Text ?? "";
+string svName    = t4Main?.Cells[1, svCol + 1].Text ?? "";
+string svVersion = t4Main?.Cells[1, svCol + 2].Text ?? "";
+Console.WriteLine($"  SchemaVersion row 1 col {svCol}:   '{svMarker}' (expect 'VTCCP')");
+Console.WriteLine($"  SchemaVersion row 1 col {svCol+1}: '{svName}'   (expect '{schema.Name}')");
+Console.WriteLine($"  SchemaVersion row 1 col {svCol+2}: '{svVersion}' (expect '{schema.Version}')");
+
+// Data rows spot-check
+Console.WriteLine($"  Row 3 symbology (GS1 DM):    '{t4Main?.Cells[3,  9].Text}' (expect 'GS1 DataMatrix')");
+Console.WriteLine($"  Row 4 symbology (GS1 DM):    '{t4Main?.Cells[4,  9].Text}' (expect 'GS1 DataMatrix')");
+Console.WriteLine($"  Row 5 symbology (GS1 DM):    '{t4Main?.Cells[5,  9].Text}' (expect 'GS1 DataMatrix')");
+Console.WriteLine($"  Row 6 symbology (DM):        '{t4Main?.Cells[6,  9].Text}' (expect 'DataMatrix')");
+Console.WriteLine($"  Row 7 symbology (UPC-A):     '{t4Main?.Cells[7,  9].Text}' (expect 'UPCA')");
+Console.WriteLine($"  Row 8  col 1 (UPC-A Scan 1): '{t4Main?.Cells[8,  1].Text}' (expect 'Scan 1')");
+Console.WriteLine($"  Row 12 col 1 (UPC-A Scan 5): '{t4Main?.Cells[12, 1].Text}' (expect 'Scan 5')");
+Console.WriteLine($"  Row 13 symbology (EAN-13):   '{t4Main?.Cells[13, 9].Text}' (expect 'EAN13')");
+Console.WriteLine($"  Row 14 col 1 (EAN Scan 1):   '{t4Main?.Cells[14, 1].Text}' (expect 'Scan 1')");
+Console.WriteLine($"  Row 18 col 1 (EAN Scan 5):   '{t4Main?.Cells[18, 1].Text}' (expect 'Scan 5')");
+
+// ── Full Task 4 pass/fail ─────────────────────────────────────────────────────
+bool t4Pass =
+    recordsWrittenBeforeClose == 6 &&
+    sidecarCreated        == true &&
+    sidecarStillPresent   == true &&
+    sidecarDeleted        == true &&
+    t4Rows                == 18 &&
+    svMarker              == "VTCCP" &&
+    svName                == schema.Name &&
+    svVersion             == schema.Version &&
+    t4Main!.Cells[3, 9].Text == "GS1 DataMatrix" &&
+    t4Main.Cells[4, 9].Text  == "GS1 DataMatrix" &&
+    t4Main.Cells[5, 9].Text  == "GS1 DataMatrix" &&
+    t4Main.Cells[6, 9].Text  == "DataMatrix" &&
+    t4Main.Cells[7, 9].Text  == "UPCA" &&
+    t4Main.Cells[8, 1].Text  == "Scan 1" &&
+    t4Main.Cells[12, 1].Text == "Scan 5" &&
+    t4Main.Cells[13, 9].Text == "EAN13" &&
+    t4Main.Cells[14, 1].Text == "Scan 1" &&
+    t4Main.Cells[18, 1].Text == "Scan 5";
+
+Console.WriteLine($"\nTask 4 verification: {(t4Pass ? "PASS" : "FAIL")}");
+if (!t4Pass)
+{
+    Console.WriteLine("  Diagnostics:");
+    if (recordsWrittenBeforeClose != 6)  Console.WriteLine($"    RecordsWritten = {recordsWrittenBeforeClose} (expect 6)");
+    if (!sidecarCreated)                 Console.WriteLine("    Sidecar not created on StartSession");
+    if (!sidecarStillPresent)            Console.WriteLine("    Sidecar missing while session open");
+    if (!sidecarDeleted)                 Console.WriteLine("    Sidecar not deleted after CloseSession");
+    if (t4Rows != 18)                    Console.WriteLine($"    Rows = {t4Rows} (expect 18)");
+    if (svMarker  != "VTCCP")            Console.WriteLine($"    svMarker  = '{svMarker}'");
+    if (svName    != schema.Name)        Console.WriteLine($"    svName    = '{svName}'");
+    if (svVersion != schema.Version)     Console.WriteLine($"    svVersion = '{svVersion}'");
+}
+
+Console.WriteLine("\nTask 4 complete.");
 

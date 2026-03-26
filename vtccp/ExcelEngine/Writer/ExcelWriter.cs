@@ -147,6 +147,10 @@ public sealed class ExcelWriter : IDisposable
                     $" | Roll: {_session.RollNumber}";
         _adapter.WriteString(TitleRow, 1, title);
         _adapter.SetRowBold(TitleRow, _schema.Columns.Count);
+
+        // Write schema version metadata past the last data column so downstream
+        // tooling can distinguish VTCCP-generated files from legacy Webscan files.
+        SchemaVersionWriter.Write(_adapter, _schema, TitleRow);
     }
 
     private void WriteHeaderRow()

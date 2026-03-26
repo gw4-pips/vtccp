@@ -7,6 +7,7 @@ namespace ExcelEngine.Schema;
 public sealed class ColumnSchema
 {
     public required string Name { get; init; }
+    public string Version { get; init; } = "1.0";
     public string? Description { get; init; }
     public required IReadOnlyList<ColumnDefinition> Columns { get; init; }
 

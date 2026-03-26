@@ -27,11 +27,11 @@ public static class ExcelFileManager
         string baseName;
         if (!string.IsNullOrWhiteSpace(session.JobName))
         {
-            baseName = Sanitize(session.JobName) + "_" + date;
+            baseName = SanitizeFileName(session.JobName) + "_" + date;
         }
         else if (!string.IsNullOrWhiteSpace(session.OperatorId))
         {
-            baseName = "VTCCP_" + Sanitize(session.OperatorId) + "_" + date;
+            baseName = "VTCCP_" + SanitizeFileName(session.OperatorId) + "_" + date;
         }
         else
         {
@@ -87,9 +87,11 @@ public static class ExcelFileManager
     }
 
     /// <summary>
-    /// Sanitize a string for use in a filename — strip illegal characters, collapse spaces to underscores.
+    /// Sanitize a string for use in a filename — replace filesystem-illegal characters and
+    /// spaces with underscores. Characters such as &amp;, /, \, *, ?, [, ] are all handled.
+    /// Note: these characters are preserved as-is in Excel cell content (EPPlus handles escaping).
     /// </summary>
-    private static string Sanitize(string input)
+    public static string SanitizeFileName(string input)
     {
         var invalid = Path.GetInvalidFileNameChars();
         var result = string.Concat(input.Select(c => invalid.Contains(c) ? '_' : c));
