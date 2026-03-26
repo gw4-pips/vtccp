@@ -49,9 +49,14 @@ public sealed class ExcelWriter : IDisposable
     /// <summary>
     /// Open or create the output file and initialise the writer.
     /// Must be called before AppendRecord.
+    /// Throws <see cref="IOException"/> if the file is locked by another process (e.g. Excel).
     /// </summary>
     public void Open(string filePath)
     {
+        var lockError = ExcelFileManager.CheckFileLocked(filePath);
+        if (lockError is not null)
+            throw new IOException(lockError);
+
         bool existed = _adapter.OpenOrCreate(filePath);
         int existingRows = _adapter.EnsureSheet(_sheetName);
 
@@ -195,6 +200,14 @@ public sealed class ExcelWriter : IDisposable
             throw new InvalidOperationException(
                 $"Output file is approaching the {_adapter.MaxDataRows:N0}-row limit " +
                 $"({_dataRowCount:N0} data rows written). Start a new job file.");
+        }
+
+        // XLS near-limit runtime warning (60,000 threshold)
+        if (_adapter.MaxDataRows <= 65_536 && _dataRowCount == 60_000)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP] XLS warning: 60,000 data rows written. " +
+                $"Maximum is {_adapter.MaxDataRows:N0}. Consider starting a new job file soon.");
         }
     }
 }
