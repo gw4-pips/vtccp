@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelEngine", "ExcelEngine\ExcelEngine.csproj", "{FCE6B8A1-81EA-49F0-BEEA-4C4F3F5627D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHarness", "TestHarness\TestHarness.csproj", "{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FCE6B8A1-81EA-49F0-BEEA-4C4F3F5627D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCE6B8A1-81EA-49F0-BEEA-4C4F3F5627D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCE6B8A1-81EA-49F0-BEEA-4C4F3F5627D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCE6B8A1-81EA-49F0-BEEA-4C4F3F5627D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

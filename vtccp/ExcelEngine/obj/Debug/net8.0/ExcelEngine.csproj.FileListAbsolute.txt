@@ -1,0 +1,12 @@
+/home/runner/workspace/vtccp/ExcelEngine/bin/Debug/net8.0/ExcelEngine.deps.json
+/home/runner/workspace/vtccp/ExcelEngine/bin/Debug/net8.0/ExcelEngine.dll
+/home/runner/workspace/vtccp/ExcelEngine/bin/Debug/net8.0/ExcelEngine.pdb
+/home/runner/workspace/vtccp/ExcelEngine/obj/Debug/net8.0/ExcelEngine.csproj.AssemblyReference.cache
+/home/runner/workspace/vtccp/ExcelEngine/obj/Debug/net8.0/ExcelEngine.GeneratedMSBuildEditorConfig.editorconfig
+/home/runner/workspace/vtccp/ExcelEngine/obj/Debug/net8.0/ExcelEngine.AssemblyInfoInputs.cache
+/home/runner/workspace/vtccp/ExcelEngine/obj/Debug/net8.0/ExcelEngine.AssemblyInfo.cs
+/home/runner/workspace/vtccp/ExcelEngine/obj/Debug/net8.0/ExcelEngine.csproj.CoreCompileInputs.cache
+/home/runner/workspace/vtccp/ExcelEngine/obj/Debug/net8.0/ExcelEngine.dll
+/home/runner/workspace/vtccp/ExcelEngine/obj/Debug/net8.0/refint/ExcelEngine.dll
+/home/runner/workspace/vtccp/ExcelEngine/obj/Debug/net8.0/ExcelEngine.pdb
+/home/runner/workspace/vtccp/ExcelEngine/obj/Debug/net8.0/ref/ExcelEngine.dll
