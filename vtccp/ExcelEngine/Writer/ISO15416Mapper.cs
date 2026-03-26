@@ -59,6 +59,9 @@ public static class ISO15416Mapper
         d["Avg_Defect"] = ToDouble(r.Avg_Defect);
         d["Avg_DCOD"]   = r.Avg_DCOD;
         d["Avg_DEC"]    = ToDouble(r.Avg_DEC);
+        d["Avg_LQZ"]    = ToDouble(r.Avg_LQZ);
+        d["Avg_RQZ"]    = ToDouble(r.Avg_RQZ);
+        d["Avg_HQZ"]    = ToDouble(r.Avg_HQZ);
         d["Avg_MinQZ"]  = ToDouble(r.Avg_MinQZ);
 
         // General Characteristics

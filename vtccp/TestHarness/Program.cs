@@ -541,7 +541,10 @@ var upcaRecord = new VerificationRecord
     Avg_Defect  = 0m,
     Avg_DCOD    = "10/10",
     Avg_DEC     = 82m,
-    Avg_MinQZ   = 10m,
+    Avg_LQZ     = 10m,
+    Avg_RQZ     = 11m,
+    Avg_HQZ     = null,   // UPC-A has no horizontal quiet zone measurement
+    Avg_MinQZ   = 10m,    // min(10, 11) = 10
 
     // General Characteristics
     BWG_Percent           = 8m,
@@ -618,7 +621,10 @@ var ean13Record = new VerificationRecord
     Avg_Defect  = 0m,
     Avg_DCOD    = "10/10",
     Avg_DEC     = 84m,
-    Avg_MinQZ   = 8m,
+    Avg_LQZ     = 8m,
+    Avg_RQZ     = 9m,
+    Avg_HQZ     = null,   // EAN-13 has no horizontal quiet zone measurement
+    Avg_MinQZ   = 8m,     // min(8, 9) = 8
 
     BWG_Percent           = 8m,
     BWG_Mil               = 1.0m,
@@ -736,19 +742,47 @@ using (var pkg3 = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsx1DPath)))
     // ── Per-scan sub-table verification ───────────────────────────────────────
     // Layout: row 3 = UPC-A summary, rows 4..13 = 10 scan sub-rows, row 14 = EAN-13 summary
     int scanLabelCol = 1;   // "Scan N" written to Date column (col 1)
+
+    // Find LQZ/RQZ/HQZ/MinQZ column positions from header row
+    int avgLqzCol = -1, avgRqzCol = -1, avgHqzCol = -1, avgMinQzCol = -1;
+    for (int c = 1; c <= mainCols; c++)
+    {
+        var hdr = wsMain?.Cells[2, c].Text ?? "";
+        if (hdr == "QZ-L")  avgLqzCol   = c;
+        if (hdr == "QZ-R")  avgRqzCol   = c;
+        if (hdr == "QZ-H")  avgHqzCol   = c;
+        if (hdr == "MinQZ") avgMinQzCol = c;
+    }
     Console.WriteLine($"\n  Per-scan sub-table verification:");
+    Console.WriteLine($"  LQZ col: {avgLqzCol}, RQZ col: {avgRqzCol}, HQZ col: {avgHqzCol}, MinQZ col: {avgMinQzCol}");
+    Console.WriteLine($"  Row 3 UPC-A summary: LQZ='{wsMain?.Cells[3, avgLqzCol].Text}' RQZ='{wsMain?.Cells[3, avgRqzCol].Text}' MinQZ='{wsMain?.Cells[3, avgMinQzCol].Text}'");
     Console.WriteLine($"  Row 4 col 1 (Scan 1 label):  '{wsMain?.Cells[4, scanLabelCol].Text}'");
     Console.WriteLine($"  Row 4 Edge value (col {avgEdgeCol}): '{wsMain?.Cells[4, avgEdgeCol].Text}' (expect 4)");
     Console.WriteLine($"  Row 4 SC value (col {avgScCol}):   '{wsMain?.Cells[4, avgScCol].Text}' (expect 4)");
+    Console.WriteLine($"  Row 4 LQZ (col {avgLqzCol}): '{wsMain?.Cells[4, avgLqzCol].Text}' (expect 4)");
+    Console.WriteLine($"  Row 4 RQZ (col {avgRqzCol}): '{wsMain?.Cells[4, avgRqzCol].Text}' (expect 4)");
+    Console.WriteLine($"  Row 4 HQZ (col {avgHqzCol}): '{wsMain?.Cells[4, avgHqzCol].Text}' (expect 4)");
+    Console.WriteLine($"  Row 4 MinQZ (col {avgMinQzCol}): '{wsMain?.Cells[4, avgMinQzCol].Text}' (expect 4 = min(4,4,4))");
     Console.WriteLine($"  Row 13 col 1 (Scan 10 label): '{wsMain?.Cells[13, scanLabelCol].Text}'");
     Console.WriteLine($"  Row 14 Symbology (EAN-13):    '{wsMain?.Cells[14, 9].Text}' (expect EAN13)");
     Console.WriteLine($"  Row 14 Data:                  '{wsMain?.Cells[14, 10].Text}'");
+    // UPC-A summary row: LQZ=10, RQZ=11, MinQZ=10
+    Console.WriteLine($"  UPC-A summary Avg_LQZ: '{wsMain?.Cells[3, avgLqzCol].Text}' (expect 10)");
+    Console.WriteLine($"  UPC-A summary Avg_RQZ: '{wsMain?.Cells[3, avgRqzCol].Text}' (expect 11)");
+    Console.WriteLine($"  UPC-A summary Avg_MinQZ: '{wsMain?.Cells[3, avgMinQzCol].Text}' (expect 10)");
 
     // 1D verification assertions
-    bool scan1Label = wsMain?.Cells[4, scanLabelCol].Text == "Scan 1";
-    bool scan1Edge  = wsMain?.Cells[4, avgEdgeCol].Text == "4";
-    bool scan10Label= wsMain?.Cells[13, scanLabelCol].Text == "Scan 10";
-    bool ean13Row   = wsMain?.Cells[14, 9].Text == "EAN13";
+    bool scan1Label    = wsMain?.Cells[4, scanLabelCol].Text == "Scan 1";
+    bool scan1Edge     = wsMain?.Cells[4, avgEdgeCol].Text == "4";
+    bool scan1Lqz      = avgLqzCol > 0 && wsMain?.Cells[4, avgLqzCol].Text == "4";
+    bool scan1Rqz      = avgRqzCol > 0 && wsMain?.Cells[4, avgRqzCol].Text == "4";
+    bool scan1Hqz      = avgHqzCol > 0 && wsMain?.Cells[4, avgHqzCol].Text == "4";
+    bool scan1MinQz    = avgMinQzCol > 0 && wsMain?.Cells[4, avgMinQzCol].Text == "4";
+    bool scan10Label   = wsMain?.Cells[13, scanLabelCol].Text == "Scan 10";
+    bool ean13Row      = wsMain?.Cells[14, 9].Text == "EAN13";
+    bool upcaAvgLqz    = avgLqzCol > 0 && wsMain?.Cells[3, avgLqzCol].Text == "10";
+    bool upcaAvgRqz    = avgRqzCol > 0 && wsMain?.Cells[3, avgRqzCol].Text == "11";
+    bool upcaAvgMinQz  = avgMinQzCol > 0 && wsMain?.Cells[3, avgMinQzCol].Text == "10";
 
     bool oneDPass =
         mainCols == schema.Columns.Count &&
@@ -758,15 +792,25 @@ using (var pkg3 = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsx1DPath)))
         avgScCol   > 0 && wsMain.Cells[3, avgScCol].Text   == "84" &&
         bwgPctCol  > 0 && wsMain.Cells[3, bwgPctCol].Text  == "8" &&
         string.IsNullOrEmpty(uecVal) &&
-        scan1Label && scan1Edge && scan10Label && ean13Row &&
+        scan1Label && scan1Edge &&
+        scan1Lqz && scan1Rqz && scan1Hqz && scan1MinQz &&
+        scan10Label && ean13Row &&
+        upcaAvgLqz && upcaAvgRqz && upcaAvgMinQz &&
         ewSheetExists &&
         wsEW!.Cells[4, 1].Text == "LGB";  // first data row element name
 
     Console.WriteLine($"\n  1D verification: {(oneDPass ? "PASS" : "FAIL")}");
     if (!scan1Label)   Console.WriteLine($"    FAIL: scan 1 label = '{wsMain?.Cells[4, scanLabelCol].Text}'");
     if (!scan1Edge)    Console.WriteLine($"    FAIL: scan 1 edge  = '{wsMain?.Cells[4, avgEdgeCol].Text}'");
+    if (!scan1Lqz)     Console.WriteLine($"    FAIL: scan 1 LQZ   = '{wsMain?.Cells[4, avgLqzCol].Text}'");
+    if (!scan1Rqz)     Console.WriteLine($"    FAIL: scan 1 RQZ   = '{wsMain?.Cells[4, avgRqzCol].Text}'");
+    if (!scan1Hqz)     Console.WriteLine($"    FAIL: scan 1 HQZ   = '{wsMain?.Cells[4, avgHqzCol].Text}'");
+    if (!scan1MinQz)   Console.WriteLine($"    FAIL: scan 1 MinQZ = '{wsMain?.Cells[4, avgMinQzCol].Text}'");
     if (!scan10Label)  Console.WriteLine($"    FAIL: scan 10 label= '{wsMain?.Cells[13, scanLabelCol].Text}'");
     if (!ean13Row)     Console.WriteLine($"    FAIL: EAN-13 at row 14 = '{wsMain?.Cells[14, 9].Text}'");
+    if (!upcaAvgLqz)   Console.WriteLine($"    FAIL: UPC-A Avg_LQZ  = '{wsMain?.Cells[3, avgLqzCol].Text}'");
+    if (!upcaAvgRqz)   Console.WriteLine($"    FAIL: UPC-A Avg_RQZ  = '{wsMain?.Cells[3, avgRqzCol].Text}'");
+    if (!upcaAvgMinQz) Console.WriteLine($"    FAIL: UPC-A Avg_MinQZ= '{wsMain?.Cells[3, avgMinQzCol].Text}'");
 
     // Mixed-symbology file check
     // Row layout with scan sub-rows:

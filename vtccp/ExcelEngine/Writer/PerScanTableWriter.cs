@@ -47,7 +47,10 @@ public sealed class PerScanTableWriter
     private int _colDefect;
     private int _colDCOD;
     private int _colDEC;
-    private int _colMinQZ;
+    private int _colLQZ;          // Left Quiet Zone — written individually per scan
+    private int _colRQZ;          // Right Quiet Zone — written individually per scan
+    private int _colHQZ;          // High/Header Quiet Zone — written individually per scan
+    private int _colMinQZ;        // Derived minimum of LQZ/RQZ[/HQZ] — written per scan
     private int _colPerScanGrade;
     private bool _resolved;
 
@@ -94,15 +97,20 @@ public sealed class PerScanTableWriter
             if (scan.Defect.HasValue)     _adapter.WriteNumber(row, _colDefect, (double)scan.Defect.Value);
             if (scan.DCOD is not null)    _adapter.WriteString(row, _colDCOD,   scan.DCOD);
             if (scan.DEC.HasValue)        _adapter.WriteNumber(row, _colDEC,    (double)scan.DEC.Value);
-            if (scan.LQZ.HasValue && scan.RQZ.HasValue)
+
+            // Write LQZ, RQZ, HQZ individually into their own schema columns
+            if (scan.LQZ.HasValue)        _adapter.WriteNumber(row, _colLQZ,    (double)scan.LQZ.Value);
+            if (scan.RQZ.HasValue)        _adapter.WriteNumber(row, _colRQZ,    (double)scan.RQZ.Value);
+            if (scan.HQZ.HasValue)        _adapter.WriteNumber(row, _colHQZ,    (double)scan.HQZ.Value);
+
+            // Also write the derived MinQZ (minimum of individual QZ measurements)
+            if (scan.LQZ.HasValue || scan.RQZ.HasValue)
             {
-                // MinQZ is the lesser of LQZ/RQZ (or HQZ when present) per the standard
-                decimal minQZ = scan.HQZ.HasValue
-                    ? Math.Min(scan.LQZ.Value, Math.Min(scan.RQZ.Value, scan.HQZ.Value))
-                    : Math.Min(scan.LQZ.Value, scan.RQZ.Value);
-                _adapter.WriteNumber(row, _colMinQZ, (double)minQZ);
+                var candidates = new[] { scan.LQZ, scan.RQZ, scan.HQZ }
+                    .Where(v => v.HasValue)
+                    .Select(v => v!.Value);
+                _adapter.WriteNumber(row, _colMinQZ, (double)candidates.Min());
             }
-            else if (scan.LQZ.HasValue)   _adapter.WriteNumber(row, _colMinQZ, (double)scan.LQZ.Value);
 
             // Per-scan grade
             if (scan.PerScanGrade?.NumericGrade.HasValue == true)
@@ -129,6 +137,9 @@ public sealed class PerScanTableWriter
         _colDefect       = RequireCol("Avg_Defect");
         _colDCOD         = RequireCol("Avg_DCOD");
         _colDEC          = RequireCol("Avg_DEC");
+        _colLQZ          = RequireCol("Avg_LQZ");
+        _colRQZ          = RequireCol("Avg_RQZ");
+        _colHQZ          = RequireCol("Avg_HQZ");
         _colMinQZ        = RequireCol("Avg_MinQZ");
         _colPerScanGrade = RequireCol("SymbolAnsiGrade_Numeric");
 

@@ -160,7 +160,9 @@ public sealed class XlsAdapter : IExcelAdapter
         {
             colorIndex = HSSFColor.LightBlue.Index;
         }
+        // Clone existing cell style so bold/font settings from SetCellBold are preserved.
         var style = _wb!.CreateCellStyle();
+        style.CloneStyleFrom(cell.CellStyle ?? _wb.CreateCellStyle());
         style.FillForegroundColor = colorIndex;
         style.FillPattern = FillPattern.SolidForeground;
         cell.CellStyle = style;

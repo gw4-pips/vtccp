@@ -75,6 +75,9 @@ public static class WebscanCompatibleSchema
         cols.Add(Col("Avg_Defect", "DEF",     8,  SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("Avg_DCOD",   "DCOD",    8,  SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("Avg_DEC",    "DEC",     8,  SymbologyGroup.Linear1D, fam1D));
+        cols.Add(Col("Avg_LQZ",    "QZ-L",    8,  SymbologyGroup.Linear1D, fam1D));
+        cols.Add(Col("Avg_RQZ",    "QZ-R",    8,  SymbologyGroup.Linear1D, fam1D));
+        cols.Add(Col("Avg_HQZ",    "QZ-H",    8,  SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("Avg_MinQZ",  "MinQZ",   8,  SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("BWG_Percent","BWG%",    8,  SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("BWG_Mil",    "BWG(MIL)",10, SymbologyGroup.Linear1D, fam1D));

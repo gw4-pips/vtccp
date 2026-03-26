@@ -75,7 +75,10 @@ public sealed class VerificationRecord
     public decimal? Avg_Defect { get; init; }
     public string? Avg_DCOD { get; init; }
     public decimal? Avg_DEC { get; init; }
-    public decimal? Avg_MinQZ { get; init; }
+    public decimal? Avg_LQZ { get; init; }   // Average Left Quiet Zone measurement
+    public decimal? Avg_RQZ { get; init; }   // Average Right Quiet Zone measurement
+    public decimal? Avg_HQZ { get; init; }   // Average High (top/header) Quiet Zone (some symbologies)
+    public decimal? Avg_MinQZ { get; init; } // Min(LQZ, RQZ [, HQZ]) — derived summary
 
     // 1D General Characteristics
     public decimal? BWG_Percent { get; init; }
