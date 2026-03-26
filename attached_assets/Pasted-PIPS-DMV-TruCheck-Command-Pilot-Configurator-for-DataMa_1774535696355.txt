@@ -1,0 +1,14 @@
+PIPS DMV TruCheck Command Pilot -- Configurator for DataMan Setup Tool
+
+This application is a utility that provides  simplified configuration and control of the COGNEX DataMan Setup Tool (DMST) specifically as DMST is used to access and control the Webscan-like "TruCheck" interface to Cognex DMV series of their imager-based readers specifically configured and marketed as ISO/IEC compliant barcode (bar code) print quality verifiers; and to provide enhanced report configuration and results logging functionality available in the current (original) Webscan TruCheck USB GUI but not (as yet) offered by Cognex when using their DMST interface.
+
+The concept is that the PIPS TruCheck Command Pilot (PTCCP) for DMV Verifiers would be a front end used to launch the Cognex DMST application, select the Cognex DMV verifier (identified by SN or MAC address and stored in a configuration database, possibly with other previously designated DMV verifiers on the same network) designate by the user, read and load the currently stored verifier configuration from the DMV unit.
+
+The application would further provide the means to designate/select PIPS-designed or user-specified stored configuration settings from a table within the Command Pilot application.  These templates would be created via a Command Pilot GUI functionally  identical (and substantially similar to the original Webscan TruCheck interface but sufficiently different so as to avoid copyright infringement) and stored in the PTCCP template database.  
+
+These configuration settings would be implemented within the DMV verifier  via a script conforming to Cognex's established industrial control scripting language.  It is thought as a design consideration that there could be a translation table within PTCCP that maps the configuration options from these templates to the specific DMST script commands and that the correct script would be generated, tested and stored and not configured on the fly each time.  TBD.
+
+A further fundamental feature of PTCCP (and perhaps paramount as an initial development goal) is to replicate the Excel verification results data capture feature currently embedded within the Webscan TruCheck application.  Again, this functionality would be developed using DMST scripting.
+
+Readily derived from this key feature would be a further ability to customize the fixed format DMST verifier HTML on-screen (or printed as PDF) report, again in substantially the same way was as the Webscan TruCheck software provides. 
+
