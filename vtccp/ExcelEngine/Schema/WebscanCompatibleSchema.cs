@@ -212,8 +212,24 @@ public static class WebscanCompatibleSchema
         cols.Add(Col("QR_MaskPattern",     "QR Mask",             8, SymbologyGroup.TwoDQR,
             new[] { SymbologyFamily.QRCode, SymbologyFamily.GS1QRCode }));
 
-        // Custom note — appended at end (VTCCP addition)
+        // Custom note
         cols.Add(Col("CustomNote",         "Custom Note",         30, SymbologyGroup.Universal));
+
+        // ── Block I: GS1 / Data Format Check ──────────────────────────────────
+        // One overall standard+status column, then up to 8 AI row slots.
+        // GS1 DataMatrix and GS1 QR records populate these; others leave blank.
+        var famGS1 = new[]
+        {
+            SymbologyFamily.GS1DataMatrix, SymbologyFamily.GS1QRCode,
+        };
+
+        cols.Add(Col("DFC_Standard", "DFC Standard", 28, SymbologyGroup.Universal, famGS1));
+        for (int slot = 1; slot <= 8; slot++)
+        {
+            cols.Add(Col($"DFC_R{slot}_Name",  $"DFC R{slot} Name",  18, SymbologyGroup.Universal, famGS1));
+            cols.Add(Col($"DFC_R{slot}_Data",  $"DFC R{slot} Data",  24, SymbologyGroup.Universal, famGS1));
+            cols.Add(Col($"DFC_R{slot}_Check", $"DFC R{slot} Check", 10, SymbologyGroup.Universal, famGS1));
+        }
 
         return cols;
     }

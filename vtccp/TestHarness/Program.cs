@@ -330,3 +330,41 @@ var noJobNoOp = new SessionState { SessionStarted = new DateTime(2025, 8, 11) };
 Console.WriteLine($"  Fallback:    {ExcelFileManager.GenerateFileName(noJobNoOp, OutputFormat.Xlsx)}");
 
 Console.WriteLine("\nTask 2 complete.");
+
+// ─── DFC column verification ───────────────────────────────────────────────────
+Console.WriteLine("\nVerifying GS1 DFC columns...");
+using (var pkg2 = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsxPath)))
+{
+    var ws2 = pkg2.Workbook.Worksheets["Main"];
+    // Find DFC_Standard column by scanning header row
+    int dfcCol = -1;
+    for (int c = 1; c <= ws2.Dimension.Columns; c++)
+        if (ws2.Cells[2, c].Text == "DFC Standard") { dfcCol = c; break; }
+
+    Console.WriteLine($"  DFC_Standard column: {dfcCol}");
+    // record3 = row 5 (row 1=title, 2=header, 3=rec1, 4=rec2, 5=rec3)
+    Console.WriteLine($"  DFC_Standard (rec3, has DFC): '{ws2.Cells[5, dfcCol].Text}'");
+    Console.WriteLine($"  DFC R1 Name  (rec3): '{ws2.Cells[5, dfcCol+1].Text}'");
+    Console.WriteLine($"  DFC R1 Data  (rec3): '{ws2.Cells[5, dfcCol+2].Text}'");
+    Console.WriteLine($"  DFC R1 Check (rec3): '{ws2.Cells[5, dfcCol+3].Text}'");
+    Console.WriteLine($"  DFC R6 Name  (rec3): '{ws2.Cells[5, dfcCol+16].Text}'");
+    Console.WriteLine($"  DFC R6 Data  (rec3): '{ws2.Cells[5, dfcCol+17].Text}'");
+    Console.WriteLine($"  DFC_Standard (rec1, no DFC): '{ws2.Cells[3, dfcCol].Text}'");
+
+    // Col offsets from dfcStdCol:
+    //  +0  = DFC_Standard
+    //  +1  = DFC_R1_Name, +2 = DFC_R1_Data, +3 = DFC_R1_Check
+    //  ...
+    //  +13 = DFC_R5_Name (AI:BatchLot), +14 = DFC_R5_Data, +15 = DFC_R5_Check
+    //  +16 = DFC_R6_Name (BatchLot),    +17 = DFC_R6_Data, +18 = DFC_R6_Check
+    bool dfcPass = ws2.Cells[5, dfcCol].Text.Contains("GS1 Application Data Format") &&
+                   ws2.Cells[5, dfcCol].Text.Contains("PASS") &&
+                   ws2.Cells[5, dfcCol+1].Text == "GS1 Header" &&
+                   ws2.Cells[5, dfcCol+2].Text == "<F1>" &&
+                   ws2.Cells[5, dfcCol+3].Text == "PASS" &&
+                   ws2.Cells[5, dfcCol+13].Text == "AI:BatchLot" &&
+                   ws2.Cells[5, dfcCol+16].Text == "BatchLot" &&
+                   ws2.Cells[5, dfcCol+17].Text == "GRADE-4-A-AI-INC" &&
+                   string.IsNullOrEmpty(ws2.Cells[3, dfcCol].Text);
+    Console.WriteLine($"  DFC verification: {(dfcPass ? "PASS" : "FAIL")}");
+}

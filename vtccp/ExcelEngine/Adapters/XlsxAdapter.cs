@@ -14,7 +14,6 @@ public sealed class XlsxAdapter : IExcelAdapter
     private string _filePath = string.Empty;
 
     public int MaxDataRows => 1_000_000;
-    public int CurrentDataRowCount { get; private set; }
 
     static XlsxAdapter()
     {
@@ -34,8 +33,7 @@ public sealed class XlsxAdapter : IExcelAdapter
     {
         _ws = _pkg!.Workbook.Worksheets[sheetName]
               ?? _pkg.Workbook.Worksheets.Add(sheetName);
-        CurrentDataRowCount = Math.Max(0, _ws.Dimension?.Rows ?? 0);
-        return CurrentDataRowCount;
+        return Math.Max(0, _ws.Dimension?.Rows ?? 0);
     }
 
     public void WriteString(int row, int col, string? value)

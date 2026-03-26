@@ -10,9 +10,12 @@ using ExcelEngine.Schema;
 /// to match the Webscan TruCheck "Main" worksheet layout.
 ///
 /// Row layout:
-///   Row 1: Title row — "VCCS DMV TruCheck Command Pilot vX.X — Job: {job}" (merged conceptually)
-///   Row 2: Column header labels
+///   Row 1: Title row — "VCCS DMV TruCheck Command Pilot — Job: {job} | ..."
+///   Row 2: Column header labels (bold, blue background)
 ///   Row 3+: Data rows (one per VerificationRecord)
+///
+/// GS1 Data Format Check fields are written as dedicated columns
+/// in the same data row (DFC_Standard, DFC_R1_Name/Data/Check ... DFC_R8_*).
 /// </summary>
 public sealed class ExcelWriter : IDisposable
 {
@@ -26,10 +29,14 @@ public sealed class ExcelWriter : IDisposable
     private readonly string _sheetName;
 
     private int _nextDataRow;
+    private int _dataRowCount;
     private bool _headersWritten;
 
-    // Background colour for header row (Webscan uses a mid-blue; approximate with RGB 68 114 196)
+    // Header row background colour — Webscan uses mid-blue (RGB 68 114 196)
     private const uint HeaderBgArgb = 0x4472C4;
+
+    /// <summary>Number of data rows written so far (not counting title/header rows).</summary>
+    public int DataRowCount => _dataRowCount;
 
     public ExcelWriter(IExcelAdapter adapter, ColumnSchema schema, SessionState session, string sheetName = "Main")
     {
@@ -50,24 +57,23 @@ public sealed class ExcelWriter : IDisposable
 
         if (existed && existingRows >= FirstDataRow)
         {
-            // Append mode — headers already written
             _headersWritten = true;
             _nextDataRow = existingRows + 1;
+            _dataRowCount = existingRows - (FirstDataRow - 1);
         }
         else
         {
-            // New file or empty sheet
             _headersWritten = false;
             _nextDataRow = FirstDataRow;
+            _dataRowCount = 0;
         }
 
-        // Always set column widths (idempotent for appending)
         ApplyColumnWidths();
     }
 
     /// <summary>
     /// Write a single VerificationRecord as the next data row.
-    /// Writes header rows first if this is a new file.
+    /// Writes title + header rows first if this is a new file.
     /// </summary>
     public void AppendRecord(VerificationRecord record)
     {
@@ -80,18 +86,17 @@ public sealed class ExcelWriter : IDisposable
             _headersWritten = true;
         }
 
-        var values = record.SymbologyFamily == SymbologyFamily.Linear1D
-            ? throw new NotSupportedException("Use the 1D mapper for ISO 15416 records (Task 3).")
-            : DataMatrix2DMapper.Map(record, _schema);
+        if (record.SymbologyFamily == SymbologyFamily.Linear1D)
+            throw new NotSupportedException("Use the 1D mapper for ISO 15416 records (Task 3).");
 
+        var values = DataMatrix2DMapper.Map(record, _schema);
         WriteDataRow(_nextDataRow, values);
 
-        // GS1 Data Format Check is recorded as extra cells on the same row
-        // by convention — the Webscan layout places the DFC data in dedicated columns
-        // (not appended as extra rows), so nothing extra to write here.
+        if (record.DataFormatCheck is not null)
+            WriteDfcColumns(_nextDataRow, record.DataFormatCheck);
 
         _nextDataRow++;
-        _adapter.CurrentDataRowCount.ToString(); // force property read (no-op, just reference)
+        _dataRowCount++;
     }
 
     /// <summary>Save and close the underlying file.</summary>
@@ -103,7 +108,8 @@ public sealed class ExcelWriter : IDisposable
 
     private void WriteTitleRow()
     {
-        var title = $"VCCS DMV TruCheck Command Pilot — Job: {_session.JobName ?? "(no job)"}" +
+        var title = $"VCCS DMV TruCheck Command Pilot" +
+                    $" | Job: {_session.JobName ?? "(no job)"}" +
                     $" | Operator: {_session.OperatorId ?? "-"}" +
                     $" | Roll: {_session.RollNumber}";
         _adapter.WriteString(TitleRow, 1, title);
@@ -113,9 +119,8 @@ public sealed class ExcelWriter : IDisposable
     private void WriteHeaderRow()
     {
         for (int i = 0; i < _schema.Columns.Count; i++)
-        {
             _adapter.WriteString(HeaderRow, i + 1, _schema.Columns[i].DisplayName);
-        }
+
         _adapter.SetRowBold(HeaderRow, _schema.Columns.Count);
         _adapter.SetRowBackground(HeaderRow, _schema.Columns.Count, HeaderBgArgb);
     }
@@ -140,8 +145,6 @@ public sealed class ExcelWriter : IDisposable
             }
             else if (val is string s && !string.IsNullOrEmpty(s))
             {
-                // Try to parse as number for numeric-looking string fields
-                // (e.g. grade values that come back as strings from certain paths)
                 if (col.NumberFormat is not null && double.TryParse(s, out double parsed))
                     _adapter.WriteNumber(rowNum, colNum, parsed, col.NumberFormat);
                 else
@@ -150,22 +153,48 @@ public sealed class ExcelWriter : IDisposable
         }
     }
 
+    /// <summary>
+    /// Write the GS1 Data Format Check block into the dedicated DFC columns of the data row.
+    /// Columns DFC_Standard, DFC_R1_Name/Data/Check … DFC_R8_Name/Data/Check are part of the schema.
+    /// </summary>
+    private void WriteDfcColumns(int rowNum, DataFormatCheckResult dfc)
+    {
+        WriteSchemaCell(rowNum, "DFC_Standard",
+            dfc.Standard is not null
+                ? $"{dfc.Standard}: {dfc.Overall switch { OverallPassFail.Pass => "PASS", OverallPassFail.Fail => "FAIL", _ => "" }}"
+                : null);
+
+        for (int i = 0; i < dfc.Rows.Count && i < 8; i++)
+        {
+            int slot = i + 1;
+            var row = dfc.Rows[i];
+            WriteSchemaCell(rowNum, $"DFC_R{slot}_Name",  row.Name);
+            WriteSchemaCell(rowNum, $"DFC_R{slot}_Data",  row.Data);
+            WriteSchemaCell(rowNum, $"DFC_R{slot}_Check", row.Check);
+        }
+    }
+
+    private void WriteSchemaCell(int rowNum, string fieldId, string? value)
+    {
+        if (value is null) return;
+        var colIdx = _schema.GetColumnIndex(fieldId);
+        if (colIdx.HasValue)
+            _adapter.WriteString(rowNum, colIdx.Value, value);
+    }
+
     private void ApplyColumnWidths()
     {
         for (int i = 0; i < _schema.Columns.Count; i++)
-        {
             _adapter.SetColumnWidth(i + 1, _schema.Columns[i].Width);
-        }
     }
 
     private void CheckRowLimit()
     {
-        int dataRows = _nextDataRow - FirstDataRow;
-        if (dataRows >= _adapter.MaxDataRows - 100)
+        if (_dataRowCount >= _adapter.MaxDataRows - 100)
         {
             throw new InvalidOperationException(
                 $"Output file is approaching the {_adapter.MaxDataRows:N0}-row limit " +
-                $"({dataRows:N0} data rows written). Start a new job file.");
+                $"({_dataRowCount:N0} data rows written). Start a new job file.");
         }
     }
 }

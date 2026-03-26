@@ -22,8 +22,6 @@ public sealed class XlsAdapter : IExcelAdapter
 
     public int MaxDataRows => 65_536;
 
-    public int CurrentDataRowCount { get; private set; }
-
     public bool OpenOrCreate(string filePath)
     {
         _filePath = filePath;
@@ -40,19 +38,19 @@ public sealed class XlsAdapter : IExcelAdapter
     public int EnsureSheet(string sheetName)
     {
         _ws = _wb!.GetSheet(sheetName) ?? _wb.CreateSheet(sheetName);
-        CurrentDataRowCount = _ws.LastRowNum + 1; // 0-based
-        if (CurrentDataRowCount == 1 && _ws.GetRow(0) == null)
-            CurrentDataRowCount = 0;
+        int rowCount = _ws.LastRowNum + 1;
+        if (rowCount == 1 && _ws.GetRow(0) == null)
+            rowCount = 0;
 
         _boldFont = _wb.CreateFont();
         _boldFont.IsBold = true;
         _boldStyle = _wb.CreateCellStyle();
         _boldStyle.SetFont(_boldFont);
 
-        if (CurrentDataRowCount > 60_000)
-            Debug.WriteLine($"[VTCCP] XLS warning: {CurrentDataRowCount} rows in '{sheetName}'. Max is 65,536.");
+        if (rowCount > 60_000)
+            Debug.WriteLine($"[VTCCP] XLS warning: {rowCount} rows in '{sheetName}'. Max is 65,536.");
 
-        return CurrentDataRowCount;
+        return rowCount;
     }
 
     public void WriteString(int row, int col, string? value)

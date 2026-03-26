@@ -185,6 +185,18 @@ public static class DataMatrix2DMapper
         // ── Custom Note ───────────────────────────────────────────────────────
         d["CustomNote"] = r.CustomNote;
 
+        // ── Block I: DFC columns — null values for non-DFC records ────────────
+        // ExcelWriter.WriteDfcColumns() fills these for records with DataFormatCheck set.
+        // Explicit nulls here ensure WriteDataRow doesn't error on unknown field IDs
+        // for records without DFC data.
+        d["DFC_Standard"] = null;
+        for (int slot = 1; slot <= 8; slot++)
+        {
+            d[$"DFC_R{slot}_Name"]  = null;
+            d[$"DFC_R{slot}_Data"]  = null;
+            d[$"DFC_R{slot}_Check"] = null;
+        }
+
         return d;
     }
 

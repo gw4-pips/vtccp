@@ -41,7 +41,4 @@ public interface IExcelAdapter : IDisposable
 
     /// <summary>Maximum data rows this format supports before the file must be rotated.</summary>
     int MaxDataRows { get; }
-
-    /// <summary>Current data row count (rows written below header rows).</summary>
-    int CurrentDataRowCount { get; }
 }
