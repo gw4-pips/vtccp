@@ -108,13 +108,17 @@ public sealed class ElementWidthsWriter
         }
         _nextRow++;
 
-        // Data rows — Values must align with ColumnHeaders; extra entries are ignored.
+        // Data rows — Values.Count must equal ColumnHeaders.Count.
         int expectedCols = columnHeaders.Count;
         foreach (var row in rows)
         {
+            if (row.Values.Count != expectedCols)
+                throw new ArgumentException(
+                    $"ElementWidthsWriter: row '{row.ElementName}' has {row.Values.Count} values " +
+                    $"but ColumnHeaders defines {expectedCols} columns. Counts must match exactly.");
+
             _adapter.WriteString(_nextRow, 1, row.ElementName);
-            int writeCols = Math.Min(row.Values.Count, expectedCols);
-            for (int c = 0; c < writeCols; c++)
+            for (int c = 0; c < expectedCols; c++)
             {
                 var val = row.Values[c];
                 if (val.HasValue)

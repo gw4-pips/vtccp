@@ -58,8 +58,12 @@ public sealed class PerScanTableWriter
         _colScanLabel = 1;
     }
 
+    /// <summary>Maximum scan sub-rows written per 1D record (matches Webscan TruCheck limit).</summary>
+    public const int MaxScansPerRecord = 10;
+
     /// <summary>
     /// Write per-scan sub-rows starting at <paramref name="startRow"/>.
+    /// Writes at most <see cref="MaxScansPerRecord"/> rows.
     /// Returns the number of rows written (0 if ScanResults is empty).
     /// </summary>
     public int WriteScans(IReadOnlyList<ScanResult1D> scans, int startRow)
@@ -68,9 +72,13 @@ public sealed class PerScanTableWriter
 
         EnsureColumnsResolved();
 
+        // ISO 15416 defines up to 10 scan lines; cap to match Webscan TruCheck display.
+        int count = Math.Min(scans.Count, MaxScansPerRecord);
+
         int rowOffset = 0;
-        foreach (var scan in scans)
+        for (int i = 0; i < count; i++)
         {
+            var scan = scans[i];
             int row = startRow + rowOffset;
             int scanNum = scan.ScanNumber > 0 ? scan.ScanNumber : rowOffset + 1;
 

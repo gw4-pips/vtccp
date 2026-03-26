@@ -109,7 +109,6 @@ public sealed class ExcelWriter : IDisposable
             WriteDfcColumns(_nextDataRow, record.DataFormatCheck);
 
         // Advance past the summary row (always counts as 1 data row)
-        int mainDataRow = _nextDataRow;
         _nextDataRow++;
         _dataRowCount++;
 

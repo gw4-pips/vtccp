@@ -391,41 +391,42 @@ var upcaEwSizes = new ExcelEngine.Models.ElementWidthData
 {
     RecordLabel  = "UPC-A | 012345678905 | OMNI Wide Angle | 2023-06-21",
     ColumnHeaders = ew1DHeaders,
+    // 6 values per row, matching ew1DHeaders: SPACE | BAR | SPACE | SPACE | BAR | SPACE
     ElementSizes =
     [
-        new() { ElementName = "LGB",  Values = [null, 14m,  null, null, 12m,  null, 14m]  },
-        new() { ElementName = "0",    Values = [38m,  27m,  null, null, 12m,  null, 14m]  },
-        new() { ElementName = "1",    Values = [26m,  26m,  null, null, 26m,  null, 13m]  },
-        new() { ElementName = "2",    Values = [26m,  13m,  null, null, 26m,  null, 26m]  },
-        new() { ElementName = "3",    Values = [12m,  52m,  null, null, 12m,  null, 14m]  },
-        new() { ElementName = "4",    Values = [12m,  14m,  null, null, 38m,  null, 27m]  },
-        new() { ElementName = "5",    Values = [12m,  27m,  null, null, 38m,  null, 14m]  },
-        new() { ElementName = "CGB",  Values = [12m,  14m,  null, 12m, 14m,   12m, null]  },
-        new() { ElementName = "6",    Values = [null, 14m,  null, null, 12m,  null, 50m]  },
-        new() { ElementName = "7",    Values = [null, 13m,  null, null, 38m,  null, 26m]  },
-        new() { ElementName = "8",    Values = [null, 13m,  null, null, 26m,  null, 39m]  },
-        new() { ElementName = "9",    Values = [null, 40m,  null, null, 12m,  null, 25m]  },
-        new() { ElementName = "0",    Values = [null, 40m,  null, null, 25m,  null, 12m]  },
-        new() { ElementName = "5",    Values = [null, 14m,  null, null, 25m,  null, 12m]  },
-        new() { ElementName = "RGB",  Values = [null, 14m,  null, null, 12m,  null, 14m]  },
+        new() { ElementName = "LGB",  Values = [null, 14m,  null, null, 12m,  null]  },
+        new() { ElementName = "0",    Values = [38m,  27m,  null, null, 12m,  null]  },
+        new() { ElementName = "1",    Values = [26m,  26m,  null, null, 26m,  null]  },
+        new() { ElementName = "2",    Values = [26m,  13m,  null, null, 26m,  null]  },
+        new() { ElementName = "3",    Values = [12m,  52m,  null, null, 12m,  null]  },
+        new() { ElementName = "4",    Values = [12m,  14m,  null, null, 38m,  null]  },
+        new() { ElementName = "5",    Values = [12m,  27m,  null, null, 38m,  null]  },
+        new() { ElementName = "CGB",  Values = [12m,  14m,  null, 12m,  14m,  12m]  },
+        new() { ElementName = "6",    Values = [null, 14m,  null, null, 12m,  null]  },
+        new() { ElementName = "7",    Values = [null, 13m,  null, null, 38m,  null]  },
+        new() { ElementName = "8",    Values = [null, 13m,  null, null, 26m,  null]  },
+        new() { ElementName = "9",    Values = [null, 40m,  null, null, 12m,  null]  },
+        new() { ElementName = "0",    Values = [null, 40m,  null, null, 25m,  null]  },
+        new() { ElementName = "5",    Values = [null, 14m,  null, null, 25m,  null]  },
+        new() { ElementName = "RGB",  Values = [null, 14m,  null, null, 12m,  null]  },
     ],
     ElementDeviations =
     [
-        new() { ElementName = "LGB",  Values = [null, 0.9m,  null, null, -0.7m, null, 0.7m]  },
-        new() { ElementName = "0",    Values = [-1.1m, 0.9m, null, null, -0.6m, null, 0.9m]  },
-        new() { ElementName = "1",    Values = [-0.8m, 1.1m, null, null, -1.0m, null, 1.2m]  },
-        new() { ElementName = "2",    Values = [-0.9m, 1.4m, null, null, -1.0m, null, 1.0m]  },
-        new() { ElementName = "3",    Values = [-0.5m, 0.5m, null, null, -0.5m, null, 0.7m]  },
-        new() { ElementName = "4",    Values = [-0.7m, 1.1m, null, null, -1.2m, null, 0.9m]  },
-        new() { ElementName = "5",    Values = [-0.6m, 0.9m, null, null, -1.2m, null, 1.0m]  },
-        new() { ElementName = "CGB",  Values = [-0.8m, 0.9m, null, -0.7m, 0.7m, -0.6m, null] },
-        new() { ElementName = "6",    Values = [null, 0.8m,  null, null, -0.7m, null, -1.1m] },
-        new() { ElementName = "7",    Values = [null, 1.4m,  null, null, -1.3m, null, -1.1m] },
-        new() { ElementName = "8",    Values = [null, 1.3m,  null, null, -1.1m, null, -1.0m] },
-        new() { ElementName = "9",    Values = [null, 0.8m,  null, null, -0.5m, null, -1.0m] },
-        new() { ElementName = "0",    Values = [null, 0.9m,  null, null, -1.0m, null, -0.6m] },
-        new() { ElementName = "5",    Values = [null, 1.0m,  null, null, -1.0m, null, -0.6m] },
-        new() { ElementName = "RGB",  Values = [null, 0.6m,  null, null, -0.6m, null,  1.1m] },
+        new() { ElementName = "LGB",  Values = [null,  0.9m, null, null, -0.7m, null]  },
+        new() { ElementName = "0",    Values = [-1.1m, 0.9m, null, null, -0.6m, null]  },
+        new() { ElementName = "1",    Values = [-0.8m, 1.1m, null, null, -1.0m, null]  },
+        new() { ElementName = "2",    Values = [-0.9m, 1.4m, null, null, -1.0m, null]  },
+        new() { ElementName = "3",    Values = [-0.5m, 0.5m, null, null, -0.5m, null]  },
+        new() { ElementName = "4",    Values = [-0.7m, 1.1m, null, null, -1.2m, null]  },
+        new() { ElementName = "5",    Values = [-0.6m, 0.9m, null, null, -1.2m, null]  },
+        new() { ElementName = "CGB",  Values = [-0.8m, 0.9m, null, -0.7m, 0.7m, -0.6m] },
+        new() { ElementName = "6",    Values = [null,  0.8m, null, null, -0.7m, null]  },
+        new() { ElementName = "7",    Values = [null,  1.4m, null, null, -1.3m, null]  },
+        new() { ElementName = "8",    Values = [null,  1.3m, null, null, -1.1m, null]  },
+        new() { ElementName = "9",    Values = [null,  0.8m, null, null, -0.5m, null]  },
+        new() { ElementName = "0",    Values = [null,  0.9m, null, null, -1.0m, null]  },
+        new() { ElementName = "5",    Values = [null,  1.0m, null, null, -1.0m, null]  },
+        new() { ElementName = "RGB",  Values = [null,  0.6m, null, null, -0.6m, null]  },
     ],
 };
 
@@ -434,41 +435,42 @@ var ean13EwSizes = new ExcelEngine.Models.ElementWidthData
 {
     RecordLabel  = "EAN-13 | 5012345678900 | OMNI Wide Angle | 2023-06-21",
     ColumnHeaders = ew1DHeaders,
+    // 6 values per row, matching ew1DHeaders: SPACE | BAR | SPACE | SPACE | BAR | SPACE
     ElementSizes =
     [
-        new() { ElementName = "LGB",  Values = [null, 14m,  null, null, 12m,  null, 14m]  },
-        new() { ElementName = "0",    Values = [37m,  27m,  null, null, 12m,  null, 14m]  },
-        new() { ElementName = "1",    Values = [11m,  28m,  null, null, 24m,  null, 28m]  },
-        new() { ElementName = "2",    Values = [23m,  28m,  null, null, 11m,  null, 28m]  },
-        new() { ElementName = "3",    Values = [12m,  52m,  null, null, 12m,  null, 14m]  },
-        new() { ElementName = "4",    Values = [12m,  14m,  null, null, 37m,  null, 27m]  },
-        new() { ElementName = "5",    Values = [13m,  39m,  null, null, 25m,  null, 14m]  },
-        new() { ElementName = "CGB",  Values = [12m,  14m,  null, 12m, 14m,   12m, null]  },
-        new() { ElementName = "6",    Values = [null, 14m,  null, null, 12m,  null, 52m]  },
-        new() { ElementName = "7",    Values = [null, 13m,  null, null, 39m,  null, 25m]  },
-        new() { ElementName = "8",    Values = [null, 13m,  null, null, 26m,  null, 38m]  },
-        new() { ElementName = "9",    Values = [null, 40m,  null, null, 12m,  null, 24m]  },
-        new() { ElementName = "0",    Values = [null, 40m,  null, null, 25m,  null, 12m]  },
-        new() { ElementName = "0",    Values = [null, 40m,  null, null, 25m,  null, 12m]  },
-        new() { ElementName = "RGB",  Values = [null, 14m,  null, null, 12m,  null, 14m]  },
+        new() { ElementName = "LGB",  Values = [null, 14m,  null, null, 12m,  null]  },
+        new() { ElementName = "0",    Values = [37m,  27m,  null, null, 12m,  null]  },
+        new() { ElementName = "1",    Values = [11m,  28m,  null, null, 24m,  null]  },
+        new() { ElementName = "2",    Values = [23m,  28m,  null, null, 11m,  null]  },
+        new() { ElementName = "3",    Values = [12m,  52m,  null, null, 12m,  null]  },
+        new() { ElementName = "4",    Values = [12m,  14m,  null, null, 37m,  null]  },
+        new() { ElementName = "5",    Values = [13m,  39m,  null, null, 25m,  null]  },
+        new() { ElementName = "CGB",  Values = [12m,  14m,  null, 12m,  14m,  12m]  },
+        new() { ElementName = "6",    Values = [null, 14m,  null, null, 12m,  null]  },
+        new() { ElementName = "7",    Values = [null, 13m,  null, null, 39m,  null]  },
+        new() { ElementName = "8",    Values = [null, 13m,  null, null, 26m,  null]  },
+        new() { ElementName = "9",    Values = [null, 40m,  null, null, 12m,  null]  },
+        new() { ElementName = "0",    Values = [null, 40m,  null, null, 25m,  null]  },
+        new() { ElementName = "0",    Values = [null, 40m,  null, null, 25m,  null]  },
+        new() { ElementName = "RGB",  Values = [null, 14m,  null, null, 12m,  null]  },
     ],
     ElementDeviations =
     [
-        new() { ElementName = "LGB",  Values = [null, 0.9m,  null, null, -0.7m, null, 0.8m]  },
-        new() { ElementName = "0",    Values = [-1.3m, 1.2m, null, null, -0.5m, null, 0.7m]  },
-        new() { ElementName = "1",    Values = [-0.9m, 1.1m, null, null, -1.2m, null, 1.4m]  },
-        new() { ElementName = "2",    Values = [-1.3m, 1.3m, null, null, -0.5m, null, 1.0m]  },
-        new() { ElementName = "3",    Values = [-0.7m, 0.7m, null, null, -0.5m, null, 0.7m]  },
-        new() { ElementName = "4",    Values = [-0.9m, 1.1m, null, null, -1.1m, null, 0.9m]  },
-        new() { ElementName = "5",    Values = [-0.4m, 0.6m, null, null, -0.9m, null, 0.8m]  },
-        new() { ElementName = "CGB",  Values = [-0.6m, 0.6m, null, -0.6m, 0.7m, -0.6m, null] },
-        new() { ElementName = "6",    Values = [null, 0.5m,  null, null, -0.9m, null, -0.3m] },
-        new() { ElementName = "7",    Values = [null, 1.3m,  null, null, -0.8m, null, -1.2m] },
-        new() { ElementName = "8",    Values = [null, 1.1m,  null, null, -0.8m, null, -1.1m] },
-        new() { ElementName = "9",    Values = [null, 1.0m,  null, null, -0.4m, null, -1.4m] },
-        new() { ElementName = "0",    Values = [null, 1.2m,  null, null, -1.0m, null, -1.0m] },
-        new() { ElementName = "0",    Values = [null, 1.0m,  null, null, -0.9m, null, -0.8m] },
-        new() { ElementName = "RGB",  Values = [null, 0.7m,  null, null, -0.6m, null,  1.2m] },
+        new() { ElementName = "LGB",  Values = [null,  0.9m, null, null, -0.7m, null]  },
+        new() { ElementName = "0",    Values = [-1.3m, 1.2m, null, null, -0.5m, null]  },
+        new() { ElementName = "1",    Values = [-0.9m, 1.1m, null, null, -1.2m, null]  },
+        new() { ElementName = "2",    Values = [-1.3m, 1.3m, null, null, -0.5m, null]  },
+        new() { ElementName = "3",    Values = [-0.7m, 0.7m, null, null, -0.5m, null]  },
+        new() { ElementName = "4",    Values = [-0.9m, 1.1m, null, null, -1.1m, null]  },
+        new() { ElementName = "5",    Values = [-0.4m, 0.6m, null, null, -0.9m, null]  },
+        new() { ElementName = "CGB",  Values = [-0.6m, 0.6m, null, -0.6m, 0.7m, -0.6m] },
+        new() { ElementName = "6",    Values = [null,  0.5m, null, null, -0.9m, null]  },
+        new() { ElementName = "7",    Values = [null,  1.3m, null, null, -0.8m, null]  },
+        new() { ElementName = "8",    Values = [null,  1.1m, null, null, -0.8m, null]  },
+        new() { ElementName = "9",    Values = [null,  1.0m, null, null, -0.4m, null]  },
+        new() { ElementName = "0",    Values = [null,  1.2m, null, null, -1.0m, null]  },
+        new() { ElementName = "0",    Values = [null,  1.0m, null, null, -0.9m, null]  },
+        new() { ElementName = "RGB",  Values = [null,  0.7m, null, null, -0.6m, null]  },
     ],
 };
 
@@ -644,6 +646,8 @@ var records1D = new[] { upcaRecord, ean13Record };
 // ── Write 1D-only XLSX ────────────────────────────────────────────────────────
 var xlsx1DPath = Path.Combine(session.OutputDirectory!,
     ExcelFileManager.GenerateFileName(upcaSession, OutputFormat.Xlsx));
+// Delete before writing so each test run is deterministic (prevents append row accumulation).
+if (File.Exists(xlsx1DPath)) File.Delete(xlsx1DPath);
 Console.WriteLine($"\nWriting 1D XLSX: {xlsx1DPath}");
 
 using (var adapter = new XlsxAdapter())
@@ -659,6 +663,8 @@ Console.WriteLine($"  Done. Size: {info1D.Length:N0} bytes, rows: {records1D.Len
 
 // ── Write mixed-symbology XLSX (2D records + 1D records in same file) ─────────
 var mixedPath = Path.Combine(session.OutputDirectory!, "Mixed_2D_and_1D_2025-08-11.xlsx");
+// Delete before writing so each test run is deterministic (prevents append row accumulation).
+if (File.Exists(mixedPath)) File.Delete(mixedPath);
 Console.WriteLine($"\nWriting mixed XLSX: {mixedPath}");
 
 using (var adapter = new XlsxAdapter())
