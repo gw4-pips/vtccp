@@ -108,16 +108,19 @@ public sealed class ExcelWriter : IDisposable
         if (record.DataFormatCheck is not null)
             WriteDfcColumns(_nextDataRow, record.DataFormatCheck);
 
-        // Advance past the summary row (always counts as 1 data row)
+        // Advance past the summary row.
         _nextDataRow++;
         _dataRowCount++;
 
         // For 1D records: write per-scan sub-table rows immediately below the summary row.
-        // These are auxiliary rows (not counted as additional data records).
+        // Per-scan rows are auxiliary (not counted in _dataRowCount), but _nextDataRow and
+        // the effective row-limit check must account for them to prevent .xls overflow.
         if (record.SymbologyFamily == SymbologyFamily.Linear1D && record.ScanResults.Count > 0)
         {
             int scanRowsWritten = _perScanWriter.WriteScans(record.ScanResults, _nextDataRow);
             _nextDataRow += scanRowsWritten;
+            // Re-check limit after adding scan rows so .xls near-limit warning is accurate.
+            CheckRowLimit();
         }
 
         // For 1D records with element width data, write to "Element Widths" sheet
@@ -220,18 +223,21 @@ public sealed class ExcelWriter : IDisposable
 
     private void CheckRowLimit()
     {
-        if (_dataRowCount >= _adapter.MaxDataRows - 100)
+        // Use _nextDataRow (actual physical next row) so per-scan auxiliary rows are counted.
+        int physicalUsed = _nextDataRow - 1;  // rows consumed so far (0-based count)
+
+        if (physicalUsed >= _adapter.MaxDataRows - 100)
         {
             throw new InvalidOperationException(
                 $"Output file is approaching the {_adapter.MaxDataRows:N0}-row limit " +
-                $"({_dataRowCount:N0} data rows written). Start a new job file.");
+                $"({physicalUsed:N0} physical rows written). Start a new job file.");
         }
 
         // XLS near-limit runtime warning (60,000 threshold)
-        if (_adapter.MaxDataRows <= 65_536 && _dataRowCount == 60_000)
+        if (_adapter.MaxDataRows <= 65_536 && physicalUsed == 60_000)
         {
             System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP] XLS warning: 60,000 data rows written. " +
+                $"[VTCCP] XLS warning: 60,000 physical rows written. " +
                 $"Maximum is {_adapter.MaxDataRows:N0}. Consider starting a new job file soon.");
         }
     }
