@@ -1,9 +1,11 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelEngine", "ExcelEngine\ExcelEngine.csproj", "{FCE6B8A1-81EA-49F0-BEEA-4C4F3F5627D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceInterface", "DeviceInterface\DeviceInterface.csproj", "{B2E4A1F3-9C7D-4E5B-A3F2-8D6E1C0B5A92}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHarness", "TestHarness\TestHarness.csproj", "{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}"
 EndProject
@@ -20,6 +22,10 @@ Global
 		{FCE6B8A1-81EA-49F0-BEEA-4C4F3F5627D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FCE6B8A1-81EA-49F0-BEEA-4C4F3F5627D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCE6B8A1-81EA-49F0-BEEA-4C4F3F5627D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2E4A1F3-9C7D-4E5B-A3F2-8D6E1C0B5A92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2E4A1F3-9C7D-4E5B-A3F2-8D6E1C0B5A92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2E4A1F3-9C7D-4E5B-A3F2-8D6E1C0B5A92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2E4A1F3-9C7D-4E5B-A3F2-8D6E1C0B5A92}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}.Release|Any CPU.ActiveCfg = Release|Any CPU

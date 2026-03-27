@@ -1818,3 +1818,276 @@ if (!t4Pass)
 
 Console.WriteLine("\nTask 4 complete.");
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Phase 2: Device Integration (DMCC / DMST)
+// ═══════════════════════════════════════════════════════════════════════════════
+Console.WriteLine("\n─────────────────────────────────────────────────────────");
+Console.WriteLine("Phase 2: Device Integration — DMCC / DMST");
+Console.WriteLine("─────────────────────────────────────────────────────────");
+
+// ── 2-A: DmccCommand.SanitizeForDmcc ─────────────────────────────────────────
+Console.WriteLine("\n2-A  DmccCommand.SanitizeForDmcc:");
+bool sc1 = DeviceInterface.Dmcc.DmccCommand.SanitizeForDmcc("Job & Name") == "Job _ Name";
+bool sc2 = DeviceInterface.Dmcc.DmccCommand.SanitizeForDmcc("Fine-Name_01") == "Fine-Name_01";
+bool sc3 = DeviceInterface.Dmcc.DmccCommand.SanitizeForDmcc("<bad>") == "_bad_";
+bool sc4 = DeviceInterface.Dmcc.DmccCommand.SanitizeForDmcc(null) == "";
+bool sc5 = DeviceInterface.Dmcc.DmccCommand.SanitizeForDmcc("A\r\nB") == "A__B";
+Console.WriteLine($"  & → _:            {(sc1 ? "PASS" : $"FAIL (got '{DeviceInterface.Dmcc.DmccCommand.SanitizeForDmcc("Job & Name")}')")}");
+Console.WriteLine($"  safe chars:       {(sc2 ? "PASS" : "FAIL")}");
+Console.WriteLine($"  < > → _:          {(sc3 ? "PASS" : $"FAIL (got '{DeviceInterface.Dmcc.DmccCommand.SanitizeForDmcc("<bad>")}')")}");
+Console.WriteLine($"  null → empty:     {(sc4 ? "PASS" : "FAIL")}");
+Console.WriteLine($"  CRLF → _:         {(sc5 ? "PASS" : "FAIL")}");
+bool p2aPass = sc1 && sc2 && sc3 && sc4 && sc5;
+Console.WriteLine($"  Sanitize: {(p2aPass ? "PASS" : "FAIL")}");
+
+// ── 2-B: DmccResponse.Parse ───────────────────────────────────────────────────
+Console.WriteLine("\n2-B  DmccResponse.Parse:");
+var rOk     = DeviceInterface.Dmcc.DmccResponse.Parse("\r\n0\r\n\r\nDM260Q\r\n");
+var rNoBody = DeviceInterface.Dmcc.DmccResponse.Parse("\r\n0\r\n");
+var rErr    = DeviceInterface.Dmcc.DmccResponse.Parse("\r\n6\r\n");
+var rEmpty  = DeviceInterface.Dmcc.DmccResponse.Parse("");
+
+bool rp1 = rOk.IsSuccess && rOk.Body == "DM260Q";
+bool rp2 = rNoBody.IsSuccess && rNoBody.Body == "";
+bool rp3 = rErr.StatusCode == 6 && !rErr.IsSuccess;
+bool rp4 = rEmpty.StatusCode == DeviceInterface.Dmcc.DmccStatus.NoResponse;
+Console.WriteLine($"  OK + body:        {(rp1 ? "PASS" : $"FAIL (status={rOk.StatusCode} body='{rOk.Body}')")}");
+Console.WriteLine($"  OK no body:       {(rp2 ? "PASS" : $"FAIL (status={rNoBody.StatusCode} body='{rNoBody.Body}')")}");
+Console.WriteLine($"  Status 6 (noread):{(rp3 ? "PASS" : $"FAIL (status={rErr.StatusCode})")}");
+Console.WriteLine($"  Empty string:     {(rp4 ? "PASS" : $"FAIL (status={rEmpty.StatusCode})")}");
+bool p2bPass = rp1 && rp2 && rp3 && rp4;
+Console.WriteLine($"  DmccResponse: {(p2bPass ? "PASS" : "FAIL")}");
+
+// ── 2-C: VerificationXmlMap.ClassifySymbology ────────────────────────────────
+Console.WriteLine("\n2-C  VerificationXmlMap.ClassifySymbology:");
+var xmlMap = new DeviceInterface.Dmst.VerificationXmlMap();
+bool cs1 = xmlMap.ClassifySymbology("GS1 DataMatrix")      == ExcelEngine.Models.SymbologyFamily.GS1DataMatrix;
+bool cs2 = xmlMap.ClassifySymbology("DataMatrix")          == ExcelEngine.Models.SymbologyFamily.DataMatrix;
+bool cs3 = xmlMap.ClassifySymbology("UPC-A")               == ExcelEngine.Models.SymbologyFamily.Linear1D;
+bool cs4 = xmlMap.ClassifySymbology("EAN-13")              == ExcelEngine.Models.SymbologyFamily.Linear1D;
+bool cs5 = xmlMap.ClassifySymbology("QR Code")             == ExcelEngine.Models.SymbologyFamily.QRCode;
+bool cs6 = xmlMap.ClassifySymbology("PDF417")              == ExcelEngine.Models.SymbologyFamily.Linear1D;
+bool cs7 = xmlMap.ClassifySymbology(null)                  == ExcelEngine.Models.SymbologyFamily.Unknown;
+Console.WriteLine($"  GS1 DataMatrix:   {(cs1 ? "PASS" : "FAIL")}");
+Console.WriteLine($"  DataMatrix:       {(cs2 ? "PASS" : "FAIL")}");
+Console.WriteLine($"  UPC-A:            {(cs3 ? "PASS" : "FAIL")}");
+Console.WriteLine($"  EAN-13:           {(cs4 ? "PASS" : "FAIL")}");
+Console.WriteLine($"  QR Code:          {(cs5 ? "PASS" : "FAIL")}");
+Console.WriteLine($"  PDF417:           {(cs6 ? "PASS" : "FAIL")}");
+Console.WriteLine($"  null → Unknown:   {(cs7 ? "PASS" : "FAIL")}");
+bool p2cPass = cs1 && cs2 && cs3 && cs4 && cs5 && cs6 && cs7;
+Console.WriteLine($"  ClassifySymbology: {(p2cPass ? "PASS" : "FAIL")}");
+
+// ── 2-D: DmstResultParser — 2D GS1 DataMatrix XML ────────────────────────────
+Console.WriteLine("\n2-D  DmstResultParser (2D GS1 DataMatrix):");
+var ctx2D = new ExcelEngine.Models.VerificationRecord
+{
+    Symbology       = "Unknown",
+    DeviceSerial    = "DM-TEST-001",
+    DeviceName      = "VTCCP-Test-Device",
+    FirmwareVersion = "5.7.4.0015",
+    OperatorId      = "OP1",
+    JobName         = "TestJob",
+};
+var rec2D = DeviceInterface.Dmst.DmstResultParser.Parse(
+    DeviceInterface.Testing.MockDmccServer.SampleDm2DXml, xmlMap, ctx2D);
+
+bool d1  = rec2D.Symbology        == "GS1 DataMatrix";
+bool d2  = rec2D.SymbologyFamily  == ExcelEngine.Models.SymbologyFamily.GS1DataMatrix;
+bool d3  = rec2D.DecodedData      == "<F1>010123456789012817251231101234-LOT-A<F1>2199887766";
+bool d4  = rec2D.FormalGrade      == "4.0/16/660/45Q";
+bool d5  = rec2D.OverallGrade?.LetterGradeString == "A";
+bool d6  = rec2D.Aperture         == 16;
+bool d7  = rec2D.Wavelength       == 660;
+bool d8  = rec2D.Lighting         == "45Q";
+bool d9  = rec2D.Standard         == "ISO 15415:2011";
+bool d10 = rec2D.UEC_Percent      == 100m;
+bool d11 = rec2D.SC_Percent       == 84m;
+bool d12 = rec2D.ANU_Percent      == 0.2m;
+bool d13 = rec2D.GNU_Percent      == 2.3m;
+bool d14 = rec2D.AG_Value         == 4.0m;
+bool d15 = rec2D.MatrixSize       == "22x22";
+bool d16 = rec2D.TotalCodewords   == 144;
+bool d17 = rec2D.ErrorsCorrected  == 0;
+bool d18 = rec2D.TTR_Percent      == 95.5m;
+bool d19 = rec2D.DeviceSerial     == "DM-TEST-001";   // from context
+bool d20 = rec2D.OperatorId       == "OP1";            // from context
+
+Console.WriteLine($"  Symbology:        {(d1 ? "PASS" : $"FAIL ('{rec2D.Symbology}')")}");
+Console.WriteLine($"  SymbologyFamily:  {(d2 ? "PASS" : $"FAIL ({rec2D.SymbologyFamily})")}");
+Console.WriteLine($"  DecodedData:      {(d3 ? "PASS" : $"FAIL ('{rec2D.DecodedData}')")}");
+Console.WriteLine($"  FormalGrade:      {(d4 ? "PASS" : $"FAIL ('{rec2D.FormalGrade}')")}");
+Console.WriteLine($"  OverallGrade A:   {(d5 ? "PASS" : $"FAIL ('{rec2D.OverallGrade?.LetterGradeString}')")}");
+Console.WriteLine($"  Aperture 16:      {(d6 ? "PASS" : $"FAIL ({rec2D.Aperture})")}");
+Console.WriteLine($"  Wavelength 660:   {(d7 ? "PASS" : $"FAIL ({rec2D.Wavelength})")}");
+Console.WriteLine($"  UEC 100%:         {(d10 ? "PASS" : $"FAIL ({rec2D.UEC_Percent})")}");
+Console.WriteLine($"  SC 84%:           {(d11 ? "PASS" : $"FAIL ({rec2D.SC_Percent})")}");
+Console.WriteLine($"  ANU 0.2%:         {(d12 ? "PASS" : $"FAIL ({rec2D.ANU_Percent})")}");
+Console.WriteLine($"  GNU 2.3%:         {(d13 ? "PASS" : $"FAIL ({rec2D.GNU_Percent})")}");
+Console.WriteLine($"  AG 4.0:           {(d14 ? "PASS" : $"FAIL ({rec2D.AG_Value})")}");
+Console.WriteLine($"  MatrixSize 22x22: {(d15 ? "PASS" : $"FAIL ('{rec2D.MatrixSize}')")}");
+Console.WriteLine($"  TotalCodewords:   {(d16 ? "PASS" : $"FAIL ({rec2D.TotalCodewords})")}");
+Console.WriteLine($"  TTRPercent 95.5:  {(d18 ? "PASS" : $"FAIL ({rec2D.TTR_Percent})")}");
+Console.WriteLine($"  Context serial:   {(d19 ? "PASS" : $"FAIL ('{rec2D.DeviceSerial}')")}");
+Console.WriteLine($"  Context operator: {(d20 ? "PASS" : $"FAIL ('{rec2D.OperatorId}')")}");
+bool p2dPass = d1 && d2 && d3 && d4 && d5 && d6 && d7 && d8 && d9
+            && d10 && d11 && d12 && d13 && d14 && d15 && d16 && d17
+            && d18 && d19 && d20;
+Console.WriteLine($"  2D parse: {(p2dPass ? "PASS" : "FAIL")}");
+
+// ── 2-E: DmstResultParser — 1D UPC-A XML ─────────────────────────────────────
+Console.WriteLine("\n2-E  DmstResultParser (1D UPC-A):");
+var rec1D = DeviceInterface.Dmst.DmstResultParser.Parse(
+    DeviceInterface.Testing.MockDmccServer.SampleUpcAXml, xmlMap, ctx2D);
+
+bool e1 = rec1D.Symbology        == "UPCA";
+bool e2 = rec1D.SymbologyFamily  == ExcelEngine.Models.SymbologyFamily.Linear1D;
+bool e3 = rec1D.DecodedData      == "012345678905";
+bool e4 = rec1D.Aperture         == 6;
+bool e5 = rec1D.Avg_Edge         == 59m;
+bool e6 = rec1D.Avg_SC           == 84m;
+bool e7 = rec1D.Avg_LQZ          == 10m;
+bool e8 = rec1D.Avg_RQZ          == 11m;
+bool e9 = rec1D.Avg_MinQZ        == 10m;
+bool e10 = rec1D.BWG_Percent     == 8m;
+bool e11 = rec1D.ScanResults.Count == 2;
+bool e12 = rec1D.ScanResults[0].ScanNumber == 1;
+bool e13 = rec1D.ScanResults[0].Edge       == 4m;
+bool e14 = rec1D.ScanResults[0].LQZ        == 4m;
+Console.WriteLine($"  Symbology UPCA:   {(e1 ? "PASS" : $"FAIL ('{rec1D.Symbology}')")}");
+Console.WriteLine($"  SymbologyFamily:  {(e2 ? "PASS" : $"FAIL ({rec1D.SymbologyFamily})")}");
+Console.WriteLine($"  DecodedData:      {(e3 ? "PASS" : $"FAIL ('{rec1D.DecodedData}')")}");
+Console.WriteLine($"  Aperture 6:       {(e4 ? "PASS" : $"FAIL ({rec1D.Aperture})")}");
+Console.WriteLine($"  AvgEdge 59:       {(e5 ? "PASS" : $"FAIL ({rec1D.Avg_Edge})")}");
+Console.WriteLine($"  AvgSC 84:         {(e6 ? "PASS" : $"FAIL ({rec1D.Avg_SC})")}");
+Console.WriteLine($"  AvgLQZ 10:        {(e7 ? "PASS" : $"FAIL ({rec1D.Avg_LQZ})")}");
+Console.WriteLine($"  AvgMinQZ 10:      {(e9 ? "PASS" : $"FAIL ({rec1D.Avg_MinQZ})")}");
+Console.WriteLine($"  BWG% 8:           {(e10 ? "PASS" : $"FAIL ({rec1D.BWG_Percent})")}");
+Console.WriteLine($"  ScanCount 2:      {(e11 ? "PASS" : $"FAIL ({rec1D.ScanResults.Count})")}");
+Console.WriteLine($"  Scan1 Edge 4:     {(e13 ? "PASS" : $"FAIL ({rec1D.ScanResults[0].Edge})")}");
+Console.WriteLine($"  Scan1 LQZ 4:      {(e14 ? "PASS" : $"FAIL ({rec1D.ScanResults[0].LQZ})")}");
+bool p2ePass = e1 && e2 && e3 && e4 && e5 && e6 && e7 && e8 && e9 && e10
+            && e11 && e12 && e13 && e14;
+Console.WriteLine($"  1D parse: {(p2ePass ? "PASS" : "FAIL")}");
+
+// ── 2-F: DmccClient + MockDmccServer loopback round-trip ─────────────────────
+Console.WriteLine("\n2-F  DmccClient + MockDmccServer loopback:");
+bool p2fPass = false;
+string? connBanner   = null;
+string? devTypeBody  = null;
+string? firmVerBody  = null;
+bool    triggerOk    = false;
+bool    resultIsXml  = false;
+
+await using (var mockServer = new DeviceInterface.Testing.MockDmccServer())
+{
+    var testCfg = new DeviceInterface.DeviceConfig
+    {
+        Host              = "127.0.0.1",
+        Port              = mockServer.Port,
+        ConnectTimeoutMs  = 2_000,
+        ResponseTimeoutMs = 2_000,
+        IdleGapMs         = 60,
+    };
+
+    await using var client = new DeviceInterface.Dmcc.DmccClient(testCfg);
+    await client.ConnectAsync();
+    connBanner = client.WelcomeBanner;
+
+    var r1 = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.GetDeviceType);
+    devTypeBody = r1.Body;
+
+    var r2 = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.GetFirmwareVer);
+    firmVerBody = r2.Body;
+
+    var r3 = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.Trigger);
+    triggerOk = r3.IsSuccess;
+
+    var r4 = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.GetSymbolResult);
+    resultIsXml = r4.IsSuccess && r4.IsXml;
+}
+
+bool lp1 = connBanner?.Contains("Welcome") == true;
+bool lp2 = devTypeBody  == "DM260Q";
+bool lp3 = firmVerBody  == "5.7.4.0015";
+bool lp4 = triggerOk;
+bool lp5 = resultIsXml;
+Console.WriteLine($"  Welcome banner:   {(lp1 ? "PASS" : $"FAIL ('{connBanner?.Trim()}')")}");
+Console.WriteLine($"  GET DEVICE.TYPE:  {(lp2 ? "PASS" : $"FAIL ('{devTypeBody}')")}");
+Console.WriteLine($"  GET FIRMWARE.VER: {(lp3 ? "PASS" : $"FAIL ('{firmVerBody}')")}");
+Console.WriteLine($"  TRIGGER ok:       {(lp4 ? "PASS" : "FAIL")}");
+Console.WriteLine($"  GET SYMBOL.RESULT is XML: {(lp5 ? "PASS" : "FAIL")}");
+p2fPass = lp1 && lp2 && lp3 && lp4 && lp5;
+Console.WriteLine($"  Loopback: {(p2fPass ? "PASS" : "FAIL")}");
+
+// ── 2-G: DeviceSession + MockDmccServer full round-trip ──────────────────────
+Console.WriteLine("\n2-G  DeviceSession end-to-end (mock):");
+bool p2gPass = false;
+DeviceInterface.DeviceInfo? devInfo = null;
+ExcelEngine.Models.VerificationRecord? sessionRec = null;
+
+await using (var mockServer2 = new DeviceInterface.Testing.MockDmccServer())
+{
+    var cfg2 = new DeviceInterface.DeviceConfig
+    {
+        Host              = "127.0.0.1",
+        Port              = mockServer2.Port,
+        ConnectTimeoutMs  = 2_000,
+        ResponseTimeoutMs = 2_000,
+        IdleGapMs         = 60,
+    };
+
+    await using var devSession = new DeviceInterface.DeviceSession(cfg2, xmlMap);
+    await devSession.ConnectAsync();
+    devInfo = devSession.DeviceInfo;
+
+    var sessionCtx = new ExcelEngine.Models.VerificationRecord
+    {
+        Symbology       = "Unknown",
+        DeviceSerial    = devInfo.Serial,
+        DeviceName      = devInfo.Name,
+        FirmwareVersion = devInfo.FirmwareVersion,
+        OperatorId      = "OP-LIVE",
+        JobName         = "LiveSession",
+    };
+
+    sessionRec = await devSession.TriggerAndGetResultAsync(sessionCtx);
+}
+
+bool gp1 = devInfo?.Type            == "DM260Q";
+bool gp2 = devInfo?.FirmwareVersion == "5.7.4.0015";
+bool gp3 = devInfo?.Serial          == "DM-TEST-001";
+bool gp4 = devInfo?.Name            == "VTCCP-Test-Device";
+bool gp5 = sessionRec is not null;
+bool gp6 = sessionRec?.Symbology     == "GS1 DataMatrix";
+bool gp7 = sessionRec?.OperatorId    == "OP-LIVE";     // from context
+bool gp8 = sessionRec?.DeviceSerial  == "DM-TEST-001"; // from devInfo via context
+bool gp9 = sessionRec?.UEC_Percent   == 100m;
+bool gp10 = sessionRec?.MatrixSize   == "22x22";
+Console.WriteLine($"  DeviceInfo.Type:  {(gp1 ? "PASS" : $"FAIL ('{devInfo?.Type}')")}");
+Console.WriteLine($"  DeviceInfo.FW:    {(gp2 ? "PASS" : $"FAIL ('{devInfo?.FirmwareVersion}')")}");
+Console.WriteLine($"  DeviceInfo.Serial:{(gp3 ? "PASS" : $"FAIL ('{devInfo?.Serial}')")}");
+Console.WriteLine($"  DeviceInfo.Name:  {(gp4 ? "PASS" : $"FAIL ('{devInfo?.Name}')")}");
+Console.WriteLine($"  Record returned:  {(gp5 ? "PASS" : "FAIL (null)")}");
+Console.WriteLine($"  Record Symbology: {(gp6 ? "PASS" : $"FAIL ('{sessionRec?.Symbology}')")}");
+Console.WriteLine($"  Record Operator:  {(gp7 ? "PASS" : $"FAIL ('{sessionRec?.OperatorId}')")}");
+Console.WriteLine($"  Record UEC 100%:  {(gp9 ? "PASS" : $"FAIL ({sessionRec?.UEC_Percent})")}");
+Console.WriteLine($"  Record MatrixSize:{(gp10 ? "PASS" : $"FAIL ('{sessionRec?.MatrixSize}')")}");
+p2gPass = gp1 && gp2 && gp3 && gp4 && gp5 && gp6 && gp7 && gp8 && gp9 && gp10;
+Console.WriteLine($"  DeviceSession e2e: {(p2gPass ? "PASS" : "FAIL")}");
+
+// ── Phase 2 summary ───────────────────────────────────────────────────────────
+bool p2Pass = p2aPass && p2bPass && p2cPass && p2dPass && p2ePass && p2fPass && p2gPass;
+Console.WriteLine($"\nPhase 2 verification: {(p2Pass ? "PASS" : "FAIL")}");
+if (!p2Pass)
+{
+    if (!p2aPass) Console.WriteLine("  FAIL: SanitizeForDmcc");
+    if (!p2bPass) Console.WriteLine("  FAIL: DmccResponse.Parse");
+    if (!p2cPass) Console.WriteLine("  FAIL: ClassifySymbology");
+    if (!p2dPass) Console.WriteLine("  FAIL: 2D XML parse");
+    if (!p2ePass) Console.WriteLine("  FAIL: 1D XML parse");
+    if (!p2fPass) Console.WriteLine("  FAIL: DmccClient loopback");
+    if (!p2gPass) Console.WriteLine("  FAIL: DeviceSession e2e");
+}
+Console.WriteLine("\nPhase 2 complete.");
+

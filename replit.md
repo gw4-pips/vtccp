@@ -94,3 +94,32 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+---
+
+## VTCCP — VCCS DMV TruCheck Command Pilot
+
+Native Windows desktop utility (WPF + C#/.NET 8) located in `vtccp/`. Separate from the pnpm monorepo — built and run directly with the `dotnet` CLI.
+
+### Solution: `vtccp/VTCCP.sln`
+
+| Project | Phase | Status |
+|---|---|---|
+| `ExcelEngine` | 1 | Complete — 167-column schema, XLS/XLSX adapters, session manager, batch extraction |
+| `DeviceInterface` | 2 | Complete — DMCC TCP client, DMST XML parser, DeviceSession, MockDmccServer |
+| `TestHarness` | 1+2 | Complete — Phase 1 Tasks 1–4 + 7 Phase 2 sub-checks, all PASS |
+
+### Build & test
+
+```bash
+cd vtccp
+dotnet build VTCCP.sln -c Release
+dotnet run --project TestHarness/TestHarness.csproj -c Release
+```
+
+### Key architectural notes
+
+- `DmccClient.ReadUntilIdleAsync` uses synchronous `Socket.Receive` on a thread-pool thread (not `NetworkStream.ReadAsync`) because on Linux/.NET 8, passing a `CancellationToken` to `ReadAsync` disposes the socket when the token fires.
+- `GradingResult.FromLetterAndNumeric(letter, decimal, passFail)` — second param is non-nullable `decimal`; `DmstResultParser` defaults to `0m` when the XML attribute is absent.
+- `MockDmccServer` binds to `IPAddress.Loopback, 0` (OS-assigned port) exposed via `Port` property.
+- Phase 3 (Config Templates GUI / WPF shell) is next.

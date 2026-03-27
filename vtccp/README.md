@@ -12,11 +12,18 @@ vtccp/
 ├── ExcelEngine/          — Class library (Phase 1)
 │   ├── Adapters/         — IExcelAdapter, XlsxAdapter (EPPlus), XlsAdapter (NPOI)
 │   ├── Models/           — VerificationRecord, SessionState, ScanResult1D, ...
-│   ├── Schema/           — ColumnSchema, TruCheckCompatibleSchema (163 columns), SchemaVersionWriter
+│   ├── Schema/           — ColumnSchema, TruCheckCompatibleSchema (167 columns), SchemaVersionWriter
 │   ├── Session/          — SessionManager, SessionSidecar
 │   └── Writer/           — ExcelWriter, ExcelFileManager, DataMatrix2DMapper,
 │                           ISO15416Mapper, PerScanTableWriter, ElementWidthsWriter
-├── TestHarness/          — Console test driver (Tasks 1–4)
+├── DeviceInterface/      — Class library (Phase 2)
+│   ├── Dmcc/             — DmccClient (async TCP), DmccCommand, DmccResponse, DmccStatus
+│   ├── Dmst/             — DmstResultParser (XML → VerificationRecord), VerificationXmlMap
+│   ├── Testing/          — MockDmccServer (loopback TCP for unit testing)
+│   ├── DeviceConfig.cs   — Connection parameters (host, port, timeouts)
+│   ├── DeviceInfo.cs     — Type, firmware, serial, name, calibration date
+│   └── DeviceSession.cs  — High-level orchestration (ConnectAsync, TriggerAndGetResultAsync)
+├── TestHarness/          — Console test driver (Phase 1 Tasks 1–4 + Phase 2)
 └── README.md
 ```
 
@@ -59,6 +66,45 @@ vtccp/
 - `SchemaVersionWriter` — writes three metadata cells (marker / schema name / version) into
   row 1 past the last data column so downstream tooling can identify VTCCP-generated files.
 - Full 6-record integration test: 3× GS1 DataMatrix, 1× DataMatrix, 1× UPC-A, 1× EAN-13.
+
+---
+
+## Phase 2 — Device Integration (DMCC / DMST)
+
+### DMCC TCP Client (`DeviceInterface.Dmcc`)
+- `DmccClient` — async TCP client that maintains a persistent connection to the DataMan device.
+  - `ConnectAsync()` — connects, reads the welcome banner.
+  - `SendAsync(command)` — writes a DMCC command line, reads the full response via idle-gap
+    detection (`Socket.Receive` loop with `ReceiveTimeout = IdleGapMs`).
+  - `DisconnectAsync()` / `DisposeAsync()` — clean teardown.
+- `DmccCommand` — string constants for all used DMCC commands; `SanitizeForDmcc(s)` replaces
+  characters illegal in DMCC job/operator strings (`& < > \r \n`) with `_`.
+- `DmccResponse` — parses the `\r\n<status>\r\n[\r\n<body>\r\n]` envelope; exposes `StatusCode`,
+  `IsSuccess`, `Body`, `IsXml`.
+- `DmccStatus` — integer constants for well-known DMCC status codes.
+
+### Idle-gap Read Strategy
+`NetworkStream.ReadAsync` with a `CancellationToken` disposes the underlying socket on Linux
+(.NET 8) when the token is cancelled, killing the connection. `DmccClient` therefore runs a
+synchronous `Socket.Receive` loop on a thread-pool thread; `Socket.ReceiveTimeout` (idle-gap
+interval) causes a `SocketError.TimedOut` exception that is caught to detect end-of-response
+without socket teardown.
+
+### DMST XML Parser (`DeviceInterface.Dmst`)
+- `VerificationXmlMap` — maps DataMan DMST XML element names to `VerificationRecord` field names;
+  `ClassifySymbology()` returns the `SymbologyFamily` enum value.
+- `DmstResultParser.Parse(xml, map, contextRecord)` — parses DataMan verification result XML
+  into a fully-populated `VerificationRecord`, merging device context (serial, operator, etc.)
+  from the supplied context record.  Handles both 2D (ISO 15415) and 1D (ISO 15416) payloads.
+
+### Device Session (`DeviceInterface.DeviceSession`)
+- Connects to a DataMan device, queries `DeviceInfo` (type, firmware, serial, name, calibration
+  date), and exposes `TriggerAndGetResultAsync(contextRecord)` for the Poll acquisition mode
+  (TRIGGER + GET SYMBOL.RESULT).
+
+### MockDmccServer (`DeviceInterface.Testing`)
+- Loopback `TcpListener` on an OS-assigned port for unit tests; exposes static sample XML payloads
+  (`SampleDm2DXml`, `SampleUpcAXml`) matching what a real DataMan device sends.
 
 ---
 
@@ -143,6 +189,6 @@ Production or commercial deployments require a valid EPPlus commercial license.
 
 | Phase | Status      | Description                                              |
 |-------|-------------|----------------------------------------------------------|
-| 1     | Complete    | Excel Engine (offline) — 163-column schema, session mgmt |
-| 2     | Planned     | Device Integration — DMCC/DMST live connection           |
+| 1     | Complete    | Excel Engine (offline) — 167-column schema, session mgmt |
+| 2     | Complete    | Device Integration — DMCC/DMST live connection           |
 | 3     | Planned     | Config Templates GUI (WPF)                               |
