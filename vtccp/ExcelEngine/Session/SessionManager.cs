@@ -15,6 +15,14 @@ using ExcelEngine.Writer;
 ///   AutoIncrement — starts at RollStartValue; increments by 1 on each SetNewOperatorAndRoll().
 ///   DateTimeStamp — yyyyMMddHHmmss generated at session open and on SetNewOperatorAndRoll().
 ///
+/// PRODUCT DECISION — roll does NOT auto-increment on StartSession (confirmed 2026-03-26):
+///   Webscan TruCheck requires explicit user action to change the roll value.  A new
+///   session opens without a roll change; the operator clicks "Set New Operator/Roll" to
+///   advance the counter.  This is the Manual default.  AutoIncrement and DateTimeStamp
+///   modes are VTCCP extensions that provide convenience options while preserving the
+///   same contract: no automatic roll change on session open (AutoIncrement resets to
+///   RollStartValue for new sessions; resumes restore the prior value from sidecar).
+///
 /// File path stability guarantee:
 ///   _outputPath / _sidecarPath are resolved ONCE at StartSession() and never
 ///   re-derived mid-session, so no state change can orphan sidecars or open the wrong file.

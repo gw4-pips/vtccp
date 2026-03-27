@@ -123,8 +123,14 @@ public static class ExcelFileManager
     /// with '_'; leading and trailing underscores are trimmed.
     ///
     /// Characters that are illegal in filenames: / \ : * ? " &lt; &gt; | [ ] and NUL/control chars.
-    /// Note: '&amp;' is legal in a Windows filename and is therefore preserved here;
-    ///       it is safe for the filesystem but may need escaping in other contexts (e.g. XML).
+    ///
+    /// PRODUCT DECISION (confirmed with user, 2026-03-26):
+    ///   '&amp;' IS preserved in filenames because it is legal in Windows NTFS paths.
+    ///   Webscan TruCheck allows '&amp;' in user-entered fields such as Company Name, and
+    ///   VTCCP replicates that behaviour at the filesystem/Excel layer.
+    ///   The DataMan DMCC device protocol does NOT support '&amp;' in command strings —
+    ///   that restriction is handled separately in Phase 2 by a dedicated SanitizeForDmcc()
+    ///   function and is NOT applied here.
     /// </summary>
     public static string SanitizeFileName(string input)
     {
