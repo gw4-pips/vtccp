@@ -1,0 +1,18 @@
+<Application x:Class="VtccpApp.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svc="clr-namespace:VtccpApp.Services"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Default.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Converters available application-wide -->
+            <svc:NavStyleConverter    x:Key="NavStyleConverter" />
+            <svc:InvertBoolConverter  x:Key="InvertBool" />
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

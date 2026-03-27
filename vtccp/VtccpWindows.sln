@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigEngine", "ConfigEngin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHarness", "TestHarness\TestHarness.csproj", "{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VtccpApp", "VtccpApp\VtccpApp.csproj", "{A7F2B3E9-5C1D-4A8F-B6E2-3D9C0A4F7B1E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA64679F-E78B-4693-BF43-F1D6CF84DBA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7F2B3E9-5C1D-4A8F-B6E2-3D9C0A4F7B1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7F2B3E9-5C1D-4A8F-B6E2-3D9C0A4F7B1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7F2B3E9-5C1D-4A8F-B6E2-3D9C0A4F7B1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7F2B3E9-5C1D-4A8F-B6E2-3D9C0A4F7B1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

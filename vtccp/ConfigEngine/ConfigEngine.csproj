@@ -1,16 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>ConfigEngine</RootNamespace>
+    <AssemblyName>ConfigEngine</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ExcelEngine\ExcelEngine.csproj" />
     <ProjectReference Include="..\DeviceInterface\DeviceInterface.csproj" />
-    <ProjectReference Include="..\ConfigEngine\ConfigEngine.csproj" />
+    <ProjectReference Include="..\ExcelEngine\ExcelEngine.csproj" />
   </ItemGroup>
 
 </Project>

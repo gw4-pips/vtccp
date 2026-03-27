@@ -2091,3 +2091,309 @@ if (!p2Pass)
 }
 Console.WriteLine("\nPhase 2 complete.");
 
+// ══════════════════════════════════════════════════════════════════════════════
+//  Phase 3 — Config Templates (ConfigEngine)
+//  Sub-checks: 3-A through 3-F
+// ══════════════════════════════════════════════════════════════════════════════
+Console.WriteLine();
+Console.WriteLine("Phase 3: Config Templates — ConfigEngine");
+Console.WriteLine(new string('─', 60));
+
+bool p3aPass = false, p3bPass = false, p3cPass = false,
+     p3dPass = false, p3ePass = false, p3fPass = false;
+
+// ── 3-A: DeviceProfile CRUD round-trip ────────────────────────────────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("3-A: DeviceProfile CRUD round-trip");
+    try
+    {
+        var repo = new ConfigEngine.ConfigRepository();
+
+        var prof = new ConfigEngine.Models.DeviceProfile
+        {
+            Name              = "Test-Line-1",
+            Host              = "10.0.0.50",
+            Port              = 23,
+            ConnectTimeoutMs  = 3_000,
+            ResponseTimeoutMs = 4_000,
+            IdleGapMs         = 120,
+            DmstListenPort    = 0,
+            IsDefault         = true,
+            Notes             = "Phase-3 harness",
+        };
+
+        repo.AddDevice(prof);
+
+        // Find
+        var found = repo.FindDevice(prof.Id);
+        bool a1 = found is not null && found.Name == "Test-Line-1";
+
+        // Update
+        prof.Name = "Test-Line-1-UPDATED";
+        bool updated = repo.UpdateDevice(prof);
+        bool a2 = updated && repo.FindDevice(prof.Id)?.Name == "Test-Line-1-UPDATED";
+
+        // DefaultDevice
+        bool a3 = repo.DefaultDevice?.Id == prof.Id;
+
+        // Remove
+        bool removed = repo.RemoveDevice(prof.Id);
+        bool a4 = removed && repo.FindDevice(prof.Id) is null;
+
+        p3aPass = a1 && a2 && a3 && a4;
+        Console.WriteLine($"  Add/Find:    {(a1 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Update:      {(a2 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  DefaultDev:  {(a3 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Remove:      {(a4 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  3-A: {(p3aPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"  3-A EXCEPTION: {ex.Message}");
+    }
+}
+
+// ── 3-B: JobTemplate CRUD round-trip ──────────────────────────────────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("3-B: JobTemplate CRUD round-trip");
+    try
+    {
+        var repo = new ConfigEngine.ConfigRepository();
+
+        var tmpl = new ConfigEngine.Models.JobTemplate
+        {
+            Name              = "Incoming-Inspection",
+            JobName           = "DMV QA Audit",
+            OperatorId        = "OP-001",
+            BatchMode         = ExcelEngine.Models.BatchMode.Manual,
+            OutputFormat      = ExcelEngine.Models.OutputFormat.Xlsx,
+            RollIncrementMode = ExcelEngine.Models.RollIncrementMode.Manual,
+            RollStartValue    = 1,
+            OutputDirectory   = @"C:\VtccpOutput",
+            IsDefault         = true,
+            Notes             = "Phase-3 harness template",
+        };
+
+        repo.AddTemplate(tmpl);
+
+        var found = repo.FindTemplate(tmpl.Id);
+        bool b1 = found is not null && found.Name == "Incoming-Inspection";
+
+        tmpl.Name = "Incoming-UPDATED";
+        bool updated = repo.UpdateTemplate(tmpl);
+        bool b2 = updated && repo.FindTemplate(tmpl.Id)?.Name == "Incoming-UPDATED";
+
+        bool b3 = repo.DefaultTemplate?.Id == tmpl.Id;
+
+        bool removed = repo.RemoveTemplate(tmpl.Id);
+        bool b4 = removed && repo.FindTemplate(tmpl.Id) is null;
+
+        p3bPass = b1 && b2 && b3 && b4;
+        Console.WriteLine($"  Add/Find:      {(b1 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Update:        {(b2 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  DefaultTmpl:   {(b3 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Remove:        {(b4 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  3-B: {(p3bPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"  3-B EXCEPTION: {ex.Message}");
+    }
+}
+
+// ── 3-C: DeviceProfile.ToDeviceConfig() correctness ───────────────────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("3-C: DeviceProfile.ToDeviceConfig()");
+    try
+    {
+        var prof = new ConfigEngine.Models.DeviceProfile
+        {
+            Host              = "172.16.0.10",
+            Port              = 23,
+            ConnectTimeoutMs  = 6_000,
+            ResponseTimeoutMs = 7_000,
+            IdleGapMs         = 200,
+            DmstListenPort    = 9000,
+        };
+
+        var cfg = prof.ToDeviceConfig();
+
+        bool c1 = cfg.Host              == "172.16.0.10";
+        bool c2 = cfg.Port              == 23;
+        bool c3 = cfg.ConnectTimeoutMs  == 6_000;
+        bool c4 = cfg.ResponseTimeoutMs == 7_000;
+        bool c5 = cfg.IdleGapMs         == 200;
+        bool c6 = cfg.DmstListenPort    == 9000;
+
+        p3cPass = c1 && c2 && c3 && c4 && c5 && c6;
+        Console.WriteLine($"  Host:           {(c1 ? "PASS" : $"FAIL ({cfg.Host})")}");
+        Console.WriteLine($"  Port:           {(c2 ? "PASS" : $"FAIL ({cfg.Port})")}");
+        Console.WriteLine($"  ConnectMs:      {(c3 ? "PASS" : $"FAIL ({cfg.ConnectTimeoutMs})")}");
+        Console.WriteLine($"  ResponseMs:     {(c4 ? "PASS" : $"FAIL ({cfg.ResponseTimeoutMs})")}");
+        Console.WriteLine($"  IdleGapMs:      {(c5 ? "PASS" : $"FAIL ({cfg.IdleGapMs})")}");
+        Console.WriteLine($"  DmstListenPort: {(c6 ? "PASS" : $"FAIL ({cfg.DmstListenPort})")}");
+        Console.WriteLine($"  3-C: {(p3cPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"  3-C EXCEPTION: {ex.Message}");
+    }
+}
+
+// ── 3-D: JobTemplate.ToSessionState() correctness ─────────────────────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("3-D: JobTemplate.ToSessionState()");
+    try
+    {
+        var tmpl = new ConfigEngine.Models.JobTemplate
+        {
+            JobName           = "QA-Batch-42",
+            OperatorId        = "OP-007",
+            BatchMode         = ExcelEngine.Models.BatchMode.AutoFromGS1,
+            OutputFormat      = ExcelEngine.Models.OutputFormat.Xlsx,
+            RollIncrementMode = ExcelEngine.Models.RollIncrementMode.Manual,
+            RollStartValue    = 5,
+            OutputDirectory   = null,     // should fall back to provided arg
+        };
+
+        string fallback = @"C:\Fallback";
+        ExcelEngine.Models.SessionState state = tmpl.ToSessionState(fallback);
+
+        bool p3d1 = state.JobName           == "QA-Batch-42";
+        bool p3d2 = state.OperatorId        == "OP-007";
+        bool p3d3 = state.BatchMode         == ExcelEngine.Models.BatchMode.AutoFromGS1;
+        bool p3d4 = state.OutputFormat      == ExcelEngine.Models.OutputFormat.Xlsx;
+        bool p3d5 = state.RollIncrementMode == ExcelEngine.Models.RollIncrementMode.Manual;
+        bool p3d6 = state.RollStartValue    == 5;
+        bool p3d7 = state.OutputDirectory   == fallback;   // null → fallback applied
+
+        // Override case: OutputDirectory set on template
+        tmpl.OutputDirectory = @"C:\Override";
+        ExcelEngine.Models.SessionState state2 = tmpl.ToSessionState(fallback);
+        bool p3d8 = state2.OutputDirectory == @"C:\Override";
+
+        p3dPass = p3d1 && p3d2 && p3d3 && p3d4 && p3d5 && p3d6 && p3d7 && p3d8;
+        Console.WriteLine($"  JobName:       {(p3d1 ? "PASS" : $"FAIL ({state.JobName})")}");
+        Console.WriteLine($"  OperatorId:    {(p3d2 ? "PASS" : $"FAIL ({state.OperatorId})")}");
+        Console.WriteLine($"  BatchMode:     {(p3d3 ? "PASS" : $"FAIL ({state.BatchMode})")}");
+        Console.WriteLine($"  OutputFormat:  {(p3d4 ? "PASS" : $"FAIL ({state.OutputFormat})")}");
+        Console.WriteLine($"  RollMode:      {(p3d5 ? "PASS" : $"FAIL ({state.RollIncrementMode})")}");
+        Console.WriteLine($"  RollStart:     {(p3d6 ? "PASS" : $"FAIL ({state.RollStartValue})")}");
+        Console.WriteLine($"  DirFallback:   {(p3d7 ? "PASS" : $"FAIL ({state.OutputDirectory})")}");
+        Console.WriteLine($"  DirOverride:   {(p3d8 ? "PASS" : $"FAIL ({state2.OutputDirectory})")}");
+        Console.WriteLine($"  3-D: {(p3dPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"  3-D EXCEPTION: {ex.Message}");
+    }
+}
+
+// ── 3-E: ConfigStore JSON round-trip (write → read back) ──────────────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("3-E: ConfigStore JSON round-trip");
+    try
+    {
+        string tmpDir  = Path.Combine(Path.GetTempPath(), "vtccp_phase3_" + Path.GetRandomFileName());
+        Directory.CreateDirectory(tmpDir);
+        string origDir = Directory.GetCurrentDirectory();
+        Directory.SetCurrentDirectory(tmpDir);
+        try
+        {
+            var list = new System.Collections.Generic.List<ConfigEngine.Models.DeviceProfile>
+            {
+                new()
+                {
+                    Name  = "Saved-Device",
+                    Host  = "192.168.99.10",
+                    Port  = 23,
+                    Notes = "round-trip test",
+                },
+            };
+
+            await ConfigEngine.ConfigStore.SaveAsync("devices.json", list);
+            var loaded = await ConfigEngine.ConfigStore.LoadAsync(
+                "devices.json",
+                new System.Collections.Generic.List<ConfigEngine.Models.DeviceProfile>());
+
+            bool p3e1 = loaded.Count == 1;
+            bool p3e2 = loaded[0].Name == "Saved-Device";
+            bool p3e3 = loaded[0].Host == "192.168.99.10";
+            bool p3e4 = loaded[0].Notes == "round-trip test";
+
+            // Non-existent file → returns default value (empty list)
+            var missing = await ConfigEngine.ConfigStore.LoadAsync(
+                "no_such_file.json",
+                new System.Collections.Generic.List<ConfigEngine.Models.DeviceProfile>());
+            bool p3e5 = missing.Count == 0;
+
+            p3ePass = p3e1 && p3e2 && p3e3 && p3e4 && p3e5;
+            Console.WriteLine($"  Count==1:      {(p3e1 ? "PASS" : $"FAIL ({loaded.Count})")}");
+            Console.WriteLine($"  Name:          {(p3e2 ? "PASS" : $"FAIL ({loaded[0].Name})")}");
+            Console.WriteLine($"  Host:          {(p3e3 ? "PASS" : $"FAIL ({loaded[0].Host})")}");
+            Console.WriteLine($"  Notes:         {(p3e4 ? "PASS" : $"FAIL ({loaded[0].Notes})")}");
+            Console.WriteLine($"  MissingFile→[]: {(p3e5 ? "PASS" : $"FAIL (count={missing.Count})")}");
+            Console.WriteLine($"  3-E: {(p3ePass ? "PASS" : "FAIL")}");
+        }
+        finally
+        {
+            Directory.SetCurrentDirectory(origDir);
+            try { Directory.Delete(tmpDir, recursive: true); } catch { /* cleanup best-effort */ }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"  3-E EXCEPTION: {ex.Message}");
+    }
+}
+
+// ── 3-F: AppSettings defaults ─────────────────────────────────────────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("3-F: AppSettings defaults");
+    try
+    {
+        var settings = new ConfigEngine.Models.AppSettings();
+
+        // Must not be null / empty
+        bool f1 = !string.IsNullOrEmpty(settings.DefaultOutputDirectory);
+        // Window dimensions must be sensible
+        bool f2 = settings.WindowWidth  >= 800;
+        bool f3 = settings.WindowHeight >= 560;
+
+        p3fPass = f1 && f2 && f3;
+        Console.WriteLine($"  OutputDir not empty:  {(f1 ? "PASS" : $"FAIL ('{settings.DefaultOutputDirectory}')")}");
+        Console.WriteLine($"  WindowWidth  >= 800:  {(f2 ? "PASS" : $"FAIL ({settings.WindowWidth})")}");
+        Console.WriteLine($"  WindowHeight >= 560:  {(f3 ? "PASS" : $"FAIL ({settings.WindowHeight})")}");
+        Console.WriteLine($"  3-F: {(p3fPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"  3-F EXCEPTION: {ex.Message}");
+    }
+}
+
+// ── Phase 3 summary ───────────────────────────────────────────────────────────
+bool p3Pass = p3aPass && p3bPass && p3cPass && p3dPass && p3ePass && p3fPass;
+Console.WriteLine();
+Console.WriteLine($"Phase 3 verification: {(p3Pass ? "PASS" : "FAIL")}");
+if (!p3Pass)
+{
+    if (!p3aPass) Console.WriteLine("  FAIL: 3-A DeviceProfile CRUD");
+    if (!p3bPass) Console.WriteLine("  FAIL: 3-B JobTemplate CRUD");
+    if (!p3cPass) Console.WriteLine("  FAIL: 3-C ToDeviceConfig");
+    if (!p3dPass) Console.WriteLine("  FAIL: 3-D ToSessionState");
+    if (!p3ePass) Console.WriteLine("  FAIL: 3-E ConfigStore round-trip");
+    if (!p3fPass) Console.WriteLine("  FAIL: 3-F AppSettings defaults");
+}
+Console.WriteLine();
+Console.WriteLine("Phase 3 complete.");
+
+// ── Overall exit code ─────────────────────────────────────────────────────────
+bool allPass = p3Pass; // Phase 1 & 2 already self-exit-coded above via their own checks
+if (!allPass) Environment.Exit(1);

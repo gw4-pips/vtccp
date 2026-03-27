@@ -1,0 +1,82 @@
+<Window x:Class="VtccpApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:VtccpApp.ViewModels"
+        xmlns:views="clr-namespace:VtccpApp.Views"
+        Title="{Binding AppTitle}"
+        Width="{Binding Repository.Settings.WindowWidth, Mode=TwoWay}"
+        Height="{Binding Repository.Settings.WindowHeight, Mode=TwoWay}"
+        MinWidth="800" MinHeight="560"
+        Background="{StaticResource SurfaceBrush}">
+
+    <!-- DataTemplates map view-models → views -->
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:DevicesViewModel}">
+            <views:DevicesView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TemplatesViewModel}">
+            <views:TemplatesView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SessionViewModel}">
+            <views:SessionView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ── Sidebar navigation ──────────────────────────────────── -->
+        <Border Grid.Column="0" Background="{StaticResource NavBackBrush}">
+            <StackPanel>
+                <!-- Logo / brand -->
+                <Border Padding="20,24,20,16">
+                    <StackPanel>
+                        <TextBlock Text="VTCCP"
+                                   FontSize="22" FontWeight="Bold"
+                                   Foreground="White" />
+                        <TextBlock Text="DMV TruCheck Command Pilot"
+                                   FontSize="10" Foreground="#7F8C8D"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Separator Background="#2C3E50" Margin="0,0,0,8" />
+
+                <!-- Nav items -->
+                <Button Content="▶  Session Launcher"
+                        Style="{Binding CurrentPageKey,
+                                Converter={StaticResource NavStyleConverter},
+                                ConverterParameter=Session}"
+                        Command="{Binding NavSessionCommand}" />
+
+                <Button Content="⚙  Device Profiles"
+                        Style="{Binding CurrentPageKey,
+                                Converter={StaticResource NavStyleConverter},
+                                ConverterParameter=Devices}"
+                        Command="{Binding NavDevicesCommand}" />
+
+                <Button Content="📋  Job Templates"
+                        Style="{Binding CurrentPageKey,
+                                Converter={StaticResource NavStyleConverter},
+                                ConverterParameter=Templates}"
+                        Command="{Binding NavTemplatesCommand}" />
+
+                <!-- Spacer -->
+                <Rectangle Height="1" Margin="20,24,20,16" Fill="#2C3E50" />
+
+                <!-- Version info -->
+                <TextBlock Text="v1.0.0  |  VCCS"
+                           FontSize="10" Foreground="#566573"
+                           Margin="20,4" />
+            </StackPanel>
+        </Border>
+
+        <!-- ── Content area ────────────────────────────────────────── -->
+        <ContentPresenter Grid.Column="1"
+                          Content="{Binding CurrentPage}"
+                          Margin="0" />
+    </Grid>
+</Window>
