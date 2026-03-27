@@ -5,10 +5,11 @@
 
     <Grid Margin="24">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />  <!-- header -->
+            <RowDefinition Height="Auto" />  <!-- setup card -->
+            <RowDefinition Height="Auto" />  <!-- scan mode bar -->
+            <RowDefinition Height="*"    />  <!-- live area -->
+            <RowDefinition Height="Auto" />  <!-- status bar -->
         </Grid.RowDefinitions>
 
         <!-- ── Page header ─────────────────────────────────────────── -->
@@ -16,7 +17,7 @@
                    Style="{StaticResource SectionHeader}" />
 
         <!-- ── Setup card ──────────────────────────────────────────── -->
-        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,16">
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -68,8 +69,78 @@
             </Grid>
         </Border>
 
+        <!-- ── Scan mode bar ───────────────────────────────────────── -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,10" Padding="14,10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="SCAN MODE:"
+                           Style="{StaticResource FieldLabel}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,14,0" />
+
+                <!-- Manual -->
+                <RadioButton Content="Manual Trigger"
+                             IsChecked="{Binding IsManualMode, Mode=OneWay}"
+                             Command="{Binding SetManualCommand}"
+                             VerticalAlignment="Center"
+                             Margin="0,0,20,0" />
+
+                <!-- Auto-Poll -->
+                <RadioButton Content="Auto-Poll"
+                             IsChecked="{Binding IsAutoPollMode, Mode=OneWay}"
+                             Command="{Binding SetAutoPollCommand}"
+                             VerticalAlignment="Center"
+                             Margin="0,0,8,0" />
+
+                <!-- Auto-Poll interval (only shown when that mode is selected) -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                            Margin="0,0,20,0"
+                            Visibility="{Binding IsAutoPollMode,
+                                Converter={StaticResource BoolToVisibility}}">
+                    <TextBox Text="{Binding AutoPollIntervalMs, UpdateSourceTrigger=PropertyChanged}"
+                             Width="56" Margin="4,0,4,0" />
+                    <TextBlock Text="ms" VerticalAlignment="Center"
+                               Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" />
+                </StackPanel>
+
+                <!-- Push (DMST) -->
+                <RadioButton Content="Push (DMST)"
+                             IsChecked="{Binding IsPushMode, Mode=OneWay}"
+                             Command="{Binding SetPushCommand}"
+                             IsEnabled="{Binding IsPushAvailable}"
+                             VerticalAlignment="Center"
+                             Margin="0,0,10,0" />
+
+                <!-- Push port hint -->
+                <TextBlock VerticalAlignment="Center"
+                           FontSize="11"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Visibility="{Binding IsPushAvailable,
+                               Converter={StaticResource BoolToVisibility}}">
+                    <Run Text="Port:" />
+                    <Run Text="{Binding SelectedDevice.DmstListenPort, Mode=OneWay}" />
+                </TextBlock>
+
+                <!-- Push unavailable hint — shown when DmstListenPort == 0 -->
+                <TextBlock Text="(set DmstListenPort &gt; 0 in device profile to enable)"
+                           FontSize="11" FontStyle="Italic"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsPushAvailable}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
         <!-- ── Live session area ────────────────────────────────────── -->
-        <Border Grid.Row="2" Style="{StaticResource Card}">
+        <Border Grid.Row="3" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -103,13 +174,38 @@
                         </TextBlock>
                     </StackPanel>
 
-                    <!-- Trigger button -->
+                    <!-- Trigger button — only shown in Manual mode -->
                     <Button Grid.Column="1"
                             Content="⚡  Trigger Scan"
                             Style="{StaticResource PrimaryButton}"
                             Command="{Binding TriggerCommand}"
                             Padding="20,10"
-                            FontSize="14" />
+                            FontSize="14"
+                            Visibility="{Binding IsManualMode,
+                                Converter={StaticResource BoolToVisibility}}" />
+
+                    <!-- Auto-Poll / Push running indicator -->
+                    <Border Grid.Column="1"
+                            Background="{StaticResource AccentBrush}"
+                            CornerRadius="4" Padding="16,8"
+                            Visibility="{Binding IsAutoPollMode,
+                                Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="⟳  Auto-Polling…"
+                                   Foreground="White" FontSize="13" FontWeight="SemiBold"
+                                   Visibility="{Binding IsRunning,
+                                       Converter={StaticResource BoolToVisibility}}" />
+                    </Border>
+
+                    <Border Grid.Column="1"
+                            Background="{StaticResource AccentBrush}"
+                            CornerRadius="4" Padding="16,8"
+                            Visibility="{Binding IsPushMode,
+                                Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="📡  Listening…"
+                                   Foreground="White" FontSize="13" FontWeight="SemiBold"
+                                   Visibility="{Binding IsRunning,
+                                       Converter={StaticResource BoolToVisibility}}" />
+                    </Border>
                 </Grid>
 
                 <!-- Status / last result -->
@@ -129,7 +225,7 @@
         </Border>
 
         <!-- ── Status bar ──────────────────────────────────────────── -->
-        <Border Grid.Row="3" Margin="0,8,0,0" Padding="8,4"
+        <Border Grid.Row="4" Margin="0,8,0,0" Padding="8,4"
                 Background="{StaticResource CardBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,1,0,0">

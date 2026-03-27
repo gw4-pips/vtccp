@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  VTCCP Smoke-Test Fixture — 1D Code 128, Grade A (4.0 / PASS)
+  Simulates a Cognex DataMan DMV DMST result for a 1D barcode.
+  Includes ISO 15416 per-scan sub-results for 10 scans.
+  Used by Phase 5 TestHarness checks (5-C) and WPF smoke tests.
+-->
+<DMCCResponse>
+  <DMSymVerResponse>
+    <DateTime>2026-01-15T10:45:08</DateTime>
+    <SymbologyName>Code 128</SymbologyName>
+    <DecodedData>VTCCP-1D-SMOKE-TEST-CODE128</DecodedData>
+    <FormalGrade>4.0/10/660/0°</FormalGrade>
+    <OverallGrade>A</OverallGrade>
+    <OverallGradeNumeric>4.0</OverallGradeNumeric>
+    <SymbolAnsiGrade numeric="4.0">A</SymbolAnsiGrade>
+
+    <ApertureRef>10</ApertureRef>
+    <Wavelength>660</Wavelength>
+    <Lighting>0°</Lighting>
+    <Standard>ISO 15416:2016</Standard>
+
+    <AvgEdge>99.2</AvgEdge>
+    <AvgRlRd>PASS</AvgRlRd>
+    <AvgSC>98.7</AvgSC>
+    <AvgMinEC>92.1</AvgMinEC>
+    <AvgMOD>93.5</AvgMOD>
+    <AvgDefect>98.3</AvgDefect>
+    <AvgDcod>PASS</AvgDcod>
+    <AvgDEC>97.8</AvgDEC>
+    <AvgLQZ>8.2</AvgLQZ>
+    <AvgRQZ>8.4</AvgRQZ>
+    <AvgHQZ>8.1</AvgHQZ>
+    <AvgMinQZ>8.1</AvgMinQZ>
+    <BWGPercent>-8.5</BWGPercent>
+    <Magnification>101.2</Magnification>
+    <Ratio>2.48</Ratio>
+    <NominalXDim1D>9.8</NominalXDim1D>
+
+    <ScanResults>
+      <Scan number="1">
+        <Edge>99.4</Edge><SC>99.1</SC><MinEC>93.2</MinEC>
+        <MOD>94.1</MOD><Defect>98.5</Defect><DEC>98.2</DEC>
+        <LQZ>8.3</LQZ><RQZ>8.5</RQZ><HQZ>8.2</HQZ>
+      </Scan>
+      <Scan number="2">
+        <Edge>99.3</Edge><SC>98.8</SC><MinEC>92.8</MinEC>
+        <MOD>93.9</MOD><Defect>98.4</Defect><DEC>97.9</DEC>
+        <LQZ>8.2</LQZ><RQZ>8.4</RQZ><HQZ>8.1</HQZ>
+      </Scan>
+      <Scan number="3">
+        <Edge>99.1</Edge><SC>98.5</SC><MinEC>91.9</MinEC>
+        <MOD>93.2</MOD><Defect>98.1</Defect><DEC>97.5</DEC>
+        <LQZ>8.1</LQZ><RQZ>8.3</RQZ><HQZ>8.0</HQZ>
+      </Scan>
+      <Scan number="4">
+        <Edge>99.5</Edge><SC>99.2</SC><MinEC>93.5</MinEC>
+        <MOD>94.3</MOD><Defect>98.6</Defect><DEC>98.4</DEC>
+        <LQZ>8.4</LQZ><RQZ>8.6</RQZ><HQZ>8.3</HQZ>
+      </Scan>
+      <Scan number="5">
+        <Edge>98.9</Edge><SC>98.3</SC><MinEC>91.4</MinEC>
+        <MOD>92.8</MOD><Defect>97.9</Defect><DEC>97.2</DEC>
+        <LQZ>8.0</LQZ><RQZ>8.2</RQZ><HQZ>7.9</HQZ>
+      </Scan>
+      <Scan number="6">
+        <Edge>99.6</Edge><SC>99.4</SC><MinEC>93.8</MinEC>
+        <MOD>94.6</MOD><Defect>98.8</Defect><DEC>98.6</DEC>
+        <LQZ>8.5</LQZ><RQZ>8.7</RQZ><HQZ>8.4</HQZ>
+      </Scan>
+      <Scan number="7">
+        <Edge>99.0</Edge><SC>98.4</SC><MinEC>91.7</MinEC>
+        <MOD>93.0</MOD><Defect>98.0</Defect><DEC>97.3</DEC>
+        <LQZ>8.1</LQZ><RQZ>8.2</RQZ><HQZ>8.0</HQZ>
+      </Scan>
+      <Scan number="8">
+        <Edge>99.2</Edge><SC>98.7</SC><MinEC>92.5</MinEC>
+        <MOD>93.7</MOD><Defect>98.3</Defect><DEC>97.8</DEC>
+        <LQZ>8.2</LQZ><RQZ>8.4</RQZ><HQZ>8.1</HQZ>
+      </Scan>
+      <Scan number="9">
+        <Edge>99.3</Edge><SC>98.9</SC><MinEC>92.9</MinEC>
+        <MOD>93.8</MOD><Defect>98.4</Defect><DEC>97.9</DEC>
+        <LQZ>8.3</LQZ><RQZ>8.4</RQZ><HQZ>8.2</HQZ>
+      </Scan>
+      <Scan number="10">
+        <Edge>99.1</Edge><SC>98.6</SC><MinEC>92.1</MinEC>
+        <MOD>93.4</MOD><Defect>98.2</Defect><DEC>97.6</DEC>
+        <LQZ>8.2</LQZ><RQZ>8.3</RQZ><HQZ>8.1</HQZ>
+      </Scan>
+    </ScanResults>
+  </DMSymVerResponse>
+</DMCCResponse>

@@ -16,6 +16,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EPPlus" Version="7.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ExcelEngine\ExcelEngine.csproj" />
     <ProjectReference Include="..\DeviceInterface\DeviceInterface.csproj" />
     <ProjectReference Include="..\ConfigEngine\ConfigEngine.csproj" />

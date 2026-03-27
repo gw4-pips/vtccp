@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  VTCCP Smoke-Test Fixture — 2D DataMatrix ECC 200, Grade F (0.5 / FAIL)
+  Simulates a degraded label with multiple failing 2D parameters.
+  Used by Phase 5 TestHarness checks (5-B) and WPF smoke tests.
+-->
+<DMCCResponse>
+  <DMSymVerResponse>
+    <DateTime>2026-01-15T10:31:22</DateTime>
+    <SymbologyName>Data Matrix ECC 200</SymbologyName>
+    <DecodedData>010123456789012810VTCCP-SMOKE-FIXTURE-GRADE-F-DEGRADED-LABEL-BELOW-MINIMUM-QUALITY-THRESHOLD</DecodedData>
+    <FormalGrade>0.5/16/660/45Q</FormalGrade>
+    <OverallGrade>F</OverallGrade>
+    <OverallGradeNumeric>0.5</OverallGradeNumeric>
+
+    <ApertureRef>16</ApertureRef>
+    <Wavelength>660</Wavelength>
+    <Lighting>45Q</Lighting>
+    <Standard>ISO 15415:2011</Standard>
+
+    <UECPercent>28.4</UECPercent>
+    <UECGrade numeric="0.5">F</UECGrade>
+    <SCPercent>31.1</SCPercent>
+    <SCGrade numeric="1.0">D</SCGrade>
+    <MODGrade numeric="0.5">F</MODGrade>
+    <RMGrade numeric="1.0">D</RMGrade>
+    <ANUPercent>18.6</ANUPercent>
+    <ANUGrade numeric="0.5">F</ANUGrade>
+    <GNUPercent>22.3</GNUPercent>
+    <GNUGrade numeric="0.5">F</GNUGrade>
+    <FPDGrade numeric="1.5">C</FPDGrade>
+    <DecodeGrade numeric="1.5">C</DecodeGrade>
+    <AGValue>0.29</AGValue>
+    <AGGrade numeric="0.5">F</AGGrade>
+
+    <MatrixSize>22x22 (Data: 20x20)</MatrixSize>
+    <HorizontalBWG>-42</HorizontalBWG>
+    <VerticalBWG>-38</VerticalBWG>
+    <EncodedCharacters>80</EncodedCharacters>
+    <TotalCodewords>50</TotalCodewords>
+    <DataCodewords>30</DataCodewords>
+    <ErrorCorrectionBudget>20</ErrorCorrectionBudget>
+    <ErrorsCorrected>11</ErrorsCorrected>
+    <ErrorCapacityUsed>55</ErrorCapacityUsed>
+    <ErrorCorrectionType>ECC 200</ErrorCorrectionType>
+    <NominalXDim>18.1</NominalXDim>
+    <PixelsPerModule>3.9</PixelsPerModule>
+    <ImagePolarity>Dark On Light</ImagePolarity>
+
+    <LQZGrade numeric="0.5">F</LQZGrade>
+    <BQZGrade numeric="1.0">D</BQZGrade>
+    <TQZGrade numeric="1.0">D</TQZGrade>
+    <RQZGrade numeric="0.5">F</RQZGrade>
+
+    <TTRPercent>41.2</TTRPercent>
+    <TTRGrade numeric="0.5">F</TTRGrade>
+    <RTRPercent>38.9</RTRPercent>
+    <RTRGrade numeric="0.5">F</RTRGrade>
+  </DMSymVerResponse>
+</DMCCResponse>

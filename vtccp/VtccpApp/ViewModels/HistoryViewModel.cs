@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using ExcelEngine.Models;
 using VtccpApp.Commands;
 using VtccpApp.Models;
+using VtccpApp.Services;
 
 /// <summary>
 /// Backs the Results History page.
@@ -28,10 +29,7 @@ public sealed class HistoryViewModel : ViewModelBase
 
     private ScanResultRow? _selectedRow;
 
-    /// <summary>
-    /// The row currently selected in the DataGrid.
-    /// Drives the detail strip below the grid.
-    /// </summary>
+    /// <summary>The row currently selected in the DataGrid; drives the detail strip.</summary>
     public ScanResultRow? SelectedRow
     {
         get => _selectedRow;
@@ -54,21 +52,21 @@ public sealed class HistoryViewModel : ViewModelBase
 
     // ── Detail strip computed properties ─────────────────────────────────────
 
-    public string DetailGrade    => _selectedRow is null ? string.Empty
+    public string DetailGrade     => _selectedRow is null ? string.Empty
         : $"{_selectedRow.NumericGradeDisplay}  ({_selectedRow.Grade})  —  {_selectedRow.PassFail}";
 
     public string DetailSymbology => _selectedRow?.Symbology ?? string.Empty;
 
     public string DetailFullDecode => _selectedRow?.FullDecodedData ?? string.Empty;
 
-    public string DetailUec      => _selectedRow?.UecPercent is { } u
+    public string DetailUec       => _selectedRow?.UecPercent is { } u
         ? $"UEC  {u:F1}%"
         : string.Empty;
 
-    public string DetailDateTime => _selectedRow is null ? string.Empty
+    public string DetailDateTime  => _selectedRow is null ? string.Empty
         : _selectedRow.Source.VerificationDateTime.ToString("yyyy-MM-dd  HH:mm:ss");
 
-    public string DetailDevice   => _selectedRow is null ? string.Empty
+    public string DetailDevice    => _selectedRow is null ? string.Empty
         : string.Join("  ·  ",
             new[] {
                 _selectedRow.Source.DeviceName,
@@ -76,12 +74,10 @@ public sealed class HistoryViewModel : ViewModelBase
                 _selectedRow.Source.FirmwareVersion,
             }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
-    public string DetailOperator => _selectedRow is null ? string.Empty
+    public string DetailOperator  => _selectedRow is null ? string.Empty
         : string.Join("  ·  ",
-            new[] {
-                _selectedRow.OperatorId,
-                _selectedRow.JobName,
-            }.Where(s => !string.IsNullOrWhiteSpace(s)));
+            new[] { _selectedRow.OperatorId, _selectedRow.JobName }
+            .Where(s => !string.IsNullOrWhiteSpace(s)));
 
     // ── Filter ────────────────────────────────────────────────────────────────
 
@@ -116,6 +112,18 @@ public sealed class HistoryViewModel : ViewModelBase
         private set => Set(ref _statusMessage, value);
     }
 
+    // ── Export state ──────────────────────────────────────────────────────────
+
+    private string? _lastJobName;
+    private string? _lastOperatorId;
+
+    /// <summary>Called by SessionViewModel when a session starts, to capture job/operator for export.</summary>
+    public void SetSessionContext(string? jobName, string? operatorId)
+    {
+        _lastJobName     = jobName;
+        _lastOperatorId  = operatorId;
+    }
+
     // ── Combo-box option lists ─────────────────────────────────────────────────
 
     public static IReadOnlyList<string> GradeOptions    { get; } = ["All", "A", "B", "C", "D", "F", "—"];
@@ -126,12 +134,14 @@ public sealed class HistoryViewModel : ViewModelBase
     public RelayCommand ClearCommand        { get; }
     public RelayCommand ClearFiltersCommand { get; }
     public RelayCommand CopyCommand         { get; }
+    public RelayCommand ExportCommand       { get; }
 
     public HistoryViewModel()
     {
         ClearCommand        = new RelayCommand(OnClear,        () => AllRecords.Count > 0);
         ClearFiltersCommand = new RelayCommand(OnClearFilters, () => !_filter.IsEmpty);
         CopyCommand         = new RelayCommand(OnCopy,         () => FilteredRecords.Count > 0);
+        ExportCommand       = new RelayCommand(async () => await OnExportAsync(), () => AllRecords.Count > 0);
     }
 
     // ── Public API called by SessionViewModel ─────────────────────────────────
@@ -217,12 +227,43 @@ public sealed class HistoryViewModel : ViewModelBase
                 r.Grade,
                 r.PassFail,
                 r.UecPercent?.ToString("F1") ?? string.Empty,
-                r.FullDecodedData,          // full string, never truncated
+                r.FullDecodedData,
                 r.OperatorId,
                 r.JobName));
         }
 
         try { System.Windows.Clipboard.SetText(sb.ToString()); }
         catch { /* clipboard may be unavailable during testing */ }
+    }
+
+    private async Task OnExportAsync()
+    {
+        if (AllRecords.Count == 0) return;
+
+        var dlg = new Microsoft.Win32.SaveFileDialog
+        {
+            Title    = "Export Session History",
+            Filter   = "Excel Workbook (*.xlsx)|*.xlsx",
+            FileName = $"VTCCP_Export_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
+        };
+
+        if (dlg.ShowDialog() != true) return;
+
+        StatusMessage = "Exporting…";
+        try
+        {
+            await HistoryExportService.ExportAsync(
+                AllRecords,
+                dlg.FileName,
+                jobName:    _lastJobName,
+                operatorId: _lastOperatorId);
+
+            StatusMessage =
+                $"Exported {AllRecords.Count} records → {System.IO.Path.GetFileName(dlg.FileName)}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Export failed: {ex.Message}";
+        }
     }
 }

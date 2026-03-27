@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  VTCCP Smoke-Test Fixture — 2D DataMatrix ECC 200, Grade A (4.0 / PASS)
+  Simulates a Cognex DataMan DMV DMST result for a high-quality DMV label.
+  Used by Phase 5 TestHarness checks (5-A) and WPF smoke tests.
+-->
+<DMCCResponse>
+  <DMSymVerResponse>
+    <DateTime>2026-01-15T10:23:47</DateTime>
+    <SymbologyName>Data Matrix ECC 200</SymbologyName>
+    <DecodedData>010123456789012810VTCCP-SMOKE-FIXTURE-GRADE-A</DecodedData>
+    <FormalGrade>4.0/16/660/45Q</FormalGrade>
+    <OverallGrade>A</OverallGrade>
+    <OverallGradeNumeric>4.0</OverallGradeNumeric>
+
+    <ApertureRef>16</ApertureRef>
+    <Wavelength>660</Wavelength>
+    <Lighting>45Q</Lighting>
+    <Standard>ISO 15415:2011</Standard>
+
+    <UECPercent>98.5</UECPercent>
+    <UECGrade numeric="4.0">A</UECGrade>
+    <SCPercent>97.2</SCPercent>
+    <SCGrade numeric="4.0">A</SCGrade>
+    <MODGrade numeric="4.0">A</MODGrade>
+    <RMGrade numeric="4.0">A</RMGrade>
+    <ANUPercent>0.8</ANUPercent>
+    <ANUGrade numeric="4.0">A</ANUGrade>
+    <GNUPercent>1.2</GNUPercent>
+    <GNUGrade numeric="4.0">A</GNUGrade>
+    <FPDGrade numeric="4.0">A</FPDGrade>
+    <DecodeGrade numeric="4.0">A</DecodeGrade>
+    <AGValue>0.98</AGValue>
+    <AGGrade numeric="4.0">A</AGGrade>
+
+    <MatrixSize>22x22 (Data: 20x20)</MatrixSize>
+    <HorizontalBWG>-11</HorizontalBWG>
+    <VerticalBWG>-11</VerticalBWG>
+    <EncodedCharacters>42</EncodedCharacters>
+    <TotalCodewords>50</TotalCodewords>
+    <DataCodewords>30</DataCodewords>
+    <ErrorCorrectionBudget>20</ErrorCorrectionBudget>
+    <ErrorsCorrected>0</ErrorsCorrected>
+    <ErrorCapacityUsed>0</ErrorCapacityUsed>
+    <ErrorCorrectionType>ECC 200</ErrorCorrectionType>
+    <NominalXDim>19.8</NominalXDim>
+    <PixelsPerModule>4.2</PixelsPerModule>
+    <ImagePolarity>White On Black</ImagePolarity>
+
+    <LQZGrade numeric="4.0">A</LQZGrade>
+    <BQZGrade numeric="4.0">A</BQZGrade>
+    <TQZGrade numeric="4.0">A</TQZGrade>
+    <RQZGrade numeric="4.0">A</RQZGrade>
+    <LLSGrade numeric="4.0">A</LLSGrade>
+    <BLSGrade numeric="4.0">A</BLSGrade>
+
+    <TTRPercent>95.3</TTRPercent>
+    <TTRGrade numeric="4.0">A</TTRGrade>
+    <RTRPercent>93.1</RTRPercent>
+    <RTRGrade numeric="4.0">A</RTRGrade>
+    <TCTGrade numeric="4.0">A</TCTGrade>
+    <RCTGrade numeric="4.0">A</RCTGrade>
+  </DMSymVerResponse>
+</DMCCResponse>

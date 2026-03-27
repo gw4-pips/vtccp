@@ -87,8 +87,19 @@ public static class DmstResultParser
         string? gradeLetterStr = Str(map.OverallGrade);
         decimal gradeNumeric   = Dec(map.OverallGradeNumeric) ?? 0m;
         string? formalGrade    = Str(map.FormalGrade);
+
+        // Derive pass/fail from letter grade when no explicit element is present.
+        // A/B → Pass (above any standard minimum); F → Fail; C/D → NotApplicable
+        // (threshold-dependent; device may or may not mark those as pass).
+        string derivedPassFail = gradeLetterStr?.Trim().ToUpper() switch
+        {
+            "A" or "B" => "PASS",
+            "F"        => "FAIL",
+            _          => "",
+        };
+
         GradingResult? overall = gradeLetterStr is not null
-            ? GradingResult.FromLetterAndNumeric(gradeLetterStr, gradeNumeric, "")
+            ? GradingResult.FromLetterAndNumeric(gradeLetterStr, gradeNumeric, derivedPassFail)
             : null;
 
         // ── Verification settings ─────────────────────────────────────────────

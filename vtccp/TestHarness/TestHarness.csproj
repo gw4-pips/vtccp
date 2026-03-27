@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Fixtures\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ExcelEngine\ExcelEngine.csproj" />
     <ProjectReference Include="..\DeviceInterface\DeviceInterface.csproj" />
     <ProjectReference Include="..\ConfigEngine\ConfigEngine.csproj" />

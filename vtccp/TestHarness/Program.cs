@@ -2634,6 +2634,123 @@ if (!p4Pass)
 Console.WriteLine();
 Console.WriteLine("Phase 4 complete.");
 
+// ═════════════════════════════════════════════════════════════════════════════
+// Phase 5 — Smoke-Test Fixture Parsing (5-A, 5-B, 5-C)
+// ─────────────────────────────────────────────────────────────────────────────
+// Parses the three XML fixture files that ship with the TestHarness under
+// Fixtures/ and verifies key fields on the resulting VerificationRecord.
+// These fixtures also serve as the WPF smoke-test dataset for the detail strip.
+// ═════════════════════════════════════════════════════════════════════════════
+
+Console.WriteLine();
+Console.WriteLine("Phase 5: Smoke-Test Fixture Parsing");
+Console.WriteLine("====================================");
+
+string fixtureDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures");
+
+var p5XmlMap = new DeviceInterface.Dmst.VerificationXmlMap();
+bool p5aPass = false, p5bPass = false, p5cPass = false;
+
+// ── 5-A: 2D DataMatrix Grade A fixture ───────────────────────────────────────
+{
+    Console.WriteLine("5-A: 2D DataMatrix Grade A fixture");
+    try
+    {
+        string xml    = await File.ReadAllTextAsync(Path.Combine(fixtureDir, "dmst_2d_grade_a.xml"));
+        var    record = DeviceInterface.Dmst.DmstResultParser.Parse(xml, p5XmlMap);
+
+        bool symOk      = record.Symbology == "DataMatrix";            // normalised
+        bool gradeOk    = record.OverallGrade?.LetterGradeString == "A";
+        bool numericOk  = record.OverallGrade?.NumericGrade == 4.0m;
+        bool passOk     = record.OverallGrade?.PassFail == ExcelEngine.Models.OverallPassFail.Pass;
+        bool decodeOk   = record.DecodedData?.Contains("GRADE-A") == true;
+        bool familyOk   = record.SymbologyFamily == ExcelEngine.Models.SymbologyFamily.DataMatrix;
+        bool uecOk      = record.UEC_Percent == 98.5m;
+
+        p5aPass = symOk && gradeOk && numericOk && passOk && decodeOk && familyOk && uecOk;
+        Console.WriteLine($"  Symbology normalised:   {(symOk     ? "PASS" : "FAIL")}  ({record.Symbology})");
+        Console.WriteLine($"  Grade letter = A:       {(gradeOk   ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Numeric grade = 4.0:    {(numericOk ? "PASS" : "FAIL")}  ({record.OverallGrade?.NumericGrade})");
+        Console.WriteLine($"  PassFail = Pass:        {(passOk    ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Decoded data contains:  {(decodeOk  ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  SymbologyFamily correct:{(familyOk  ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  UEC% = 98.5:            {(uecOk     ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  5-A: {(p5aPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex) { Console.WriteLine($"  5-A EXCEPTION: {ex.Message}"); }
+}
+
+// ── 5-B: 2D DataMatrix Grade F fixture ───────────────────────────────────────
+{
+    Console.WriteLine("5-B: 2D DataMatrix Grade F fixture");
+    try
+    {
+        string xml    = await File.ReadAllTextAsync(Path.Combine(fixtureDir, "dmst_2d_grade_f.xml"));
+        var    record = DeviceInterface.Dmst.DmstResultParser.Parse(xml, p5XmlMap);
+
+        bool symOk      = record.Symbology == "DataMatrix";
+        bool gradeOk    = record.OverallGrade?.LetterGradeString == "F";
+        bool numericOk  = record.OverallGrade?.NumericGrade == 0.5m;
+        bool failOk     = record.OverallGrade?.PassFail == ExcelEngine.Models.OverallPassFail.Fail;
+        bool longOk     = record.DecodedData?.Length > 60;              // truncation smoke-test
+        bool ecOk       = record.ErrorsCorrected == 11;
+        bool ecCapOk    = record.ErrorCapacityUsed == 55;
+
+        p5bPass = symOk && gradeOk && numericOk && failOk && longOk && ecOk && ecCapOk;
+        Console.WriteLine($"  Symbology normalised:    {(symOk     ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Grade letter = F:        {(gradeOk   ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Numeric grade = 0.5:     {(numericOk ? "PASS" : "FAIL")}  ({record.OverallGrade?.NumericGrade})");
+        Console.WriteLine($"  PassFail = Fail:         {(failOk    ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  DecodedData length > 60: {(longOk    ? "PASS" : "FAIL")}  ({record.DecodedData?.Length})");
+        Console.WriteLine($"  ErrorsCorrected = 11:    {(ecOk      ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  ErrorCapacityUsed = 55:  {(ecCapOk   ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  5-B: {(p5bPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex) { Console.WriteLine($"  5-B EXCEPTION: {ex.Message}"); }
+}
+
+// ── 5-C: 1D Code 128 fixture ─────────────────────────────────────────────────
+{
+    Console.WriteLine("5-C: 1D Code 128 fixture");
+    try
+    {
+        string xml    = await File.ReadAllTextAsync(Path.Combine(fixtureDir, "dmst_1d_code128.xml"));
+        var    record = DeviceInterface.Dmst.DmstResultParser.Parse(xml, p5XmlMap);
+
+        bool symOk      = record.Symbology == "Code128";               // normalised
+        bool familyOk   = record.SymbologyFamily == ExcelEngine.Models.SymbologyFamily.Linear1D;
+        bool gradeOk    = record.OverallGrade?.LetterGradeString == "A";
+        bool passOk     = record.OverallGrade?.PassFail == ExcelEngine.Models.OverallPassFail.Pass;
+        bool scansOk    = record.ScanResults?.Count == 10;             // 10 per-scan rows
+        bool edgeOk     = record.Avg_Edge == 99.2m;
+        bool bwgOk      = record.BWG_Percent == -8.5m;
+
+        p5cPass = symOk && familyOk && gradeOk && passOk && scansOk && edgeOk && bwgOk;
+        Console.WriteLine($"  Symbology normalised:   {(symOk    ? "PASS" : "FAIL")}  ({record.Symbology})");
+        Console.WriteLine($"  Family = Linear1D:      {(familyOk ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Grade letter = A:       {(gradeOk  ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  PassFail = Pass:        {(passOk   ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  ScanResults count = 10: {(scansOk  ? "PASS" : "FAIL")}  ({record.ScanResults?.Count})");
+        Console.WriteLine($"  Avg_Edge = 99.2:        {(edgeOk   ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  BWG_Percent = -8.5:     {(bwgOk    ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  5-C: {(p5cPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex) { Console.WriteLine($"  5-C EXCEPTION: {ex.Message}"); }
+}
+
+// ── Phase 5 summary ───────────────────────────────────────────────────────────
+bool p5Pass = p5aPass && p5bPass && p5cPass;
+Console.WriteLine();
+Console.WriteLine($"Phase 5 verification: {(p5Pass ? "PASS" : "FAIL")}");
+if (!p5Pass)
+{
+    if (!p5aPass) Console.WriteLine("  FAIL: 5-A 2D Grade A fixture");
+    if (!p5bPass) Console.WriteLine("  FAIL: 5-B 2D Grade F fixture");
+    if (!p5cPass) Console.WriteLine("  FAIL: 5-C 1D Code128 fixture");
+}
+Console.WriteLine();
+Console.WriteLine("Phase 5 complete.");
+
 // ── Overall exit code ─────────────────────────────────────────────────────────
-bool allPass = p3Pass && p4Pass;
+bool allPass = p3Pass && p4Pass && p5Pass;
 if (!allPass) Environment.Exit(1);

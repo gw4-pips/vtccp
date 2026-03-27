@@ -30,7 +30,11 @@
                         Margin="0,0,8,0" />
                 <Button Content="Set Default"
                         Style="{StaticResource SecondaryButton}"
-                        Command="{Binding DefaultCommand}" />
+                        Command="{Binding DefaultCommand}"
+                        Margin="0,0,8,0" />
+                <Button Content="⚡ Test Connection"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding TestConnectCommand}" />
             </StackPanel>
         </StackPanel>
 

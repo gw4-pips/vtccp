@@ -4,12 +4,13 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using ConfigEngine;
 using ConfigEngine.Models;
+using DeviceInterface;
 using VtccpApp.Commands;
 
 /// <summary>
 /// Manages the device profile list for the Devices page.
 /// Exposes an <see cref="ObservableCollection{T}"/> for the list view and
-/// commands for Add / Edit / Delete / Set-Default.
+/// commands for Add / Edit / Delete / Set-Default / Test-Connection.
 /// </summary>
 public sealed class DevicesViewModel : ViewModelBase
 {
@@ -18,6 +19,7 @@ public sealed class DevicesViewModel : ViewModelBase
     private DeviceProfileViewModel? _selected;
     private DeviceProfileViewModel? _editing;
     private bool                    _isEditing;
+    private bool                    _isTesting;
     private string                  _statusMessage = string.Empty;
 
     // ── Bindable collections and properties ───────────────────────────────────
@@ -52,25 +54,29 @@ public sealed class DevicesViewModel : ViewModelBase
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
-    public RelayCommand AddCommand     { get; }
-    public RelayCommand EditCommand    { get; }
-    public RelayCommand DeleteCommand  { get; }
-    public RelayCommand DefaultCommand { get; }
-    public RelayCommand SaveCommand    { get; }
-    public RelayCommand CancelCommand  { get; }
-    public RelayCommand BrowseLogoCommand { get; }
+    public RelayCommand AddCommand          { get; }
+    public RelayCommand EditCommand         { get; }
+    public RelayCommand DeleteCommand       { get; }
+    public RelayCommand DefaultCommand      { get; }
+    public RelayCommand SaveCommand         { get; }
+    public RelayCommand CancelCommand       { get; }
+    public RelayCommand BrowseLogoCommand   { get; }
+    public RelayCommand TestConnectCommand  { get; }
 
     public DevicesViewModel(ConfigRepository repo)
     {
         _repo = repo;
 
-        AddCommand     = new RelayCommand(OnAdd);
-        EditCommand    = new RelayCommand(OnEdit,   () => Selected is not null && !IsEditing);
-        DeleteCommand  = new RelayCommand(OnDelete, () => Selected is not null && !IsEditing);
-        DefaultCommand = new RelayCommand(OnSetDefault, () => Selected is not null && !IsEditing);
-        SaveCommand    = new RelayCommand(OnSave,   () => IsEditing);
-        CancelCommand  = new RelayCommand(OnCancel, () => IsEditing);
-        BrowseLogoCommand = new RelayCommand(OnBrowseLogo, () => IsEditing);
+        AddCommand        = new RelayCommand(OnAdd);
+        EditCommand       = new RelayCommand(OnEdit,        () => Selected is not null && !IsEditing);
+        DeleteCommand     = new RelayCommand(OnDelete,      () => Selected is not null && !IsEditing);
+        DefaultCommand    = new RelayCommand(OnSetDefault,  () => Selected is not null && !IsEditing);
+        SaveCommand       = new RelayCommand(OnSave,        () => IsEditing);
+        CancelCommand     = new RelayCommand(OnCancel,      () => IsEditing);
+        BrowseLogoCommand = new RelayCommand(OnBrowseLogo,  () => IsEditing);
+        TestConnectCommand = new RelayCommand(
+            async () => await OnTestConnectAsync(),
+            () => Selected is not null && !IsEditing && !_isTesting);
 
         Reload();
     }
@@ -156,6 +162,50 @@ public sealed class DevicesViewModel : ViewModelBase
             Title  = "Select Logo Image",
             Filter = "Image files|*.png;*.jpg;*.jpeg;*.bmp;*.gif|All files|*.*",
         };
-        if (dlg.ShowDialog() == true) Editing.Notes = Editing.Notes; // force refresh (logo on device not applicable)
+        if (dlg.ShowDialog() == true) Editing.Notes = Editing.Notes;
+    }
+
+    /// <summary>
+    /// Connects to the selected device, queries its type and firmware, and
+    /// reports the result (including round-trip latency) in the status bar.
+    /// Uses a 3-second timeout so the UI stays responsive.
+    /// </summary>
+    private async Task OnTestConnectAsync()
+    {
+        if (Selected is null) return;
+
+        _isTesting = true;
+        RelayCommand.Refresh();
+        StatusMessage = $"Testing connection to {Selected.Host}:{Selected.Port}…";
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        try
+        {
+            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3));
+            var cfg     = Selected.ToModel().ToDeviceConfig();
+            var session = new DeviceSession(cfg);
+            await using (session)
+            {
+                await session.ConnectAsync(cts.Token);
+                sw.Stop();
+                var info = session.DeviceInfo;
+                StatusMessage =
+                    $"Connected  ·  {sw.ElapsedMilliseconds} ms  |  " +
+                    $"{info.Type ?? "?"}  ·  FW {info.FirmwareVersion ?? "?"}  ·  S/N {info.Serial ?? "?"}";
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = $"Connection timed out after 3 s  ({Selected.Host}:{Selected.Port})";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Connection failed: {ex.Message}";
+        }
+        finally
+        {
+            _isTesting = false;
+            RelayCommand.Refresh();
+        }
     }
 }
