@@ -1309,6 +1309,197 @@ if (!resumeAll)
 if (File.Exists(resumeTestOutputPath))  File.Delete(resumeTestOutputPath);
 if (File.Exists(resumeTestSidecarPath)) File.Delete(resumeTestSidecarPath);
 
+// ── Resume append-correctness test ───────────────────────────────────────────
+// Verifies that after a crash+resume the session appends records to the SAME
+// physical file (not a new one), and that the final row count is correct.
+//
+// Sequence:
+//   Phase 1: write 2 records, close cleanly → xlsx has 2 data rows on disk.
+//   Phase 2: inject a sidecar mimicking a crash (RecordCount=2, context set).
+//   Phase 3: resume with a fresh SessionManager → must open the same xlsx.
+//            write 2 more records, close.
+//   Verify : xlsx contains exactly 2+2 = 4 data rows (+ 2 header rows = 6 total).
+
+Console.WriteLine("\nResume append-correctness test:");
+var appendOutputDir = Path.Combine(Path.GetTempPath(), "vtccp_append_test");
+Directory.CreateDirectory(appendOutputDir);
+
+// Phase 1: initial session — write 2 records, close cleanly.
+var appendSession1 = new SessionState
+{
+    JobName         = "AppendTest",
+    OperatorId      = "OP-APP",
+    RollNumber      = 1,
+    OutputDirectory = appendOutputDir,
+    OutputFormat    = OutputFormat.Xlsx,
+    SessionStarted  = new DateTime(2026, 2, 1),
+};
+using var appendMgr1 = new SessionManager(schema);
+string appendPath1 = appendMgr1.StartSession(appendSession1);
+var t4AppPass = GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS");
+var appRec1 = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2026, 2, 1, 9, 0, 0),
+    Symbology = "DataMatrix", SymbologyFamily = SymbologyFamily.DataMatrix,
+    DecodedData = "APPEND-REC-01", FormalGrade = "4.0/16/660/45Q",
+    OverallGrade = t4AppPass, CustomPassFail = OverallPassFail.Pass,
+    OperatorId = "OP-APP", JobName = "AppendTest", RollNumber = 1,
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+    MatrixSize = "16x16", HorizontalBWG = 0, VerticalBWG = 0,
+    EncodedCharacters = 12, TotalCodewords = 24, DataCodewords = 12,
+    ErrorCorrectionBudget = 12, ErrorsCorrected = 0, ErrorCapacityUsed = 0,
+    ErrorCorrectionType = "ECC 200", ImagePolarity = ImagePolarity.BlackOnWhite,
+    NominalXDim_2D = 25.0m, PixelsPerModule = 41.5m,
+    UEC_Percent = 100, UEC_Grade = t4AppPass,
+    SC_Percent = 80, SC_Grade = t4AppPass,
+    MOD_Grade = t4AppPass, RM_Grade = t4AppPass, ANU_Percent = 0m, ANU_Grade = t4AppPass,
+    GNU_Percent = 0m, GNU_Grade = t4AppPass, FPD_Grade = t4AppPass,
+    LLS_Grade = t4AppPass, BLS_Grade = t4AppPass, LQZ_Grade = t4AppPass,
+    BQZ_Grade = t4AppPass, TQZ_Grade = t4AppPass, RQZ_Grade = t4AppPass,
+    TTR_Percent = 0, TTR_Grade = t4AppPass, RTR_Percent = 0, RTR_Grade = t4AppPass,
+    TCT_Grade = t4AppPass, RCT_Grade = t4AppPass,
+    AG_Value = 4.0m, AG_Grade = t4AppPass, DECODE_Grade = t4AppPass,
+};
+var appRec2 = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2026, 2, 1, 9, 1, 0),
+    Symbology = "DataMatrix", SymbologyFamily = SymbologyFamily.DataMatrix,
+    DecodedData = "APPEND-REC-02", FormalGrade = "4.0/16/660/45Q",
+    OverallGrade = t4AppPass, CustomPassFail = OverallPassFail.Pass,
+    OperatorId = "OP-APP", JobName = "AppendTest", RollNumber = 1,
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+    MatrixSize = "16x16", HorizontalBWG = 0, VerticalBWG = 0,
+    EncodedCharacters = 12, TotalCodewords = 24, DataCodewords = 12,
+    ErrorCorrectionBudget = 12, ErrorsCorrected = 0, ErrorCapacityUsed = 0,
+    ErrorCorrectionType = "ECC 200", ImagePolarity = ImagePolarity.BlackOnWhite,
+    NominalXDim_2D = 25.0m, PixelsPerModule = 41.5m,
+    UEC_Percent = 100, UEC_Grade = t4AppPass,
+    SC_Percent = 80, SC_Grade = t4AppPass,
+    MOD_Grade = t4AppPass, RM_Grade = t4AppPass, ANU_Percent = 0m, ANU_Grade = t4AppPass,
+    GNU_Percent = 0m, GNU_Grade = t4AppPass, FPD_Grade = t4AppPass,
+    LLS_Grade = t4AppPass, BLS_Grade = t4AppPass, LQZ_Grade = t4AppPass,
+    BQZ_Grade = t4AppPass, TQZ_Grade = t4AppPass, RQZ_Grade = t4AppPass,
+    TTR_Percent = 0, TTR_Grade = t4AppPass, RTR_Percent = 0, RTR_Grade = t4AppPass,
+    TCT_Grade = t4AppPass, RCT_Grade = t4AppPass,
+    AG_Value = 4.0m, AG_Grade = t4AppPass, DECODE_Grade = t4AppPass,
+};
+appendMgr1.AddRecord(appRec1);
+appendMgr1.AddRecord(appRec2);
+int appendPhase1RecordCount = appendMgr1.RecordsWritten;
+appendMgr1.CloseSession();   // saves xlsx, deletes sidecar
+
+string appendSidecarPath = SessionManager.GetSidecarPath(appendPath1);
+
+// Verify phase 1 saved correctly.
+using var appendPkg1 = new OfficeOpenXml.ExcelPackage(new FileInfo(appendPath1));
+int appendRows1 = appendPkg1.Workbook.Worksheets["Main"]?.Dimension?.Rows ?? 0;
+Console.WriteLine($"  Phase 1: {appendPhase1RecordCount} records written, xlsx has {appendRows1} rows (expect 4 = 2 hdr + 2 data)");
+appendPkg1.Dispose();
+
+// Phase 2: inject sidecar (simulates crash after Phase 1 save).
+// Written as an anonymous object so we don't reference the internal SessionSidecar class.
+var crashSidecarJson = new
+{
+    JobName           = "AppendTest",
+    OperatorId        = "OP-APP",
+    RollNumber        = 1,
+    RollIncrementMode = "Manual",
+    RollStartValue    = 1,
+    RollTimestamp     = (string?)null,
+    OutputDirectory   = appendOutputDir,
+    OutputFormat      = "Xlsx",
+    FileNamePattern   = (string?)null,
+    SessionStarted    = new DateTime(2026, 2, 1),
+    RecordCount       = appendPhase1RecordCount,
+};
+File.WriteAllText(appendSidecarPath,
+    System.Text.Json.JsonSerializer.Serialize(crashSidecarJson,
+        new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+
+// Phase 3: resume session and append 2 more records.
+// In a real crash-recovery scenario the caller supplies the job name (or uses
+// a file picker in Phase 3 GUI) so the initial path resolves to the right file.
+var appendSession2 = new SessionState
+{
+    JobName         = "AppendTest",  // caller provides job name for path resolution
+    OutputDirectory = appendOutputDir,
+    OutputFormat    = OutputFormat.Xlsx,
+    SessionStarted  = new DateTime(2026, 2, 1),  // same date → same filename
+    // All other context fields left null — sidecar restores them
+};
+using var appendMgr2 = new SessionManager(schema);
+string appendPath2 = appendMgr2.StartSession(appendSession2);
+bool appendSameFile = appendPath2 == appendPath1;
+Console.WriteLine($"  Phase 3: resumed path same as original: {appendSameFile}");
+Console.WriteLine($"  Phase 3: restored RecordCount = {appendMgr2.CurrentSession!.RecordCount} (expect {appendPhase1RecordCount})");
+
+var appRec3 = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2026, 2, 1, 10, 0, 0),
+    Symbology = "DataMatrix", SymbologyFamily = SymbologyFamily.DataMatrix,
+    DecodedData = "APPEND-REC-03", FormalGrade = "4.0/16/660/45Q",
+    OverallGrade = t4AppPass, CustomPassFail = OverallPassFail.Pass,
+    OperatorId = "OP-APP", JobName = "AppendTest", RollNumber = 1,
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+    MatrixSize = "16x16", HorizontalBWG = 0, VerticalBWG = 0,
+    EncodedCharacters = 12, TotalCodewords = 24, DataCodewords = 12,
+    ErrorCorrectionBudget = 12, ErrorsCorrected = 0, ErrorCapacityUsed = 0,
+    ErrorCorrectionType = "ECC 200", ImagePolarity = ImagePolarity.BlackOnWhite,
+    NominalXDim_2D = 25.0m, PixelsPerModule = 41.5m,
+    UEC_Percent = 100, UEC_Grade = t4AppPass,
+    SC_Percent = 80, SC_Grade = t4AppPass,
+    MOD_Grade = t4AppPass, RM_Grade = t4AppPass, ANU_Percent = 0m, ANU_Grade = t4AppPass,
+    GNU_Percent = 0m, GNU_Grade = t4AppPass, FPD_Grade = t4AppPass,
+    LLS_Grade = t4AppPass, BLS_Grade = t4AppPass, LQZ_Grade = t4AppPass,
+    BQZ_Grade = t4AppPass, TQZ_Grade = t4AppPass, RQZ_Grade = t4AppPass,
+    TTR_Percent = 0, TTR_Grade = t4AppPass, RTR_Percent = 0, RTR_Grade = t4AppPass,
+    TCT_Grade = t4AppPass, RCT_Grade = t4AppPass,
+    AG_Value = 4.0m, AG_Grade = t4AppPass, DECODE_Grade = t4AppPass,
+};
+var appRec4 = new VerificationRecord
+{
+    VerificationDateTime = new DateTime(2026, 2, 1, 10, 1, 0),
+    Symbology = "DataMatrix", SymbologyFamily = SymbologyFamily.DataMatrix,
+    DecodedData = "APPEND-REC-04", FormalGrade = "4.0/16/660/45Q",
+    OverallGrade = t4AppPass, CustomPassFail = OverallPassFail.Pass,
+    OperatorId = "OP-APP", JobName = "AppendTest", RollNumber = 1,
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+    MatrixSize = "16x16", HorizontalBWG = 0, VerticalBWG = 0,
+    EncodedCharacters = 12, TotalCodewords = 24, DataCodewords = 12,
+    ErrorCorrectionBudget = 12, ErrorsCorrected = 0, ErrorCapacityUsed = 0,
+    ErrorCorrectionType = "ECC 200", ImagePolarity = ImagePolarity.BlackOnWhite,
+    NominalXDim_2D = 25.0m, PixelsPerModule = 41.5m,
+    UEC_Percent = 100, UEC_Grade = t4AppPass,
+    SC_Percent = 80, SC_Grade = t4AppPass,
+    MOD_Grade = t4AppPass, RM_Grade = t4AppPass, ANU_Percent = 0m, ANU_Grade = t4AppPass,
+    GNU_Percent = 0m, GNU_Grade = t4AppPass, FPD_Grade = t4AppPass,
+    LLS_Grade = t4AppPass, BLS_Grade = t4AppPass, LQZ_Grade = t4AppPass,
+    BQZ_Grade = t4AppPass, TQZ_Grade = t4AppPass, RQZ_Grade = t4AppPass,
+    TTR_Percent = 0, TTR_Grade = t4AppPass, RTR_Percent = 0, RTR_Grade = t4AppPass,
+    TCT_Grade = t4AppPass, RCT_Grade = t4AppPass,
+    AG_Value = 4.0m, AG_Grade = t4AppPass, DECODE_Grade = t4AppPass,
+};
+appendMgr2.AddRecord(appRec3);
+appendMgr2.AddRecord(appRec4);
+appendMgr2.CloseSession();
+
+// Verify final row count: 2 headers + 2 original + 2 resumed = 6 total.
+using var appendPkg2 = new OfficeOpenXml.ExcelPackage(new FileInfo(appendPath2));
+int appendRowsFinal = appendPkg2.Workbook.Worksheets["Main"]?.Dimension?.Rows ?? 0;
+appendPkg2.Dispose();
+Console.WriteLine($"  Final row count: {appendRowsFinal} (expect 6 = 2 hdr + 2 original + 2 resumed)");
+
+bool appendCorrect =
+    appendSameFile &&
+    appendRows1 == 4 &&
+    appendRowsFinal == 6;
+
+Console.WriteLine($"  Resume append-correctness: {(appendCorrect ? "PASS" : "FAIL")}");
+
+// Cleanup.
+foreach (var f in Directory.GetFiles(appendOutputDir)) File.Delete(f);
+Directory.Delete(appendOutputDir);
+
 // ── AutoIncrement roll mode test ──────────────────────────────────────────────
 Console.WriteLine("\nAutoIncrement roll mode test:");
 var aiOutputDir = Path.Combine(Path.GetTempPath(), "vtccp_ai_test");
@@ -1390,6 +1581,8 @@ bool t4Pass =
     rollNewSession && rollIncrement && opChanged &&
     // Roll increment modes
     aiPass && dtPass &&
+    // Resume append correctness
+    appendCorrect &&
     // SessionManager lifecycle
     recordsWrittenBeforeClose == 6 &&
     sidecarCreated        == true &&
