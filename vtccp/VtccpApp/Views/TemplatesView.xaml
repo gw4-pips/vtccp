@@ -32,8 +32,18 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="360"
-                    Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}" />
+                <ColumnDefinition>
+                    <ColumnDefinition.Style>
+                        <Style TargetType="ColumnDefinition">
+                            <Setter Property="Width" Value="360" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEditing}" Value="False">
+                                    <Setter Property="Width" Value="0" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ColumnDefinition.Style>
+                </ColumnDefinition>
             </Grid.ColumnDefinitions>
 
             <!-- Template list -->
