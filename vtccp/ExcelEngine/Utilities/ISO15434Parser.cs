@@ -1,9 +1,14 @@
 namespace ExcelEngine.Utilities;
 
 /// <summary>
-/// Parses ISO/IEC 15434 (ANSI MH10.8.2 / MIL-STD-130) transport-syntax strings
-/// to extract batch/lot information from the Data Identifier 4L (primary) or
-/// related DIs 10L, 1L, and L.
+/// Parses ISO/IEC 15434 (ANSI MH10.8.2) transport-syntax strings to extract
+/// batch/lot information from the Data Identifier 4L (primary) or related DIs
+/// 10L, 1L, and L.
+///
+/// Covers all standards that use the ISO 15434 envelope with MH10.8.2 DIs:
+///   MIL-STD-129  — Military shipment and storage labels (typically PDF417)
+///   MIL-STD-130  — DoD UID item marking (typically Data Matrix)
+///   ANSI MH10.8.2 — Commercial supply chain / healthcare
 ///
 /// Envelope format:
 ///   [)> RS {format-indicator} GS (DI+data GS)+ RS [EOT]

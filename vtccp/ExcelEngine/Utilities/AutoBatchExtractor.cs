@@ -10,7 +10,8 @@ namespace ExcelEngine.Utilities;
 ///
 /// Supported formats (in order tried):
 ///   1. GS1 (FNC1-delimited symbols, Application Identifier 10)  — GS1Parser
-///   2. ISO 15434 / ANSI MH10.8.2 / MIL-STD-130  ([)> envelope, DI 4L / 10L / 1L / L)
+///   2. ISO 15434 / ANSI MH10.8.2  ([)> envelope, DI 4L / 10L / 1L / L)
+///      Covers MIL-STD-129 (PDF417 shipment labels) and MIL-STD-130 (Data Matrix UID)
 ///      — ISO15434Parser
 /// </summary>
 public static class AutoBatchExtractor
