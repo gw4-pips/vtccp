@@ -111,14 +111,16 @@
                              Margin="0,0,10,0" />
 
                 <!-- Push port hint -->
-                <TextBlock VerticalAlignment="Center"
-                           FontSize="11"
-                           Foreground="{StaticResource TextSecondaryBrush}"
-                           Visibility="{Binding IsPushAvailable,
-                               Converter={StaticResource BoolToVisibility}}">
-                    <Run Text="Port:" />
-                    <Run Text="{Binding SelectedDevice.DmstListenPort, Mode=OneWay}" />
-                </TextBlock>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                            Visibility="{Binding IsPushAvailable,
+                                Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="Port: "
+                               FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding SelectedDevice.DmstListenPort, Mode=OneWay}"
+                               FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
 
                 <!-- Push unavailable hint — shown when DmstListenPort == 0 -->
                 <TextBlock Text="(set DmstListenPort &gt; 0 in device profile to enable)"
