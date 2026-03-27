@@ -14,7 +14,7 @@ namespace ExcelEngine.Models;
 ///   Block 6: Military/Standards-specific
 ///   Block 7: Vendor/Part tracking
 /// </summary>
-public sealed class VerificationRecord
+public sealed record class VerificationRecord
 {
     // ─── Block 1: Universal / Session ──────────────────────────────────────────
 

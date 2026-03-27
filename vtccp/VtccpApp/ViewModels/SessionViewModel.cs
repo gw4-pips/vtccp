@@ -177,7 +177,7 @@ public sealed class SessionViewModel : ViewModelBase
 
             SessionState state = SelectedTemplate.ToSessionState(outputDir);
             if (!string.IsNullOrWhiteSpace(OperatorOverride))
-                state = state with { OperatorId = OperatorOverride.Trim() };
+                state.OperatorId = OperatorOverride.Trim();
 
             _sessionMgr = new SessionManager(TruCheckCompatibleSchema.Build());
             await Task.Run(() => _sessionMgr.StartSession(state));
