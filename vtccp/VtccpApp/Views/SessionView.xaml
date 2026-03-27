@@ -168,10 +168,10 @@
                                 </Style>
                             </Ellipse.Style>
                         </Ellipse>
-                        <TextBlock VerticalAlignment="Center">
-                            <Run Text="Records written: " />
-                            <Run Text="{Binding RecordCount, Mode=OneWay}" FontWeight="SemiBold" />
-                        </TextBlock>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Records written: " />
+                            <TextBlock Text="{Binding RecordCount, Mode=OneWay}" FontWeight="SemiBold" />
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- Trigger button — only shown in Manual mode -->
