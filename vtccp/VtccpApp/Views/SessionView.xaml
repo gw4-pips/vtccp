@@ -170,7 +170,7 @@
                         </Ellipse>
                         <TextBlock VerticalAlignment="Center">
                             <Run Text="Records written: " />
-                            <Run Text="{Binding RecordCount}" FontWeight="SemiBold" />
+                            <Run Text="{Binding RecordCount, Mode=OneWay}" FontWeight="SemiBold" />
                         </TextBlock>
                     </StackPanel>
 
