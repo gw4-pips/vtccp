@@ -1597,6 +1597,32 @@ Console.WriteLine($"  no AI(10):         {(p4 ? "PASS" : "FAIL (expected null)")
 Console.WriteLine($"  non-GS1 string:    {(p5 ? "PASS" : "FAIL (expected null)")}");
 Console.WriteLine($"  null input:        {(p6 ? "PASS" : "FAIL (expected null)")}");
 
+// 1b. ISO 15434 / ANSI MH10.8.2 / MIL-STD-130 parser unit tests.
+Console.WriteLine("\n  ISO 15434 / MH10.8.2 / MIL-STD-130 parser:");
+
+// Full envelope with raw control characters — 4L batch DI.
+var mh_4l_raw   = "[)>\u001e06\u001dP1234567890\u001d4LMIL-LOT-42\u001dS99887766\u001e\u0004";
+// Full envelope with DataMan-style text escapes — 4L batch DI.
+var mh_4l_esc   = "[)><RS>06<GS>P1234567890<GS>4LBATCH-ESC<GS>S99887766<RS><EOT>";
+// 10L alternate lot DI (no 4L present).
+var mh_10l      = "[)>\u001e06\u001dP0987654321\u001d10LALTERNATE-LOT\u001e";
+// Envelope present but no batch DI at all.
+var mh_no_batch = "[)>\u001e06\u001dP1234567890\u001dS99887766\u001e";
+// Not a 15434 envelope.
+var mh_not_env  = "plain-text-data";
+
+bool q1 = ExcelEngine.Utilities.ISO15434Parser.ExtractBatchLot(mh_4l_raw)   == "MIL-LOT-42";
+bool q2 = ExcelEngine.Utilities.ISO15434Parser.ExtractBatchLot(mh_4l_esc)   == "BATCH-ESC";
+bool q3 = ExcelEngine.Utilities.ISO15434Parser.ExtractBatchLot(mh_10l)      == "ALTERNATE-LOT";
+bool q4 = ExcelEngine.Utilities.ISO15434Parser.ExtractBatchLot(mh_no_batch) == null;
+bool q5 = ExcelEngine.Utilities.ISO15434Parser.ExtractBatchLot(mh_not_env)  == null;
+
+Console.WriteLine($"  4L raw ctrl chars: {(q1 ? "PASS" : $"FAIL (got '{ExcelEngine.Utilities.ISO15434Parser.ExtractBatchLot(mh_4l_raw)}')")}");
+Console.WriteLine($"  4L text escapes:   {(q2 ? "PASS" : $"FAIL (got '{ExcelEngine.Utilities.ISO15434Parser.ExtractBatchLot(mh_4l_esc)}')")}");
+Console.WriteLine($"  10L alt DI:        {(q3 ? "PASS" : $"FAIL (got '{ExcelEngine.Utilities.ISO15434Parser.ExtractBatchLot(mh_10l)}')")}");
+Console.WriteLine($"  no batch DI:       {(q4 ? "PASS" : "FAIL (expected null)")}");
+Console.WriteLine($"  not 15434:         {(q5 ? "PASS" : "FAIL (expected null)")}");
+
 // 2. End-to-end: SessionManager AutoFromGS1 stamps AI(10) into the Batch cell.
 var gs1BatchDir  = Path.Combine(Path.GetTempPath(), "vtccp_gs1batch_test");
 Directory.CreateDirectory(gs1BatchDir);
@@ -1664,8 +1690,76 @@ bool gs1e2ePass2 = batchCell2 == "MANUAL-FALLBACK";
 Console.WriteLine($"  e2e AI(10) stamp:  {(gs1e2ePass1 ? "PASS" : $"FAIL (got '{batchCell1}')")}");
 Console.WriteLine($"  e2e fallback:      {(gs1e2ePass2 ? "PASS" : $"FAIL (got '{batchCell2}')")}");
 
-bool gs1BatchPass = p1 && p2 && p3 && p4 && p5 && p6 && gs1e2ePass1 && gs1e2ePass2;
-Console.WriteLine($"  GS1 auto-batch: {(gs1BatchPass ? "PASS" : "FAIL")}");
+// 3. End-to-end: SessionManager AutoFromGS1 with ISO 15434 / MH10.8.2 decoded data.
+Console.WriteLine("\n  15434 e2e via AutoBatchExtractor:");
+
+var mh10BatchDir = Path.Combine(Path.GetTempPath(), "vtccp_mh10_test");
+Directory.CreateDirectory(mh10BatchDir);
+
+var mh10State = new ExcelEngine.Models.SessionState
+{
+    JobName         = "MH10AutoBatch",
+    OperatorId      = "GW4",
+    BatchMode       = ExcelEngine.Models.BatchMode.AutoFromGS1,
+    OutputFormat    = ExcelEngine.Models.OutputFormat.Xlsx,
+    DeviceSerial    = "TEST",
+    DeviceName      = "DMTest",
+    FirmwareVersion = "1.0",
+    OutputDirectory = mh10BatchDir,
+    SessionStarted  = new DateTime(2025, 2, 1),
+};
+
+// Record with ISO 15434 decoded data containing 4L batch DI.
+var mhRec1 = new ExcelEngine.Models.VerificationRecord
+{
+    VerificationDateTime = new DateTime(2025, 2, 1, 10, 0, 0),
+    Symbology       = "DataMatrix",
+    SymbologyFamily = ExcelEngine.Models.SymbologyFamily.GS1DataMatrix,
+    DecodedData     = "[)>\u001e06\u001dP1234567890\u001d4LMIL-LOT-42\u001dS99887766\u001e\u0004",
+    FormalGrade     = "4.0/16/660/45Q",
+    OverallGrade    = ExcelEngine.Models.GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS"),
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+};
+
+// Record with DataMan text-escape 15434 (4L DI).
+var mhRec2 = new ExcelEngine.Models.VerificationRecord
+{
+    VerificationDateTime = new DateTime(2025, 2, 1, 10, 1, 0),
+    Symbology       = "DataMatrix",
+    SymbologyFamily = ExcelEngine.Models.SymbologyFamily.GS1DataMatrix,
+    DecodedData     = "[)><RS>06<GS>P9876543210<GS>4LESC-LOT-99<GS>S11223344<RS><EOT>",
+    FormalGrade     = "4.0/16/660/45Q",
+    OverallGrade    = ExcelEngine.Models.GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS"),
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+};
+
+string mh10BatchPath;
+using (var mh10Mgr = new SessionManager(schema))
+{
+    mh10BatchPath = mh10Mgr.StartSession(mh10State);
+    mh10Mgr.AddRecord(mhRec1);
+    mh10Mgr.AddRecord(mhRec2);
+    mh10Mgr.CloseSession();
+}
+
+string? mhBatchCell1 = null, mhBatchCell2 = null;
+using (var pkg = new OfficeOpenXml.ExcelPackage(new FileInfo(mh10BatchPath)))
+{
+    var ws = pkg.Workbook.Worksheets["Main"];
+    mhBatchCell1 = ws.Cells[3, 6].Text;
+    mhBatchCell2 = ws.Cells[4, 6].Text;
+}
+
+bool mh10e2ePass1 = mhBatchCell1 == "MIL-LOT-42";
+bool mh10e2ePass2 = mhBatchCell2 == "ESC-LOT-99";
+Console.WriteLine($"  4L raw ctrl e2e:   {(mh10e2ePass1 ? "PASS" : $"FAIL (got '{mhBatchCell1}')")}");
+Console.WriteLine($"  4L text-esc e2e:   {(mh10e2ePass2 ? "PASS" : $"FAIL (got '{mhBatchCell2}')")}");
+
+bool gs1BatchPass = p1 && p2 && p3 && p4 && p5 && p6
+                 && q1 && q2 && q3 && q4 && q5
+                 && gs1e2ePass1 && gs1e2ePass2
+                 && mh10e2ePass1 && mh10e2ePass2;
+Console.WriteLine($"  Auto-batch (GS1 + 15434 + MIL-STD): {(gs1BatchPass ? "PASS" : "FAIL")}");
 
 // ── Full Task 4 pass/fail ─────────────────────────────────────────────────────
 bool t4Pass =

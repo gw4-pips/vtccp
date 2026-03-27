@@ -155,7 +155,7 @@ public sealed class SessionManager : IDisposable
         string? batchOverride = null;
         if (_currentSession!.BatchMode == BatchMode.AutoFromGS1)
         {
-            string? extracted = GS1Parser.ExtractBatchLot(record.DecodedData);
+            string? extracted = AutoBatchExtractor.ExtractBatchLot(record.DecodedData);
             if (extracted is not null)
                 batchOverride = extracted;
             // If AI(10) absent (e.g. non-GS1 symbol in a mixed session),
