@@ -9,11 +9,11 @@ using System.Text.Json;
 public sealed class ColumnSchemaManager
 {
     private readonly Dictionary<string, ColumnSchema> _schemas = new(StringComparer.OrdinalIgnoreCase);
-    private string _activeSchemaName = WebscanCompatibleSchema.SchemaName;
+    private string _activeSchemaName = TruCheckCompatibleSchema.SchemaName;
 
     public ColumnSchemaManager()
     {
-        Register(WebscanCompatibleSchema.Build());
+        Register(TruCheckCompatibleSchema.Build());
     }
 
     public void Register(ColumnSchema schema)

@@ -2,9 +2,9 @@ namespace ExcelEngine.Models;
 
 /// <summary>
 /// Element width data from 1D barcode verification.
-/// Maps to the "Element Widths" second worksheet in the Webscan format.
+/// Maps to the "Element Widths" second worksheet in the VTCCP output format.
 ///
-/// UPC/EAN layout (from Webscan reference PDFs):
+/// UPC/EAN layout:
 ///   Columns: CHAR | SPACE/BAR/SPACE (left guard) | SPACE/BAR/SPACE (center) | SPACE/BAR/SPACE (right guard)
 ///   Rows: LGB (left guard bar), digit rows 0-5, CGB (center guard bar),
 ///         digit rows 6-last, RGB (right guard bar)
@@ -16,7 +16,7 @@ public sealed class ElementWidthData
 {
     /// <summary>
     /// Column header labels for the element table (e.g. "CHAR", "SPACE", "BAR", "SPACE", ...).
-    /// Webscan UPC-A/EAN-13: typically 7 columns: CHAR, SP/BAR/SP (left), SP/BAR/SP (center), SP/BAR/SP (right)
+    /// UPC-A/EAN-13: typically 7 columns: CHAR, SP/BAR/SP (left), SP/BAR/SP (center), SP/BAR/SP (right)
     /// </summary>
     public IReadOnlyList<string> ColumnHeaders { get; init; } = [];
 

@@ -1,7 +1,7 @@
 # VCCS DMV TruCheck Command Pilot (VTCCP)
 
-A native Windows desktop utility (WPF + C#/.NET 8) that replicates the Webscan TruCheck
-Excel verification-results logging (XLS/XLSX) for Cognex DataMan DMV barcode verifiers.
+A native Windows desktop utility (WPF + C#/.NET 8) for Cognex DataMan DMV barcode verifier
+verification-results logging (XLS/XLSX).
 
 ---
 
@@ -12,7 +12,7 @@ vtccp/
 ├── ExcelEngine/          — Class library (Phase 1)
 │   ├── Adapters/         — IExcelAdapter, XlsxAdapter (EPPlus), XlsAdapter (NPOI)
 │   ├── Models/           — VerificationRecord, SessionState, ScanResult1D, ...
-│   ├── Schema/           — ColumnSchema, WebscanCompatibleSchema (163 columns), SchemaVersionWriter
+│   ├── Schema/           — ColumnSchema, TruCheckCompatibleSchema (163 columns), SchemaVersionWriter
 │   ├── Session/          — SessionManager, SessionSidecar
 │   └── Writer/           — ExcelWriter, ExcelFileManager, DataMatrix2DMapper,
 │                           ISO15416Mapper, PerScanTableWriter, ElementWidthsWriter
@@ -28,14 +28,14 @@ vtccp/
 - .NET 8 solution with ExcelEngine class library and TestHarness console project.
 - All domain models: `VerificationRecord`, `SessionState`, `GradingResult`, `ScanResult1D`,
   `DataFormatCheckResult`, `ElementWidthData`, enumerations.
-- `WebscanCompatibleSchema` — 163-column schema matching Webscan TruCheck output
+- `TruCheckCompatibleSchema` — 163-column schema producing DMV TruCheck-compatible output
   (Blocks A–I).
 
 ### Task 2 — 2D Data Matrix Excel engine
 - `IExcelAdapter` abstraction; `XlsxAdapter` (EPPlus) and `XlsAdapter` (NPOI).
 - `ExcelWriter` — title row, header row, data rows, GS1 DFC columns, append mode,
   row-limit check, `.xls` near-limit warning.
-- `ExcelFileManager` — Webscan-convention filename generation (`{Job}_{YYYY-MM-DD}.xlsx`),
+- `ExcelFileManager` — filename generation (`{Job}_{YYYY-MM-DD}.xlsx`),
   output-path resolution, file-lock detection, public `SanitizeFileName()`.
 - `DataMatrix2DMapper` — maps `VerificationRecord` (2D) to 163-column value dictionary.
 
@@ -54,7 +54,7 @@ vtccp/
   - `AddRecord(record)` — appends one `VerificationRecord`; updates sidecar after each write
     for crash safety.
   - `CloseSession()` — saves the file, closes adapters, deletes the sidecar.
-  - `SetNewOperatorAndRoll(operatorId)` — increments roll number mid-session.
+  - `SetNewOperatorAndRoll(operatorId)` — changes roll identifier mid-session.
 - `SessionSidecar` — compact JSON snapshot (`{outputFile}.vtccp.json`) for resume support.
 - `SchemaVersionWriter` — writes three metadata cells (marker / schema name / version) into
   row 1 past the last data column so downstream tooling can identify VTCCP-generated files.
@@ -64,7 +64,7 @@ vtccp/
 
 ## Schema
 
-`WebscanCompatibleSchema` defines 163 columns across nine blocks:
+`TruCheckCompatibleSchema` defines 163 columns across nine blocks:
 
 | Block | Range     | Content                                          |
 |-------|-----------|--------------------------------------------------|
@@ -81,8 +81,6 @@ vtccp/
 ---
 
 ## Output File Naming
-
-Matches the Webscan TruCheck convention:
 
 | Condition            | Filename                              |
 |----------------------|---------------------------------------|

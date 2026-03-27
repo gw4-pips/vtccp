@@ -76,7 +76,7 @@ public sealed class SessionState
     ///   {Roll}     — RollLabel (decimal number or yyyyMMddHHmmss depending on mode)
     ///   {Date}     — SessionStarted "yyyy-MM-dd"
     ///   {DateTime} — SessionStarted "yyyy-MM-dd_HH-mm"
-    /// When null the default Webscan TruCheck convention is used ({Job}_{Date} or VTCCP_{Date}).
+    /// When null, the fallback pattern is used ({Job}_{Date} when JobName is set, otherwise VTCCP_{Date}).
     /// Example: "{Job}_{Op}_Roll{Roll}_{Date}"
     /// </summary>
     public string? FileNamePattern { get; set; }
@@ -86,7 +86,7 @@ public sealed class SessionState
     public DateTime SessionStarted { get; set; } = DateTime.Now;
     public int      RecordCount    { get; set; } = 0;
 
-    /// <summary>User-defined fields (User 1, User 2 in Webscan schema)</summary>
+    /// <summary>User-defined free-text fields (User 1, User 2)</summary>
     public string? User1 { get; set; }
     public string? User2 { get; set; }
 }

@@ -7,7 +7,7 @@ public enum RollIncrementMode
 {
     /// <summary>
     /// Roll value is set and changed only by explicit operator action
-    /// (matches Webscan TruCheck "Set New Operator/Roll" behaviour).
+    /// Operator explicitly calls SetNewOperatorAndRoll() to advance the roll.
     /// The caller supplies the roll number; VTCCP never changes it automatically.
     /// </summary>
     Manual,

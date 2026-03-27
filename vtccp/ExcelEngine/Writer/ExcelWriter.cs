@@ -7,7 +7,7 @@ using ExcelEngine.Schema;
 /// <summary>
 /// Core format-agnostic writer. Works with any IExcelAdapter.
 /// Manages header rows, data rows, column widths, and basic formatting
-/// to match the Webscan TruCheck "Main" worksheet layout.
+/// to match the VTCCP "Main" worksheet layout.
 ///
 /// Row layout:
 ///   Row 1: Title row — "VCCS DMV TruCheck Command Pilot — Job: {job} | ..."
@@ -34,7 +34,7 @@ public sealed class ExcelWriter : IDisposable
     private int _dataRowCount;
     private bool _headersWritten;
 
-    // Header row background colour — Webscan uses mid-blue (RGB 68 114 196)
+    // Header row background colour — mid-blue (RGB 68 114 196), matching TruCheck output
     private const uint HeaderBgArgb = 0x4472C4;
 
     /// <summary>Number of data rows written so far (not counting title/header rows).</summary>
@@ -149,7 +149,7 @@ public sealed class ExcelWriter : IDisposable
         _adapter.SetRowBold(TitleRow, _schema.Columns.Count);
 
         // Write schema version metadata past the last data column so downstream
-        // tooling can distinguish VTCCP-generated files from legacy Webscan files.
+        // tooling can identify VTCCP-generated files.
         SchemaVersionWriter.Write(_adapter, _schema, TitleRow);
     }
 

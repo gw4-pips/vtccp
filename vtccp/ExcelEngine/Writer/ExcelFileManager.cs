@@ -3,10 +3,10 @@ namespace ExcelEngine.Writer;
 using ExcelEngine.Models;
 
 /// <summary>
-/// Generates output file paths and names following the Webscan TruCheck naming convention,
+/// Generates output file paths and names for VTCCP log files,
 /// and provides helper utilities for file management.
 ///
-/// Default naming convention (replicates Webscan TruCheck):
+/// Default naming convention:
 ///   {JobName}_{YYYY-MM-DD}.xlsx
 ///   e.g. "CalCardProd_2026-03-17.xlsx"
 ///
@@ -42,7 +42,7 @@ public static class ExcelFileManager
     /// <summary>
     /// Generate the output filename (no directory path) from session state and format.
     /// If <see cref="SessionState.FileNamePattern"/> is set it is used; otherwise the
-    /// Webscan TruCheck default pattern is applied.
+    /// VTCCP default pattern is applied.
     /// </summary>
     public static string GenerateFileName(SessionState session, OutputFormat format)
     {
@@ -126,8 +126,8 @@ public static class ExcelFileManager
     ///
     /// PRODUCT DECISION (confirmed with user, 2026-03-26):
     ///   '&amp;' IS preserved in filenames because it is legal in Windows NTFS paths.
-    ///   Webscan TruCheck allows '&amp;' in user-entered fields such as Company Name, and
-    ///   VTCCP replicates that behaviour at the filesystem/Excel layer.
+    ///   '&amp;' appears in legitimate operator-supplied values such as Company Name, and
+    ///   VTCCP preserves it at the filesystem/Excel layer.
     ///   The DataMan DMCC device protocol does NOT support '&amp;' in command strings —
     ///   that restriction is handled separately in Phase 2 by a dedicated SanitizeForDmcc()
     ///   function and is NOT applied here.

@@ -11,11 +11,11 @@ using ExcelEngine.Adapters;
 ///
 /// Format (3 consecutive cells):
 ///   Col N+1: "VTCCP"
-///   Col N+2: schema.Name   (e.g. "WebscanCompatible")
+///   Col N+2: schema.Name   (e.g. "TruCheckCompatible")
 ///   Col N+3: schema.Version (e.g. "1.0")
 ///
-/// Purpose: allows downstream tooling to distinguish VTCCP-generated files from
-/// legacy Webscan-generated files and from other Excel files.
+/// Purpose: allows downstream tooling to identify VTCCP-generated files and
+/// distinguish them from other Excel files.
 /// </summary>
 public static class SchemaVersionWriter
 {

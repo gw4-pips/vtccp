@@ -2,7 +2,7 @@ namespace ExcelEngine.Models;
 
 /// <summary>
 /// Result of GS1 Application Identifier data format check or UID/MIL-STD-130 format check.
-/// Corresponds to the "Data Format Check" section of Webscan verification reports.
+/// Corresponds to the GS1 Data Format Check (DFC) section of DMV TruCheck verification reports.
 /// </summary>
 public sealed class DataFormatCheckResult
 {

@@ -383,7 +383,7 @@ Console.WriteLine("────────────────────�
 var grade4_1D = GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS");
 
 // ── Element width data helpers ────────────────────────────────────────────────
-// UPC/EAN column layout from Webscan reference PDFs:
+// UPC/EAN column layout:
 //   CHAR | SPACE | BAR | SPACE (left half) | SPACE | BAR | SPACE (right half)
 // i.e. 6 value columns after the row-label column
 var ew1DHeaders = new[] { "SPACE", "BAR", "SPACE", "SPACE", "BAR", "SPACE" };

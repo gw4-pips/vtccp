@@ -7,13 +7,13 @@ using ExcelEngine.Schema;
 /// <summary>
 /// Writes the ISO 15416 per-scan sub-table for 1D barcode records.
 ///
-/// Webscan layout: immediately below each 1D record's main data row, up to 10 scan rows
+/// Layout: immediately below each 1D record's main data row, up to 10 scan rows
 /// are written, each with the 11 per-scan parameters plus the per-scan grade.
 /// Columns used are the 1D summary columns (Avg_Edge, Avg_RlRd, Avg_SC, …) —
 /// the same schema columns that hold the averages in the main row.
 /// A "Scan N" label is written in the first column (Date column position) of each sub-row.
 ///
-/// Column anchoring (1-based, from the WebscanCompatible schema):
+/// Column anchoring (1-based, from the TruCheckCompatible schema):
 ///   Date column      = 1  → used for "Scan N" label
 ///   Avg_Edge         = col of "Edge"  in schema
 ///   Avg_RlRd         = col of "Rl/Rd"
@@ -61,7 +61,7 @@ public sealed class PerScanTableWriter
         _colScanLabel = 1;
     }
 
-    /// <summary>Maximum scan sub-rows written per 1D record (matches Webscan TruCheck limit).</summary>
+    /// <summary>Maximum scan sub-rows written per 1D record (ISO 15416 defines up to 10).</summary>
     public const int MaxScansPerRecord = 10;
 
     /// <summary>
@@ -75,7 +75,7 @@ public sealed class PerScanTableWriter
 
         EnsureColumnsResolved();
 
-        // ISO 15416 defines up to 10 scan lines; cap to match Webscan TruCheck display.
+        // ISO 15416 defines up to 10 scan lines; cap to MaxScansPerRecord.
         int count = Math.Min(scans.Count, MaxScansPerRecord);
 
         int rowOffset = 0;

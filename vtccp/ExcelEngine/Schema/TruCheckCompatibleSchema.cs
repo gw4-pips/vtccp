@@ -3,8 +3,9 @@ namespace ExcelEngine.Schema;
 using ExcelEngine.Models;
 
 /// <summary>
-/// The WebscanCompatible column schema — replicates the column order used by Webscan TruCheck
-/// as extracted from the Webscan_Data_Capture30.xls and CalCardProd.xls reference files.
+/// The TruCheck-compatible column schema — defines the 163-column layout used by VTCCP
+/// to produce verification log files that open correctly in tools expecting the DMV
+/// TruCheck column structure.
 ///
 /// Column order follows the "grown to the right" evolutionary pattern:
 ///   Block A (cols 1–14):   Universal / Session header fields
@@ -16,21 +17,21 @@ using ExcelEngine.Models;
 ///   Block G (cols 111–120): Vendor / Part tracking
 ///   Block H (cols 121+):   VTCCP extensions (QR-specific, DMRE — reserved, not written yet)
 ///
-/// VTCCP additions not in Webscan:
+/// VTCCP additions beyond the base TruCheck column set:
 ///   - SchemaVersion metadata (written to a fixed non-data cell, not a schema column)
 ///   - Reflectance Margin (RM) — new in ISO 15415:2024 firmware
 ///   - Error Correction Budget / Errors Corrected / Error Capacity Used (newer General Chars)
 ///   - Pixels per Module, MRD (newer General Chars)
 /// </summary>
-public static class WebscanCompatibleSchema
+public static class TruCheckCompatibleSchema
 {
-    public const string SchemaName = "WebscanCompatible";
+    public const string SchemaName = "TruCheckCompatible";
 
     public static ColumnSchema Build() => new()
     {
-        Name = SchemaName,
-        Description = "Replicates the Webscan TruCheck column layout for drop-in file compatibility. " +
-                      "VTCCP-only fields appended after the standard Webscan columns.",
+        Name        = SchemaName,
+        Description = "163-column TruCheck-compatible layout for drop-in file compatibility. " +
+                      "VTCCP-only fields appended after the standard columns.",
         Columns = BuildColumns(),
     };
 

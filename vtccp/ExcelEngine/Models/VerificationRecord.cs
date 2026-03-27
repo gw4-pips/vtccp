@@ -1,11 +1,11 @@
 namespace ExcelEngine.Models;
 
 /// <summary>
-/// Represents a single barcode verification event — one row in the Webscan-compatible Excel log.
+/// Represents a single barcode verification event — one row in the VTCCP Excel log.
 /// Holds fields for all symbology types (most will be null for any given record).
-/// Maps directly to the ~120-column WebscanCompatible schema extracted from the Webscan XLS files.
+/// Maps directly to the 163-column TruCheckCompatible schema.
 ///
-/// Field grouping follows the Webscan column order:
+/// Field grouping follows the column order:
 ///   Block 1: Universal/Session
 ///   Block 2: 1D ISO 15416 parameters
 ///   Block 3: 2D Common parameters

@@ -7,21 +7,19 @@ using ExcelEngine.Schema;
 using ExcelEngine.Writer;
 
 /// <summary>
-/// Controls the VTCCP job session lifecycle, replicating the behaviour of
-/// Webscan TruCheck's "Excel Functions" panel (New Job / Open Job / Close Job).
+/// Controls the VTCCP job session lifecycle — New Job / Open Job / Close Job.
 ///
 /// Roll identifier modes (see <see cref="RollIncrementMode"/>):
-///   Manual       — roll changes only on explicit operator action; caller supplies value.
+///   Manual        — roll changes only on explicit operator action; caller supplies value.
 ///   AutoIncrement — starts at RollStartValue; increments by 1 on each SetNewOperatorAndRoll().
 ///   DateTimeStamp — yyyyMMddHHmmss generated at session open and on SetNewOperatorAndRoll().
 ///
 /// PRODUCT DECISION — roll does NOT auto-increment on StartSession (confirmed 2026-03-26):
-///   Webscan TruCheck requires explicit user action to change the roll value.  A new
-///   session opens without a roll change; the operator clicks "Set New Operator/Roll" to
-///   advance the counter.  This is the Manual default.  AutoIncrement and DateTimeStamp
-///   modes are VTCCP extensions that provide convenience options while preserving the
-///   same contract: no automatic roll change on session open (AutoIncrement resets to
-///   RollStartValue for new sessions; resumes restore the prior value from sidecar).
+///   The operator must explicitly call SetNewOperatorAndRoll() to advance the roll value.
+///   A new session opens without a roll change; this matches the DMV TruCheck "Set New
+///   Operator/Roll" UI paradigm.  AutoIncrement and DateTimeStamp are VTCCP conveniences
+///   that preserve the same contract: no automatic roll change on session open
+///   (AutoIncrement resets to RollStartValue for new sessions; resumes restore from sidecar).
 ///
 /// File path stability guarantee:
 ///   _outputPath / _sidecarPath are resolved ONCE at StartSession() and never

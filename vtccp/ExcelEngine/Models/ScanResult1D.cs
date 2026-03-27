@@ -2,7 +2,7 @@ namespace ExcelEngine.Models;
 
 /// <summary>
 /// Result from a single scan pass in ISO 15416 1D verification.
-/// The Webscan format records up to 10 scan passes per verification event.
+/// DMV TruCheck records up to 10 scan passes per verification event.
 /// Each scan measures: Edge, Ref (Reflectance), SC, MinEC, MOD, DEF, DCOD, DEC, LQZ, RQZ, HQZ → per-scan Grade.
 /// </summary>
 public sealed class ScanResult1D
