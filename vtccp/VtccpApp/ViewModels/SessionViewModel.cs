@@ -111,11 +111,7 @@ public sealed class SessionViewModel : ViewModelBase
         private set => Set(ref _statusMessage, value);
     }
 
-    public int RecordCount
-    {
-        get => _recordCount;
-        private set => Set(ref _recordCount, value);
-    }
+    public int RecordCount => _recordCount;
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
@@ -184,7 +180,7 @@ public sealed class SessionViewModel : ViewModelBase
 
             _history.SetSessionContext(state.JobName, state.OperatorId);
             _history.ClearHistory();
-            RecordCount   = 0;
+            _recordCount  = 0;  OnPropertyChanged(nameof(RecordCount));
             IsRunning     = true;
 
             string modeLabel = _scanMode switch
@@ -306,7 +302,7 @@ public sealed class SessionViewModel : ViewModelBase
         if (_sessionMgr is null) return;
         await Task.Run(() => _sessionMgr.AddRecord(record));
         _history.AddRecord(record);
-        RecordCount++;
+        _recordCount++; OnPropertyChanged(nameof(RecordCount));
         string grade = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
         string num   = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
         StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}";
