@@ -107,13 +107,29 @@ The sidecar is deleted by `CloseSession()` to signal a clean job close.
 
 ---
 
-## Running the Test Harness
+## Roll Identifier Modes
+
+Set `SessionState.RollIncrementMode` before calling `StartSession()`:
+
+| Mode | Behaviour | `{Roll}` token |
+|---|---|---|
+| `Manual` *(default)* | Caller supplies roll value; `SetNewOperatorAndRoll(op, manualRoll: n)` required | Decimal integer |
+| `AutoIncrement` | Starts at `RollStartValue`; increments by 1 on each `SetNewOperatorAndRoll(op)` call | Decimal integer |
+| `DateTimeStamp` | `yyyyMMddHHmmss` generated at session open and on each `SetNewOperatorAndRoll(op)` call | 14-char timestamp |
+
+All three modes survive a crash and resume correctly via the sidecar.
+
+---
+
+## Building and Running
 
 ```
 cd vtccp
-dotnet run --project TestHarness/TestHarness.csproj
+dotnet build VTCCP.sln          # build all projects
+dotnet run --project TestHarness/TestHarness.csproj   # run the test harness
 ```
 
+Test output is written to `%TEMP%/vtccp_*_output/` (Linux) or `%TMP%\vtccp_*_output\` (Windows).
 Expected output ends with all checks reporting **PASS**.
 
 ---

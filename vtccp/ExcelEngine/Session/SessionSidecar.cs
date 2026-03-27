@@ -8,17 +8,22 @@ namespace ExcelEngine.Session;
 internal sealed class SessionSidecar
 {
     // Job / operator context
-    public string? JobName        { get; set; }
-    public string? OperatorId     { get; set; }
-    public int     RollNumber     { get; set; }
-    public string? BatchNumber    { get; set; }
-    public string? CompanyName    { get; set; }
-    public string? ProductName    { get; set; }
-    public string? CustomNote     { get; set; }
+    public string? JobName     { get; set; }
+    public string? OperatorId  { get; set; }
+    public string? BatchNumber { get; set; }
+    public string? CompanyName { get; set; }
+    public string? ProductName { get; set; }
+    public string? CustomNote  { get; set; }
 
     // User-defined fields
-    public string? User1          { get; set; }
-    public string? User2          { get; set; }
+    public string? User1 { get; set; }
+    public string? User2 { get; set; }
+
+    // Roll identifier — all three fields preserved so any mode resumes correctly
+    public string? RollIncrementMode { get; set; }   // enum name (Manual / AutoIncrement / DateTimeStamp)
+    public int     RollNumber        { get; set; }   // numeric counter (Manual / AutoIncrement)
+    public int     RollStartValue    { get; set; }   // AutoIncrement starting value
+    public string? RollTimestamp     { get; set; }   // yyyyMMddHHmmss (DateTimeStamp mode)
 
     // Device metadata (populated in Phase 2; preserved across resumes)
     public string?   DeviceSerial    { get; set; }
@@ -27,15 +32,11 @@ internal sealed class SessionSidecar
     public DateTime? CalibrationDate { get; set; }
 
     // Output configuration
-    public string?   OutputFormat    { get; set; }
-    public string?   OutputDirectory { get; set; }
-    public string?   FileNamePattern { get; set; }
+    public string? OutputFormat    { get; set; }
+    public string? OutputDirectory { get; set; }
+    public string? FileNamePattern { get; set; }
 
     // Session counters / timestamps
-    public DateTime SessionStarted  { get; set; }
-    public int      RecordCount     { get; set; }
-
-    // Resume-only flag: when true the sidecar was written by an in-progress session
-    // that started a new roll. Consumers should not increment roll again on resume.
-    public bool     IsNewRollSaved  { get; set; }
+    public DateTime SessionStarted { get; set; }
+    public int      RecordCount    { get; set; }
 }

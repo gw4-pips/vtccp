@@ -10,40 +10,32 @@ using ExcelEngine.Writer;
 /// Controls the VTCCP job session lifecycle, replicating the behaviour of
 /// Webscan TruCheck's "Excel Functions" panel (New Job / Open Job / Close Job).
 ///
-/// Responsibilities:
-///   1. Track current operator, job name, roll number, and other session metadata.
-///   2. Resolve the output file path at session-open time; pin it for the lifetime
-///      of the session so sidecar operations always target the correct file.
-///   3. Append VerificationRecords to the active output file.
-///   4. Persist all session state to a JSON sidecar so an interrupted session
-///      can be fully resumed (all context fields, not just counters).
-///
-/// Roll number semantics (matches Webscan TruCheck "Set New Operator/Roll" behaviour):
-///   - StartSession with a fresh (no sidecar) file: caller controls initial RollNumber.
-///   - StartSession that finds a matching sidecar (resume): saved roll is restored.
-///     Roll is NOT incremented on resume, because the operator did not start a new roll —
-///     they are continuing the interrupted one.
-///   - SetNewOperatorAndRoll() increments the roll number mid-session and updates the sidecar.
+/// Roll identifier modes (see <see cref="RollIncrementMode"/>):
+///   Manual      — roll changes only on explicit operator action; caller supplies value.
+///   AutoIncrement — roll starts at RollStartValue and increments by 1 on each
+///                  SetNewOperatorAndRoll() call.
+///   DateTimeStamp — roll is a yyyyMMddHHmmss timestamp; generated at session open and
+///                  on each SetNewOperatorAndRoll() call.
 ///
 /// File path stability guarantee:
-///   The output path and sidecar path are resolved ONCE at StartSession and stored
-///   in _outputPath / _sidecarPath.  No subsequent call re-derives these paths, so
-///   state changes (e.g. pattern tokens changing) cannot orphan sidecars or target
-///   the wrong file.
+///   _outputPath / _sidecarPath are resolved ONCE at StartSession() and never
+///   re-derived mid-session, so no state changes can orphan sidecars or target
+///   a different file.
 ///
-/// Resume path consistency:
-///   1. Initial path resolved from caller-supplied state (minimal context).
-///   2. Sidecar loaded and merged into state.
-///   3. Path re-resolved from merged state.
-///   4. If path changed, update _outputPath / _sidecarPath; re-check for a sidecar
-///      at the new path (second-chance resume).
-///   5. Open the file at the final stable path.
+/// Resume path consistency (5-step):
+///   1. Resolve initial path from caller-supplied state.
+///   2. Load and merge sidecar from initial path.
+///   3. Re-resolve path from merged state.
+///   4. Second-chance sidecar lookup at new path if path changed.
+///   5. Pin final path and open file.
 ///
 /// Usage:
 ///   var mgr = new SessionManager(schema);
-///   mgr.StartSession(state);          // opens or creates output file
-///   mgr.AddRecord(record);            // appends a verification record
-///   mgr.CloseSession();               // saves and closes the file; deletes sidecar
+///   mgr.StartSession(state);                     // opens / creates file
+///   mgr.AddRecord(record);                       // appends record; updates sidecar
+///   mgr.SetNewOperatorAndRoll("OP2");            // Auto/DateTime: auto-advance roll
+///   mgr.SetNewOperatorAndRoll("OP2", roll: 5);   // Manual: caller supplies new value
+///   mgr.CloseSession();                          // saves file; deletes sidecar
 /// </summary>
 public sealed class SessionManager : IDisposable
 {
@@ -52,36 +44,30 @@ public sealed class SessionManager : IDisposable
     private IExcelAdapter? _adapter;
     private ExcelWriter? _writer;
 
-    // Pinned at StartSession; never re-derived during a session.
+    // Pinned at StartSession(); never re-derived during the session.
     private string? _outputPath;
     private string? _sidecarPath;
 
     private bool _disposed;
 
     public SessionState? CurrentSession => _currentSession;
-    public bool IsSessionOpen => _currentSession is not null && _writer is not null;
-    public int RecordsWritten => _currentSession?.RecordCount ?? 0;
+    public bool IsSessionOpen  => _currentSession is not null && _writer is not null;
+    public int  RecordsWritten => _currentSession?.RecordCount ?? 0;
 
     public SessionManager(ColumnSchema schema)
     {
         _schema = schema;
     }
 
-    // ── Session lifecycle ─────────────────────────────────────────────────────
+    // ── Session lifecycle ──────────────────────────────────────────────────
 
     /// <summary>
-    /// Start a new job session (or resume an interrupted one).
+    /// Start a new job session or resume an interrupted one.
     ///
-    /// Resume behaviour:
-    ///   If a sidecar exists for the resolved output file, all saved context is merged
-    ///   back onto <paramref name="state"/> before the file is opened.  The path is then
-    ///   re-resolved from the merged state (in case naming fields change), and the final
-    ///   stable path is pinned for the session lifetime.
-    ///
-    /// Roll number:
-    ///   - New session: uses state.RollNumber as supplied by the caller.
-    ///   - Resume: restored from sidecar; not auto-incremented.
-    ///   - Call SetNewOperatorAndRoll() to advance the roll mid-session.
+    /// Roll logic (new sessions only; resumes restore from sidecar):
+    ///   Manual        — RollNumber stays at caller-supplied value; no automatic change.
+    ///   AutoIncrement — RollNumber is set to state.RollStartValue.
+    ///   DateTimeStamp — RollTimestamp is generated (yyyyMMddHHmmss).
     ///
     /// Returns the resolved absolute output file path.
     /// </summary>
@@ -93,27 +79,30 @@ public sealed class SessionManager : IDisposable
 
         _currentSession = state;
 
-        // Step 1: Resolve initial path from caller-supplied state.
-        string initialPath   = ExcelFileManager.ResolveOutputPath(state, state.OutputFormat);
+        // ── Step 1: initial path from caller-supplied state ────────────────
+        string initialPath    = ExcelFileManager.ResolveOutputPath(state, state.OutputFormat);
         string initialSidecar = GetSidecarPath(initialPath);
 
-        // Step 2: Attempt to load and merge sidecar from initial path.
+        // ── Step 2: attempt sidecar merge at initial path ─────────────────
         bool resumed = TryMergeSidecar(initialSidecar, state);
 
-        // Step 3: Re-resolve the path from merged state (naming fields may have changed).
+        // ── Step 3: re-resolve after merge (naming fields may have changed)
         string finalPath    = ExcelFileManager.ResolveOutputPath(state, state.OutputFormat);
         string finalSidecar = GetSidecarPath(finalPath);
 
-        // Step 4: If path changed and no sidecar was loaded yet, attempt second-chance
-        // sidecar lookup at the new path.
+        // ── Step 4: second-chance sidecar lookup if path changed ──────────
         if (!resumed && finalPath != initialPath)
-            TryMergeSidecar(finalSidecar, state);
+            resumed = TryMergeSidecar(finalSidecar, state);
 
-        // Step 5: Pin the stable path for this session.
+        // ── Step 5: apply roll-mode logic for brand-new sessions only ─────
+        if (!resumed)
+            ApplyRollModeOnStart(state);
+
+        // ── Pin the stable path ───────────────────────────────────────────
         _outputPath  = finalPath;
         _sidecarPath = finalSidecar;
 
-        // Step 6: Open (or create) the Excel file via the correct adapter.
+        // ── Open / create the Excel file ──────────────────────────────────
         _adapter = state.OutputFormat == OutputFormat.Xls
             ? new XlsAdapter()
             : new XlsxAdapter();
@@ -121,7 +110,7 @@ public sealed class SessionManager : IDisposable
         _writer = new ExcelWriter(_adapter, _schema, state);
         _writer.Open(_outputPath);
 
-        // Step 7: Persist sidecar immediately after opening.
+        // ── Persist sidecar immediately ───────────────────────────────────
         SaveSidecar(_sidecarPath!, state);
 
         return _outputPath;
@@ -140,7 +129,7 @@ public sealed class SessionManager : IDisposable
     }
 
     /// <summary>
-    /// Save and close the active session. Removes the sidecar file (job complete).
+    /// Save and close the active session. Removes the sidecar (job complete).
     /// </summary>
     public void CloseSession()
     {
@@ -153,7 +142,6 @@ public sealed class SessionManager : IDisposable
         _adapter?.Dispose();
         _adapter = null;
 
-        // Remove sidecar — job is closed cleanly.
         if (_sidecarPath is not null && File.Exists(_sidecarPath))
             File.Delete(_sidecarPath);
 
@@ -163,29 +151,44 @@ public sealed class SessionManager : IDisposable
     }
 
     /// <summary>
-    /// Set or change the operator and advance the roll number (matching Webscan
-    /// "Set New Operator/Roll" button behaviour). The sidecar is updated immediately.
+    /// Change the active operator and advance the roll identifier.
+    ///
+    /// Behaviour by mode:
+    ///   <c>Manual</c>        — <paramref name="manualRoll"/> is required; RollNumber is set to it.
+    ///   <c>AutoIncrement</c> — RollNumber is incremented by 1; <paramref name="manualRoll"/> ignored.
+    ///   <c>DateTimeStamp</c> — a new yyyyMMddHHmmss timestamp is generated; <paramref name="manualRoll"/> ignored.
+    ///
+    /// Note: the output file path and sidecar path do not change — changing operator/roll
+    /// mid-session does not rename the already-open file.
     /// </summary>
-    public void SetNewOperatorAndRoll(string operatorId)
+    public void SetNewOperatorAndRoll(string operatorId, int? manualRoll = null)
     {
         EnsureOpen();
         _currentSession!.OperatorId = operatorId;
-        _currentSession!.RollNumber++;
-        // Note: _outputPath and _sidecarPath do NOT change — the operator change
-        // does not rename the already-open file.
+
+        switch (_currentSession!.RollIncrementMode)
+        {
+            case RollIncrementMode.Manual:
+                if (manualRoll.HasValue)
+                    _currentSession!.RollNumber = manualRoll.Value;
+                break;
+
+            case RollIncrementMode.AutoIncrement:
+                _currentSession!.RollNumber++;
+                break;
+
+            case RollIncrementMode.DateTimeStamp:
+                _currentSession!.RollTimestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+                break;
+        }
+
         SaveSidecar(_sidecarPath!, _currentSession!);
     }
 
-    // ── Public path utilities ─────────────────────────────────────────────────
+    // ── Public path utilities ─────────────────────────────────────────────
 
-    /// <summary>Returns the pinned output file path for the current session, or null if closed.</summary>
+    /// <summary>Pinned output file path for the current session, or null if closed.</summary>
     public string? OutputPath => _outputPath;
-
-    /// <summary>
-    /// Returns the output file path for the given session state (without opening it).
-    /// </summary>
-    public static string GetOutputPath(SessionState state)
-        => ExcelFileManager.ResolveOutputPath(state, state.OutputFormat);
 
     /// <summary>
     /// Returns the sidecar JSON path for a given output file path.
@@ -194,7 +197,28 @@ public sealed class SessionManager : IDisposable
     public static string GetSidecarPath(string outputFilePath)
         => outputFilePath + ".vtccp.json";
 
-    // ── Sidecar serialisation ─────────────────────────────────────────────────
+    // ── Roll mode helpers ─────────────────────────────────────────────────
+
+    private static void ApplyRollModeOnStart(SessionState state)
+    {
+        switch (state.RollIncrementMode)
+        {
+            case RollIncrementMode.AutoIncrement:
+                state.RollNumber = state.RollStartValue;
+                break;
+
+            case RollIncrementMode.DateTimeStamp:
+                state.RollTimestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+                break;
+
+            case RollIncrementMode.Manual:
+            default:
+                // No automatic change; caller controls RollNumber.
+                break;
+        }
+    }
+
+    // ── Sidecar serialisation ─────────────────────────────────────────────
 
     private static readonly JsonSerializerOptions _jsonOpts = new()
     {
@@ -205,18 +229,23 @@ public sealed class SessionManager : IDisposable
     {
         var sidecar = new SessionSidecar
         {
-            // Job / operator context — full snapshot
-            JobName         = state.JobName,
-            OperatorId      = state.OperatorId,
-            RollNumber      = state.RollNumber,
-            BatchNumber     = state.BatchNumber,
-            CompanyName     = state.CompanyName,
-            ProductName     = state.ProductName,
-            CustomNote      = state.CustomNote,
-            User1           = state.User1,
-            User2           = state.User2,
+            // Job / operator context
+            JobName     = state.JobName,
+            OperatorId  = state.OperatorId,
+            BatchNumber = state.BatchNumber,
+            CompanyName = state.CompanyName,
+            ProductName = state.ProductName,
+            CustomNote  = state.CustomNote,
+            User1       = state.User1,
+            User2       = state.User2,
 
-            // Device metadata (Phase 2)
+            // Roll identifier — all fields preserved so any mode resumes correctly
+            RollIncrementMode = state.RollIncrementMode.ToString(),
+            RollNumber        = state.RollNumber,
+            RollStartValue    = state.RollStartValue,
+            RollTimestamp     = state.RollTimestamp,
+
+            // Device metadata
             DeviceSerial    = state.DeviceSerial,
             DeviceName      = state.DeviceName,
             FirmwareVersion = state.FirmwareVersion,
@@ -228,8 +257,8 @@ public sealed class SessionManager : IDisposable
             FileNamePattern = state.FileNamePattern,
 
             // Session counters
-            SessionStarted  = state.SessionStarted,
-            RecordCount     = state.RecordCount,
+            SessionStarted = state.SessionStarted,
+            RecordCount    = state.RecordCount,
         };
         File.WriteAllText(path, JsonSerializer.Serialize(sidecar, _jsonOpts));
     }
@@ -241,13 +270,13 @@ public sealed class SessionManager : IDisposable
     }
 
     /// <summary>
-    /// Try to load the sidecar at <paramref name="sidecarPath"/> and merge it into
+    /// Load the sidecar at <paramref name="sidecarPath"/> and merge it into
     /// <paramref name="state"/>. Returns true if a sidecar was found and applied.
+    /// Both the xlsx and the sidecar must exist for a valid resume.
     /// </summary>
     private static bool TryMergeSidecar(string sidecarPath, SessionState state)
     {
-        // Both the output file AND sidecar must exist to resume.
-        string outputPath = sidecarPath[..^".vtccp.json".Length]; // strip suffix
+        string outputPath = sidecarPath[..^".vtccp.json".Length];
         if (!File.Exists(sidecarPath) || !File.Exists(outputPath))
             return false;
 
@@ -269,18 +298,26 @@ public sealed class SessionManager : IDisposable
 
     /// <summary>
     /// Restore all saved fields from the sidecar onto the live session state.
-    /// Counters (RecordCount, RollNumber, SessionStarted) are always restored as
-    /// authoritative. Context fields restore only if the caller left them null,
-    /// allowing callers to pre-set overrides before StartSession.
+    ///
+    /// Counters and roll state are always authoritative from the sidecar.
+    /// Context fields restore only if the caller left them null, allowing callers
+    /// to pre-set overrides before calling StartSession().
     /// </summary>
     private static void ApplySidecarToState(SessionSidecar saved, SessionState state)
     {
-        // Counters are authoritative in the sidecar.
-        state.RecordCount    = saved.RecordCount;
+        // ── Roll identifier — always authoritative ─────────────────────────
         state.RollNumber     = saved.RollNumber;
+        state.RollStartValue = saved.RollStartValue;
+        state.RollTimestamp  = saved.RollTimestamp;
+        if (saved.RollIncrementMode is not null &&
+            Enum.TryParse<RollIncrementMode>(saved.RollIncrementMode, out var mode))
+            state.RollIncrementMode = mode;
+
+        // ── Session counters ───────────────────────────────────────────────
+        state.RecordCount    = saved.RecordCount;
         state.SessionStarted = saved.SessionStarted;
 
-        // Context fields: restore from sidecar only if caller left them null.
+        // ── Context fields: restore only if caller left them null ──────────
         if (state.JobName        is null && saved.JobName        is not null) state.JobName        = saved.JobName;
         if (state.OperatorId     is null && saved.OperatorId     is not null) state.OperatorId     = saved.OperatorId;
         if (state.BatchNumber    is null && saved.BatchNumber    is not null) state.BatchNumber    = saved.BatchNumber;
@@ -289,21 +326,17 @@ public sealed class SessionManager : IDisposable
         if (state.CustomNote     is null && saved.CustomNote     is not null) state.CustomNote     = saved.CustomNote;
         if (state.User1          is null && saved.User1          is not null) state.User1          = saved.User1;
         if (state.User2          is null && saved.User2          is not null) state.User2          = saved.User2;
-
-        // Device metadata (Phase 2)
-        if (state.DeviceSerial    is null && saved.DeviceSerial    is not null) state.DeviceSerial    = saved.DeviceSerial;
-        if (state.DeviceName      is null && saved.DeviceName      is not null) state.DeviceName      = saved.DeviceName;
+        if (state.DeviceSerial   is null && saved.DeviceSerial   is not null) state.DeviceSerial   = saved.DeviceSerial;
+        if (state.DeviceName     is null && saved.DeviceName     is not null) state.DeviceName     = saved.DeviceName;
         if (state.FirmwareVersion is null && saved.FirmwareVersion is not null) state.FirmwareVersion = saved.FirmwareVersion;
         if (state.CalibrationDate is null && saved.CalibrationDate is not null) state.CalibrationDate = saved.CalibrationDate;
-
-        // Output configuration
         if (state.OutputDirectory is null && saved.OutputDirectory is not null) state.OutputDirectory = saved.OutputDirectory;
         if (state.FileNamePattern is null && saved.FileNamePattern is not null) state.FileNamePattern = saved.FileNamePattern;
         if (saved.OutputFormat    is not null && Enum.TryParse<OutputFormat>(saved.OutputFormat, out var fmt))
             state.OutputFormat = fmt;
     }
 
-    // ── IDisposable ───────────────────────────────────────────────────────────
+    // ── IDisposable ────────────────────────────────────────────────────────
 
     public void Dispose()
     {
@@ -313,11 +346,12 @@ public sealed class SessionManager : IDisposable
         _adapter?.Dispose();
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // ── Private helpers ────────────────────────────────────────────────────
 
     private void EnsureOpen()
     {
         if (_writer is null)
-            throw new InvalidOperationException("No session is open. Call StartSession() first.");
+            throw new InvalidOperationException(
+                "No session is open. Call StartSession() first.");
     }
 }

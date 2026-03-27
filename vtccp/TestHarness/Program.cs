@@ -1141,8 +1141,8 @@ Console.WriteLine($"  Sidecar present while open:     {sidecarStillPresent}");
 int rollBefore = t4Mgr.CurrentSession!.RollNumber;
 Console.WriteLine($"  Roll before SetNewOperatorAndRoll: {rollBefore} (expect 1)");
 
-// Rule 2: SetNewOperatorAndRoll increments roll and changes operator.
-t4Mgr.SetNewOperatorAndRoll("OP2");
+// Rule 2: Manual mode — caller must supply the new roll value explicitly.
+t4Mgr.SetNewOperatorAndRoll("OP2", manualRoll: 2);
 int rollAfterSet = t4Mgr.CurrentSession!.RollNumber;
 string opAfterSet = t4Mgr.CurrentSession!.OperatorId ?? "";
 Console.WriteLine($"  Roll after SetNewOperatorAndRoll:  {rollAfterSet} (expect 2), Operator: '{opAfterSet}'");
@@ -1309,14 +1309,87 @@ if (!resumeAll)
 if (File.Exists(resumeTestOutputPath))  File.Delete(resumeTestOutputPath);
 if (File.Exists(resumeTestSidecarPath)) File.Delete(resumeTestSidecarPath);
 
+// ── AutoIncrement roll mode test ──────────────────────────────────────────────
+Console.WriteLine("\nAutoIncrement roll mode test:");
+var aiOutputDir = Path.Combine(Path.GetTempPath(), "vtccp_ai_test");
+Directory.CreateDirectory(aiOutputDir);
+var aiState = new SessionState
+{
+    JobName          = "AutoIncrJob",
+    OutputDirectory  = aiOutputDir,
+    OutputFormat     = OutputFormat.Xlsx,
+    SessionStarted   = new DateTime(2026, 1, 15),
+    RollIncrementMode = RollIncrementMode.AutoIncrement,
+    RollStartValue   = 5,
+};
+using var aiMgr = new SessionManager(schema);
+string aiPath = aiMgr.StartSession(aiState);
+string aiLabel1 = aiMgr.CurrentSession!.RollLabel;
+Console.WriteLine($"  RollLabel at open (start=5): '{aiLabel1}' (expect '5')");
+
+aiMgr.SetNewOperatorAndRoll("OP-AI");
+string aiLabel2 = aiMgr.CurrentSession!.RollLabel;
+Console.WriteLine($"  RollLabel after 1st increment: '{aiLabel2}' (expect '6')");
+
+aiMgr.SetNewOperatorAndRoll("OP-AI");
+string aiLabel3 = aiMgr.CurrentSession!.RollLabel;
+Console.WriteLine($"  RollLabel after 2nd increment: '{aiLabel3}' (expect '7')");
+
+aiMgr.CloseSession();
+// Cleanup
+foreach (var f in Directory.GetFiles(aiOutputDir)) File.Delete(f);
+Directory.Delete(aiOutputDir);
+
+bool aiStart   = aiLabel1 == "5";
+bool aiInc1    = aiLabel2 == "6";
+bool aiInc2    = aiLabel3 == "7";
+bool aiPass    = aiStart && aiInc1 && aiInc2;
+Console.WriteLine($"  AutoIncrement: start={aiStart} inc1={aiInc1} inc2={aiInc2} => {(aiPass ? "PASS" : "FAIL")}");
+
+// ── DateTimeStamp roll mode test ──────────────────────────────────────────────
+Console.WriteLine("\nDateTimeStamp roll mode test:");
+var dtOutputDir = Path.Combine(Path.GetTempPath(), "vtccp_dt_test");
+Directory.CreateDirectory(dtOutputDir);
+var dtState = new SessionState
+{
+    JobName          = "DateTimeJob",
+    OutputDirectory  = dtOutputDir,
+    OutputFormat     = OutputFormat.Xlsx,
+    SessionStarted   = new DateTime(2026, 1, 15),
+    RollIncrementMode = RollIncrementMode.DateTimeStamp,
+};
+using var dtMgr = new SessionManager(schema);
+string dtPath = dtMgr.StartSession(dtState);
+string dtLabel1 = dtMgr.CurrentSession!.RollLabel;
+bool dtLabel1Valid = dtLabel1.Length == 14 && dtLabel1.All(char.IsDigit);
+Console.WriteLine($"  RollLabel at open: '{dtLabel1}' (length={dtLabel1.Length}, all-digits={dtLabel1Valid})");
+
+// Small delay so the timestamp can differ.
+System.Threading.Thread.Sleep(1100);
+dtMgr.SetNewOperatorAndRoll("OP-DT");
+string dtLabel2 = dtMgr.CurrentSession!.RollLabel;
+bool dtLabel2Valid   = dtLabel2.Length == 14 && dtLabel2.All(char.IsDigit);
+bool dtTimestampDiff = dtLabel1 != dtLabel2;
+Console.WriteLine($"  RollLabel after roll change: '{dtLabel2}' (valid={dtLabel2Valid}, changed={dtTimestampDiff})");
+
+dtMgr.CloseSession();
+// Cleanup
+foreach (var f in Directory.GetFiles(dtOutputDir)) File.Delete(f);
+Directory.Delete(dtOutputDir);
+
+bool dtPass = dtLabel1Valid && dtLabel2Valid && dtTimestampDiff;
+Console.WriteLine($"  DateTimeStamp: open={dtLabel1Valid} afterRoll={dtLabel2Valid} changed={dtTimestampDiff} => {(dtPass ? "PASS" : "FAIL")}");
+
 // ── Full Task 4 pass/fail ─────────────────────────────────────────────────────
 bool t4Pass =
     // Sanitization
     sanSlash && sanSpace && sanBracket && sanGlob && sanAmpersand &&
     // Custom filename pattern
     patternOk &&
-    // Roll semantics
+    // Roll semantics (manual mode)
     rollNewSession && rollIncrement && opChanged &&
+    // Roll increment modes
+    aiPass && dtPass &&
     // SessionManager lifecycle
     recordsWrittenBeforeClose == 6 &&
     sidecarCreated        == true &&

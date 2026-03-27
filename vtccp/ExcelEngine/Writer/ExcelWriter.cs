@@ -144,7 +144,7 @@ public sealed class ExcelWriter : IDisposable
         var title = $"VCCS DMV TruCheck Command Pilot" +
                     $" | Job: {_session.JobName ?? "(no job)"}" +
                     $" | Operator: {_session.OperatorId ?? "-"}" +
-                    $" | Roll: {_session.RollNumber}";
+                    $" | Roll: {_session.RollLabel}";
         _adapter.WriteString(TitleRow, 1, title);
         _adapter.SetRowBold(TitleRow, _schema.Columns.Count);
 

@@ -150,7 +150,7 @@ public static class ExcelFileManager
                        : SanitizeFileName(session.JobName);
         var op       = string.IsNullOrWhiteSpace(session.OperatorId) ? string.Empty
                        : SanitizeFileName(session.OperatorId);
-        var roll     = session.RollNumber.ToString();
+        var roll     = session.RollLabel;
         var date     = session.SessionStarted.ToString("yyyy-MM-dd");
         var dateTime = session.SessionStarted.ToString("yyyy-MM-dd_HH-mm");
 
