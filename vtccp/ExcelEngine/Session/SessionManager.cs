@@ -4,6 +4,7 @@ using System.Text.Json;
 using ExcelEngine.Adapters;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
+using ExcelEngine.Utilities;
 using ExcelEngine.Writer;
 
 /// <summary>
@@ -149,7 +150,19 @@ public sealed class SessionManager : IDisposable
     public void AddRecord(VerificationRecord record)
     {
         EnsureOpen();
-        _writer!.AppendRecord(record);
+
+        // Resolve effective batch number for this record.
+        string? batchOverride = null;
+        if (_currentSession!.BatchMode == BatchMode.AutoFromGS1)
+        {
+            string? extracted = GS1Parser.ExtractBatchLot(record.DecodedData);
+            if (extracted is not null)
+                batchOverride = extracted;
+            // If AI(10) absent (e.g. non-GS1 symbol in a mixed session),
+            // batchOverride stays null → mapper uses record.BatchNumber as-is.
+        }
+
+        _writer!.AppendRecord(record, batchOverride);
         _currentSession!.RecordCount++;
         SaveSidecar(_sidecarPath!, _currentSession!);
     }
@@ -260,6 +273,7 @@ public sealed class SessionManager : IDisposable
             User1       = state.User1,
             User2       = state.User2,
 
+            BatchMode         = state.BatchMode.ToString(),
             RollIncrementMode = state.RollIncrementMode.ToString(),
             RollNumber        = state.RollNumber,
             RollStartValue    = state.RollStartValue,
@@ -326,6 +340,9 @@ public sealed class SessionManager : IDisposable
         state.RollNumber     = saved.RollNumber;
         state.RollStartValue = saved.RollStartValue;
         state.RollTimestamp  = saved.RollTimestamp;
+        if (saved.BatchMode is not null &&
+            Enum.TryParse<BatchMode>(saved.BatchMode, out var bm))
+            state.BatchMode = bm;
         if (saved.RollIncrementMode is not null &&
             Enum.TryParse<RollIncrementMode>(saved.RollIncrementMode, out var mode))
             state.RollIncrementMode = mode;

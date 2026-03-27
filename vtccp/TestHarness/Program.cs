@@ -1573,6 +1573,100 @@ Directory.Delete(dtOutputDir);
 bool dtPass = dtLabel1Valid && dtLabel2Valid && dtTimestampDiff;
 Console.WriteLine($"  DateTimeStamp: open={dtLabel1Valid} afterRoll={dtLabel2Valid} changed={dtTimestampDiff} => {(dtPass ? "PASS" : "FAIL")}");
 
+// ── GS1 Auto-Batch extraction test ────────────────────────────────────────────
+Console.WriteLine("\nGS1 auto-batch test:");
+
+// 1. Parser unit tests — various string formats
+var gs1_simple   = "<F1>010123456789012817251231101234-LOT-A<F1>2199887766";
+var gs1_fixchain = "<F1>01012345678901281725123110BATCHB";  // AI(10) directly after two fixed-length AIs
+var gs1_raw      = "\u001d010123456789012817251231101234-LOT-A\u001d2199887766";
+var gs1_noai10   = "<F1>010123456789012817251231";           // no AI(10) at all
+var gs1_nonfmt   = "CODE128-DATA-ONLY";                     // not GS1 at all
+
+bool p1 = ExcelEngine.Utilities.GS1Parser.ExtractBatchLot(gs1_simple)   == "1234-LOT-A";
+bool p2 = ExcelEngine.Utilities.GS1Parser.ExtractBatchLot(gs1_fixchain) == "BATCHB";
+bool p3 = ExcelEngine.Utilities.GS1Parser.ExtractBatchLot(gs1_raw)      == "1234-LOT-A";
+bool p4 = ExcelEngine.Utilities.GS1Parser.ExtractBatchLot(gs1_noai10)   == null;
+bool p5 = ExcelEngine.Utilities.GS1Parser.ExtractBatchLot(gs1_nonfmt)   == null;
+bool p6 = ExcelEngine.Utilities.GS1Parser.ExtractBatchLot(null)         == null;
+
+Console.WriteLine($"  simple FNC1-sep:   {(p1 ? "PASS" : $"FAIL (got '{ExcelEngine.Utilities.GS1Parser.ExtractBatchLot(gs1_simple)}')")}");
+Console.WriteLine($"  fixed-len chain:   {(p2 ? "PASS" : $"FAIL (got '{ExcelEngine.Utilities.GS1Parser.ExtractBatchLot(gs1_fixchain)}')")}");
+Console.WriteLine($"  raw GS char:       {(p3 ? "PASS" : $"FAIL (got '{ExcelEngine.Utilities.GS1Parser.ExtractBatchLot(gs1_raw)}')")}");
+Console.WriteLine($"  no AI(10):         {(p4 ? "PASS" : "FAIL (expected null)")}");
+Console.WriteLine($"  non-GS1 string:    {(p5 ? "PASS" : "FAIL (expected null)")}");
+Console.WriteLine($"  null input:        {(p6 ? "PASS" : "FAIL (expected null)")}");
+
+// 2. End-to-end: SessionManager AutoFromGS1 stamps AI(10) into the Batch cell.
+var gs1BatchDir  = Path.Combine(Path.GetTempPath(), "vtccp_gs1batch_test");
+Directory.CreateDirectory(gs1BatchDir);
+
+var gs1State = new ExcelEngine.Models.SessionState
+{
+    JobName         = "GS1AutoBatch",
+    OperatorId      = "GW4",
+    BatchMode       = ExcelEngine.Models.BatchMode.AutoFromGS1,
+    OutputFormat    = ExcelEngine.Models.OutputFormat.Xlsx,
+    DeviceSerial    = "TEST",
+    DeviceName      = "DMTest",
+    FirmwareVersion = "1.0",
+    OutputDirectory = gs1BatchDir,
+    SessionStarted  = new DateTime(2025, 1, 1),
+};
+
+// Record whose decoded data contains AI(10)=AUTO-BATCH-01; caller sets BatchNumber null.
+var gs1Rec1 = new ExcelEngine.Models.VerificationRecord
+{
+    VerificationDateTime = new DateTime(2025, 1, 1, 10, 0, 0),
+    Symbology       = "GS1 DataMatrix",
+    SymbologyFamily = ExcelEngine.Models.SymbologyFamily.GS1DataMatrix,
+    DecodedData     = "<F1>010123456789012817251231101234-LOT-A<F1>2199887766",
+    FormalGrade     = "4.0/16/660/45Q",
+    OverallGrade    = ExcelEngine.Models.GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS"),
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+    // BatchNumber intentionally null — should be auto-populated from AI(10)
+};
+
+// Record with no AI(10) — should fall through to null (empty Batch cell).
+var gs1Rec2 = new ExcelEngine.Models.VerificationRecord
+{
+    VerificationDateTime = new DateTime(2025, 1, 1, 10, 1, 0),
+    Symbology       = "GS1 DataMatrix",
+    SymbologyFamily = ExcelEngine.Models.SymbologyFamily.GS1DataMatrix,
+    DecodedData     = "<F1>010123456789012817251231",
+    FormalGrade     = "4.0/16/660/45Q",
+    OverallGrade    = ExcelEngine.Models.GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS"),
+    Aperture = 16, Wavelength = 660, Lighting = "45Q", Standard = "ISO 15415:2011",
+    BatchNumber     = "MANUAL-FALLBACK",   // caller-supplied; used when no AI(10) found
+};
+
+string gs1BatchPath;
+using (var gs1Mgr = new SessionManager(schema))
+{
+    gs1BatchPath = gs1Mgr.StartSession(gs1State);
+    gs1Mgr.AddRecord(gs1Rec1);
+    gs1Mgr.AddRecord(gs1Rec2);
+    gs1Mgr.CloseSession();
+}
+
+// Verify Batch cells (col 6 = BatchNumber in schema).
+string? batchCell1 = null, batchCell2 = null;
+OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+using (var pkg = new OfficeOpenXml.ExcelPackage(new FileInfo(gs1BatchPath)))
+{
+    var ws = pkg.Workbook.Worksheets["Main"];
+    batchCell1 = ws.Cells[3, 6].Text;   // row 3 = first data row (title+header = rows 1-2)
+    batchCell2 = ws.Cells[4, 6].Text;
+}
+
+bool gs1e2ePass1 = batchCell1 == "1234-LOT-A";
+bool gs1e2ePass2 = batchCell2 == "MANUAL-FALLBACK";
+Console.WriteLine($"  e2e AI(10) stamp:  {(gs1e2ePass1 ? "PASS" : $"FAIL (got '{batchCell1}')")}");
+Console.WriteLine($"  e2e fallback:      {(gs1e2ePass2 ? "PASS" : $"FAIL (got '{batchCell2}')")}");
+
+bool gs1BatchPass = p1 && p2 && p3 && p4 && p5 && p6 && gs1e2ePass1 && gs1e2ePass2;
+Console.WriteLine($"  GS1 auto-batch: {(gs1BatchPass ? "PASS" : "FAIL")}");
+
 // ── Full Task 4 pass/fail ─────────────────────────────────────────────────────
 bool t4Pass =
     // Sanitization
@@ -1583,6 +1677,8 @@ bool t4Pass =
     rollNewSession && rollIncrement && opChanged &&
     // Roll increment modes
     aiPass && dtPass &&
+    // GS1 auto-batch
+    gs1BatchPass &&
     // Resume append correctness
     appendCorrect &&
     // SessionManager lifecycle

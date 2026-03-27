@@ -15,6 +15,21 @@ public sealed class SessionState
     public string? ProductName { get; set; }
     public string? CustomNote  { get; set; }
 
+    /// <summary>
+    /// Controls how Batch/Lot is populated on each written record.
+    /// Manual (default) = caller supplies VerificationRecord.BatchNumber.
+    /// AutoFromGS1      = SessionManager extracts GS1 AI(10) from the decoded data.
+    /// </summary>
+    public BatchMode BatchMode { get; set; } = BatchMode.Manual;
+
+    /// <summary>
+    /// Optional path to a company logo image file.
+    /// Stored here so Phase 3 (WPF UI) can embed the logo in the Excel header row
+    /// and PDF report title area.  Null = no logo (silently skipped by the writer).
+    /// TODO Phase 3: implement logo embedding in ExcelWriter and report renderer.
+    /// </summary>
+    public string? LogoPath { get; set; }
+
     // ── Roll identifier ──────────────────────────────────────────────────────
 
     /// <summary>

@@ -19,6 +19,9 @@ internal sealed class SessionSidecar
     public string? User1 { get; set; }
     public string? User2 { get; set; }
 
+    // Batch mode — persisted so AutoFromGS1 survives crash/resume
+    public string? BatchMode { get; set; }            // enum name (Manual / AutoFromGS1)
+
     // Roll identifier — all three fields preserved so any mode resumes correctly
     public string? RollIncrementMode { get; set; }   // enum name (Manual / AutoIncrement / DateTimeStamp)
     public int     RollNumber        { get; set; }   // numeric counter (Manual / AutoIncrement)

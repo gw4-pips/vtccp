@@ -86,7 +86,11 @@ public sealed class ExcelWriter : IDisposable
     /// Supports both 1D (ISO 15416) and 2D (ISO 15415 / Data Matrix) records in the same file.
     /// For 1D records with ElementWidths data, also writes to the "Element Widths" sheet.
     /// </summary>
-    public void AppendRecord(VerificationRecord record)
+    /// <param name="batchOverride">
+    /// When non-null, overrides the BatchNumber cell value after mapping.
+    /// Used by SessionManager when BatchMode.AutoFromGS1 extracts AI(10).
+    /// </param>
+    public void AppendRecord(VerificationRecord record, string? batchOverride = null)
     {
         CheckRowLimit();
 
@@ -102,6 +106,9 @@ public sealed class ExcelWriter : IDisposable
             values = ISO15416Mapper.Map(record, _schema);
         else
             values = DataMatrix2DMapper.Map(record, _schema);
+
+        if (batchOverride is not null)
+            values["BatchNumber"] = batchOverride;
 
         WriteDataRow(_nextDataRow, values);
 
