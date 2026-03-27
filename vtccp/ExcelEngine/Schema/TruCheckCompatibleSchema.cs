@@ -3,7 +3,7 @@ namespace ExcelEngine.Schema;
 using ExcelEngine.Models;
 
 /// <summary>
-/// The TruCheck-compatible column schema — defines the 163-column layout used by VTCCP
+/// The TruCheck-compatible column schema — defines the 167-column layout used by VTCCP
 /// to produce verification log files that open correctly in tools expecting the DMV
 /// TruCheck column structure.
 ///
@@ -30,7 +30,7 @@ public static class TruCheckCompatibleSchema
     public static ColumnSchema Build() => new()
     {
         Name        = SchemaName,
-        Description = "163-column TruCheck-compatible layout for drop-in file compatibility. " +
+        Description = "167-column TruCheck-compatible layout for drop-in file compatibility. " +
                       "VTCCP-only fields appended after the standard columns.",
         Columns = BuildColumns(),
     };
@@ -60,6 +60,10 @@ public static class TruCheckCompatibleSchema
         cols.Add(Col("DeviceName",     "Device Name",     16, SymbologyGroup.Universal));
         cols.Add(Col("FirmwareVersion","Firmware",        14, SymbologyGroup.Universal));
         cols.Add(Col("CalibrationDate","Last Calibrated", 16, SymbologyGroup.Universal, numberFormat: "yyyy-mm-dd hh:mm"));
+        cols.Add(Col("Aperture",       "Aperture (mil)",  12, SymbologyGroup.Universal));
+        cols.Add(Col("Wavelength",     "Wavelength (nm)", 14, SymbologyGroup.Universal));
+        cols.Add(Col("Lighting",       "Lighting",        12, SymbologyGroup.Universal));
+        cols.Add(Col("Standard",       "Standard",        16, SymbologyGroup.Universal));
 
         // ── Block B: 1D ISO 15416 Parameters ──────────────────────────────────
         // These are blank for 2D records.

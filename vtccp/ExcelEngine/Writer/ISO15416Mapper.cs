@@ -44,6 +44,10 @@ public static class ISO15416Mapper
         d["DeviceName"]      = r.DeviceName;
         d["FirmwareVersion"] = r.FirmwareVersion;
         d["CalibrationDate"] = r.CalibrationDate.HasValue ? (object)r.CalibrationDate.Value : null;
+        d["Aperture"]        = r.Aperture.HasValue ? (object)r.Aperture.Value : null;
+        d["Wavelength"]      = r.Wavelength.HasValue ? (object)r.Wavelength.Value : null;
+        d["Lighting"]        = r.Lighting;
+        d["Standard"]        = r.Standard;
 
         // ── Block B: 1D ISO 15416 Summary Parameters ──────────────────────────
         d["SymbolAnsiGrade_Numeric"]  = ToDouble(r.SymbolAnsiGrade?.NumericGrade);

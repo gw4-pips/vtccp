@@ -43,6 +43,10 @@ public static class DataMatrix2DMapper
         d["DeviceName"]     = r.DeviceName;
         d["FirmwareVersion"]= r.FirmwareVersion;
         d["CalibrationDate"]= r.CalibrationDate.HasValue ? (object)r.CalibrationDate.Value : null;
+        d["Aperture"]       = r.Aperture.HasValue ? (object)r.Aperture.Value : null;
+        d["Wavelength"]     = r.Wavelength.HasValue ? (object)r.Wavelength.Value : null;
+        d["Lighting"]       = r.Lighting;
+        d["Standard"]       = r.Standard;
 
         // ── Block B: 1D fields — all null for 2D records ──────────────────────
         d["SymbolAnsiGrade_Numeric"] = null;

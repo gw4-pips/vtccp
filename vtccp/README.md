@@ -64,7 +64,7 @@ vtccp/
 
 ## Schema
 
-`TruCheckCompatibleSchema` defines 163 columns across nine blocks:
+`TruCheckCompatibleSchema` defines 167 columns across nine blocks:
 
 | Block | Range     | Content                                          |
 |-------|-----------|--------------------------------------------------|

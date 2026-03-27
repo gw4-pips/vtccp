@@ -273,6 +273,7 @@ var allRecords = new[] { record1, record2, record3 };
 
 // ─── Write XLSX ────────────────────────────────────────────────────────────────
 var xlsxPath = Path.Combine(session.OutputDirectory!, ExcelFileManager.GenerateFileName(session, OutputFormat.Xlsx));
+if (File.Exists(xlsxPath)) File.Delete(xlsxPath);   // always start fresh (avoid stale column layout)
 Console.WriteLine($"\nWriting XLSX: {xlsxPath}");
 
 using (var adapter = new XlsxAdapter())
@@ -289,6 +290,7 @@ Console.WriteLine($"  Done. Size: {xlsxInfo.Length:N0} bytes, rows: {allRecords.
 
 // ─── Write XLS ────────────────────────────────────────────────────────────────
 var xlsPath = Path.Combine(session.OutputDirectory!, ExcelFileManager.GenerateFileName(session, OutputFormat.Xls));
+if (File.Exists(xlsPath)) File.Delete(xlsPath);   // always start fresh
 Console.WriteLine($"\nWriting XLS:  {xlsPath}");
 
 using (var adapter = new XlsAdapter())
@@ -318,7 +320,7 @@ using (var pkg = new OfficeOpenXml.ExcelPackage(new FileInfo(xlsxPath)))
     Console.WriteLine($"  Data row 3, col 10 (Data): '{ws.Cells[3,10].Text}'");
     Console.WriteLine($"  Data row 3, col 11 (FormalGrade): '{ws.Cells[3,11].Text}'");
     Console.WriteLine($"  Data row 4, col 12 (OverallLetter): '{ws.Cells[4,12].Text}'");  // row4 = record2
-    // headerCols >= schema.Columns.Count because SchemaVersionWriter adds cells past col 163.
+    // headerCols >= schema.Columns.Count because SchemaVersionWriter adds cells past the last data col.
     Console.WriteLine($"  Columns >= schema: {(headerCols >= schema.Columns.Count ? "YES" : $"NO ({headerCols} vs {schema.Columns.Count})")}");
 }
 
