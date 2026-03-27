@@ -167,6 +167,13 @@
         <Setter Property="FontWeight" Value="Medium" />
     </Style>
 
+    <!-- DataGrid centered cell element style -->
+    <Style x:Key="DataGridCenteredCell" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment"   Value="Center" />
+        <Setter Property="TextWrapping"        Value="NoWrap" />
+    </Style>
+
     <!-- Status bar text -->
     <Style x:Key="StatusText" TargetType="TextBlock">
         <Setter Property="FontSize"     Value="{StaticResource FontSmall}" />

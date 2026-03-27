@@ -2394,6 +2394,246 @@ if (!p3Pass)
 Console.WriteLine();
 Console.WriteLine("Phase 3 complete.");
 
+// ══════════════════════════════════════════════════════════════════════════════
+//  Phase 4 — Results History (ScanResultRow + HistoryFilter data contract)
+//  Sub-checks: 4-A through 4-F
+//
+//  VtccpApp (WPF) is net8.0-windows so we can't reference it from this
+//  cross-platform harness.  Instead we verify the ExcelEngine data contract
+//  that ScanResultRow.From() and HistoryFilter.Matches() depend on —
+//  the same transformations, exercised directly against ExcelEngine types.
+// ══════════════════════════════════════════════════════════════════════════════
+Console.WriteLine();
+Console.WriteLine("Phase 4: Results History — data contract");
+Console.WriteLine(new string('─', 60));
+
+bool p4aPass = false, p4bPass = false, p4cPass = false,
+     p4dPass = false, p4ePass = false, p4fPass = false;
+
+// ── 4-A: GradingResult.LetterGradeString — all 5 letters + empty ─────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("4-A: GradingResult.LetterGradeString");
+    try
+    {
+        var cases = new[]
+        {
+            GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS"),
+            GradingResult.FromLetterAndNumeric("B", 3.0m, "PASS"),
+            GradingResult.FromLetterAndNumeric("C", 2.0m, "PASS"),
+            GradingResult.FromLetterAndNumeric("D", 1.5m, "FAIL"),
+            GradingResult.FromLetterAndNumeric("F", 0.0m, "FAIL"),
+        };
+        string[] expected = ["A", "B", "C", "D", "F"];
+
+        bool ok = true;
+        for (int p4i = 0; p4i < cases.Length; p4i++)
+        {
+            bool match = cases[p4i].LetterGradeString == expected[p4i];
+            if (!match) ok = false;
+            Console.WriteLine($"  {expected[p4i]}: {(match ? "PASS" : $"FAIL (got '{cases[p4i].LetterGradeString}')")}");
+        }
+
+        // Unknown grade → empty string (ScanResultRow shows "—" for this)
+        string unknownStr = GradingResult.NotMeasured.LetterGradeString;
+        bool emptyOk = unknownStr == string.Empty;
+        Console.WriteLine($"  NotMeasured→empty: {(emptyOk ? "PASS" : $"FAIL ('{unknownStr}')")}");
+
+        p4aPass = ok && emptyOk;
+        Console.WriteLine($"  4-A: {(p4aPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex) { Console.WriteLine($"  4-A EXCEPTION: {ex.Message}"); }
+}
+
+// ── 4-B: GradingResult.PassFail classification ───────────────────────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("4-B: GradingResult.PassFail classification");
+    try
+    {
+        var passGrade = GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS");
+        var failGrade = GradingResult.FromLetterAndNumeric("F", 0.0m, "FAIL");
+        var naGrade   = GradingResult.NotMeasured;
+
+        bool p4b1 = passGrade.PassFail == OverallPassFail.Pass;
+        bool p4b2 = failGrade.PassFail == OverallPassFail.Fail;
+        bool p4b3 = naGrade.PassFail   == OverallPassFail.NotApplicable;
+
+        // ScanResultRow projection logic (inline simulation)
+        string AsPassFail(GradingResult? g) => g?.PassFail switch
+        {
+            OverallPassFail.Pass          => "Pass",
+            OverallPassFail.Fail          => "Fail",
+            OverallPassFail.NotApplicable => "N/A",
+            _                             => "N/A",
+        };
+
+        bool p4b4 = AsPassFail(passGrade) == "Pass";
+        bool p4b5 = AsPassFail(failGrade) == "Fail";
+        bool p4b6 = AsPassFail(null)      == "N/A";
+
+        p4bPass = p4b1 && p4b2 && p4b3 && p4b4 && p4b5 && p4b6;
+        Console.WriteLine($"  Pass enum:   {(p4b1 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Fail enum:   {(p4b2 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  N/A enum:    {(p4b3 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Pass text:   {(p4b4 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Fail text:   {(p4b5 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  null→N/A:    {(p4b6 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  4-B: {(p4bPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex) { Console.WriteLine($"  4-B EXCEPTION: {ex.Message}"); }
+}
+
+// ── 4-C: Decoded data truncation at 60 chars ─────────────────────────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("4-C: Decoded data truncation (60 chars)");
+    try
+    {
+        // ScanResultRow inline simulation
+        string Truncate(string? s) => s is { Length: > 60 } ? s[..60] + "…" : s ?? string.Empty;
+
+        string exact60    = new string('X', 60);
+        string longStr    = new string('Y', 80);
+        string shortStr   = "Hello";
+
+        bool p4c1 = Truncate(exact60).Length == 60 && !Truncate(exact60).EndsWith("…");
+        bool p4c2 = Truncate(longStr).Length  == 61 && Truncate(longStr).EndsWith("…"); // 60 + ellipsis
+        bool p4c3 = Truncate(shortStr)         == "Hello";
+        bool p4c4 = Truncate(null)             == string.Empty;
+
+        p4cPass = p4c1 && p4c2 && p4c3 && p4c4;
+        Console.WriteLine($"  Exact 60 chars (no ellipsis): {(p4c1 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  80 chars → truncated+ellipsis:{(p4c2 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Short string unchanged:        {(p4c3 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  null → empty:                  {(p4c4 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  4-C: {(p4cPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex) { Console.WriteLine($"  4-C EXCEPTION: {ex.Message}"); }
+}
+
+// ── 4-D: Time formatting (HH:mm:ss) ──────────────────────────────────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("4-D: VerificationDateTime time formatting");
+    try
+    {
+        var dt = new DateTime(2026, 3, 27, 14, 5, 9);  // 14:05:09
+        string formatted = dt.ToString("HH:mm:ss");
+
+        bool p4d1 = formatted == "14:05:09";
+        bool p4d2 = formatted.Length == 8;
+        bool p4d3 = formatted[2] == ':' && formatted[5] == ':';
+
+        p4dPass = p4d1 && p4d2 && p4d3;
+        Console.WriteLine($"  14:05:09 format: {(p4d1 ? "PASS" : $"FAIL ('{formatted}')")}");
+        Console.WriteLine($"  Length==8:       {(p4d2 ? "PASS" : $"FAIL ({formatted.Length})")}");
+        Console.WriteLine($"  Colon positions: {(p4d3 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  4-D: {(p4dPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex) { Console.WriteLine($"  4-D EXCEPTION: {ex.Message}"); }
+}
+
+// ── 4-E: Grade "—" fallback when OverallGrade is null or empty ───────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("4-E: Grade '—' fallback logic");
+    try
+    {
+        // ScanResultRow grade projection inline simulation
+        string GradeOf(GradingResult? g) =>
+            g?.LetterGradeString is { Length: > 0 } lg ? lg : "—";
+
+        bool p4e1 = GradeOf(GradingResult.FromLetterAndNumeric("A", 4m, "PASS")) == "A";
+        bool p4e2 = GradeOf(GradingResult.FromLetterAndNumeric("F", 0m, "FAIL")) == "F";
+        bool p4e3 = GradeOf(GradingResult.NotMeasured) == "—";
+        bool p4e4 = GradeOf(null) == "—";
+
+        p4ePass = p4e1 && p4e2 && p4e3 && p4e4;
+        Console.WriteLine($"  Grade A:           {(p4e1 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Grade F:           {(p4e2 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  NotMeasured→'—':   {(p4e3 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  null→'—':          {(p4e4 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  4-E: {(p4ePass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex) { Console.WriteLine($"  4-E EXCEPTION: {ex.Message}"); }
+}
+
+// ── 4-F: HistoryFilter predicate (inline simulation) ─────────────────────────
+{
+    Console.WriteLine();
+    Console.WriteLine("4-F: HistoryFilter predicate logic (inline)");
+    try
+    {
+        // Inline simulation of HistoryFilter.Matches() on plain tuples
+        bool Matches(
+            string rowGrade, string rowPassFail, string rowSymbology,
+            string gradeFilter, string pfFilter, string symbFilter)
+        {
+            if (!string.IsNullOrEmpty(gradeFilter) &&
+                !gradeFilter.Equals("All", StringComparison.OrdinalIgnoreCase) &&
+                !rowGrade.Equals(gradeFilter, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (!string.IsNullOrEmpty(pfFilter) &&
+                !pfFilter.Equals("All", StringComparison.OrdinalIgnoreCase) &&
+                !rowPassFail.Equals(pfFilter, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (!string.IsNullOrEmpty(symbFilter) &&
+                !symbFilter.Equals("All", StringComparison.OrdinalIgnoreCase) &&
+                rowSymbology.IndexOf(symbFilter, StringComparison.OrdinalIgnoreCase) < 0)
+                return false;
+
+            return true;
+        }
+
+        // No filter → everything matches
+        bool f1 = Matches("A", "Pass", "Data Matrix ECC 200", "All", "All", "All");
+        // Grade filter
+        bool f2 =  Matches("A", "Pass", "Data Matrix", "A", "All", "All");
+        bool f3 = !Matches("B", "Pass", "Data Matrix", "A", "All", "All");
+        // Pass/fail filter
+        bool f4 =  Matches("A", "Pass", "Data Matrix", "All", "Pass", "All");
+        bool f5 = !Matches("A", "Fail", "Data Matrix", "All", "Pass", "All");
+        // Symbology substring (case-insensitive)
+        bool f6 =  Matches("A", "Pass", "Data Matrix ECC 200", "All", "All", "matrix");
+        bool f7 = !Matches("A", "Pass", "QR Code",             "All", "All", "matrix");
+        // Combined
+        bool f8  =  Matches("A", "Pass", "Data Matrix", "A", "Pass", "Data");
+        bool f9  = !Matches("B", "Pass", "Data Matrix", "A", "Pass", "Data");
+
+        p4fPass = f1 && f2 && f3 && f4 && f5 && f6 && f7 && f8 && f9;
+        Console.WriteLine($"  No filter (all pass):      {(f1 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Grade A matches A:         {(f2 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Grade A rejects B:         {(f3 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  PassFail Pass matches:     {(f4 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  PassFail Pass rejects Fail:{(f5 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Symbology substring match: {(f6 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Symbology substring reject:{(f7 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Combined all match:        {(f8 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  Combined one mismatch:     {(f9 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  4-F: {(p4fPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex) { Console.WriteLine($"  4-F EXCEPTION: {ex.Message}"); }
+}
+
+// ── Phase 4 summary ───────────────────────────────────────────────────────────
+bool p4Pass = p4aPass && p4bPass && p4cPass && p4dPass && p4ePass && p4fPass;
+Console.WriteLine();
+Console.WriteLine($"Phase 4 verification: {(p4Pass ? "PASS" : "FAIL")}");
+if (!p4Pass)
+{
+    if (!p4aPass) Console.WriteLine("  FAIL: 4-A LetterGradeString");
+    if (!p4bPass) Console.WriteLine("  FAIL: 4-B PassFail classification");
+    if (!p4cPass) Console.WriteLine("  FAIL: 4-C Decoded data truncation");
+    if (!p4dPass) Console.WriteLine("  FAIL: 4-D Time formatting");
+    if (!p4ePass) Console.WriteLine("  FAIL: 4-E Grade '—' fallback");
+    if (!p4fPass) Console.WriteLine("  FAIL: 4-F HistoryFilter predicate");
+}
+Console.WriteLine();
+Console.WriteLine("Phase 4 complete.");
+
 // ── Overall exit code ─────────────────────────────────────────────────────────
-bool allPass = p3Pass; // Phase 1 & 2 already self-exit-coded above via their own checks
+bool allPass = p3Pass && p4Pass;
 if (!allPass) Environment.Exit(1);

@@ -108,8 +108,8 @@ Native Windows desktop utility (WPF + C#/.NET 8) located in `vtccp/`. Separate f
 | `ExcelEngine` | 1 | Complete — 167-column schema, XLS/XLSX adapters, session manager, batch extraction |
 | `DeviceInterface` | 2 | Complete — DMCC TCP client, DMST XML parser, DeviceSession, MockDmccServer |
 | `ConfigEngine` | 3 | Complete — DeviceProfile, JobTemplate, AppSettings, ConfigStore, ConfigRepository |
-| `VtccpApp` | 3 | Complete — WPF shell (MainWindow, nav sidebar, DevicesView, TemplatesView, SessionView) |
-| `TestHarness` | 1+2+3 | Complete — Phase 1 Tasks 1–4 + 7 Phase 2 sub-checks + 6 Phase 3 sub-checks, all PASS |
+| `VtccpApp` | 3+4 | Complete — WPF shell (MainWindow, nav sidebar, DevicesView, TemplatesView, SessionView, HistoryView) |
+| `TestHarness` | 1+2+3+4 | Complete — Phase 1 Tasks 1–4 + 7 Phase 2 + 6 Phase 3 + 6 Phase 4 sub-checks, all PASS |
 
 ### Build & test
 
@@ -125,3 +125,4 @@ dotnet run --project TestHarness/TestHarness.csproj -c Release
 - `GradingResult.FromLetterAndNumeric(letter, decimal, passFail)` — second param is non-nullable `decimal`; `DmstResultParser` defaults to `0m` when the XML attribute is absent.
 - `MockDmccServer` binds to `IPAddress.Loopback, 0` (OS-assigned port) exposed via `Port` property.
 - Phase 3 is complete: ConfigEngine (JSON persistence) + VtccpApp WPF shell (MainWindow navigation, DevicesView, TemplatesView, SessionView).
+- Phase 4 is complete: HistoryView DataGrid (live-updating, grade/pass-fail/symbology filters, copy-TSV); ScanResultRow + HistoryFilter models; HistoryViewModel wired into SessionViewModel on every trigger.

@@ -14,13 +14,13 @@ using VtccpApp.Commands;
 /// Drives the Session Launcher page.
 /// Lets the operator pick a device profile + job template, enter an
 /// optional operator override, and start/stop a live scan session.
-///
-/// Start/Stop are async (device I/O); Trigger is async (DMCC round-trip).
-/// All UI updates are marshalled back to the dispatcher by WPF data binding.
+/// Each result is also forwarded to <see cref="HistoryViewModel"/> for the
+/// Results History page.
 /// </summary>
 public sealed class SessionViewModel : ViewModelBase
 {
     private readonly ConfigRepository _repo;
+    private readonly HistoryViewModel _history;
     private readonly VerificationXmlMap _xmlMap = new();
 
     // ── Runtime session state ─────────────────────────────────────────────────
@@ -85,9 +85,10 @@ public sealed class SessionViewModel : ViewModelBase
     public RelayCommand StopCommand    { get; }
     public RelayCommand TriggerCommand { get; }
 
-    public SessionViewModel(ConfigRepository repo)
+    public SessionViewModel(ConfigRepository repo, HistoryViewModel history)
     {
-        _repo = repo;
+        _repo    = repo;
+        _history = history;
 
         StartCommand   = new RelayCommand(async () => await OnStartAsync(),
             () => !IsRunning && SelectedDevice is not null && SelectedTemplate is not null);
@@ -136,8 +137,9 @@ public sealed class SessionViewModel : ViewModelBase
             _sessionMgr = new SessionManager(TruCheckCompatibleSchema.Build());
             await Task.Run(() => _sessionMgr.StartSession(state));
 
-            RecordCount = 0;
-            IsRunning   = true;
+            _history.ClearHistory();
+            RecordCount   = 0;
+            IsRunning     = true;
             StatusMessage = $"Session active — {SelectedDevice.Name} / {SelectedTemplate.Name}";
         }
         catch (Exception ex)
@@ -170,6 +172,7 @@ public sealed class SessionViewModel : ViewModelBase
         {
             var ctx = new VerificationRecord
             {
+                Symbology       = string.Empty,
                 DeviceSerial    = _deviceSession.DeviceInfo.Serial    ?? string.Empty,
                 DeviceName      = _deviceSession.DeviceInfo.Name      ?? string.Empty,
                 FirmwareVersion = _deviceSession.DeviceInfo.FirmwareVersion ?? string.Empty,
@@ -184,8 +187,9 @@ public sealed class SessionViewModel : ViewModelBase
             if (record is not null)
             {
                 await Task.Run(() => _sessionMgr.AddRecord(record));
+                _history.AddRecord(record);
                 RecordCount++;
-                string grade = record.OverallGrade?.LetterGradeString ?? "?";
+                string grade = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
                 StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}";
             }
             else

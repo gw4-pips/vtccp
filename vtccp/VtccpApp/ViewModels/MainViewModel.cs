@@ -16,6 +16,7 @@ public sealed class MainViewModel : ViewModelBase
     public DevicesViewModel   DevicesVM   { get; }
     public TemplatesViewModel TemplatesVM { get; }
     public SessionViewModel   SessionVM   { get; }
+    public HistoryViewModel   HistoryVM   { get; }
 
     // ── Navigation ────────────────────────────────────────────────────────────
 
@@ -37,6 +38,7 @@ public sealed class MainViewModel : ViewModelBase
     public RelayCommand NavDevicesCommand   { get; }
     public RelayCommand NavTemplatesCommand { get; }
     public RelayCommand NavSessionCommand   { get; }
+    public RelayCommand NavHistoryCommand   { get; }
 
     // ── Title bar ─────────────────────────────────────────────────────────────
 
@@ -46,13 +48,15 @@ public sealed class MainViewModel : ViewModelBase
 
     public MainViewModel()
     {
+        HistoryVM   = new HistoryViewModel();
         DevicesVM   = new DevicesViewModel(Repository);
         TemplatesVM = new TemplatesViewModel(Repository);
-        SessionVM   = new SessionViewModel(Repository);
+        SessionVM   = new SessionViewModel(Repository, HistoryVM);
 
         NavDevicesCommand   = new RelayCommand(() => Navigate("Devices"));
         NavTemplatesCommand = new RelayCommand(() => Navigate("Templates"));
         NavSessionCommand   = new RelayCommand(() => Navigate("Session"));
+        NavHistoryCommand   = new RelayCommand(() => Navigate("History"));
 
         Navigate("Session");   // default page
 
@@ -69,6 +73,7 @@ public sealed class MainViewModel : ViewModelBase
             "Devices"   => DevicesVM,
             "Templates" => TemplatesVM,
             "Session"   => SessionVM,
+            "History"   => HistoryVM,
             _           => SessionVM,
         };
     }

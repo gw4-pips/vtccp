@@ -6,7 +6,7 @@
         Title="{Binding AppTitle}"
         Width="{Binding Repository.Settings.WindowWidth, Mode=TwoWay}"
         Height="{Binding Repository.Settings.WindowHeight, Mode=TwoWay}"
-        MinWidth="800" MinHeight="560"
+        MinWidth="900" MinHeight="600"
         Background="{StaticResource SurfaceBrush}">
 
     <!-- DataTemplates map view-models → views -->
@@ -19,6 +19,9 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:SessionViewModel}">
             <views:SessionView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HistoryViewModel}">
+            <views:HistoryView />
         </DataTemplate>
     </Window.Resources>
 
@@ -51,6 +54,12 @@
                                 Converter={StaticResource NavStyleConverter},
                                 ConverterParameter=Session}"
                         Command="{Binding NavSessionCommand}" />
+
+                <Button Content="📊  Results History"
+                        Style="{Binding CurrentPageKey,
+                                Converter={StaticResource NavStyleConverter},
+                                ConverterParameter=History}"
+                        Command="{Binding NavHistoryCommand}" />
 
                 <Button Content="⚙  Device Profiles"
                         Style="{Binding CurrentPageKey,

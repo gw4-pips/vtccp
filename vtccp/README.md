@@ -192,3 +192,4 @@ Production or commercial deployments require a valid EPPlus commercial license.
 | 1     | Complete    | Excel Engine (offline) — 167-column schema, session mgmt |
 | 2     | Complete    | Device Integration — DMCC/DMST live connection           |
 | 3     | Complete    | Config Templates GUI — WPF shell + ConfigEngine          |
+| 4     | Complete    | Results History — live DataGrid, grade/pass-fail filters |
