@@ -5,10 +5,11 @@
 
     <Grid Margin="24">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />  <!-- header + buttons -->
+            <RowDefinition Height="Auto" />  <!-- filter bar -->
+            <RowDefinition Height="*"    />  <!-- DataGrid -->
+            <RowDefinition Height="Auto" />  <!-- detail strip -->
+            <RowDefinition Height="Auto" />  <!-- status bar -->
         </Grid.RowDefinitions>
 
         <!-- ── Header ──────────────────────────────────────────────── -->
@@ -35,22 +36,19 @@
         <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,12" Padding="12,10">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Grade:" VerticalAlignment="Center"
-                           Style="{StaticResource FieldLabel}"
-                           Margin="0,0,8,0" />
+                           Style="{StaticResource FieldLabel}" Margin="0,0,8,0" />
                 <ComboBox ItemsSource="{Binding GradeOptions}"
                           SelectedItem="{Binding GradeFilter, Mode=TwoWay}"
                           Width="80" Margin="0,0,20,0" />
 
                 <TextBlock Text="Pass/Fail:" VerticalAlignment="Center"
-                           Style="{StaticResource FieldLabel}"
-                           Margin="0,0,8,0" />
+                           Style="{StaticResource FieldLabel}" Margin="0,0,8,0" />
                 <ComboBox ItemsSource="{Binding PassFailOptions}"
                           SelectedItem="{Binding PassFailFilter, Mode=TwoWay}"
                           Width="90" Margin="0,0,20,0" />
 
                 <TextBlock Text="Symbology contains:" VerticalAlignment="Center"
-                           Style="{StaticResource FieldLabel}"
-                           Margin="0,0,8,0" />
+                           Style="{StaticResource FieldLabel}" Margin="0,0,8,0" />
                 <TextBox Text="{Binding SymbologyFilter, UpdateSourceTrigger=PropertyChanged}"
                          Width="160" />
             </StackPanel>
@@ -59,6 +57,7 @@
         <!-- ── Results DataGrid ────────────────────────────────────── -->
         <Border Grid.Row="2" Style="{StaticResource Card}" Padding="0">
             <DataGrid ItemsSource="{Binding FilteredRecords}"
+                      SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       CanUserSortColumns="True"
@@ -76,49 +75,53 @@
 
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="Background"   Value="{StaticResource SurfaceBrush}" />
-                        <Setter Property="Foreground"   Value="{StaticResource TextSecondaryBrush}" />
-                        <Setter Property="FontSize"     Value="11" />
-                        <Setter Property="FontWeight"   Value="SemiBold" />
-                        <Setter Property="Padding"      Value="10,8" />
-                        <Setter Property="BorderBrush"  Value="{StaticResource BorderBrush}" />
+                        <Setter Property="Background"      Value="{StaticResource SurfaceBrush}" />
+                        <Setter Property="Foreground"      Value="{StaticResource TextSecondaryBrush}" />
+                        <Setter Property="FontSize"        Value="11" />
+                        <Setter Property="FontWeight"      Value="SemiBold" />
+                        <Setter Property="Padding"         Value="10,8" />
+                        <Setter Property="BorderBrush"     Value="{StaticResource BorderBrush}" />
                         <Setter Property="BorderThickness" Value="0,0,0,1" />
                     </Style>
                 </DataGrid.ColumnHeaderStyle>
 
                 <DataGrid.CellStyle>
                     <Style TargetType="DataGridCell">
-                        <Setter Property="Padding"       Value="10,6" />
+                        <Setter Property="Padding"         Value="10,5" />
                         <Setter Property="BorderThickness" Value="0" />
                         <Style.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background"
-                                        Value="#1A2980B9" />
+                                <Setter Property="Background" Value="#1A2980B9" />
                             </Trigger>
                         </Style.Triggers>
                     </Style>
                 </DataGrid.CellStyle>
 
                 <DataGrid.Columns>
+
+                    <!-- # -->
                     <DataGridTextColumn Header="#"
                                         Binding="{Binding RowNumber}"
                                         Width="46"
                                         ElementStyle="{StaticResource DataGridCenteredCell}" />
 
+                    <!-- Time -->
                     <DataGridTextColumn Header="Time"
                                         Binding="{Binding Time}"
                                         Width="76" />
 
+                    <!-- Symbology -->
                     <DataGridTextColumn Header="Symbology"
                                         Binding="{Binding Symbology}"
                                         Width="180" />
 
-                    <!-- Grade cell — coloured by letter -->
-                    <DataGridTemplateColumn Header="Grade" Width="64" SortMemberPath="Grade">
+                    <!-- Grade — numeric primary, letter secondary, colour-coded -->
+                    <DataGridTemplateColumn Header="Grade" Width="76"
+                                            SortMemberPath="NumericGrade">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Border CornerRadius="3" Padding="6,2"
-                                        HorizontalAlignment="Center">
+                                <Border CornerRadius="4" Padding="6,3"
+                                        Margin="2" HorizontalAlignment="Center">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="Background" Value="#BDC3C7" />
@@ -141,17 +144,28 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
-                                    <TextBlock Text="{Binding Grade}"
-                                               Foreground="White" FontWeight="Bold"
-                                               FontSize="12"
-                                               HorizontalAlignment="Center" />
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <!-- Numeric grade — primary -->
+                                        <TextBlock Text="{Binding NumericGradeDisplay}"
+                                                   Foreground="White"
+                                                   FontWeight="Bold"
+                                                   FontSize="13"
+                                                   HorizontalAlignment="Center" />
+                                        <!-- Letter grade — secondary -->
+                                        <TextBlock Text="{Binding Grade}"
+                                                   Foreground="#DDEEFF"
+                                                   FontSize="10"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,-1,0,0" />
+                                    </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <!-- Pass/Fail cell — coloured -->
-                    <DataGridTemplateColumn Header="Pass/Fail" Width="80" SortMemberPath="PassFail">
+                    <!-- Pass/Fail — coloured -->
+                    <DataGridTemplateColumn Header="Pass/Fail" Width="80"
+                                            SortMemberPath="PassFail">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding PassFail}"
@@ -178,28 +192,142 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
+                    <!-- UEC% -->
                     <DataGridTextColumn Header="UEC%"
                                         Binding="{Binding UecPercent, StringFormat={}{0:F1}}"
                                         Width="62"
                                         ElementStyle="{StaticResource DataGridCenteredCell}" />
 
-                    <DataGridTextColumn Header="Decoded Data"
-                                        Binding="{Binding DecodedData}"
-                                        Width="*" />
+                    <!-- Decoded Data (preview; click row to see full) -->
+                    <DataGridTemplateColumn Header="Decoded Data" Width="*"
+                                            SortMemberPath="DecodedDataPreview">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding DecodedDataPreview}"
+                                               VerticalAlignment="Center" />
+                                    <!-- "…more" hint when truncated -->
+                                    <TextBlock Text=" ⤵"
+                                               FontSize="10"
+                                               Foreground="{StaticResource AccentBrush}"
+                                               VerticalAlignment="Center"
+                                               ToolTip="Click row to see full decoded data"
+                                               Visibility="{Binding IsTruncated,
+                                                   Converter={StaticResource BoolToVisibility}}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
 
+                    <!-- Operator -->
                     <DataGridTextColumn Header="Operator"
                                         Binding="{Binding OperatorId}"
                                         Width="100" />
 
+                    <!-- Job -->
                     <DataGridTextColumn Header="Job"
                                         Binding="{Binding JobName}"
                                         Width="130" />
+
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
 
+        <!-- ── Detail strip (visible when a row is selected) ───────── -->
+        <Border Grid.Row="3"
+                Margin="0,8,0,0"
+                BorderBrush="{StaticResource AccentBrush}"
+                BorderThickness="0,0,0,0"
+                CornerRadius="6"
+                Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#F0F7FF" Offset="0" />
+                    <GradientStop Color="#E8F4FD" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Grid Margin="16,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Row 1: grade summary + metadata -->
+                <Grid Grid.Row="0" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Grade pill -->
+                    <Border Grid.Column="0" CornerRadius="4"
+                            Padding="10,4" Margin="0,0,16,0"
+                            Background="{StaticResource AccentBrush}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding DetailGrade}"
+                                       Foreground="White" FontWeight="SemiBold"
+                                       FontSize="13" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Symbology + device -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding DetailSymbology}"
+                                   FontWeight="SemiBold" FontSize="13"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding DetailDevice}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+
+                    <!-- Timestamp + operator -->
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Right"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="{Binding DetailDateTime}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Right" />
+                        <TextBlock Text="{Binding DetailOperator}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Right" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Row 2: label -->
+                <TextBlock Grid.Row="1"
+                           Text="FULL DECODED DATA"
+                           Style="{StaticResource FieldLabel}"
+                           Margin="0,0,0,4" />
+
+                <!-- Row 3: full decoded data — selectable, wrapping, scrollable -->
+                <Border Grid.Row="2"
+                        Background="White"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="10,8"
+                        MaxHeight="100">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Auto">
+                        <TextBox Text="{Binding DetailFullDecode, Mode=OneWay}"
+                                 IsReadOnly="True"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 FontFamily="Consolas, Courier New, monospace"
+                                 FontSize="12"
+                                 TextWrapping="Wrap"
+                                 VerticalAlignment="Stretch" />
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </Border>
+
         <!-- ── Status bar ──────────────────────────────────────────── -->
-        <Border Grid.Row="3" Margin="0,8,0,0" Padding="8,4"
+        <Border Grid.Row="4" Margin="0,8,0,0" Padding="8,4"
                 Background="{StaticResource CardBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,1,0,0">
