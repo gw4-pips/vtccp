@@ -99,50 +99,23 @@ public sealed class DeviceSession : IAsyncDisposable
         // for an electrical hardware pulse that never arrives, then times out
         // (~6 s) and returns No Read without ever flashing the illumination.
         //
-        // Query the current trigger type; if it is External (or any non-Single
-        // variant), switch to Single so VTCCP's software TRIGGER fires the scan
-        // immediately.  The original type is restored in DisconnectAsync so we
-        // do not permanently alter device settings.
+        // GET TRIGGER.TYPE: record the original for restore-on-disconnect.
+        // On this firmware (6.1.16_sr4) the PayLoad is empty even on a successful
+        // response, so we cannot rely on it to gate the SET command.
         var trigResp = await _client.SendAsync(DmccCommand.GetTriggerType, ct);
+        _originalTriggerType = string.IsNullOrWhiteSpace(trigResp.Body)
+            ? null
+            : trigResp.Body.Trim();
         System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-DMCC] Trigger type on connect: code={trigResp.StatusCode}  value='{trigResp.Body}'");
+            $"[VTCCP-DMCC] GET TRIGGER.TYPE: code={trigResp.StatusCode}  value='{_originalTriggerType}'");
 
-        if (trigResp.IsSuccess && !string.IsNullOrWhiteSpace(trigResp.Body))
-        {
-            _originalTriggerType = trigResp.Body.Trim();
-
-            // Trigger type may be returned as a string ("Single", "External") or
-            // as an integer code ("0" = External, "1" = Single, "2" = Continuous,
-            // "3" = Self/Presentation).  Accept either form.
-            bool isSoftwareMode =
-                _originalTriggerType.Equals("Single",     StringComparison.OrdinalIgnoreCase)
-             || _originalTriggerType.Equals("Software",   StringComparison.OrdinalIgnoreCase)
-             || _originalTriggerType.Equals("Continuous", StringComparison.OrdinalIgnoreCase)
-             || _originalTriggerType.Equals("Self",       StringComparison.OrdinalIgnoreCase)
-             || _originalTriggerType == "1"   // Single
-             || _originalTriggerType == "2"   // Continuous
-             || _originalTriggerType == "3";  // Self / Presentation
-
-            if (!isSoftwareMode)
-            {
-                // "SET TRIGGER.TYPE 1" (integer) — string form "Single" is rejected
-                // by some DMV firmware with InvalidParameterException.
-                var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-DMCC] SET TRIGGER.TYPE 1: code={setResp.StatusCode}  " +
-                    $"(was '{_originalTriggerType}')");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-DMCC] Trigger already in software mode '{_originalTriggerType}' — no change.");
-            }
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-DMCC] GET TRIGGER.TYPE not supported (code={trigResp.StatusCode}) — skipping trigger mode setup.");
-        }
+        // Always attempt to switch to Single (software) trigger mode so VTCCP's
+        // software TRIGGER command fires immediately without a hardware pulse.
+        // SET TRIGGER.TYPE 1 uses the integer form — the string "Single" is
+        // rejected by some firmware with InvalidParameterException.
+        var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-DMCC] SET TRIGGER.TYPE 1: code={setResp.StatusCode}");
     }
 
     /// <summary>Closes the DMCC connection and stops any active push listener.</summary>

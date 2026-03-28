@@ -110,17 +110,16 @@ public sealed class DataManSdkClient : IAsyncDisposable
             {
                 var sdkResp = _system!.SendCommand(command);
 
-                int    code = TryGetIntProp(sdkResp, "StatusCode", "Code") ?? -2;
-                string body = TryGetStrProp(sdkResp, "Body", "Value", "Message", "Result")
+                // SDK throws an exception on failure; reaching here means success (code 0).
+                // The body is in the "PayLoad" property (confirmed by reflection dump).
+                // ResponseId is an SDK-internal tracker, NOT the DMCC status code.
+                const int code = 0;
+                string body = TryGetStrProp(sdkResp, "PayLoad", "Body", "Value", "Message", "Result")
                               ?? string.Empty;
 
                 System.Diagnostics.Debug.WriteLine(
                     $"[VTCCP-SDK] CMD '{command}' → code={code}  " +
                     $"body='{(body.Length > 120 ? body[..120] + "…" : body)}'");
-
-                // First call: dump all available DmccResponse properties for diagnostics.
-                if (command == DmccCommand.GetDeviceType)
-                    DumpProps("[VTCCP-SDK] DmccResponse", sdkResp);
 
                 string raw = $"\r\n{code}\r\n\r\n{body}";
                 return DmccResponse.Parse(raw);
