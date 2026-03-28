@@ -1,10 +1,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.0
-//   Generated : 2026-03-28 12:36 UTC
+//   Version   : 1.1
+//   Generated : 2026-03-28 15:14 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
-//   Target    : Cognex DataMan firmware 6.x  /  DMV475
+//   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
+//
+//   v1.1 — Fix: use outputResults.content (firmware 6.x parameter) with
+//           fallback to global output (firmware 5.x) for cross-version
+//           compatibility.  Previously the script crashed with
+//           "ReferenceError: output is not defined" on firmware 6.x,
+//           causing the device to fall back to plain-text Basic Formatting.
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
