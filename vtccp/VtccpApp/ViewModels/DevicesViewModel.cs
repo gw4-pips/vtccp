@@ -117,6 +117,7 @@ public sealed class DevicesViewModel : ViewModelBase
             != MessageBoxResult.Yes) return;
 
         _repo.RemoveDevice(Selected.Id);
+        _ = _repo.SaveAsync();
         Reload();
         _onListChanged?.Invoke();
         StatusMessage = "Device profile deleted.";
@@ -128,6 +129,7 @@ public sealed class DevicesViewModel : ViewModelBase
         foreach (var d in _repo.Devices) d.IsDefault = false;
         var target = _repo.FindDevice(Selected.Id);
         if (target is not null) target.IsDefault = true;
+        _ = _repo.SaveAsync();
         Reload();
         _onListChanged?.Invoke();
         StatusMessage = $"'{Selected.Name}' is now the default device.";
@@ -147,6 +149,7 @@ public sealed class DevicesViewModel : ViewModelBase
 
         bool updated = _repo.UpdateDevice(model);
         if (!updated) _repo.AddDevice(model);
+        _ = _repo.SaveAsync();
 
         Reload();
         _onListChanged?.Invoke();

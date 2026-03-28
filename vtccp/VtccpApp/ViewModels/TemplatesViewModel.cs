@@ -109,6 +109,7 @@ public sealed class TemplatesViewModel : ViewModelBase
             != MessageBoxResult.Yes) return;
 
         _repo.RemoveTemplate(Selected.Id);
+        _ = _repo.SaveAsync();
         Reload();
         _onListChanged?.Invoke();
         StatusMessage = "Job template deleted.";
@@ -120,6 +121,7 @@ public sealed class TemplatesViewModel : ViewModelBase
         foreach (var t in _repo.Templates) t.IsDefault = false;
         var target = _repo.FindTemplate(Selected.Id);
         if (target is not null) target.IsDefault = true;
+        _ = _repo.SaveAsync();
         Reload();
         _onListChanged?.Invoke();
         StatusMessage = $"'{Selected.Name}' is now the default template.";
@@ -135,6 +137,7 @@ public sealed class TemplatesViewModel : ViewModelBase
 
         bool updated = _repo.UpdateTemplate(model);
         if (!updated) _repo.AddTemplate(model);
+        _ = _repo.SaveAsync();
 
         Reload();
         _onListChanged?.Invoke();
