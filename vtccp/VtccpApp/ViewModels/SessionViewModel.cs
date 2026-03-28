@@ -351,12 +351,25 @@ public sealed class SessionViewModel : ViewModelBase
         // detection works correctly with this device's firmware.
         var cfg = SelectedDevice.ToDeviceConfig();
         cfg.ConnectTimeoutMs  = 3_000;
-        cfg.ResponseTimeoutMs = 3_000;
+        cfg.ResponseTimeoutMs = 5_000;   // give device up to 5 s to respond to TRIGGER
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-DMCC] Trigger attempt: {cfg.Host}:{cfg.Port}  " +
+            $"connect={cfg.ConnectTimeoutMs}ms  response={cfg.ResponseTimeoutMs}ms  idle={cfg.IdleGapMs}ms");
 
         await using var client = new DeviceInterface.Dmcc.DmccClient(cfg);
         await client.ConnectAsync();
 
+        var banner = client.WelcomeBanner ?? "(null)";
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-DMCC] Connected.  Banner ({banner.Length} chars): " +
+            $"{(banner.Length > 120 ? banner[..120] + "…" : banner).Replace("\r", "\\r").Replace("\n", "\\n")}");
+
         var resp = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.Trigger);
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-DMCC] TRIGGER response: code={resp.StatusCode}  " +
+            $"body='{(resp.Body.Length > 80 ? resp.Body[..80] + "…" : resp.Body)}'");
 
         StatusMessage = resp.StatusCode switch
         {
@@ -370,8 +383,9 @@ public sealed class SessionViewModel : ViewModelBase
                 "Device busy — trigger rejected. Wait a moment and retry.",
 
             DeviceInterface.Dmcc.DmccStatus.NoResponse =>
-                "Trigger: no response from device (code -2). " +
-                "DMST or another DMCC client is likely holding port 23 — disconnect it and retry.",
+                $"Trigger: device connected (banner: '{banner.Trim()}') but sent no reply to TRIGGER command " +
+                $"(code -2).  If DataMan Setup Tool is open, close it first.  " +
+                $"If closed, check VS Output for [VTCCP-DMCC] lines to see the raw exchange.",
 
             DeviceInterface.Dmcc.DmccStatus.Timeout =>
                 "Trigger: connection timed out (code -3). " +
