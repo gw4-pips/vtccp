@@ -1,36 +1,55 @@
 namespace DeviceInterface.Dmst;
 
+using System.Globalization;
 using System.Xml.Linq;
 using ExcelEngine.Models;
 
 /// <summary>
-/// Parses a DMST result XML string (from a DMCC GET SYMBOL.RESULT response body,
-/// or pushed via a DMST TCP connection) into a <see cref="VerificationRecord"/>.
+/// Parses a Cognex DataMan ReadXml result (firmware 6.x &lt;result&gt; format) or a legacy
+/// DMST push string (&lt;DMCCResponse&gt;/&lt;DMSymVerResponse&gt;) into a
+/// <see cref="VerificationRecord"/>.
 ///
-/// The parser is driven by a <see cref="VerificationXmlMap"/> that maps XML element
-/// names to record fields — swap the map to support different firmware versions.
+/// Firmware 6.x XML structure:
+///   &lt;result&gt;
+///     &lt;general&gt;&lt;symbology&gt;Data Matrix&lt;/symbology&gt; ...&lt;/general&gt;
+///     &lt;trucheck_verificaiton_result&gt;               (sic — typo in firmware)
+///       &lt;CalibrationDate&gt;...&lt;/CalibrationDate&gt;
+///       &lt;SymbolData&gt;
+///         &lt;SymbologyType&gt;DataMatrix&lt;/SymbologyType&gt;
+///         &lt;DecodedData&gt;...&lt;/DecodedData&gt;
+///         &lt;ReportSection sectionType="GradingInfo"&gt;
+///           &lt;GradeInfo&gt;&lt;Standard&gt;ISO 15415:2011&lt;/Standard&gt;
+///             &lt;Grade&gt;3.0&lt;/Grade&gt;&lt;ValueGrade&gt;B&lt;/ValueGrade&gt;
+///             &lt;FormalGrade&gt;3.0/10/660/45Q&lt;/FormalGrade&gt;
+///             &lt;Aperture&gt;10&lt;/Aperture&gt;&lt;Wavelength&gt;660&lt;/Wavelength&gt;
+///           &lt;/GradeInfo&gt;
+///         &lt;/ReportSection&gt;
+///         &lt;ReportSection sectionType="GradeHistory"&gt;
+///           &lt;VerificationOverallPass&gt;1&lt;/VerificationOverallPass&gt;
+///         &lt;/ReportSection&gt;
+///         &lt;ReportSection sectionTitle="ISO15415 Quality Parameters"&gt;
+///           &lt;Parameter&gt;&lt;Number&gt;1&lt;/Number&gt;&lt;Grade&gt;4.0&lt;/Grade&gt;&lt;Value&gt;100.0%&lt;/Value&gt;&lt;/Parameter&gt;
+///           ...
+///         &lt;/ReportSection&gt;
+///         &lt;ReportSection sectionTitle="General Characteristics"&gt;
+///           &lt;Parameter&gt;&lt;Name&gt;Matrix Size&lt;/Name&gt;&lt;Data&gt;22x22 (Data: 20x20)&lt;/Data&gt;&lt;/Parameter&gt;
+///           ...
+///         &lt;/ReportSection&gt;
+///       &lt;/SymbolData&gt;
+///     &lt;/trucheck_verificaiton_result&gt;
+///     &lt;general&gt;&lt;full_string encoding="base64"&gt;...&lt;/full_string&gt;&lt;/general&gt;
+///   &lt;/result&gt;
 ///
-/// Tolerant design: missing or malformed elements are silently skipped; the resulting
-/// record will have null values for those fields rather than throwing.
+/// Tolerant design: missing/malformed elements are silently skipped.
 /// </summary>
 public static class DmstResultParser
 {
-    /// <summary>
-    /// Parses the XML and returns a populated <see cref="VerificationRecord"/>,
-    /// pre-seeded with the device metadata fields from <paramref name="deviceContext"/>.
-    /// </summary>
-    /// <param name="xml">Full DMST XML string (with or without the DMCCResponse envelope).</param>
-    /// <param name="map">Element-name map; pass <c>null</c> for default Cognex DMV mapping.</param>
-    /// <param name="deviceContext">
-    /// Optional partial record carrying device metadata (serial, firmware, etc.)
-    /// that the device doesn't embed inside every result XML.  Session-level
-    /// fields (JobName, OperatorId, BatchNumber) should be supplied here and
-    /// will be preserved in the returned record.
-    /// </param>
+    // ── Public entry points ───────────────────────────────────────────────────
+
     public static VerificationRecord Parse(
-        string                xml,
-        VerificationXmlMap?   map           = null,
-        VerificationRecord?   deviceContext = null)
+        string               xml,
+        VerificationXmlMap?  map           = null,
+        VerificationRecord?  deviceContext = null)
     {
         map ??= new VerificationXmlMap();
 
@@ -39,58 +58,195 @@ public static class DmstResultParser
         catch { return Fallback(deviceContext, "XML parse failed"); }
 
         // Navigate to the result container element.
+        // Firmware 6.x: <result> root (no DMSymVerResponse wrapper).
+        // Legacy DMST: <DMCCResponse>/<DMSymVerResponse>
         XElement? container =
             doc.Descendants(map.ResultContainer).FirstOrDefault()
-            ?? doc.Root;   // fallback: search from root
+            ?? doc.Root;
 
         if (container is null)
             return Fallback(deviceContext, "ResultContainer not found");
 
         // ── Helper closures ───────────────────────────────────────────────────
+
         string? Str(string elem) =>
             container.Descendants(elem).FirstOrDefault()?.Value.Trim()
                 is { Length: > 0 } v ? v : null;
 
         decimal? Dec(string elem) =>
-            decimal.TryParse(Str(elem), System.Globalization.NumberStyles.Any,
-                System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : null;
+            decimal.TryParse(Str(elem), NumberStyles.Any,
+                CultureInfo.InvariantCulture, out var d) ? d : null;
 
         int? Int(string elem) =>
             int.TryParse(Str(elem), out var i) ? i : null;
 
-        GradingResult? Grade(string elem)
+        // Legacy grade helper: looks for a named element whose text is the
+        // letter grade and optionally a "numeric" attribute.
+        GradingResult? GradeLegacy(string elem)
         {
             string? letter = Str(elem);
             if (letter is null) return null;
-            // Letter grade is the element text; numeric may be embedded as attribute.
-            XElement? el  = container.Descendants(elem).FirstOrDefault();
+            XElement? el = container.Descendants(elem).FirstOrDefault();
             decimal   num = 0m;
             if (el?.Attribute("numeric") is { } a)
-                decimal.TryParse(a.Value, System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture, out num);
+                decimal.TryParse(a.Value, NumberStyles.Any,
+                    CultureInfo.InvariantCulture, out num);
             return GradingResult.FromLetterAndNumeric(letter, num, "");
         }
 
-        // ── Symbology ─────────────────────────────────────────────────────────
-        string?         symbName   = Str(map.SymbologyName) ?? deviceContext?.Symbology ?? "Unknown";
-        SymbologyFamily symbFamily = map.ClassifySymbology(symbName);
+        // ── Firmware 6.x parameter-section helpers ────────────────────────────
 
-        // Normalise DataMan symbology strings to VTCCP canonical form.
+        // ISO 15415 Quality Parameters: <ReportSection sectionTitle="ISO15415 Quality Parameters">
+        XElement? isoParamsSection = container
+            .Descendants("ReportSection")
+            .FirstOrDefault(s =>
+                (string?)s.Attribute("sectionTitle") == "ISO15415 Quality Parameters");
+
+        // General Characteristics: <ReportSection sectionTitle="General Characteristics">
+        XElement? genCharSection = container
+            .Descendants("ReportSection")
+            .FirstOrDefault(s =>
+                (string?)s.Attribute("sectionTitle") == "General Characteristics");
+
+        // Grade History: <ReportSection sectionType="GradeHistory">
+        XElement? gradeHistSection = container
+            .Descendants("ReportSection")
+            .FirstOrDefault(s =>
+                (string?)s.Attribute("sectionType") == "GradeHistory");
+
+        // Grading Info: <ReportSection sectionType="GradingInfo"> / first ISO GradeInfo
+        XElement? gradingInfoSection = container
+            .Descendants("ReportSection")
+            .FirstOrDefault(s =>
+                (string?)s.Attribute("sectionType") == "GradingInfo");
+
+        XElement? isoGradeInfo = gradingInfoSection?
+            .Elements("GradeInfo")
+            .FirstOrDefault(g => g.Element("Standard")?.Value.Contains("ISO") == true)
+            ?? gradingInfoSection?.Elements("GradeInfo").FirstOrDefault();
+
+        // Lookup a quality parameter by Number (e.g. "1", "3a") → GradingResult
+        GradingResult? ParamGrade(string number)
+        {
+            XElement? p = isoParamsSection?.Elements("Parameter")
+                .FirstOrDefault(e => e.Element("Number")?.Value.Trim() == number);
+            if (p is null) return null;
+            string? gStr = p.Element("Grade")?.Value.Trim();
+            if (string.IsNullOrEmpty(gStr)) return null;
+            bool isNum = decimal.TryParse(gStr, NumberStyles.Any,
+                CultureInfo.InvariantCulture, out decimal gNum);
+            string letter = isNum ? NumericToLetterGrade(gNum) : gStr;
+            string check  = p.Element("Check")?.Value.Trim() ?? "";
+            return GradingResult.FromLetterAndNumeric(letter, isNum ? gNum : 0m, check);
+        }
+
+        // Lookup a quality parameter <Value> (strips trailing %) → decimal
+        decimal? ParamValuePct(string number)
+        {
+            XElement? p = isoParamsSection?.Elements("Parameter")
+                .FirstOrDefault(e => e.Element("Number")?.Value.Trim() == number);
+            string? raw = p?.Element("Value")?.Value.Trim().TrimEnd('%').Trim();
+            if (!decimal.TryParse(raw, NumberStyles.Any,
+                    CultureInfo.InvariantCulture, out decimal v)) return null;
+            return v;
+        }
+
+        // Lookup a quality parameter <Data> string
+        string? ParamData(string number)
+        {
+            XElement? p = isoParamsSection?.Elements("Parameter")
+                .FirstOrDefault(e => e.Element("Number")?.Value.Trim() == number);
+            return p?.Element("Data")?.Value.Trim() is { Length: > 0 } s ? s : null;
+        }
+
+        // Lookup a General Characteristics entry by Name → <Data> string
+        string? CharData(string name)
+        {
+            XElement? p = genCharSection?.Elements("Parameter")
+                .FirstOrDefault(e => e.Element("Name")?.Value.Trim() == name);
+            return p?.Element("Data")?.Value.Trim() is { Length: > 0 } s ? s : null;
+        }
+
+        // Lookup a General Characteristics entry → decimal (strips units)
+        decimal? CharDataDec(string name, char stripChar = '%')
+        {
+            string? raw = CharData(name)?.TrimEnd(stripChar).Trim();
+            if (!decimal.TryParse(raw, NumberStyles.Any,
+                    CultureInfo.InvariantCulture, out decimal v)) return null;
+            return v;
+        }
+
+        // Lookup a General Characteristics entry → int
+        int? CharDataInt(string name)
+        {
+            if (!int.TryParse(CharData(name), out int v)) return null;
+            return v;
+        }
+
+        // ── Symbology ─────────────────────────────────────────────────────────
+        // Firmware 6.x: <SymbologyType>DataMatrix</SymbologyType> (in SymbolData)
+        //           or: <general>/<symbology>Data Matrix</symbology>
+        // Legacy:       <SymbologyName>
+        string? symbName =
+            Str(map.SymbologyName)                                          // SymbologyType
+            ?? container.Descendants("symbology").FirstOrDefault()?.Value   // general/symbology
+            ?? deviceContext?.Symbology
+            ?? "Unknown";
+
+        SymbologyFamily symbFamily = map.ClassifySymbology(symbName);
         string symbology = NormaliseSymbologyName(symbName);
 
         // ── Timestamp ─────────────────────────────────────────────────────────
+        // Firmware 6.x: timestamp is inside the base64-encoded <full_string>.
+        // Decode it to extract <DateTime>; fall back to DateTime.Now.
         DateTime verifyDt = DateTime.Now;
-        if (Str(map.DateTime) is { } dtStr)
-            _ = DateTime.TryParse(dtStr, out verifyDt);
+        if (Str(map.DateTime) is { } dtStrDirect)
+        {
+            DateTime.TryParse(dtStrDirect, out verifyDt);
+        }
+        else
+        {
+            // Try the base64-encoded inner XML
+            XElement? fullStringEl = container
+                .Descendants("full_string").FirstOrDefault();
+            if (fullStringEl?.Attribute("encoding")?.Value == "base64"
+                && fullStringEl.Value is { Length: > 0 } b64)
+            {
+                try
+                {
+                    string inner = System.Text.Encoding
+                        .UTF8.GetString(Convert.FromBase64String(b64));
+                    XDocument innerDoc = XDocument.Parse(inner);
+                    if (innerDoc.Descendants("DateTime")
+                            .FirstOrDefault()?.Value is { } dtInner)
+                        DateTime.TryParse(dtInner, out verifyDt);
+                }
+                catch { }
+            }
+        }
+
+        // ── CalibrationDate from XML ──────────────────────────────────────────
+        // <trucheck_verificaiton_result>/<CalibrationDate> (firmware 6.x)
+        string? calibDate = Str("CalibrationDate")
+                         ?? deviceContext?.CalibrationDate;
 
         // ── Overall grade ─────────────────────────────────────────────────────
-        string? gradeLetterStr = Str(map.OverallGrade);
-        decimal gradeNumeric   = Dec(map.OverallGradeNumeric) ?? 0m;
-        string? formalGrade    = Str(map.FormalGrade);
+        // Firmware 6.x: letter = <ValueGrade> (B), numeric = isoGradeInfo/<Grade> (3.0)
+        string? gradeLetterStr = Str(map.OverallGrade)    // "ValueGrade" → "B"
+                              ?? isoGradeInfo?.Element("ValueGrade")?.Value.Trim();
 
-        // Derive pass/fail from letter grade when no explicit element is present.
-        // A/B → Pass (above any standard minimum); F → Fail; C/D → NotApplicable
-        // (threshold-dependent; device may or may not mark those as pass).
+        decimal gradeNumeric = 0m;
+        if (isoGradeInfo?.Element("Grade")?.Value is { } isoGradeStr)
+            decimal.TryParse(isoGradeStr, NumberStyles.Any,
+                CultureInfo.InvariantCulture, out gradeNumeric);
+        else if (Dec(map.OverallGradeNumeric) is { } mn)
+            gradeNumeric = mn;
+
+        string? formalGrade =
+            isoGradeInfo?.Element("FormalGrade")?.Value.Trim()
+            ?? Str(map.FormalGrade);
+
+        // Derive pass/fail from letter grade
         string derivedPassFail = gradeLetterStr?.Trim().ToUpper() switch
         {
             "A" or "B" => "PASS",
@@ -98,108 +254,151 @@ public static class DmstResultParser
             _          => "",
         };
 
+        // Check GradeHistory/VerificationOverallPass to confirm pass/fail
+        if (gradeHistSection?.Element("VerificationOverallPass")?.Value is { } ovp)
+            derivedPassFail = ovp.Trim() == "1" ? "PASS" : "FAIL";
+
         GradingResult? overall = gradeLetterStr is not null
             ? GradingResult.FromLetterAndNumeric(gradeLetterStr, gradeNumeric, derivedPassFail)
             : null;
 
         // ── Verification settings ─────────────────────────────────────────────
-        int?    aperture  = Int(map.ApertureRef);
-        int?    wavelength = Int(map.Wavelength);
-        string? lighting  = Str(map.Lighting);
-        string? standard  = Str(map.Standard);
+        // Firmware 6.x: inside isoGradeInfo directly; also found via Descendants
+        int? aperture  = isoGradeInfo?.Element("Aperture")  is { } ael
+                            && int.TryParse(ael.Value, out int ap) ? ap : Int(map.ApertureRef);
+        int? wavelength = isoGradeInfo?.Element("Wavelength") is { } wel
+                            && int.TryParse(wel.Value, out int wv) ? wv : Int(map.Wavelength);
+        string? lighting = isoGradeInfo?.Element("Lighting")?.Value.Trim() ?? Str(map.Lighting);
+        string? standard = isoGradeInfo?.Element("Standard")?.Value.Trim() ?? Str(map.Standard);
 
-        // ── 2D parameters ─────────────────────────────────────────────────────
-        decimal? uecPct  = Dec(map.UECPercent);
-        GradingResult? uecGrade  = Grade(map.UECGrade);
-        decimal? scPct   = Dec(map.SCPercent);
-        string?  scRlRd  = Str(map.SCRlRd);
-        GradingResult? scGrade   = Grade(map.SCGrade);
-        GradingResult? modGrade  = Grade(map.MODGrade);
-        GradingResult? rmGrade   = Grade(map.RMGrade);
-        decimal? anuPct  = Dec(map.ANUPercent);
-        GradingResult? anuGrade  = Grade(map.ANUGrade);
-        decimal? gnuPct  = Dec(map.GNUPercent);
-        GradingResult? gnuGrade  = Grade(map.GNUGrade);
-        GradingResult? fpdGrade  = Grade(map.FPDGrade);
-        GradingResult? decGrade  = Grade(map.DecodeGrade);
-        decimal? agVal   = Dec(map.AGValue);
-        GradingResult? agGrade   = Grade(map.AGGrade);
+        // ── 2D quality parameters ─────────────────────────────────────────────
+        // Try legacy map names first (DMSymVerResponse), then parameter-number lookup.
+        decimal?       uecPct   = Dec(map.UECPercent)  ?? ParamValuePct("1");
+        GradingResult? uecGrade = GradeLegacy(map.UECGrade)  ?? ParamGrade("1");
+
+        decimal?       scPct    = Dec(map.SCPercent)   ?? ParamValuePct("2");
+        string?        scRlRd   = Str(map.SCRlRd)      ?? ParamData("2");
+        GradingResult? scGrade  = GradeLegacy(map.SCGrade)   ?? ParamGrade("2");
+
+        GradingResult? modGrade  = GradeLegacy(map.MODGrade)  ?? ParamGrade("3a");
+        GradingResult? rmGrade   = GradeLegacy(map.RMGrade)   ?? ParamGrade("3b");
+
+        decimal?       anuPct   = Dec(map.ANUPercent)  ?? ParamValuePct("4");
+        GradingResult? anuGrade = GradeLegacy(map.ANUGrade)  ?? ParamGrade("4");
+
+        decimal?       gnuPct   = Dec(map.GNUPercent)  ?? ParamValuePct("5");
+        GradingResult? gnuGrade = GradeLegacy(map.GNUGrade)  ?? ParamGrade("5");
+
+        GradingResult? fpdGrade  = GradeLegacy(map.FPDGrade)  ?? ParamGrade("6");
+
+        GradingResult? llsGrade  = GradeLegacy(map.LLSGrade)  ?? ParamGrade("7");
+        GradingResult? blsGrade  = GradeLegacy(map.BLSGrade)  ?? ParamGrade("8");
+        GradingResult? lqzGrade  = GradeLegacy(map.LQZGrade)  ?? ParamGrade("9");
+        GradingResult? bqzGrade  = GradeLegacy(map.BQZGrade)  ?? ParamGrade("10");
+        GradingResult? tqzGrade  = GradeLegacy(map.TQZGrade)  ?? ParamGrade("11");
+        GradingResult? rqzGrade  = GradeLegacy(map.RQZGrade)  ?? ParamGrade("12");
+
+        decimal?       ttrPct    = Dec(map.TTRPercent)  ?? ParamValuePct("13");
+        GradingResult? ttrGrade  = GradeLegacy(map.TTRGrade)   ?? ParamGrade("13");
+        decimal?       rtrPct    = Dec(map.RTRPercent)  ?? ParamValuePct("14");
+        GradingResult? rtrGrade  = GradeLegacy(map.RTRGrade)   ?? ParamGrade("14");
+
+        GradingResult? tctGrade  = GradeLegacy(map.TCTGrade)   ?? ParamGrade("15");
+        GradingResult? rctGrade  = GradeLegacy(map.RCTGrade)   ?? ParamGrade("16");
+
+        decimal?       agVal    = Dec(map.AGValue)     ?? ParamValuePct("17");
+        GradingResult? agGrade  = GradeLegacy(map.AGGrade)    ?? ParamGrade("17");
+
+        GradingResult? decGrade  = GradeLegacy(map.DecodeGrade) ?? ParamGrade("18");
+
+        // ── 2D quadrant parameters (≥32×32) — legacy only, not in firmware 6.x ──
+        GradingResult? ulqzGrade  = GradeLegacy(map.ULQZGrade);
+        GradingResult? urqzGrade  = GradeLegacy(map.URQZGrade);
+        GradingResult? ruqzGrade  = GradeLegacy(map.RUQZGrade);
+        GradingResult? rlqzGrade  = GradeLegacy(map.RLQZGrade);
+
+        decimal? ulqttrPct = Dec(map.ULQTTRPercent); GradingResult? ulqttrGrade = GradeLegacy(map.ULQTTRGrade);
+        decimal? urqttrPct = Dec(map.URQTTRPercent); GradingResult? urqttrGrade = GradeLegacy(map.URQTTRGrade);
+        decimal? llqttrPct = Dec(map.LLQTTRPercent); GradingResult? llqttrGrade = GradeLegacy(map.LLQTTRGrade);
+        decimal? lrqttrPct = Dec(map.LRQTTRPercent); GradingResult? lrqttrGrade = GradeLegacy(map.LRQTTRGrade);
+
+        decimal? ulqrtrPct = Dec(map.ULQRTRPercent); GradingResult? ulqrtrGrade = GradeLegacy(map.ULQRTRGrade);
+        decimal? urqrtrPct = Dec(map.URQRTRPercent); GradingResult? urqrtrGrade = GradeLegacy(map.URQRTRGrade);
+        decimal? llqrtrPct = Dec(map.LLQRTRPercent); GradingResult? llqrtrGrade = GradeLegacy(map.LLQRTRGrade);
+        decimal? lrqrtrPct = Dec(map.LRQRTRPercent); GradingResult? lrqrtrGrade = GradeLegacy(map.LRQRTRGrade);
+
+        GradingResult? ulqtctGrade = GradeLegacy(map.ULQTCTGrade); GradingResult? urqtctGrade = GradeLegacy(map.URQTCTGrade);
+        GradingResult? llqtctGrade = GradeLegacy(map.LLQTCTGrade); GradingResult? lrqtctGrade = GradeLegacy(map.LRQTCTGrade);
+        GradingResult? ulqrctGrade = GradeLegacy(map.ULQRCTGrade); GradingResult? urqrctGrade = GradeLegacy(map.URQRCTGrade);
+        GradingResult? llqrctGrade = GradeLegacy(map.LLQRCTGrade); GradingResult? lrqrctGrade = GradeLegacy(map.LRQRCTGrade);
 
         // ── 2D matrix characteristics ─────────────────────────────────────────
-        string? matrixSize        = Str(map.MatrixSize);
-        decimal? hBwg             = Dec(map.HorizontalBWG);
-        decimal? vBwg             = Dec(map.VerticalBWG);
-        int? encodedChars         = Int(map.EncodedCharacters);
-        int? totalCw              = Int(map.TotalCodewords);
-        int? dataCw               = Int(map.DataCodewords);
-        int? ecBudget             = Int(map.ErrorCorrectionBudget);
-        int? ecCorrected          = Int(map.ErrorsCorrected);
-        int? ecCapUsed            = Int(map.ErrorCapacityUsed);
-        string? ecType            = Str(map.ErrorCorrectionType);
-        decimal? nomXDim2D        = Dec(map.NominalXDim);
-        decimal? ppm              = Dec(map.PixelsPerModule);
-        string? contrastUniformity = Str(map.ContrastUniformity);
-        string? mrd               = Str(map.MRD);
+        // Firmware 6.x: all in General Characteristics ReportSection <Data> elements.
+        string? matrixSize = Str(map.MatrixSize) ?? CharData("Matrix Size");
 
+        decimal? hBwg = Dec(map.HorizontalBWG);
+        if (!hBwg.HasValue)
+            hBwg = CharDataDec("Horizontal BWG");
+
+        decimal? vBwg = Dec(map.VerticalBWG);
+        if (!vBwg.HasValue)
+            vBwg = CharDataDec("Vertical BWG");
+
+        int? encodedChars = Int(map.EncodedCharacters) ?? CharDataInt("Encoded characters");
+        int? totalCw      = Int(map.TotalCodewords)    ?? CharDataInt("Total Codewords");
+        int? dataCw       = Int(map.DataCodewords)     ?? CharDataInt("Data Codewords");
+        int? ecBudget     = Int(map.ErrorCorrectionBudget) ?? CharDataInt("Error Correction Budget");
+        int? ecCorrected  = Int(map.ErrorsCorrected)   ?? CharDataInt("Errors Corrected");
+        int? ecCapUsed    = Int(map.ErrorCapacityUsed) ?? CharDataInt("Error Capacity Used");
+        string? ecType    = Str(map.ErrorCorrectionType) ?? CharData("Error Correction Type");
+
+        // Nominal X Dim — strip units ("13.1 mil" → 13.1)
+        decimal? nomXDim2D = Dec(map.NominalXDim);
+        if (!nomXDim2D.HasValue)
+        {
+            string? ndRaw = CharData("Nominal X Dim")?.Split(' ').FirstOrDefault();
+            if (decimal.TryParse(ndRaw, NumberStyles.Any,
+                    CultureInfo.InvariantCulture, out decimal nd))
+                nomXDim2D = nd;
+        }
+
+        decimal? ppm = Dec(map.PixelsPerModule);
+        if (!ppm.HasValue)
+        {
+            string? ppmRaw = CharData("Pixels per Module");
+            if (decimal.TryParse(ppmRaw, NumberStyles.Any,
+                    CultureInfo.InvariantCulture, out decimal ppmv))
+                ppm = ppmv;
+        }
+
+        string? contrastUniformity = Str(map.ContrastUniformity)
+                                  ?? CharData("Contrast Uniformity");
+        string? mrd   = Str(map.MRD) ?? CharData("MRD");
+
+        // Image polarity: <Data>Black on white</Data>
         ImagePolarity polarity = ImagePolarity.Unknown;
-        if (Str(map.ImagePolarity) is { } pol)
-            Enum.TryParse(pol.Replace(" ", ""), true, out polarity);
+        string? imagePol = Str(map.ImagePolarity) ?? CharData("Image");
+        if (imagePol is not null)
+            Enum.TryParse(imagePol.Replace(" ", ""), true, out polarity);
 
-        // ── 2D quiet zones / borders (single-region) ──────────────────────────
-        GradingResult? llsGrade = Grade(map.LLSGrade);
-        GradingResult? blsGrade = Grade(map.BLSGrade);
-        GradingResult? lqzGrade = Grade(map.LQZGrade);
-        GradingResult? bqzGrade = Grade(map.BQZGrade);
-        GradingResult? tqzGrade = Grade(map.TQZGrade);
-        GradingResult? rqzGrade = Grade(map.RQZGrade);
-
-        // ── 2D transition ratios / clock tracks ───────────────────────────────
-        decimal? ttrPct       = Dec(map.TTRPercent);
-        GradingResult? ttrGrade = Grade(map.TTRGrade);
-        decimal? rtrPct       = Dec(map.RTRPercent);
-        GradingResult? rtrGrade = Grade(map.RTRGrade);
-        GradingResult? tctGrade = Grade(map.TCTGrade);
-        GradingResult? rctGrade = Grade(map.RCTGrade);
-
-        // ── 2D quadrant parameters ────────────────────────────────────────────
-        GradingResult? ulqzGrade = Grade(map.ULQZGrade);
-        GradingResult? urqzGrade = Grade(map.URQZGrade);
-        GradingResult? ruqzGrade = Grade(map.RUQZGrade);
-        GradingResult? rlqzGrade = Grade(map.RLQZGrade);
-
-        decimal? ulqttrPct  = Dec(map.ULQTTRPercent); GradingResult? ulqttrGrade = Grade(map.ULQTTRGrade);
-        decimal? urqttrPct  = Dec(map.URQTTRPercent); GradingResult? urqttrGrade = Grade(map.URQTTRGrade);
-        decimal? llqttrPct  = Dec(map.LLQTTRPercent); GradingResult? llqttrGrade = Grade(map.LLQTTRGrade);
-        decimal? lrqttrPct  = Dec(map.LRQTTRPercent); GradingResult? lrqttrGrade = Grade(map.LRQTTRGrade);
-
-        decimal? ulqrtrPct  = Dec(map.ULQRTRPercent); GradingResult? ulqrtrGrade = Grade(map.ULQRTRGrade);
-        decimal? urqrtrPct  = Dec(map.URQRTRPercent); GradingResult? urqrtrGrade = Grade(map.URQRTRGrade);
-        decimal? llqrtrPct  = Dec(map.LLQRTRPercent); GradingResult? llqrtrGrade = Grade(map.LLQRTRGrade);
-        decimal? lrqrtrPct  = Dec(map.LRQRTRPercent); GradingResult? lrqrtrGrade = Grade(map.LRQRTRGrade);
-
-        GradingResult? ulqtctGrade = Grade(map.ULQTCTGrade); GradingResult? urqtctGrade = Grade(map.URQTCTGrade);
-        GradingResult? llqtctGrade = Grade(map.LLQTCTGrade); GradingResult? lrqtctGrade = Grade(map.LRQTCTGrade);
-        GradingResult? ulqrctGrade = Grade(map.ULQRCTGrade); GradingResult? urqrctGrade = Grade(map.URQRCTGrade);
-        GradingResult? llqrctGrade = Grade(map.LLQRCTGrade); GradingResult? lrqrctGrade = Grade(map.LRQRCTGrade);
-
-        // ── 1D ISO 15416 summary parameters ──────────────────────────────────
-        GradingResult? symbolAnsiGrade = Grade(map.SymbolAnsiGrade);
-        decimal? avgEdge    = Dec(map.AvgEdge);
-        string?  avgRlRd    = Str(map.AvgRlRd);
-        decimal? avgSC      = Dec(map.AvgSC);
-        decimal? avgMinEC   = Dec(map.AvgMinEC);
-        decimal? avgMOD     = Dec(map.AvgMOD);
-        decimal? avgDefect  = Dec(map.AvgDefect);
-        string?  avgDcod    = Str(map.AvgDcod);
-        decimal? avgDEC     = Dec(map.AvgDEC);
-        decimal? avgLQZ     = Dec(map.AvgLQZ);
-        decimal? avgRQZ     = Dec(map.AvgRQZ);
-        decimal? avgHQZ     = Dec(map.AvgHQZ);
-        decimal? avgMinQZ   = Dec(map.AvgMinQZ);
-        decimal? bwgPct     = Dec(map.BWGPercent);
-        decimal? magnif     = Dec(map.Magnification);
-        decimal? ratio      = Dec(map.Ratio);
-        decimal? nomXDim1D  = Dec(map.NominalXDim1D);
+        // ── 1D ISO 15416 summary parameters (legacy / not present in firmware 6.x) ──
+        GradingResult? symbolAnsiGrade = GradeLegacy(map.SymbolAnsiGrade);
+        decimal? avgEdge   = Dec(map.AvgEdge);
+        string?  avgRlRd   = Str(map.AvgRlRd);
+        decimal? avgSC     = Dec(map.AvgSC);
+        decimal? avgMinEC  = Dec(map.AvgMinEC);
+        decimal? avgMOD    = Dec(map.AvgMOD);
+        decimal? avgDefect = Dec(map.AvgDefect);
+        string?  avgDcod   = Str(map.AvgDcod);
+        decimal? avgDEC    = Dec(map.AvgDEC);
+        decimal? avgLQZ    = Dec(map.AvgLQZ);
+        decimal? avgRQZ    = Dec(map.AvgRQZ);
+        decimal? avgHQZ    = Dec(map.AvgHQZ);
+        decimal? avgMinQZ  = Dec(map.AvgMinQZ);
+        decimal? bwgPct    = Dec(map.BWGPercent);
+        decimal? magnif    = Dec(map.Magnification);
+        decimal? ratio     = Dec(map.Ratio);
+        decimal? nomXDim1D = Dec(map.NominalXDim1D);
 
         // ── Per-scan results (1D) ─────────────────────────────────────────────
         var scanResults = new List<ScanResult1D>();
@@ -213,8 +412,7 @@ public static class DmstResultParser
 
                 decimal? ScanDec(string elem) =>
                     decimal.TryParse(scan.Element(elem)?.Value,
-                        System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : null;
+                        NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : null;
 
                 scanResults.Add(new ScanResult1D
                 {
@@ -249,7 +447,7 @@ public static class DmstResultParser
             Lighting   = lighting,
             Standard   = standard,
 
-            // Session context preserved from device context
+            // Session context (caller-supplied via deviceContext; XML values override where available)
             OperatorId      = deviceContext?.OperatorId,
             JobName         = deviceContext?.JobName,
             BatchNumber     = deviceContext?.BatchNumber,
@@ -262,24 +460,24 @@ public static class DmstResultParser
             DeviceSerial    = deviceContext?.DeviceSerial,
             DeviceName      = deviceContext?.DeviceName,
             FirmwareVersion = deviceContext?.FirmwareVersion,
-            CalibrationDate = deviceContext?.CalibrationDate,
+            CalibrationDate = calibDate,          // now extracted from XML when present
 
             // 2D quality
-            UEC_Percent     = uecPct,
-            UEC_Grade       = uecGrade,
-            SC_Percent      = scPct,
-            SC_RlRd         = scRlRd,
-            SC_Grade        = scGrade,
-            MOD_Grade       = modGrade,
-            RM_Grade        = rmGrade,
-            ANU_Percent     = anuPct,
-            ANU_Grade       = anuGrade,
-            GNU_Percent     = gnuPct,
-            GNU_Grade       = gnuGrade,
-            FPD_Grade       = fpdGrade,
-            DECODE_Grade    = decGrade,
-            AG_Value        = agVal,
-            AG_Grade        = agGrade,
+            UEC_Percent = uecPct,
+            UEC_Grade   = uecGrade,
+            SC_Percent  = scPct,
+            SC_RlRd     = scRlRd,
+            SC_Grade    = scGrade,
+            MOD_Grade   = modGrade,
+            RM_Grade    = rmGrade,
+            ANU_Percent = anuPct,
+            ANU_Grade   = anuGrade,
+            GNU_Percent = gnuPct,
+            GNU_Grade   = gnuGrade,
+            FPD_Grade   = fpdGrade,
+            DECODE_Grade = decGrade,
+            AG_Value    = agVal,
+            AG_Grade    = agGrade,
 
             // 2D matrix
             MatrixSize            = matrixSize,
@@ -353,51 +551,16 @@ public static class DmstResultParser
         };
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Normalises DataMan device symbology name strings to the VTCCP canonical forms
-    /// used in the schema (e.g. "UPCA", "EAN13", "GS1 DataMatrix").
-    /// </summary>
-    private static string NormaliseSymbologyName(string? raw)
-    {
-        if (string.IsNullOrWhiteSpace(raw)) return "Unknown";
-        return raw.Trim() switch
-        {
-            "UPC-A"        => "UPCA",
-            "UPC-E"        => "UPCE",
-            "EAN-8"        => "EAN8",
-            "EAN-13"       => "EAN13",
-            "Code 128"     => "Code128",
-            "Code 39"      => "Code39",
-            "I 2/5"        => "ITF",
-            "QR Code"      => "QRCode",
-            "GS1 QR Code"  => "GS1 QRCode",
-            "Data Matrix"  => "DataMatrix",
-            "Data Matrix ECC 200" => "DataMatrix",
-            _              => raw.Trim(),
-        };
-    }
-
     // ── Plain-text entry point ────────────────────────────────────────────────
 
     /// <summary>
     /// Creates a minimal <see cref="VerificationRecord"/> from a single plain-text
     /// push line received via the DataMan Network Client (Format Data → Basic/Standard).
-    ///
-    /// Only <see cref="VerificationRecord.DecodedData"/> and session-context fields
-    /// are populated; all quality-grade fields remain null.
-    ///
-    /// The line may optionally be tab- or comma-delimited in the order:
-    ///   content [, decodeTimeMs [, symbology]]
-    /// If it contains no delimiter the whole string is treated as the decoded content.
     /// </summary>
     public static VerificationRecord ParseText(
         string              line,
         VerificationRecord? deviceContext = null)
     {
-        // Try to split tab-delimited or comma-delimited fields.
-        // DataMan Standard format typically uses the configured delimiter; we try both.
         string[] parts = line.Contains('\t')
             ? line.Split('\t')
             : line.Contains(',')
@@ -405,9 +568,7 @@ public static class DmstResultParser
                 : [line];
 
         string  content  = parts.Length > 0 ? parts[0].Trim() : line.Trim();
-        string? symbRaw  = parts.Length > 2 ? parts[2].Trim()   // field 3 = symbology
-                         : parts.Length > 1 ? null               // field 2 = decode-time (unused)
-                         : null;
+        string? symbRaw  = parts.Length > 2 ? parts[2].Trim() : null;
         string  symbology = NormaliseSymbologyName(symbRaw);
 
         return new VerificationRecord
@@ -417,7 +578,6 @@ public static class DmstResultParser
             Symbology            = symbology,
             SymbologyFamily      = new VerificationXmlMap().ClassifySymbology(symbology),
 
-            // Session context preserved from device context
             OperatorId      = deviceContext?.OperatorId,
             JobName         = deviceContext?.JobName,
             BatchNumber     = deviceContext?.BatchNumber,
@@ -435,6 +595,42 @@ public static class DmstResultParser
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Converts an ISO 15415 numeric grade (0–4) to its letter equivalent.
+    /// 4 → A, 3 → B, 2 → C, 1 → D, 0 → F.
+    /// </summary>
+    private static string NumericToLetterGrade(decimal num) => num switch
+    {
+        >= 3.5m => "A",
+        >= 2.5m => "B",
+        >= 1.5m => "C",
+        >= 0.5m => "D",
+        _       => "F",
+    };
+
+    /// <summary>
+    /// Normalises DataMan device symbology name strings to VTCCP canonical forms.
+    /// </summary>
+    private static string NormaliseSymbologyName(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "Unknown";
+        return raw.Trim() switch
+        {
+            "UPC-A"                  => "UPCA",
+            "UPC-E"                  => "UPCE",
+            "EAN-8"                  => "EAN8",
+            "EAN-13"                 => "EAN13",
+            "Code 128"               => "Code128",
+            "Code 39"                => "Code39",
+            "I 2/5"                  => "ITF",
+            "QR Code"                => "QRCode",
+            "GS1 QR Code"            => "GS1 QRCode",
+            "Data Matrix"            => "DataMatrix",
+            "Data Matrix ECC 200"    => "DataMatrix",
+            _                        => raw.Trim(),
+        };
+    }
 
     private static VerificationRecord Fallback(VerificationRecord? ctx, string reason) =>
         new()

@@ -5,45 +5,53 @@ using ExcelEngine.Models;
 /// <summary>
 /// Maps DMST result XML element names to <see cref="VerificationRecord"/> fields.
 ///
-/// The default values correspond to the Cognex DataMan DMV DMST XML format
-/// (firmware 5.x, &lt;DMSymVerResponse&gt; container).  Override any property
-/// to adapt to a different firmware version or custom XML template without
-/// changing parser code.
+/// Defaults target the firmware 6.x ReadXml result format:
+///   root = &lt;result&gt; / &lt;trucheck_verificaiton_result&gt; / &lt;SymbolData&gt;
+///   quality parameters = &lt;ReportSection sectionType="Table"&gt;/&lt;Parameter&gt;&lt;Number&gt;
 ///
-/// XML path convention: simple element name (searched anywhere under the
-/// result container), or "Parent/Child" for disambiguation when duplicate
-/// element names exist at different levels.
+/// For the legacy DMSymVerResponse (DMST push / older firmware), override the
+/// defaults or supply a map instance with the old element names.
 /// </summary>
 public sealed class VerificationXmlMap
 {
     // ── Result container ──────────────────────────────────────────────────────
 
-    /// <summary>Root element of the DMCC response envelope.</summary>
+    /// <summary>Root element of the DMCC response envelope (firmware &lt;6 push format).</summary>
     public string ResponseRoot    { get; set; } = "DMCCResponse";
 
-    /// <summary>Container element holding the verification result payload.</summary>
+    /// <summary>Container element for the legacy push format; not present in ReadXml.</summary>
     public string ResultContainer { get; set; } = "DMSymVerResponse";
 
     // ── Identity / timing ─────────────────────────────────────────────────────
 
+    /// <summary>Firmware 6.x: &lt;SymbologyType&gt;; legacy: &lt;SymbologyName&gt;.</summary>
+    public string SymbologyName   { get; set; } = "SymbologyType";
+
     public string DateTime        { get; set; } = "DateTime";
-    public string SymbologyName   { get; set; } = "SymbologyName";
     public string DecodedData     { get; set; } = "DecodedData";
 
     // ── Grading summary ───────────────────────────────────────────────────────
 
     public string FormalGrade         { get; set; } = "FormalGrade";
-    public string OverallGrade        { get; set; } = "OverallGrade";
-    public string OverallGradeNumeric { get; set; } = "OverallGradeNumeric";
+
+    /// <summary>Letter-grade element: firmware 6.x &lt;ValueGrade&gt; (B); legacy &lt;OverallGrade&gt;.</summary>
+    public string OverallGrade        { get; set; } = "ValueGrade";
+
+    /// <summary>Numeric-grade element: firmware 6.x first &lt;Grade&gt; (3.0); legacy &lt;OverallGradeNumeric&gt;.</summary>
+    public string OverallGradeNumeric { get; set; } = "Grade";
 
     // ── Verification settings ─────────────────────────────────────────────────
 
-    public string ApertureRef { get; set; } = "ApertureRef";
+    /// <summary>Firmware 6.x: &lt;Aperture&gt;; legacy: &lt;ApertureRef&gt;.</summary>
+    public string ApertureRef { get; set; } = "Aperture";
     public string Wavelength  { get; set; } = "Wavelength";
     public string Lighting    { get; set; } = "Lighting";
     public string Standard    { get; set; } = "Standard";
 
     // ── 2D quality parameters ─────────────────────────────────────────────────
+    // Firmware 6.x: these are extracted by <Parameter><Number> from the ISO15415
+    // Quality Parameters ReportSection.  Legacy DMSymVerResponse firmware may have
+    // direct child elements matching these names; the parser falls back to those.
 
     public string UECPercent    { get; set; } = "UECPercent";
     public string UECGrade      { get; set; } = "UECGrade";
@@ -152,7 +160,6 @@ public sealed class VerificationXmlMap
     public string Ratio           { get; set; } = "Ratio";
     public string NominalXDim1D   { get; set; } = "NominalXDim1D";
 
-    // Per-scan sub-results for 1D
     public string ScanResults     { get; set; } = "ScanResults";
     public string ScanElement     { get; set; } = "Scan";
     public string ScanNumber      { get; set; } = "number";
@@ -168,11 +175,6 @@ public sealed class VerificationXmlMap
 
     // ── Symbology family classification ───────────────────────────────────────
 
-    /// <summary>
-    /// Maps the SymbologyName strings that the device emits to the VTCCP
-    /// <see cref="SymbologyFamily"/> classification.  Keys are case-insensitive prefix
-    /// matches — the first matching entry wins.
-    /// </summary>
     public IReadOnlyList<(string Prefix, SymbologyFamily Family)> SymbologyFamilyMap { get; set; } =
     [
         ("GS1 Data Matrix",   SymbologyFamily.GS1DataMatrix),
