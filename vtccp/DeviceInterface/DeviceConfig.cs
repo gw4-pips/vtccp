@@ -14,8 +14,8 @@ public sealed class DeviceConfig
     /// <summary>Device IP address or hostname.</summary>
     public string Host { get; set; } = "192.168.0.1";
 
-    /// <summary>DMCC TCP port. DataMan default = 23 (Telnet).</summary>
-    public int Port { get; set; } = 23;
+    /// <summary>DMCC TCP port. DataMan DMV default = 44444.</summary>
+    public int Port { get; set; } = 44444;
 
     /// <summary>Milliseconds to wait for a TCP connection to be established.</summary>
     public int ConnectTimeoutMs { get; set; } = 3_000;
