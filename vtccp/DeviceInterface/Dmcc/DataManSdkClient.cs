@@ -180,6 +180,19 @@ public sealed class DataManSdkClient : IAsyncDisposable
             string? xml = prop?.GetValue(args)?.ToString();
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-SDK] XmlResultArrived: {xml?.Length ?? 0} chars");
+
+            // DIAGNOSTIC: dump XML to Desktop so we can inspect the field paths.
+            // Remove after VerificationXmlMap paths are confirmed.
+            try
+            {
+                string dumpPath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    "vtccp_last_result.xml");
+                System.IO.File.WriteAllText(dumpPath, xml ?? string.Empty);
+                System.Diagnostics.Debug.WriteLine($"[VTCCP-SDK] XML dumped to {dumpPath}");
+            }
+            catch { }
+
             tcs.TrySetResult(xml);
         };
 
