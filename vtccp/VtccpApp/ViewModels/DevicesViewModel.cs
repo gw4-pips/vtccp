@@ -63,9 +63,12 @@ public sealed class DevicesViewModel : ViewModelBase
     public RelayCommand BrowseLogoCommand   { get; }
     public RelayCommand TestConnectCommand  { get; }
 
-    public DevicesViewModel(ConfigRepository repo)
+    private readonly Action? _onListChanged;
+
+    public DevicesViewModel(ConfigRepository repo, Action? onListChanged = null)
     {
-        _repo = repo;
+        _repo           = repo;
+        _onListChanged  = onListChanged;
 
         AddCommand        = new RelayCommand(OnAdd);
         EditCommand       = new RelayCommand(OnEdit,        () => Selected is not null && !IsEditing);
@@ -115,6 +118,7 @@ public sealed class DevicesViewModel : ViewModelBase
 
         _repo.RemoveDevice(Selected.Id);
         Reload();
+        _onListChanged?.Invoke();
         StatusMessage = "Device profile deleted.";
     }
 
@@ -125,6 +129,7 @@ public sealed class DevicesViewModel : ViewModelBase
         var target = _repo.FindDevice(Selected.Id);
         if (target is not null) target.IsDefault = true;
         Reload();
+        _onListChanged?.Invoke();
         StatusMessage = $"'{Selected.Name}' is now the default device.";
     }
 
@@ -144,6 +149,7 @@ public sealed class DevicesViewModel : ViewModelBase
         if (!updated) _repo.AddDevice(model);
 
         Reload();
+        _onListChanged?.Invoke();
         IsEditing     = false;
         StatusMessage = updated ? "Device profile updated." : "Device profile added.";
     }

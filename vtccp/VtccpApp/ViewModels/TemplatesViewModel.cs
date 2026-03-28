@@ -57,9 +57,12 @@ public sealed class TemplatesViewModel : ViewModelBase
     public RelayCommand BrowseOutputCommand { get; }
     public RelayCommand BrowseLogoCommand   { get; }
 
-    public TemplatesViewModel(ConfigRepository repo)
+    private readonly Action? _onListChanged;
+
+    public TemplatesViewModel(ConfigRepository repo, Action? onListChanged = null)
     {
-        _repo = repo;
+        _repo          = repo;
+        _onListChanged = onListChanged;
 
         AddCommand          = new RelayCommand(OnAdd);
         EditCommand         = new RelayCommand(OnEdit,    () => Selected is not null && !IsEditing);
@@ -107,6 +110,7 @@ public sealed class TemplatesViewModel : ViewModelBase
 
         _repo.RemoveTemplate(Selected.Id);
         Reload();
+        _onListChanged?.Invoke();
         StatusMessage = "Job template deleted.";
     }
 
@@ -117,6 +121,7 @@ public sealed class TemplatesViewModel : ViewModelBase
         var target = _repo.FindTemplate(Selected.Id);
         if (target is not null) target.IsDefault = true;
         Reload();
+        _onListChanged?.Invoke();
         StatusMessage = $"'{Selected.Name}' is now the default template.";
     }
 
@@ -132,6 +137,7 @@ public sealed class TemplatesViewModel : ViewModelBase
         if (!updated) _repo.AddTemplate(model);
 
         Reload();
+        _onListChanged?.Invoke();
         IsEditing     = false;
         StatusMessage = updated ? "Job template updated." : "Job template added.";
     }
