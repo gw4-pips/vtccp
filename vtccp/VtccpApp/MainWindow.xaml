@@ -32,7 +32,8 @@
         </Grid.ColumnDefinitions>
 
         <!-- ── Sidebar navigation ──────────────────────────────────── -->
-        <Border Grid.Column="0" Background="{StaticResource NavBackBrush}">
+        <Border Grid.Column="0" Background="{StaticResource NavBackBrush}"
+                TextElement.Foreground="#E8ECF0">
             <StackPanel>
                 <!-- Logo / brand -->
                 <Border Padding="20,24,20,16">
