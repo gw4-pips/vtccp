@@ -211,7 +211,21 @@ public sealed class DmstListener
         string data = sb.ToString();
         int lastNewline = data.LastIndexOfAny(['\n', '\r']);
 
-        if (lastNewline < 0) return;   // no complete line yet
+        if (lastNewline < 0)
+        {
+            // No newline found — Cognex DataMan Network Client in persistent-connection
+            // mode sends each scan result as one TCP write with no trailing delimiter.
+            // Fire the whole buffer as a complete record immediately.
+            string all = data.Trim();
+            if (all.Length > 0)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-DMST] Text mode, no newline — firing as complete record: '{all}'");
+                sb.Clear();
+                FireText(all);
+            }
+            return;
+        }
 
         string complete = data[..(lastNewline + 1)];
         string leftover = data[(lastNewline + 1)..];
