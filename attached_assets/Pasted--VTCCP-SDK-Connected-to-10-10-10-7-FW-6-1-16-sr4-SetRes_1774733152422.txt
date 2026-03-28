@@ -1,0 +1,28 @@
+[VTCCP-SDK] Connected to 10.10.10.7.  FW=6.1.16_sr4  SetResultTypes(ReadXml) OK.
+[VTCCP-SDK] CMD 'GET DEVICE.TYPE' → code=-2  body=''
+[VTCCP-SDK] DmccResponse.CommandId = 107
+[VTCCP-SDK] DmccResponse.ResponseId = -1
+[VTCCP-SDK] DmccResponse.PayLoad = DM475
+[VTCCP-SDK] DmccResponse.BinaryData = System.IO.MemoryStream
+[VTCCP-SDK] DmccResponse.CommandRoundtrip = 00:00:00.0011538
+[VTCCP-SDK] CMD 'GET DEVICE.NAME' → code=-2  body=''
+[VTCCP-SDK] CMD 'GET DEVICE.ID' → code=-2  body=''
+[VTCCP-SDK] CMD 'GET TRIGGER.TYPE' → code=-2  body=''
+[VTCCP-DMCC] Trigger type on connect: code=-2  value=''
+[VTCCP-DMCC] GET TRIGGER.TYPE not supported (code=-2) — skipping trigger mode setup.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Encoding.CodePages.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Abstractions.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.FileExtensions.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Json.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Physical.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Abstractions.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.Primitives.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.IO.RecyclableMemoryStream.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Drawing.Primitives.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.StackTrace.dll'. Skipped loading symbols. Module is optimized and the debugger option 'Just My Code' is enabled.
+[VTCCP-SDK] TRIGGER 1 failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.), trying plain TRIGGER...
+[VTCCP-SDK] TRIGGER also failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.).
+The thread 64632 has exited with code 0 (0x0).
+The thread '.NET TP Worker' (49400) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (59568) has exited with code 0 (0x0).
