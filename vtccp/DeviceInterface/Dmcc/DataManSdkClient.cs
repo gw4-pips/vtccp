@@ -40,6 +40,8 @@ public sealed class DataManSdkClient : IAsyncDisposable
     /// <summary>
     /// Opens an SDK connection to the device.
     /// EthSystemConnector uses port 44444 by default (DataMan SDK protocol).
+    /// Sets result types via the SDK's native API (avoids InvalidCommandException
+    /// from sending raw SET DMCC.RESULT-FORMAT via SendCommand).
     /// </summary>
     public async Task ConnectAsync(CancellationToken ct = default)
     {
@@ -54,8 +56,20 @@ public sealed class DataManSdkClient : IAsyncDisposable
             _system.Connect();
             _isConnected = true;
 
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-SDK] Connected to {_cfg.Host} via DataMan SDK.");
+            // Request XML results via the SDK's native API instead of the
+            // raw "SET DMCC.RESULT-FORMAT FULL" string (which the SDK rejects
+            // with InvalidCommandException on some firmware versions).
+            try
+            {
+                _system.SetResultTypes(CognexSdk.ResultTypes.XmlResult);
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SDK] Connected to {_cfg.Host}. SetResultTypes(XmlResult) OK.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SDK] Connected to {_cfg.Host}. SetResultTypes failed: {ex.Message}");
+            }
         }, ct);
     }
 
@@ -85,9 +99,14 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
     /// <summary>
     /// Sends a DMCC command via the SDK and returns a parsed DmccResponse.
+    ///
     /// SDK.SendCommand() returns Cognex.DataMan.SDK.DmccResponse; we call
-    /// ToString() to obtain the raw DMCC wire string, then parse it with
-    /// our DmccResponse.Parse().  The raw string is logged for diagnostics.
+    /// ToString() to obtain the wire-format string and parse it with our
+    /// DmccResponse.Parse().  Every raw response is logged as [VTCCP-SDK].
+    ///
+    /// InvalidCommandException (SDK rejected the command before sending) and
+    /// all other exceptions are caught and returned as NoResponse / ParseError
+    /// rather than propagating — callers treat code -2 as "not supported".
     /// </summary>
     public async Task<DmccResponse> SendAsync(string command, CancellationToken ct = default)
     {
@@ -97,14 +116,30 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
         return await Task.Run(() =>
         {
-            var sdkResp = _system!.SendCommand(command);
-            string raw  = sdkResp?.ToString() ?? string.Empty;
+            try
+            {
+                var sdkResp = _system!.SendCommand(command);
+                string raw  = sdkResp?.ToString() ?? string.Empty;
 
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-SDK] CMD '{command}' → " +
-                $"'{raw.Replace("\r", "\\r").Replace("\n", "\\n")}'");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SDK] CMD '{command}' → " +
+                    $"'{raw.Replace("\r", "\\r").Replace("\n", "\\n")}'");
 
-            return DmccResponse.Parse(raw);
+                return DmccResponse.Parse(raw);
+            }
+            catch (CognexSdk.InvalidCommandException ex)
+            {
+                // SDK rejected the command string before it was sent to the device.
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SDK] CMD '{command}' — InvalidCommandException: {ex.Message}");
+                return DmccResponse.Parse(string.Empty); // code -2 NoResponse
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SDK] CMD '{command}' — Exception ({ex.GetType().Name}): {ex.Message}");
+                return DmccResponse.Parse(string.Empty); // code -2 NoResponse
+            }
         }, ct);
     }
 

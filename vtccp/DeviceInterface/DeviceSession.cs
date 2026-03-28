@@ -79,8 +79,7 @@ public sealed class DeviceSession : IAsyncDisposable
             }
         }
 
-        // Configure device for full result output.
-        await _client.SendAsync(DmccCommand.SetResultFormatFull, ct);
+        // Result format is set via SDK's SetResultTypes() in DataManSdkClient.ConnectAsync.
 
         // Query device identity info.
         DeviceInfo = new DeviceInfo
