@@ -174,8 +174,11 @@ public sealed class SessionManager : IDisposable
         // opened in Excel and watched live (mirrors Webscan behaviour).
         // If the file is currently locked by Excel we skip silently; the
         // in-memory package is intact and CloseSession() will do the final save.
+        // NOTE: EPPlus wraps the underlying IOException as InvalidOperationException
+        //       ("Error saving file …") — catch both so either form is silenced.
         try { _writer.Save(); }
-        catch (IOException) { /* file locked — data remains safe in memory */ }
+        catch (Exception ex) when (ex is IOException || ex is InvalidOperationException)
+        { /* file locked by Excel — data safe in memory; CloseSession() will flush */ }
     }
 
     /// <summary>
