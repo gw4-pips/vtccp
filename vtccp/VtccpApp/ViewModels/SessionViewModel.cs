@@ -34,6 +34,7 @@ public sealed class SessionViewModel : ViewModelBase
     // ── Runtime state ─────────────────────────────────────────────────────────
 
     private DeviceSession?                      _deviceSession;
+    private DeviceInterface.Dmst.DmstListener?  _dmstListener;
     private SessionManager?                     _sessionMgr;
     private System.Threading.CancellationTokenSource? _pollCts;
     private bool                                _isRunning;
@@ -160,47 +161,72 @@ public sealed class SessionViewModel : ViewModelBase
     {
         if (SelectedDevice is null || SelectedTemplate is null) return;
 
-        StatusMessage = "Connecting to device…";
+        string outputDir = !string.IsNullOrWhiteSpace(SelectedTemplate.OutputDirectory)
+            ? SelectedTemplate.OutputDirectory
+            : _repo.Settings.DefaultOutputDirectory;
+
+        SessionState state = SelectedTemplate.ToSessionState(outputDir);
+        if (!string.IsNullOrWhiteSpace(OperatorOverride))
+            state.OperatorId = OperatorOverride.Trim();
+
+        _sessionMgr = new SessionManager(TruCheckCompatibleSchema.Build());
+        _pollCts    = new System.Threading.CancellationTokenSource();
+
         try
         {
-            var cfg = SelectedDevice.ToDeviceConfig();
-            _deviceSession = new DeviceSession(cfg, _xmlMap);
-            await _deviceSession.ConnectAsync();
+            if (_scanMode == ScanMode.Push)
+            {
+                // Push mode: DMST stays open on port 23 — we only listen for pushed XML.
+                // No DMCC connection is opened so DataMan Setup Tool can remain active
+                // for live view and positioning.
+                int listenPort = SelectedDevice.DmstListenPort;
+                StatusMessage = $"Starting push listener on port {listenPort}…";
 
-            string outputDir = !string.IsNullOrWhiteSpace(SelectedTemplate.OutputDirectory)
-                ? SelectedTemplate.OutputDirectory
-                : _repo.Settings.DefaultOutputDirectory;
+                var ctx = new VerificationRecord
+                {
+                    Symbology       = string.Empty,
+                    DeviceSerial    = string.Empty,
+                    DeviceName      = SelectedDevice.Name,
+                    FirmwareVersion = string.Empty,
+                    OperatorId      = state.OperatorId  ?? string.Empty,
+                    JobName         = state.JobName      ?? string.Empty,
+                    BatchNumber     = state.BatchNumber  ?? string.Empty,
+                    CompanyName     = state.CompanyName  ?? string.Empty,
+                };
 
-            SessionState state = SelectedTemplate.ToSessionState(outputDir);
-            if (!string.IsNullOrWhiteSpace(OperatorOverride))
-                state.OperatorId = OperatorOverride.Trim();
+                _dmstListener = new DeviceInterface.Dmst.DmstListener(
+                    listenPort, _xmlMap, ctx, OnPushRecord);
+                await _dmstListener.StartAsync(_pollCts.Token);
+            }
+            else
+            {
+                // Manual / AutoPoll: open DMCC connection (requires DMST to be closed).
+                StatusMessage = "Connecting to device…";
+                var cfg = SelectedDevice.ToDeviceConfig();
+                _deviceSession = new DeviceSession(cfg, _xmlMap);
+                await _deviceSession.ConnectAsync();
+            }
 
-            _sessionMgr = new SessionManager(TruCheckCompatibleSchema.Build());
             await Task.Run(() => _sessionMgr.StartSession(state));
-
             _history.SetSessionContext(state.JobName, state.OperatorId);
             _history.ClearHistory();
-            _recordCount  = 0;  OnPropertyChanged(nameof(RecordCount));
-            IsRunning     = true;
+            _recordCount = 0; OnPropertyChanged(nameof(RecordCount));
+            IsRunning    = true;
 
             string modeLabel = _scanMode switch
             {
                 ScanMode.AutoPoll => $"Auto-Poll ({_autoPollIntervalMs} ms)",
-                ScanMode.Push     => "Push (DMST)",
+                ScanMode.Push     => $"Push (DMST) — port {SelectedDevice.DmstListenPort}",
                 _                 => "Manual Trigger",
             };
             StatusMessage = $"Session active — {SelectedDevice.Name} / {SelectedTemplate.Name}  [{modeLabel}]";
 
-            // Launch background scan mode if needed.
-            _pollCts = new System.Threading.CancellationTokenSource();
             if (_scanMode == ScanMode.AutoPoll)
                 _ = RunAutoPollLoopAsync(_pollCts.Token);
-            else if (_scanMode == ScanMode.Push)
-                await StartPushModeAsync(state, _pollCts.Token);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Connect failed: {ex.Message}";
+            StatusMessage = $"Start failed: {ex.Message}";
             await CleanupAsync();
         }
     }
@@ -267,26 +293,10 @@ public sealed class SessionViewModel : ViewModelBase
         }
     }
 
-    // ── Push (DMST) mode ──────────────────────────────────────────────────────
+    // ── Push (DMST) mode callback ─────────────────────────────────────────────
 
-    private async Task StartPushModeAsync(SessionState state, System.Threading.CancellationToken ct)
-    {
-        if (_deviceSession is null) return;
-
-        var ctx = BuildContext();
-        ctx = ctx with
-        {
-            OperatorId  = state.OperatorId,
-            JobName     = state.JobName,
-            BatchNumber = state.BatchNumber,
-            CompanyName = state.CompanyName,
-        };
-
-        _deviceSession.ResultReceived += OnPushResultReceived;
-        await _deviceSession.StartPushListenerAsync(ctx, ct);
-    }
-
-    private void OnPushResultReceived(object? sender, VerificationRecord record)
+    // Called on thread-pool by DmstListener after each parsed push result.
+    private void OnPushRecord(VerificationRecord record)
     {
         Application.Current.Dispatcher.InvokeAsync(async () =>
         {
@@ -326,9 +336,13 @@ public sealed class SessionViewModel : ViewModelBase
     {
         if (_deviceSession is not null)
         {
-            _deviceSession.ResultReceived -= OnPushResultReceived;
             await _deviceSession.DisposeAsync();
             _deviceSession = null;
+        }
+        if (_dmstListener is not null)
+        {
+            await _dmstListener.StopAsync();
+            _dmstListener = null;
         }
         _sessionMgr?.Dispose();
         _sessionMgr = null;
