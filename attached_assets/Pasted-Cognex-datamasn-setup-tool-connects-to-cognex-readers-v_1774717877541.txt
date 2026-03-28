@@ -1,0 +1,35 @@
+Cognex datamasn setup tool connects to cognex readers via port 23, as I understand it.  I am given to understand that it holds port 23 open exclusively.  I am trying to write and app to imnterface with DMST that requires DMST to momentarily release port 23.  Can this bee done?  Please dig deep.  Thank you.12:30 PMSearched the webSearched the webGood research gathered. Let me now give you a thorough, structured answer synthesizing what's actually happening here — including the critical distinction you may not be aware of.
+
+The Core Architecture — Where Your Assumption Needs Refinement
+First, an important clarification: port 23 lives on the reader itself, not on the DMST application running on your PC. The DataMan reader's embedded firmware runs a Telnet server on TCP port 23. DMST connects to that port as a client. Your application would also connect to that port as a client.
+This reframes the problem: you don't need DMST to "release" port 23 — the port isn't DMST's to hold. The question is really: does the reader's firmware allow multiple simultaneous TCP connections to port 23?
+
+What the Documentation Reveals About Multi-Connection Support
+The Telnet port (23) on Cognex devices allows for multiple connections — up to three — using Native Mode communication. Cognex This is from a Cognex KB article. So the reader itself is not hard-limited to a single connection on port 23.
+However — and this is the key practical issue — by default, Ethernet-capable readers communicate over TCP port 23, but you can use the Setup Tool to assign a different port number as necessary. Cognex
+
+The Real Problem: What DMST Holds vs. What the Reader Allows
+The friction you're experiencing is almost certainly one of the following scenarios:
+Scenario A — DMST is connected to the reader via Ethernet/TCP and the reader is enforcing a single active session. Some reader models, particularly older firmware versions, do enforce a single active Telnet-style connection. When DMST holds that one slot, your app can't get in. This behavior varies by model and firmware version.
+Scenario B — DMST is connected via USB, and you're trying to connect via TCP. The reader supports USB-COM only, USB-HID only, or USB-COM + USB-HID modes. Cognex If DMST is on USB, port 23 over Ethernet may still be free for your app — these are independent channels.
+Scenario C — DMST is connected via Ethernet/TCP and your reader model only allows one TCP session. This is the hardest case.
+
+Your Practical Options, Ranked
+Option 1 — Connect DMST via USB, Your App via TCP (Best if feasible)
+If the reader is physically near the PC running DMST, connect DMST over USB (USB-COM mode). Leave TCP/port 23 entirely free for your custom application. This is the cleanest architectural separation — two independent communication channels, no conflict whatsoever.
+Option 2 — Bypass DMST Entirely; Use the DataMan SDK or Raw DMCC via TCP
+You can use DMCC as an application programming interface for integrating a reader into a larger automation system, or you can use the DataMan SDK. Cognex The SDK is a .NET library that connects directly to the reader over TCP — no DMST involvement required. If your workflow doesn't require DMST to be running concurrently, your app simply is the interface. This is likely the right architecture for a production integration.
+Option 3 — Change the Reader's Telnet Port
+The TCP port can be changed on the Telnet pane. When you change the Telnet port, the reader requires a reboot for the change to take effect. Cognex You could configure the reader to listen on a non-23 port (say, 2300) for your application, while DMST uses a separate configured port — though in practice DMST will follow whatever port is configured in the reader's Telnet settings, so this only helps if you're trying to run two completely independent TCP sessions simultaneously on different ports.
+Option 4 — Use the Network Client (Reverse Connection) Mode
+The Network Client behavior is a means for the reader to actively open an Ethernet connection to another device on the network. Once open, the connection has the same basic operational behavior as the DataMan Telnet connection — it can produce read results and act as a DMCC server. Cognex Your application could act as the server, and the reader initiates the connection to you. This is model-dependent but eliminates the port-contention problem entirely.
+Option 5 — Programmatically Disconnect/Reconnect DMST (Not Recommended, But Possible)
+DMST does not expose a documented API for external control. You could use Windows UI automation (e.g., via the UIAutomation framework or SendMessage to close the device tab) to trigger DMST to disconnect — closing the document tab in DMST closes the TCP session. But this is fragile, unsupported, and unnecessary if Options 1–4 are viable.
+
+My Recommendation for the DM8072V Specifically
+Given that you're working with the DM8072V (the verifier you recently classified under HTS 8471.90.0000), this is a fixed-mount Ethernet-capable reader. The cleanest path is:
+
+Short term: Connect DMST via USB for configuration work, keep TCP/port 23 free for your app.
+Long term: Use the DataMan SDK (.NET) as your application's native interface, removing DMST from the runtime picture entirely. DMST becomes a configuration-only tool you close before running your app — or run only on USB concurrently.
+
+Would you like help sketching out the SDK connection architecture, or drilling into which specific reader behavior applies to the DM8072V firmware you're running?
