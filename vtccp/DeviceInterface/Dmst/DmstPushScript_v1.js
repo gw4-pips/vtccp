@@ -1,5 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// VTCCP DMST Push Script  —  v1.0  (firmware 6.x / DMV475)
+// VTCCP DMST Push Script
+//
+//   Version   : 1.0
+//   Generated : 2026-03-28
+//   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
+//   Target    : Cognex DataMan firmware 6.x  /  DMV475
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
