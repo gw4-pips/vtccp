@@ -1,6 +1,8 @@
 namespace DeviceInterface.Dmcc;
 
 using System.Net;
+using System.Net.Sockets;
+using System.Text;
 
 // Alias avoids name collision: the SDK also defines DmccResponse.
 using CognexSdk = Cognex.DataMan.SDK;
@@ -11,10 +13,12 @@ using CognexSdk = Cognex.DataMan.SDK;
 /// Key SDK behaviours discovered via reflection / runtime testing:
 ///   - EthSystemConnector takes IPAddress, not string.
 ///   - DataManSystem has no IsConnected; use local bool.
-///   - SendCommand() returns Cognex.DataMan.SDK.DmccResponse whose ToString()
-///     returns the class name — StatusCode / Body must be read via reflection.
+///   - SendCommand() returns Cognex.DataMan.SDK.DmccResponse whose body is in
+///     the "PayLoad" property; SDK throws exceptions on failure (code is always 0).
 ///   - "GET FIRMWARE.VER" → InvalidCommandException; use _system.FirmwareVersion.
-///   - "TRIGGER" → InvalidParameterException; "TRIGGER 1" is the correct form.
+///   - "TRIGGER" / "TRIGGER 1" → InvalidParameterException from SDK's own
+///     validation layer (firmware 6.1.16_sr4 / SDK v25 mismatch). Bypassed via
+///     raw TCP on _cfg.Port; SDK connection kept alive for XmlResultArrived.
 ///   - "GET SYMBOL.RESULT" → InvalidCommandException; use XmlResultArrived event.
 ///   - SetResultTypes() uses ResultTypes.ReadXml (= 2), not XmlResult.
 /// </summary>
@@ -217,13 +221,46 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
             if (!triggered)
             {
-                // Both TRIGGER forms failed.  The device is likely in Continuous or
-                // Presentation mode (trigger type 0 on firmware 6.x) — it auto-scans
-                // when a label is presented and does not accept explicit TRIGGER commands.
-                // Keep waiting for XmlResultArrived; the device will fire it automatically.
+                // Both SDK TRIGGER forms were rejected by the SDK's own parameter
+                // validation layer (not the device) — firmware 6.1.16_sr4 / SDK v25
+                // version mismatch.  Bypass the SDK entirely: open a second raw TCP
+                // connection to the DMCC port and send "TRIGGER\r\n" directly.
+                // The SDK connection stays alive to deliver XmlResultArrived.
                 System.Diagnostics.Debug.WriteLine(
-                    "[VTCCP-SDK] TRIGGER rejected — device in auto-scan mode; " +
-                    "waiting for XmlResultArrived on label presentation...");
+                    "[VTCCP-SDK] SDK rejected TRIGGER — trying raw TCP bypass...");
+                try
+                {
+                    using var tcp = new TcpClient();
+                    await tcp.ConnectAsync(_cfg.Host, _cfg.Port, ct);
+                    using var stream = tcp.GetStream();
+
+                    // Drain any welcome banner the device may send on connect.
+                    try
+                    {
+                        using var bannerCts = new CancellationTokenSource(400);
+                        byte[] buf = new byte[512];
+                        await stream.ReadAsync(buf, bannerCts.Token);
+                    }
+                    catch (OperationCanceledException) { /* no banner or timeout — OK */ }
+                    catch { }
+
+                    // Send the bare TRIGGER command.
+                    await stream.WriteAsync(Encoding.ASCII.GetBytes("TRIGGER\r\n"), ct);
+                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER sent via raw TCP.");
+                    triggered = true;
+                }
+                catch (Exception tcpEx)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SDK] Raw TCP TRIGGER failed: {tcpEx.GetType().Name}: {tcpEx.Message}");
+                }
+            }
+
+            if (!triggered)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "[VTCCP-SDK] All TRIGGER attempts exhausted — aborting.");
+                tcs.TrySetResult(null);
             }
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
