@@ -41,6 +41,14 @@ public sealed class SessionViewModel : ViewModelBase
     private string                              _statusMessage = "Ready.";
     private int                                 _recordCount;
 
+    /// <summary>
+    /// Count of AcceptRecordAsync calls currently in flight.
+    /// Incremented before AddRecord; decremented in finally.
+    /// OnStopAsync drains to zero before calling CloseSession so no record
+    /// is lost to a close/write race.
+    /// </summary>
+    private int _pendingAccept;
+
     // ── Selection ─────────────────────────────────────────────────────────────
 
     private DeviceProfile? _selectedDevice;
@@ -234,7 +242,27 @@ public sealed class SessionViewModel : ViewModelBase
     private async Task OnStopAsync()
     {
         StatusMessage = "Closing session…";
-        _pollCts?.Cancel();   // stops AutoPoll loop and Push listener
+        _pollCts?.Cancel();
+
+        // ── Step 1: stop the push listener so no new records arrive ──────────
+        if (_dmstListener is not null)
+        {
+            await _dmstListener.StopAsync();
+            _dmstListener = null;
+        }
+
+        // ── Step 2: drain in-flight AcceptRecordAsync calls (max 2 s) ────────
+        // OnPushRecord posts AcceptRecordAsync via fire-and-forget Dispatcher.InvokeAsync.
+        // We must wait for all of them to finish before saving, otherwise a record that
+        // arrived just before Stop is counted by the UI but missed from the XLSX.
+        int drainMs = 0;
+        while (System.Threading.Volatile.Read(ref _pendingAccept) > 0 && drainMs < 2000)
+        {
+            await Task.Delay(25);
+            drainMs += 25;
+        }
+
+        // ── Step 3: save and close the session ────────────────────────────────
         try
         {
             if (_sessionMgr is not null)
@@ -310,12 +338,20 @@ public sealed class SessionViewModel : ViewModelBase
     private async Task AcceptRecordAsync(VerificationRecord record)
     {
         if (_sessionMgr is null) return;
-        await Task.Run(() => _sessionMgr.AddRecord(record));
-        _history.AddRecord(record);
-        _recordCount++; OnPropertyChanged(nameof(RecordCount));
-        string grade = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
-        string num   = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
-        StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}";
+        System.Threading.Interlocked.Increment(ref _pendingAccept);
+        try
+        {
+            await Task.Run(() => _sessionMgr.AddRecord(record));
+            _history.AddRecord(record);
+            _recordCount++; OnPropertyChanged(nameof(RecordCount));
+            string grade = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
+            string num   = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
+            StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}";
+        }
+        finally
+        {
+            System.Threading.Interlocked.Decrement(ref _pendingAccept);
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
