@@ -3,10 +3,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
-//   DataMan Setup Tool → Format Data → Scripting → Data Formatting tab
-//   1. Select the "Script-Based Formatting" radio button
-//   2. Paste this entire script into the editor pane
-//   3. Click Save Settings → write to device
+//   DataMan Setup Tool → Format Data (click it in the Application Steps sidebar)
+//   1. On the BASIC tab: select the "Script-Based Formatting" radio button
+//      (it is below the "Basic Formatting" radio button — DMST will warn you
+//       that scripting is being enabled; confirm/OK any prompt)
+//   2. Click the SCRIPTING tab (top of the Format Data panel)
+//   3. Paste this entire script into the editor pane on the Scripting tab
+//   4. Click Save Settings → Write to device
 //
 // WHAT IT DOES
 //   After every scan the device calls onResult().  This script builds a

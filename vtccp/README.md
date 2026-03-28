@@ -106,10 +106,12 @@ Replaces the default plain-text output with a complete
 `DmstResultParser` can fully parse, producing a 167-column row in XLSX.
 
 **How to install:**
-1. Open DMST → Format Data → Scripting → *Data Formatting* tab
-2. Select the **Script-Based Formatting** radio button
-3. Paste the entire contents of `DmstPushScript_v1.js`
-4. Click **Save Settings → Write to device**
+1. In DMST, click **Format Data** in the Application Steps sidebar (left panel)
+2. On the **Basic** tab: select the **Script-Based Formatting** radio button
+   *(it sits below the "Basic Formatting" radio — confirm any DMST warning prompt)*
+3. Click the **Scripting** tab at the top of the Format Data panel
+4. Paste the entire contents of `DmstPushScript_v1.js` into the editor
+5. Click **Save Settings → Write to device**
 
 **Coverage (firmware 6.x / DMV475):**
 
