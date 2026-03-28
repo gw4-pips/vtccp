@@ -417,34 +417,112 @@ public sealed class SessionViewModel : ViewModelBase
     // ── Push (DMST) mode callback ─────────────────────────────────────────────
 
     // Called on thread-pool by DmstListener after each parsed push result.
-    private void OnPushRecord(VerificationRecord record)
+    // The push script only exposes content/decoded/symbology in this firmware;
+    // quality grade data must be fetched via a brief DMCC GET SYMBOL.RESULT call.
+    private void OnPushRecord(VerificationRecord pushRecord)
     {
-        Application.Current.Dispatcher.InvokeAsync(async () =>
+        // Hold _pendingAccept for the entire DMCC fetch + write so OnStopAsync
+        // drain does not close the session while a record is still in flight.
+        System.Threading.Interlocked.Increment(ref _pendingAccept);
+        _ = Task.Run(async () =>
         {
-            try   { await AcceptRecordAsync(record); }
-            catch { /* non-fatal push delivery error */ }
+            try
+            {
+                var enriched = await FetchGradeViaDmccAsync(pushRecord);
+                await Application.Current.Dispatcher.InvokeAsync(async () =>
+                {
+                    try   { await AcceptRecordInnerAsync(enriched); }
+                    catch { /* non-fatal write error */ }
+                });
+            }
+            catch { /* non-fatal DMCC fetch error */ }
+            finally
+            {
+                System.Threading.Interlocked.Decrement(ref _pendingAccept);
+            }
         });
+    }
+
+    /// <summary>
+    /// After a push arrives (decoded data only from script), open a brief DMCC
+    /// connection, call GET SYMBOL.RESULT, parse the full result XML, and return
+    /// a grade-enriched record.  Falls back to the original push record unchanged
+    /// if DMCC is unavailable (e.g. DMST / DataMan Setup Tool is holding port 23).
+    /// </summary>
+    private async Task<VerificationRecord> FetchGradeViaDmccAsync(VerificationRecord pushRecord)
+    {
+        if (SelectedDevice is null) return pushRecord;
+
+        try
+        {
+            var cfg = SelectedDevice.ToDeviceConfig();
+            cfg.ConnectTimeoutMs  = 2_000;
+            cfg.ResponseTimeoutMs = 3_000;
+
+            await using var client = new DeviceInterface.Dmcc.DmccClient(cfg);
+            await client.ConnectAsync();
+
+            // Configure full result format (required once per connection).
+            await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.SetResultFormatFull);
+
+            var resp = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.GetSymbolResult);
+            if (!resp.IsSuccess || !resp.IsXml) return pushRecord;
+
+            // Parse the full DMCC result using the push record as the session context
+            // (OperatorId, JobName, etc. carry forward into the enriched record).
+            var dmccRecord = DeviceInterface.Dmst.DmstResultParser.Parse(resp.Body, _xmlMap, pushRecord);
+
+            // Sanity check: if the DMCC result is for a different symbol (timing race),
+            // fall back to the push record to avoid mixing results.
+            if (!string.Equals(dmccRecord.DecodedData, pushRecord.DecodedData,
+                                StringComparison.Ordinal))
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "[VTCCP-DMST] FetchGrade: decoded data mismatch — using push record.");
+                return pushRecord;
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMST] FetchGrade: enriched with DMCC grade '{dmccRecord.OverallGrade?.LetterGradeString}'.");
+            return dmccRecord;
+        }
+        catch (Exception ex)
+        {
+            // DMCC unavailable (DMST / DataMan Setup Tool holding port 23, timeout, etc.)
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMST] FetchGrade: DMCC fetch failed ({ex.Message}); using push record.");
+            return pushRecord;
+        }
     }
 
     // ── Shared record acceptance ──────────────────────────────────────────────
 
+    /// <summary>
+    /// Full acceptance: increments/decrements _pendingAccept around the inner write.
+    /// Used by Manual and AutoPoll modes.
+    /// </summary>
     private async Task AcceptRecordAsync(VerificationRecord record)
     {
         if (_sessionMgr is null) return;
         System.Threading.Interlocked.Increment(ref _pendingAccept);
-        try
-        {
-            await Task.Run(() => _sessionMgr.AddRecord(record));
-            _history.AddRecord(record);
-            _recordCount++; OnPropertyChanged(nameof(RecordCount));
-            string grade = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
-            string num   = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
-            StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}";
-        }
-        finally
-        {
-            System.Threading.Interlocked.Decrement(ref _pendingAccept);
-        }
+        try   { await AcceptRecordInnerAsync(record); }
+        finally { System.Threading.Interlocked.Decrement(ref _pendingAccept); }
+    }
+
+    /// <summary>
+    /// Inner write — no _pendingAccept tracking (caller owns it).
+    /// Used directly by OnPushRecord (which manages the counter itself across
+    /// the whole DMCC fetch + write span).
+    /// </summary>
+    private async Task AcceptRecordInnerAsync(VerificationRecord record)
+    {
+        if (_sessionMgr is null) return;
+        await Task.Run(() => _sessionMgr.AddRecord(record));
+        _history.AddRecord(record);
+        _recordCount++; OnPropertyChanged(nameof(RecordCount));
+        string grade = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
+        string num   = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
+        StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}";
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
