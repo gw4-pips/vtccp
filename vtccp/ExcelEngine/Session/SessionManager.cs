@@ -101,6 +101,10 @@ public sealed class SessionManager : IDisposable
         string initialPath    = ExcelFileManager.ResolveOutputPath(state, state.OutputFormat);
         string initialSidecar = GetSidecarPath(initialPath);
 
+        // Guard: fail early with a clear message if the file is open in Excel.
+        string? lockError = ExcelFileManager.CheckFileLocked(initialPath);
+        if (lockError is not null) throw new IOException(lockError);
+
         bool resumed = TryMergeSidecar(initialSidecar, state);
         if (resumed)
         {
