@@ -132,6 +132,25 @@ public sealed class XlsAdapter : IExcelAdapter
         }
     }
 
+    public void SetRowHeight(int row, double heightPoints)
+    {
+        var r = GetOrCreateRow(row - 1);
+        r.HeightInPoints = (float)heightPoints;
+    }
+
+    public void SetRowWrapText(int row, int colCount)
+    {
+        var r = GetOrCreateRow(row - 1);
+        for (int c = 0; c < colCount; c++)
+        {
+            var cell = r.GetCell(c) ?? r.CreateCell(c);
+            var style = _wb!.CreateCellStyle();
+            style.CloneStyleFrom(cell.CellStyle ?? _wb.CreateCellStyle());
+            style.WrapText = true;
+            cell.CellStyle = style;
+        }
+    }
+
     public void SetCellBold(int row, int col)
     {
         var r = GetOrCreateRow(row - 1);

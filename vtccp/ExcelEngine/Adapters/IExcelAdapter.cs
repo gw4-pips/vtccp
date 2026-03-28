@@ -36,6 +36,12 @@ public interface IExcelAdapter : IDisposable
     /// <summary>Apply background fill colour to a row (used for header rows).</summary>
     void SetRowBackground(int row, int colCount, uint argbColor);
 
+    /// <summary>Set the row height in points (e.g. 30.0 for a double-height row).</summary>
+    void SetRowHeight(int row, double heightPoints);
+
+    /// <summary>Enable word-wrap on every cell in the given row.</summary>
+    void SetRowWrapText(int row, int colCount);
+
     /// <summary>Apply bold formatting to a single cell.</summary>
     void SetCellBold(int row, int col);
 

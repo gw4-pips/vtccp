@@ -34,9 +34,6 @@ public sealed class ExcelWriter : IDisposable
     private int _dataRowCount;
     private bool _headersWritten;
 
-    // Header row background colour — mid-blue (RGB 68 114 196), matching TruCheck output
-    private const uint HeaderBgArgb = 0x4472C4;
-
     /// <summary>Number of data rows written so far (not counting title/header rows).</summary>
     public int DataRowCount => _dataRowCount;
 
@@ -166,7 +163,8 @@ public sealed class ExcelWriter : IDisposable
             _adapter.WriteString(HeaderRow, i + 1, _schema.Columns[i].DisplayName);
 
         _adapter.SetRowBold(HeaderRow, _schema.Columns.Count);
-        _adapter.SetRowBackground(HeaderRow, _schema.Columns.Count, HeaderBgArgb);
+        _adapter.SetRowHeight(HeaderRow, 30.0);
+        _adapter.SetRowWrapText(HeaderRow, _schema.Columns.Count);
     }
 
     private void WriteDataRow(int rowNum, Dictionary<string, object?> values)

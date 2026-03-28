@@ -77,6 +77,17 @@ public sealed class XlsxAdapter : IExcelAdapter
         cells.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(255, r, g, b));
     }
 
+    public void SetRowHeight(int row, double heightPoints)
+    {
+        _ws!.Row(row).Height = heightPoints;
+        _ws.Row(row).CustomHeight = true;
+    }
+
+    public void SetRowWrapText(int row, int colCount)
+    {
+        _ws!.Cells[row, 1, row, colCount].Style.WrapText = true;
+    }
+
     public void SetCellBold(int row, int col)
     {
         _ws!.Cells[row, col].Style.Font.Bold = true;
