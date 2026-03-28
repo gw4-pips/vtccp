@@ -8,11 +8,15 @@ using CognexSdk = Cognex.DataMan.SDK;
 /// <summary>
 /// DMCC client backed by the Cognex DataMan SDK (Cognex.DataMan.SDK.PC.dll).
 ///
-/// Replaces the hand-rolled ASCII TCP client (DmccClient).  The SDK speaks the
-/// binary proprietary protocol used on port 44444 (EthSystemConnector default).
-///
-/// API is intentionally identical to DmccClient so DeviceSession needs only a
-/// one-line type change to switch between implementations.
+/// Key SDK behaviours discovered via reflection / runtime testing:
+///   - EthSystemConnector takes IPAddress, not string.
+///   - DataManSystem has no IsConnected; use local bool.
+///   - SendCommand() returns Cognex.DataMan.SDK.DmccResponse whose ToString()
+///     returns the class name — StatusCode / Body must be read via reflection.
+///   - "GET FIRMWARE.VER" → InvalidCommandException; use _system.FirmwareVersion.
+///   - "TRIGGER" → InvalidParameterException; "TRIGGER 1" is the correct form.
+///   - "GET SYMBOL.RESULT" → InvalidCommandException; use XmlResultArrived event.
+///   - SetResultTypes() uses ResultTypes.ReadXml (= 2), not XmlResult.
 /// </summary>
 public sealed class DataManSdkClient : IAsyncDisposable
 {
@@ -24,11 +28,11 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
     // ── Public surface (mirrors DmccClient) ──────────────────────────────────
 
-    /// <summary>True after a successful ConnectAsync and before DisconnectAsync.</summary>
-    public bool IsConnected => _isConnected && _system != null;
+    public bool    IsConnected     => _isConnected && _system != null;
+    public string? WelcomeBanner   => null;
 
-    /// <summary>Not applicable for the SDK path — always null.</summary>
-    public string? WelcomeBanner => null;
+    /// <summary>Firmware version read directly from the SDK property after Connect().</summary>
+    public string? FirmwareVersion => _system?.FirmwareVersion;
 
     public DataManSdkClient(DeviceConfig config)
     {
@@ -37,12 +41,6 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
     // ── Connection ────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Opens an SDK connection to the device.
-    /// EthSystemConnector uses port 44444 by default (DataMan SDK protocol).
-    /// Sets result types via the SDK's native API (avoids InvalidCommandException
-    /// from sending raw SET DMCC.RESULT-FORMAT via SendCommand).
-    /// </summary>
     public async Task ConnectAsync(CancellationToken ct = default)
     {
         ThrowIfDisposed();
@@ -56,24 +54,21 @@ public sealed class DataManSdkClient : IAsyncDisposable
             _system.Connect();
             _isConnected = true;
 
-            // Request XML results via the SDK's native API instead of the
-            // raw "SET DMCC.RESULT-FORMAT FULL" string (which the SDK rejects
-            // with InvalidCommandException on some firmware versions).
             try
             {
                 _system.SetResultTypes(CognexSdk.ResultTypes.ReadXml);
                 System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SDK] Connected to {_cfg.Host}. SetResultTypes(XmlResult) OK.");
+                    $"[VTCCP-SDK] Connected to {_cfg.Host}.  " +
+                    $"FW={_system.FirmwareVersion}  SetResultTypes(ReadXml) OK.");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SDK] Connected to {_cfg.Host}. SetResultTypes failed: {ex.Message}");
+                    $"[VTCCP-SDK] Connected to {_cfg.Host}.  SetResultTypes failed: {ex.Message}");
             }
         }, ct);
     }
 
-    /// <summary>Closes the SDK connection.</summary>
     public async Task DisconnectAsync()
     {
         _isConnected = false;
@@ -98,15 +93,10 @@ public sealed class DataManSdkClient : IAsyncDisposable
     // ── Command exchange ──────────────────────────────────────────────────────
 
     /// <summary>
-    /// Sends a DMCC command via the SDK and returns a parsed DmccResponse.
-    ///
-    /// SDK.SendCommand() returns Cognex.DataMan.SDK.DmccResponse; we call
-    /// ToString() to obtain the wire-format string and parse it with our
-    /// DmccResponse.Parse().  Every raw response is logged as [VTCCP-SDK].
-    ///
-    /// InvalidCommandException (SDK rejected the command before sending) and
-    /// all other exceptions are caught and returned as NoResponse / ParseError
-    /// rather than propagating — callers treat code -2 as "not supported".
+    /// Sends a DMCC command and returns a parsed DmccResponse.
+    /// Uses reflection to extract StatusCode and body from the SDK's DmccResponse
+    /// (whose ToString() unhelpfully returns the class name).
+    /// InvalidCommandException / InvalidParameterException → code -2 (NoResponse).
     /// </summary>
     public async Task<DmccResponse> SendAsync(string command, CancellationToken ct = default)
     {
@@ -119,28 +109,152 @@ public sealed class DataManSdkClient : IAsyncDisposable
             try
             {
                 var sdkResp = _system!.SendCommand(command);
-                string raw  = sdkResp?.ToString() ?? string.Empty;
+
+                int    code = TryGetIntProp(sdkResp, "StatusCode", "Code") ?? -2;
+                string body = TryGetStrProp(sdkResp, "Body", "Value", "Message", "Result")
+                              ?? string.Empty;
 
                 System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SDK] CMD '{command}' → " +
-                    $"'{raw.Replace("\r", "\\r").Replace("\n", "\\n")}'");
+                    $"[VTCCP-SDK] CMD '{command}' → code={code}  " +
+                    $"body='{(body.Length > 120 ? body[..120] + "…" : body)}'");
 
+                // First call: dump all available DmccResponse properties for diagnostics.
+                if (command == DmccCommand.GetDeviceType)
+                    DumpProps("[VTCCP-SDK] DmccResponse", sdkResp);
+
+                string raw = $"\r\n{code}\r\n\r\n{body}";
                 return DmccResponse.Parse(raw);
             }
             catch (CognexSdk.InvalidCommandException ex)
             {
-                // SDK rejected the command string before it was sent to the device.
                 System.Diagnostics.Debug.WriteLine(
                     $"[VTCCP-SDK] CMD '{command}' — InvalidCommandException: {ex.Message}");
-                return DmccResponse.Parse(string.Empty); // code -2 NoResponse
+                return DmccResponse.Parse(string.Empty);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SDK] CMD '{command}' — Exception ({ex.GetType().Name}): {ex.Message}");
-                return DmccResponse.Parse(string.Empty); // code -2 NoResponse
+                    $"[VTCCP-SDK] CMD '{command}' — {ex.GetType().Name}: {ex.Message}");
+                return DmccResponse.Parse(string.Empty);
             }
         }, ct);
+    }
+
+    // ── Trigger + event-based result collection ───────────────────────────────
+
+    /// <summary>
+    /// Fires a software trigger via the SDK and waits for the device to deliver
+    /// an XML verification result through the XmlResultArrived event.
+    ///
+    /// Returns the raw XML string, or null on timeout / no read.
+    ///
+    /// Why event-based: "GET SYMBOL.RESULT" throws InvalidCommandException — the
+    /// SDK does not expose that command. Results must be consumed via event.
+    /// </summary>
+    public async Task<string?> TriggerAndWaitForXmlAsync(
+        int               timeoutMs = 10_000,
+        CancellationToken ct        = default)
+    {
+        ThrowIfDisposed();
+        if (!IsConnected)
+            throw new InvalidOperationException("Not connected. Call ConnectAsync() first.");
+
+        var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        CognexSdk.XmlResultArrivedHandler xmlHandler = (_, args) =>
+        {
+            // XmlResultArrivedEventArgs.XmlResult — name confirmed by XmlResultArrivedEventArgs type.
+            var prop = args.GetType().GetProperty("XmlResult")
+                    ?? args.GetType().GetProperty("Xml")
+                    ?? args.GetType().GetProperty("Result");
+
+            if (prop is null)
+            {
+                // Fallback: dump all properties so we can find the right name.
+                DumpProps("[VTCCP-SDK] XmlResultArrivedEventArgs", args);
+            }
+
+            string? xml = prop?.GetValue(args)?.ToString();
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SDK] XmlResultArrived: {xml?.Length ?? 0} chars");
+            tcs.TrySetResult(xml);
+        };
+
+        _system!.XmlResultArrived += xmlHandler;
+        try
+        {
+            // Send trigger — "TRIGGER 1" is required on this firmware;
+            // plain "TRIGGER" throws InvalidParameterException.
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _system.SendCommand("TRIGGER 1");
+                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER 1 sent.");
+                }
+                catch (CognexSdk.InvalidParameterException)
+                {
+                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER 1 failed, retrying TRIGGER...");
+                    _system.SendCommand("TRIGGER");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[VTCCP-SDK] TRIGGER failed: {ex.GetType().Name}: {ex.Message}");
+                    tcs.TrySetResult(null);
+                }
+            }, ct);
+
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(timeoutMs);
+            try
+            {
+                return await tcs.Task.WaitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TriggerAndWaitForXml: timed out.");
+                return null;
+            }
+        }
+        finally
+        {
+            _system.XmlResultArrived -= xmlHandler;
+        }
+    }
+
+    // ── Reflection helpers ────────────────────────────────────────────────────
+
+    private static int? TryGetIntProp(object obj, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            var p = obj.GetType().GetProperty(name);
+            if (p?.GetValue(obj) is int v) return v;
+        }
+        return null;
+    }
+
+    private static string? TryGetStrProp(object obj, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            var p = obj.GetType().GetProperty(name);
+            if (p != null) return p.GetValue(obj)?.ToString();
+        }
+        return null;
+    }
+
+    private static void DumpProps(string label, object obj)
+    {
+        foreach (var p in obj.GetType().GetProperties())
+        {
+            try
+            {
+                var v = p.GetValue(obj);
+                System.Diagnostics.Debug.WriteLine($"{label}.{p.Name} = {v}");
+            }
+            catch { }
+        }
     }
 
     // ── IAsyncDisposable ──────────────────────────────────────────────────────

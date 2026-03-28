@@ -82,14 +82,15 @@ public sealed class DeviceSession : IAsyncDisposable
         // Result format is set via SDK's SetResultTypes() in DataManSdkClient.ConnectAsync.
 
         // Query device identity info.
+        // FirmwareVersion is read from the SDK's native property (avoids InvalidCommandException
+        // thrown by SendCommand("GET FIRMWARE.VER") on this firmware).
         DeviceInfo = new DeviceInfo
         {
-            Type            = (await _client.SendAsync(DmccCommand.GetDeviceType,  ct)).Body,
-            FirmwareVersion = (await _client.SendAsync(DmccCommand.GetFirmwareVer, ct)).Body,
-            Name            = (await _client.SendAsync(DmccCommand.GetDeviceName,  ct)).Body,
-            Serial          = (await _client.SendAsync(DmccCommand.GetDeviceId,    ct)).Body,
-            // CalibrationDate omitted from startup — GET CALIBRATION.DATE can time out
-            // (5 s) on devices that do not support it; it is not required for scanning.
+            Type            = (await _client.SendAsync(DmccCommand.GetDeviceType, ct)).Body,
+            FirmwareVersion = _client.FirmwareVersion
+                           ?? (await _client.SendAsync(DmccCommand.GetFirmwareVer, ct)).Body,
+            Name            = (await _client.SendAsync(DmccCommand.GetDeviceName, ct)).Body,
+            Serial          = (await _client.SendAsync(DmccCommand.GetDeviceId,   ct)).Body,
         };
 
         // ── Trigger mode ─────────────────────────────────────────────────────
@@ -174,13 +175,13 @@ public sealed class DeviceSession : IAsyncDisposable
         if (!_client.IsConnected)
             throw new InvalidOperationException("Not connected. Call ConnectAsync() first.");
 
-        DmccResponse trigResp = await _client.SendAsync(DmccCommand.Trigger, ct);
-        if (trigResp.StatusCode == DmccStatus.NoRead) return null;
+        // Use the SDK's XmlResultArrived event-based path.
+        // "GET SYMBOL.RESULT" throws InvalidCommandException in the SDK; results
+        // must arrive via event after the trigger fires.
+        string? xml = await _client.TriggerAndWaitForXmlAsync(ct: ct);
+        if (string.IsNullOrWhiteSpace(xml)) return null;
 
-        DmccResponse resultResp = await _client.SendAsync(DmccCommand.GetSymbolResult, ct);
-        if (!resultResp.IsSuccess || !resultResp.IsXml) return null;
-
-        return DmstResultParser.Parse(resultResp.Body, _map, sessionContext ?? ContextFromDeviceInfo());
+        return DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo());
     }
 
     // ── Push mode ─────────────────────────────────────────────────────────────
