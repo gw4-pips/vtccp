@@ -227,8 +227,12 @@ public static class DmstResultParser
 
         // ── CalibrationDate from XML ──────────────────────────────────────────
         // <trucheck_verificaiton_result>/<CalibrationDate> (firmware 6.x)
-        string? calibDate = Str("CalibrationDate")
-                         ?? deviceContext?.CalibrationDate;
+        DateTime? calibDate = deviceContext?.CalibrationDate;
+        if (Str("CalibrationDate") is { } calibStr
+            && DateTime.TryParse(calibStr,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out DateTime calibParsed))
+            calibDate = calibParsed;
 
         // ── Overall grade ─────────────────────────────────────────────────────
         // Firmware 6.x: letter = <ValueGrade> (B), numeric = isoGradeInfo/<Grade> (3.0)
