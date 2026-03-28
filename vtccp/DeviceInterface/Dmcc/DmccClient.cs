@@ -54,6 +54,23 @@ public sealed class DmccClient : IAsyncDisposable
         // Read welcome banner with a short timeout — many devices send nothing
         // and we must not stall for the full ResponseTimeoutMs here.
         WelcomeBanner = await ReadUntilIdleAsync(ct, _cfg.BannerTimeoutMs);
+
+        // ── DMCC handshake ────────────────────────────────────────────────────
+        // DataMan firmware requires the client to send "DMCC\r\n" immediately
+        // after connecting before it will respond to any DMCC commands.
+        // Without this, the device accepts the TCP connection but silently
+        // ignores every subsequent command (returns nothing → code -2).
+        // DataMan Setup Tool (DMST) sends this handshake automatically.
+        byte[] handshake = Encoding.ASCII.GetBytes("DMCC\r\n");
+        await _stream.WriteAsync(handshake, ct);
+        await _stream.FlushAsync(ct);
+
+        // Read the handshake acknowledgement (typically "\r\n0\r\n").
+        // We don't check the status — some firmware sends 0, others send nothing.
+        string handshakeAck = await ReadUntilIdleAsync(ct, _cfg.BannerTimeoutMs);
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-DMCC] Handshake ack ({handshakeAck.Length} chars): " +
+            $"'{handshakeAck.Replace("\r", "\\r").Replace("\n", "\\n")}'");
     }
 
     /// <summary>Gracefully closes the connection.</summary>
