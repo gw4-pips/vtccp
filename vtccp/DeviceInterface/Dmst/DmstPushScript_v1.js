@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.1
-//   Generated : 2026-03-28 15:14 UTC
+//   Version   : 1.2
+//   Generated : 2026-03-28 15:40 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
 //
@@ -11,6 +11,16 @@
 //           compatibility.  Previously the script crashed with
 //           "ReferenceError: output is not defined" on firmware 6.x,
 //           causing the device to fall back to plain-text Basic Formatting.
+//
+//   v1.2 — Fix: firmware 6.x exposes symbology as a typed object, not a
+//           plain string; added multi-path fallback (symbologyName →
+//           symbology string → symbology.name → String(symbology)).
+//           Fix: firmware 6.x may expose quality data at a path other than
+//           r.quality; added fallback chain (quality → verificationResult →
+//           symbolVerificationResult → symVerResult).
+//           Add: _Dbg* elements emitted in XML for firmware introspection;
+//           VTCCP parser ignores unknown elements so these are harmless and
+//           visible in the VS Output trace (first 600 chars of XML logged).
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
@@ -84,7 +94,29 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // ── Inputs ────────────────────────────────────────────────────────────────
 
     var r = decodeResults[0];
-    var q = (r && r.quality) ? r.quality : null;   // null for NoRead or non-verifier
+
+    // Firmware-compatibility: quality object path varies across firmware revisions.
+    // Try all known paths; first truthy value wins.
+    var q = null;
+    if (r) {
+        q = r.quality
+         || r.verificationResult
+         || r.symbolVerificationResult
+         || r.symVerResult
+         || null;
+    }
+
+    // Debug aids — serialised into the XML as _Dbg* elements that VTCCP ignores.
+    // Visible in VS Output window (DmstListener logs first 600 chars of XML).
+    var _dbgRKeys = r ? Object.keys(r).join("|") : "r=null";
+    var _dbgQPath = "none";
+    if (r) {
+        if      (r.quality)                  { _dbgQPath = "quality"; }
+        else if (r.verificationResult)       { _dbgQPath = "verificationResult"; }
+        else if (r.symbolVerificationResult) { _dbgQPath = "symbolVerificationResult"; }
+        else if (r.symVerResult)             { _dbgQPath = "symVerResult"; }
+    }
+    var _dbgQKeys = q ? Object.keys(q).join("|") : "q=null";
 
     // ── XML assembly ──────────────────────────────────────────────────────────
 
@@ -93,13 +125,27 @@ function onResult(decodeResults, readerProperties, outputResults) {
           + '<DMSymVerResponse>\r\n';
 
     // ── Identity / timing ─────────────────────────────────────────────────────
-    //   r.symbology  — "Data Matrix ECC 200", "QR Code", "Code 128", …
-    //   r.decoded    — true / false
-    //   r.content    — decoded string (empty when NoRead)
+    //   r.decoded        — true / false
+    //   r.content        — decoded string (empty when NoRead)
+    //   r.symbologyName  — plain string in firmware 6.x  (preferred)
+    //   r.symbology      — plain string in firmware 5.x, typed object in 6.x
 
-    o += elem("DateTime",     isoNow());
-    o += elem("SymbologyName", prop(r, "symbology"));
+    o += elem("DateTime",    isoNow());
+
+    // Firmware-compatibility: r.symbology may be a typed object (6.x) or a
+    // plain string (5.x).  Try property variants before falling back to String().
+    var _symbStr = "";
+    if (r) {
+        if      (typeof r.symbologyName === "string" && r.symbologyName) { _symbStr = r.symbologyName; }
+        else if (typeof r.symbology     === "string" && r.symbology)     { _symbStr = r.symbology; }
+        else if (r.symbology && r.symbology.name)                        { _symbStr = String(r.symbology.name); }
+        else                                                             { _symbStr = s(r.symbology); }
+    }
+    o += elem("SymbologyName", _symbStr);
     o += elem("DecodedData",   (r && r.decoded) ? esc(r.content) : "");
+    o += elem("_DbgRKeys",     _dbgRKeys);
+    o += elem("_DbgQPath",     _dbgQPath);
+    o += elem("_DbgQKeys",     _dbgQKeys);
 
     if (q) {
 

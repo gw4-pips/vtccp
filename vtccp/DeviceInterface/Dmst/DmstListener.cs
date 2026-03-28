@@ -189,7 +189,8 @@ public sealed class DmstListener
         string leftover = accumulated[endPos..];
 
         System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-DMST] Complete XML document found ({xmlDoc.Length} chars). Parsing.");
+            $"[VTCCP-DMST] Complete XML document found ({xmlDoc.Length} chars). Parsing. " +
+            $"XML preview: {xmlDoc[..Math.Min(600, xmlDoc.Length)].Replace("\r","").Replace("\n"," ")}");
 
         sb.Clear();
         sb.Append(leftover);
