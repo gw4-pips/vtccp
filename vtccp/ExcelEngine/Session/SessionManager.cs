@@ -169,6 +169,13 @@ public sealed class SessionManager : IDisposable
         _writer!.AppendRecord(record, batchOverride);
         _currentSession!.RecordCount++;
         SaveSidecar(_sidecarPath!, _currentSession!);
+
+        // Real-time flush: write to disk after every record so the file can be
+        // opened in Excel and watched live (mirrors Webscan behaviour).
+        // If the file is currently locked by Excel we skip silently; the
+        // in-memory package is intact and CloseSession() will do the final save.
+        try { _writer.Save(); }
+        catch (IOException) { /* file locked — data remains safe in memory */ }
     }
 
     /// <summary>
@@ -296,6 +303,11 @@ public sealed class SessionManager : IDisposable
             RecordCount    = state.RecordCount,
         };
         File.WriteAllText(path, JsonSerializer.Serialize(sidecar, _jsonOpts));
+
+        // Keep the sidecar hidden in Explorer so it doesn't clutter the output folder.
+        // Silently ignored on non-NTFS volumes or paths without write permission.
+        try { File.SetAttributes(path, File.GetAttributes(path) | FileAttributes.Hidden); }
+        catch { /* non-fatal */ }
     }
 
     private static SessionSidecar? LoadSidecar(string path)

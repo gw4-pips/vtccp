@@ -176,34 +176,23 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Trigger button — only shown in Manual mode -->
+                    <!-- Trigger button — Manual and Push modes both support software trigger -->
                     <Button Grid.Column="1"
                             Content="⚡  Trigger Scan"
                             Style="{StaticResource PrimaryButton}"
                             Command="{Binding TriggerCommand}"
                             Padding="20,10"
                             FontSize="14"
-                            Visibility="{Binding IsManualMode,
+                            Visibility="{Binding ShowTriggerButton,
                                 Converter={StaticResource BoolToVisibility}}" />
 
-                    <!-- Auto-Poll / Push running indicator -->
+                    <!-- Auto-Poll running indicator (only for Auto-Poll mode) -->
                     <Border Grid.Column="1"
                             Background="{StaticResource AccentBrush}"
                             CornerRadius="4" Padding="16,8"
                             Visibility="{Binding IsAutoPollMode,
                                 Converter={StaticResource BoolToVisibility}}">
                         <TextBlock Text="⟳  Auto-Polling…"
-                                   Foreground="White" FontSize="13" FontWeight="SemiBold"
-                                   Visibility="{Binding IsRunning,
-                                       Converter={StaticResource BoolToVisibility}}" />
-                    </Border>
-
-                    <Border Grid.Column="1"
-                            Background="{StaticResource AccentBrush}"
-                            CornerRadius="4" Padding="16,8"
-                            Visibility="{Binding IsPushMode,
-                                Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="📡  Listening…"
                                    Foreground="White" FontSize="13" FontWeight="SemiBold"
                                    Visibility="{Binding IsRunning,
                                        Converter={StaticResource BoolToVisibility}}" />

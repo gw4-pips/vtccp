@@ -54,7 +54,7 @@ public sealed class SessionViewModel : ViewModelBase
     private DeviceProfile? _selectedDevice;
     private JobTemplate?   _selectedTemplate;
     private string         _operatorOverride = string.Empty;
-    private ScanMode       _scanMode         = ScanMode.Manual;
+    private ScanMode       _scanMode         = ScanMode.Push;
     private int            _autoPollIntervalMs = 500;
 
     // ── Bindable collections ──────────────────────────────────────────────────
@@ -67,7 +67,18 @@ public sealed class SessionViewModel : ViewModelBase
     public DeviceProfile? SelectedDevice
     {
         get => _selectedDevice;
-        set { Set(ref _selectedDevice, value); OnPropertyChanged(nameof(IsPushAvailable)); RelayCommand.Refresh(); }
+        set
+        {
+            Set(ref _selectedDevice, value);
+            OnPropertyChanged(nameof(IsPushAvailable));
+            RelayCommand.Refresh();
+
+            // Auto-select the best mode for the newly chosen device:
+            //   • If the device has a push port → Push mode
+            //   • Otherwise fall back to Manual (never leave mode on Push when unavailable)
+            if (!IsRunning)
+                ActiveScanMode = value?.DmstListenPort > 0 ? ScanMode.Push : ScanMode.Manual;
+        }
     }
 
     public JobTemplate? SelectedTemplate
@@ -91,13 +102,17 @@ public sealed class SessionViewModel : ViewModelBase
             OnPropertyChanged(nameof(IsManualMode));
             OnPropertyChanged(nameof(IsAutoPollMode));
             OnPropertyChanged(nameof(IsPushMode));
+            OnPropertyChanged(nameof(ShowTriggerButton));
             RelayCommand.Refresh();
         }
     }
 
-    public bool IsManualMode   => _scanMode == ScanMode.Manual;
-    public bool IsAutoPollMode => _scanMode == ScanMode.AutoPoll;
-    public bool IsPushMode     => _scanMode == ScanMode.Push;
+    public bool IsManualMode     => _scanMode == ScanMode.Manual;
+    public bool IsAutoPollMode   => _scanMode == ScanMode.AutoPoll;
+    public bool IsPushMode       => _scanMode == ScanMode.Push;
+
+    /// <summary>True in Manual and Push modes — both support a software trigger.</summary>
+    public bool ShowTriggerButton => _scanMode is ScanMode.Manual or ScanMode.Push;
 
     /// <summary>True when the selected device has a non-zero DmstListenPort.</summary>
     public bool IsPushAvailable => _selectedDevice?.DmstListenPort > 0;
@@ -141,7 +156,7 @@ public sealed class SessionViewModel : ViewModelBase
         StopCommand    = new RelayCommand(async () => await OnStopAsync(),
             () => IsRunning);
         TriggerCommand = new RelayCommand(async () => await OnTriggerAsync(),
-            () => IsRunning && _scanMode == ScanMode.Manual);
+            () => IsRunning && (_scanMode == ScanMode.Manual || _scanMode == ScanMode.Push));
 
         SetManualCommand   = new RelayCommand(() => ActiveScanMode = ScanMode.Manual,   () => !IsRunning);
         SetAutoPollCommand = new RelayCommand(() => ActiveScanMode = ScanMode.AutoPoll, () => !IsRunning);
@@ -276,13 +291,24 @@ public sealed class SessionViewModel : ViewModelBase
         }
     }
 
-    // ── Manual trigger ────────────────────────────────────────────────────────
+    // ── Manual / Push trigger ─────────────────────────────────────────────────
 
     private async Task OnTriggerAsync()
     {
-        if (_deviceSession is null || _sessionMgr is null) return;
+        if (_sessionMgr is null) return;
         try
         {
+            if (_scanMode == ScanMode.Push)
+            {
+                // Push mode has no persistent DMCC connection (DMST may be open for
+                // live view). Open a brief connection, fire TRIGGER, then close.
+                // The result arrives asynchronously via OnPushRecord.
+                await SendPushTriggerAsync();
+                return;
+            }
+
+            // Manual mode — synchronous DMCC trigger-and-wait.
+            if (_deviceSession is null) return;
             var ctx = BuildContext();
             VerificationRecord? record = await _deviceSession.TriggerAndGetResultAsync(ctx);
             if (record is not null) await AcceptRecordAsync(record);
@@ -292,6 +318,25 @@ public sealed class SessionViewModel : ViewModelBase
         {
             StatusMessage = $"Trigger error: {ex.Message}";
         }
+    }
+
+    /// <summary>
+    /// Fire a DMCC TRIGGER over a short-lived connection and immediately close.
+    /// Used in Push mode where no persistent DMCC session is maintained.
+    /// </summary>
+    private async Task SendPushTriggerAsync()
+    {
+        if (SelectedDevice is null) return;
+
+        // Build a short-timeout config for the quick fire-and-forget connection.
+        var cfg = SelectedDevice.ToDeviceConfig();
+        cfg.ConnectTimeoutMs  = 3_000;
+        cfg.ResponseTimeoutMs = 3_000;
+
+        await using var client = new DeviceInterface.Dmcc.DmccClient(cfg);
+        await client.ConnectAsync();
+        await client.SendAsync("TRIGGER");
+        StatusMessage = "Trigger sent — waiting for push result…";
     }
 
     // ── Auto-Poll background loop ─────────────────────────────────────────────

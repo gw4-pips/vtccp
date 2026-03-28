@@ -84,91 +84,107 @@
             <!-- Edit panel -->
             <Border Grid.Column="2" Style="{StaticResource Card}"
                     Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel DataContext="{Binding Editing}">
+                <!-- Inner grid: fields scroll freely; Save/Cancel row is always visible -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                        <TextBlock Text="Edit Job Template"
-                                   Style="{StaticResource SectionHeader}" />
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                        <StackPanel DataContext="{Binding Editing}">
 
-                        <TextBlock Text="TEMPLATE NAME" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Edit Job Template"
+                                       Style="{StaticResource SectionHeader}" />
 
-                        <TextBlock Text="JOB NAME (written to Excel header)"
-                                   Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding JobName, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="TEMPLATE NAME" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <TextBlock Text="DEFAULT OPERATOR ID" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding OperatorId, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="JOB NAME (written to Excel header)"
+                                       Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding JobName, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <TextBlock Text="BATCH MODE" Style="{StaticResource FieldLabel}" />
-                        <ComboBox ItemsSource="{Binding BatchModeOptions}"
-                                  SelectedItem="{Binding BatchMode}" />
+                            <TextBlock Text="DEFAULT OPERATOR ID" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding OperatorId, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <TextBlock Text="OUTPUT FORMAT" Style="{StaticResource FieldLabel}" />
-                        <ComboBox ItemsSource="{Binding OutputFormatOptions}"
-                                  SelectedItem="{Binding OutputFormat}" />
+                            <TextBlock Text="BATCH MODE" Style="{StaticResource FieldLabel}" />
+                            <ComboBox ItemsSource="{Binding BatchModeOptions}"
+                                      SelectedItem="{Binding BatchMode}" />
 
-                        <TextBlock Text="ROLL INCREMENT MODE" Style="{StaticResource FieldLabel}" />
-                        <ComboBox ItemsSource="{Binding RollModeOptions}"
-                                  SelectedItem="{Binding RollMode}" />
+                            <TextBlock Text="OUTPUT FORMAT" Style="{StaticResource FieldLabel}" />
+                            <ComboBox ItemsSource="{Binding OutputFormatOptions}"
+                                      SelectedItem="{Binding OutputFormat}" />
 
-                        <TextBlock Text="ROLL START VALUE" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding RollStartValue, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="ROLL INCREMENT MODE" Style="{StaticResource FieldLabel}" />
+                            <ComboBox ItemsSource="{Binding RollModeOptions}"
+                                      SelectedItem="{Binding RollMode}" />
 
-                        <!-- Output directory -->
-                        <TextBlock Text="OUTPUT DIRECTORY (blank = app default)"
-                                   Style="{StaticResource FieldLabel}" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0"
-                                     Text="{Binding OutputDirectory, UpdateSourceTrigger=PropertyChanged}"
-                                     Margin="0,0,6,0" />
-                            <Button Grid.Column="1" Content="…"
-                                    Style="{StaticResource SecondaryButton}"
-                                    Padding="10,4"
-                                    Command="{Binding DataContext.BrowseOutputCommand,
-                                              RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                        </Grid>
+                            <TextBlock Text="ROLL START VALUE" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding RollStartValue, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <!-- Logo path -->
-                        <TextBlock Text="LOGO IMAGE PATH (optional)"
-                                   Style="{StaticResource FieldLabel}" />
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0"
-                                     Text="{Binding LogoPath, UpdateSourceTrigger=PropertyChanged}"
-                                     Margin="0,0,6,0" />
-                            <Button Grid.Column="1" Content="…"
-                                    Style="{StaticResource SecondaryButton}"
-                                    Padding="10,4"
-                                    Command="{Binding DataContext.BrowseLogoCommand,
-                                              RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                        </Grid>
+                            <!-- Output directory -->
+                            <TextBlock Text="OUTPUT DIRECTORY (blank = app default)"
+                                       Style="{StaticResource FieldLabel}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding OutputDirectory, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,6,0" />
+                                <Button Grid.Column="1" Content="…"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Padding="10,4"
+                                        Command="{Binding DataContext.BrowseOutputCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </Grid>
 
-                        <!-- Logo preview -->
-                        <Border Margin="0,8" Height="60" BorderBrush="{StaticResource BorderBrush}"
-                                BorderThickness="1" CornerRadius="4"
-                                Visibility="{Binding LogoPath,
-                                    Converter={StaticResource BoolToVisibility}}">
-                            <Image Source="{Binding LogoPath}" Stretch="Uniform" />
-                        </Border>
+                            <!-- Logo path -->
+                            <TextBlock Text="LOGO IMAGE PATH (optional)"
+                                       Style="{StaticResource FieldLabel}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding LogoPath, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,6,0" />
+                                <Button Grid.Column="1" Content="…"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Padding="10,4"
+                                        Command="{Binding DataContext.BrowseLogoCommand,
+                                                  RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </Grid>
 
-                        <CheckBox Content="Set as default template"
-                                  IsChecked="{Binding IsDefault}"
-                                  Margin="0,12,0,0" />
+                            <!-- Logo preview -->
+                            <Border Margin="0,8" Height="60" BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="4"
+                                    Visibility="{Binding LogoPath,
+                                        Converter={StaticResource BoolToVisibility}}">
+                                <Image Source="{Binding LogoPath}" Stretch="Uniform" />
+                            </Border>
 
-                        <TextBlock Text="NOTES" Style="{StaticResource FieldLabel}" />
-                        <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
-                                 Height="50" TextWrapping="Wrap"
-                                 AcceptsReturn="True" VerticalScrollBarVisibility="Auto" />
+                            <CheckBox Content="Set as default template"
+                                      IsChecked="{Binding IsDefault}"
+                                      Margin="0,12,0,0" />
 
-                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                            <TextBlock Text="NOTES" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
+                                     Height="50" TextWrapping="Wrap"
+                                     AcceptsReturn="True" VerticalScrollBarVisibility="Auto" />
+
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Save / Cancel — always visible at the bottom of the panel -->
+                    <Border Grid.Row="1"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Padding="0,10,0,0"
+                            Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal">
                             <Button Content="Save"
                                     Style="{StaticResource PrimaryButton}"
                                     Command="{Binding DataContext.SaveCommand,
@@ -179,8 +195,8 @@
                                     Command="{Binding DataContext.CancelCommand,
                                               RelativeSource={RelativeSource AncestorType=UserControl}}" />
                         </StackPanel>
-                    </StackPanel>
-                </ScrollViewer>
+                    </Border>
+                </Grid>
             </Border>
         </Grid>
 
