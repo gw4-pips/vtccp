@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.3
-//   Generated : 2026-03-28 16:05 UTC
+//   Version   : 1.4
+//   Generated : 2026-03-28 16:22 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
 //
@@ -21,6 +21,14 @@
 //           Add: _Dbg* elements emitted in XML for firmware introspection;
 //           VTCCP parser ignores unknown elements so these are harmless and
 //           visible in the VS Output trace (first 600 chars of XML logged).
+//
+//   v1.4 — Fix: switched quality-path lookup from truthy || chain to
+//           explicit _pick() with !== null/undefined, so a quality object
+//           that evaluates as 0/false is not skipped.  Added 5 more quality
+//           path candidates (verificationResults, qualityResult, gradeResult,
+//           rp.quality, rp.verificationResult).  Added _DbgRPKeys probe on
+//           readerProperties to expose quality paths there.  Expanded _rProbe
+//           list with grade/gradeValue/verificationResults/gradeResult.
 //
 //   v1.3 — Fix: removed Object.keys() calls introduced in v1.2; the
 //           firmware's embedded JS engine does not support Object.keys(),
@@ -100,26 +108,38 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
     // ── Inputs ────────────────────────────────────────────────────────────────
 
-    var r = decodeResults[0];
+    var r  = decodeResults[0];
+    var rp = readerProperties;   // some firmware puts quality here instead of r
 
-    // Firmware-compatibility: quality object path varies across firmware revisions.
-    // Try all known paths; first truthy value wins.
-    var q = null;
-    if (r) {
-        q = r.quality
-         || r.verificationResult
-         || r.symbolVerificationResult
-         || r.symVerResult
-         || null;
+    // Null-safe property fetch — returns the value or null; never throws.
+    // Using !== null/undefined (not truthy) so a quality object that happens
+    // to stringify as 0 / false is still captured.
+    function _pick(obj, key) {
+        if (!obj) { return null; }
+        var v = obj[key];
+        return (typeof v !== "undefined" && v !== null) ? v : null;
     }
 
-    // Debug aids — serialised into the XML as _Dbg* elements that VTCCP ignores.
-    // Visible in VS Output window (DmstListener logs first 600 chars of XML).
-    // NOTE: Object.keys() is NOT used — some firmware JS engines lack it.
-    //       Instead, probe a known list of properties with typeof checks.
+    // Firmware-compatibility: try all known quality-object paths.
+    // Prefer r (decodeResults[0]); fall back to readerProperties.
+    var q = _pick(r,  "quality")
+         || _pick(r,  "verificationResult")
+         || _pick(r,  "symbolVerificationResult")
+         || _pick(r,  "symVerResult")
+         || _pick(r,  "verificationResults")
+         || _pick(r,  "qualityResult")
+         || _pick(r,  "gradeResult")
+         || _pick(rp, "quality")
+         || _pick(rp, "verificationResult")
+         || null;
+
+    // ── Debug probes (elements ignored by VTCCP; visible in VS Output trace) ─
+    // NOTE: Object.keys() omitted — not available in all firmware JS engines.
+
     var _rProbe = ["content","decoded","symbology","symbologyName","symbologyString",
                    "quality","verificationResult","symbolVerificationResult","symVerResult",
-                   "qualityResult","formalGrade","overallGrade","sc","mod","uec"];
+                   "verificationResults","qualityResult","gradeResult","grade","gradeValue",
+                   "formalGrade","overallGrade","sc","mod","uec","rows","columns"];
     var _dbgRKeys = "";
     for (var _i = 0; _i < _rProbe.length; _i++) {
         if (r && typeof r[_rProbe[_i]] !== "undefined") {
@@ -128,13 +148,25 @@ function onResult(decodeResults, readerProperties, outputResults) {
     }
     if (!_dbgRKeys) { _dbgRKeys = "r=null"; }
 
-    var _dbgQPath = "none";
-    if (r) {
-        if      (r.quality)                  { _dbgQPath = "quality"; }
-        else if (r.verificationResult)       { _dbgQPath = "verificationResult"; }
-        else if (r.symbolVerificationResult) { _dbgQPath = "symbolVerificationResult"; }
-        else if (r.symVerResult)             { _dbgQPath = "symVerResult"; }
+    var _rpProbe = ["quality","verificationResult","gradeResult","grade","sc","mod","uec"];
+    var _dbgRPKeys = "";
+    for (var _k = 0; _k < _rpProbe.length; _k++) {
+        if (rp && typeof rp[_rpProbe[_k]] !== "undefined") {
+            _dbgRPKeys += (_dbgRPKeys ? "|" : "") + _rpProbe[_k];
+        }
     }
+    if (!_dbgRPKeys) { _dbgRPKeys = "rp=empty"; }
+
+    var _dbgQPath = "none";
+    if (_pick(r,  "quality"))                  { _dbgQPath = "r.quality"; }
+    else if (_pick(r,  "verificationResult"))       { _dbgQPath = "r.verificationResult"; }
+    else if (_pick(r,  "symbolVerificationResult")) { _dbgQPath = "r.symbolVerificationResult"; }
+    else if (_pick(r,  "symVerResult"))             { _dbgQPath = "r.symVerResult"; }
+    else if (_pick(r,  "verificationResults"))      { _dbgQPath = "r.verificationResults"; }
+    else if (_pick(r,  "qualityResult"))            { _dbgQPath = "r.qualityResult"; }
+    else if (_pick(r,  "gradeResult"))              { _dbgQPath = "r.gradeResult"; }
+    else if (_pick(rp, "quality"))                  { _dbgQPath = "rp.quality"; }
+    else if (_pick(rp, "verificationResult"))       { _dbgQPath = "rp.verificationResult"; }
 
     var _qProbe = ["formalGrade","overallGrade","overallGradeValue","sc","scGrade",
                    "mod","modGrade","uec","uecGrade","aperture","wavelength","rows","columns"];
@@ -171,9 +203,10 @@ function onResult(decodeResults, readerProperties, outputResults) {
     }
     o += elem("SymbologyName", _symbStr);
     o += elem("DecodedData",   (r && r.decoded) ? esc(r.content) : "");
-    o += elem("_DbgRKeys",     _dbgRKeys);
-    o += elem("_DbgQPath",     _dbgQPath);
-    o += elem("_DbgQKeys",     _dbgQKeys);
+    o += elem("_DbgRKeys",  _dbgRKeys);
+    o += elem("_DbgRPKeys", _dbgRPKeys);
+    o += elem("_DbgQPath",  _dbgQPath);
+    o += elem("_DbgQKeys",  _dbgQKeys);
 
     if (q) {
 
