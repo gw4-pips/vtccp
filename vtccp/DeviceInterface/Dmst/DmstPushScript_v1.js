@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.2
-//   Generated : 2026-03-28 15:40 UTC
+//   Version   : 1.3
+//   Generated : 2026-03-28 16:05 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
 //
@@ -21,6 +21,13 @@
 //           Add: _Dbg* elements emitted in XML for firmware introspection;
 //           VTCCP parser ignores unknown elements so these are harmless and
 //           visible in the VS Output trace (first 600 chars of XML logged).
+//
+//   v1.3 — Fix: removed Object.keys() calls introduced in v1.2; the
+//           firmware's embedded JS engine does not support Object.keys(),
+//           causing a ReferenceError that crashed the script before
+//           outputResults.content was set, reverting every scan to plain-
+//           text Basic Formatting mode.  Replaced with a typeof probe loop
+//           over a known property list (ES3-compatible).
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
@@ -108,7 +115,19 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
     // Debug aids — serialised into the XML as _Dbg* elements that VTCCP ignores.
     // Visible in VS Output window (DmstListener logs first 600 chars of XML).
-    var _dbgRKeys = r ? Object.keys(r).join("|") : "r=null";
+    // NOTE: Object.keys() is NOT used — some firmware JS engines lack it.
+    //       Instead, probe a known list of properties with typeof checks.
+    var _rProbe = ["content","decoded","symbology","symbologyName","symbologyString",
+                   "quality","verificationResult","symbolVerificationResult","symVerResult",
+                   "qualityResult","formalGrade","overallGrade","sc","mod","uec"];
+    var _dbgRKeys = "";
+    for (var _i = 0; _i < _rProbe.length; _i++) {
+        if (r && typeof r[_rProbe[_i]] !== "undefined") {
+            _dbgRKeys += (_dbgRKeys ? "|" : "") + _rProbe[_i];
+        }
+    }
+    if (!_dbgRKeys) { _dbgRKeys = "r=null"; }
+
     var _dbgQPath = "none";
     if (r) {
         if      (r.quality)                  { _dbgQPath = "quality"; }
@@ -116,7 +135,16 @@ function onResult(decodeResults, readerProperties, outputResults) {
         else if (r.symbolVerificationResult) { _dbgQPath = "symbolVerificationResult"; }
         else if (r.symVerResult)             { _dbgQPath = "symVerResult"; }
     }
-    var _dbgQKeys = q ? Object.keys(q).join("|") : "q=null";
+
+    var _qProbe = ["formalGrade","overallGrade","overallGradeValue","sc","scGrade",
+                   "mod","modGrade","uec","uecGrade","aperture","wavelength","rows","columns"];
+    var _dbgQKeys = "";
+    for (var _j = 0; _j < _qProbe.length; _j++) {
+        if (q && typeof q[_qProbe[_j]] !== "undefined") {
+            _dbgQKeys += (_dbgQKeys ? "|" : "") + _qProbe[_j];
+        }
+    }
+    if (!_dbgQKeys) { _dbgQKeys = "q=null"; }
 
     // ── XML assembly ──────────────────────────────────────────────────────────
 
