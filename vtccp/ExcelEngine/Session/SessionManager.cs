@@ -302,12 +302,23 @@ public sealed class SessionManager : IDisposable
             SessionStarted = state.SessionStarted,
             RecordCount    = state.RecordCount,
         };
+        // If the file already exists and has non-Normal attributes (e.g. Hidden from a
+        // prior write), clear them BEFORE WriteAllText.  WriteAllText opens the file with
+        // FileMode.Create; on NTFS, that call will throw UnauthorizedAccessException if
+        // ReadOnly is set — which can happen when FileAttributes are ORed carelessly.
+        try
+        {
+            if (File.Exists(path))
+                File.SetAttributes(path, FileAttributes.Normal);
+        }
+        catch { /* non-fatal — WriteAllText may still succeed */ }
+
         File.WriteAllText(path, JsonSerializer.Serialize(sidecar, _jsonOpts));
 
-        // Keep the sidecar hidden in Explorer so it doesn't clutter the output folder.
-        // Silently ignored on non-NTFS volumes or paths without write permission.
-        try { File.SetAttributes(path, File.GetAttributes(path) | FileAttributes.Hidden); }
-        catch { /* non-fatal */ }
+        // Restore Hidden-only after writing.  Do NOT OR with existing attributes —
+        // that risks re-applying any stale ReadOnly or System flags.
+        try { File.SetAttributes(path, FileAttributes.Hidden); }
+        catch { /* non-fatal on non-NTFS or restricted paths */ }
     }
 
     private static SessionSidecar? LoadSidecar(string path)

@@ -193,6 +193,15 @@ The file is marked with the NTFS `Hidden` attribute immediately after each write
 it does not appear in a normal Explorer folder view.  To see it: *View → Hidden items*
 in Explorer, or `dir /a:h` in a command prompt.
 
+**Implementation note — attribute handling:**  
+`SaveSidecar()` calls `File.SetAttributes(path, FileAttributes.Normal)` *before*
+every write (if the file already exists), then sets `FileAttributes.Hidden` *after*.
+This ordering is mandatory.  `File.WriteAllText` opens with `FileMode.Create`; if the
+file carries a stale `ReadOnly` attribute from a prior write, `WriteAllText` throws
+`UnauthorizedAccessException`.  The ORing pattern `GetAttributes | Hidden` was the
+original bug — it preserved any `ReadOnly` bit and caused the crash on the second sidecar
+write.  Always set `FileAttributes.Normal` to clear, then set only `FileAttributes.Hidden`.
+
 ---
 
 ## Roll Identifier Modes
