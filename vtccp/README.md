@@ -304,11 +304,17 @@ In Push mode VTCCP does not maintain a persistent DMCC connection.  The
    Trigger types "Presentation" and "Self" ignore DMCC `TRIGGER` commands entirely.
 
 2. **DMST must not be connected to the device at the moment the button is pressed.**  
-   Port 23 accepts only one DMCC client at a time.  If DMST is open and connected,
-   VTCCP's connection attempt will be refused and the status bar will show:
-   `Trigger error: No connection could be made because the target machine actively
-   refused it.`  
-   Close DMST (or disconnect its Telnet session) before using the software trigger.
+   Port 23 is a shared DMCC endpoint; the DataMan device gives priority to the first
+   connected client.  Depending on firmware version, a conflict with DMST manifests in
+   one of two ways — both are now surfaced with plain-English messages:
+
+   | Situation | What VTCCP shows |
+   |-----------|-----------------|
+   | Firmware refuses the second TCP connection outright | `Trigger error: No connection could be made…` |
+   | Firmware accepts the TCP handshake but ignores commands from the second client (code -2) | `Trigger: no response from device (code -2). DMST or another DMCC client is likely holding port 23 — disconnect it and retry.` |
+
+   In either case: close DMST (or disconnect its device session) before pressing
+   **⚡ Trigger Scan**.  
    Alternatively, use the physical trigger on the device directly — the push result
    arrives via the Network Client regardless of how the scan was initiated.
 
@@ -323,6 +329,9 @@ In Push mode VTCCP does not maintain a persistent DMCC connection.  The
 | 0 | Trigger accepted; device is scanning | "Trigger sent — waiting for push result…" |
 | 6 | Trigger fired; no symbol decoded | "Trigger fired — no symbol in field of view." |
 | 8 | Device busy; trigger rejected | "Device busy — trigger rejected. Wait a moment and retry." |
+| -1 | Response could not be parsed | "Trigger: unrecognised response format from device (code -1)." |
+| -2 | Device connected but returned no bytes (DMST conflict most likely cause) | "Trigger: no response from device (code -2). DMST or another DMCC client is likely holding port 23…" |
+| -3 | TCP connection timed out before reaching the device | "Trigger: connection timed out (code -3). Verify the device IP/port…" |
 | Other | Firmware-specific error | "Trigger: device returned code N — *body*" |
 
 If the status bar shows code 0 but no push result arrives (Records stays at 0),

@@ -369,6 +369,18 @@ public sealed class SessionViewModel : ViewModelBase
             DeviceInterface.Dmcc.DmccStatus.Busy =>
                 "Device busy — trigger rejected. Wait a moment and retry.",
 
+            DeviceInterface.Dmcc.DmccStatus.NoResponse =>
+                "Trigger: no response from device (code -2). " +
+                "DMST or another DMCC client is likely holding port 23 — disconnect it and retry.",
+
+            DeviceInterface.Dmcc.DmccStatus.Timeout =>
+                "Trigger: connection timed out (code -3). " +
+                "Verify the device IP/port and that the device is online.",
+
+            DeviceInterface.Dmcc.DmccStatus.ParseError =>
+                "Trigger: unrecognised response format from device (code -1). " +
+                "Check firmware version or DMCC port setting.",
+
             _ => string.IsNullOrWhiteSpace(resp.Body)
                     ? $"Trigger: device returned code {resp.StatusCode}."
                     : $"Trigger: device returned code {resp.StatusCode} — {resp.Body}",
