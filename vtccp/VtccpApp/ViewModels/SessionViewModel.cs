@@ -176,6 +176,15 @@ public sealed class SessionViewModel : ViewModelBase
 
         if (SelectedDevice is null)   SelectedDevice   = _repo.DefaultDevice;
         if (SelectedTemplate is null) SelectedTemplate = _repo.DefaultTemplate;
+
+        // Pre-fill Operator ID with the value typed at the last session start.
+        // The user can clear or change it before each session; the new value is
+        // saved back to AppSettings when the session begins.
+        if (string.IsNullOrWhiteSpace(OperatorOverride) &&
+            !string.IsNullOrWhiteSpace(_repo.Settings.LastOperatorId))
+        {
+            OperatorOverride = _repo.Settings.LastOperatorId;
+        }
     }
 
     // ── Start / Stop ──────────────────────────────────────────────────────────
@@ -191,6 +200,15 @@ public sealed class SessionViewModel : ViewModelBase
         SessionState state = SelectedTemplate.ToSessionState(outputDir);
         if (!string.IsNullOrWhiteSpace(OperatorOverride))
             state.OperatorId = OperatorOverride.Trim();
+
+        // Persist the operator ID so it pre-fills automatically next time.
+        // Fire-and-forget is fine — a failed settings write is never session-critical.
+        if (!string.IsNullOrWhiteSpace(state.OperatorId) &&
+            state.OperatorId != _repo.Settings.LastOperatorId)
+        {
+            _repo.Settings.LastOperatorId = state.OperatorId;
+            _ = _repo.SaveSettingsAsync();
+        }
 
         _sessionMgr = new SessionManager(TruCheckCompatibleSchema.Build());
         _pollCts    = new System.Threading.CancellationTokenSource();

@@ -189,6 +189,10 @@ interrupted session can be resumed automatically via `StartSession()`.
 
 The sidecar is deleted by `CloseSession()` to signal a clean job close.
 
+The file is marked with the NTFS `Hidden` attribute immediately after each write so
+it does not appear in a normal Explorer folder view.  To see it: *View → Hidden items*
+in Explorer, or `dir /a:h` in a command prompt.
+
 ---
 
 ## Roll Identifier Modes
@@ -222,6 +226,135 @@ Expected output ends with all checks reporting **PASS**.
 
 EPPlus is used under the NonCommercial context (`ExcelPackage.LicenseContext = NonCommercial`).
 Production or commercial deployments require a valid EPPlus commercial license.
+
+---
+
+## Operational Notes & Field Observations
+
+This section records behaviour confirmed or discovered during live testing against
+a real DMV475 device.  It is the authoritative source for configuration requirements
+that are not obvious from the DMST UI.
+
+---
+
+### Operator ID Persistence
+
+The **Operator ID (override)** field in the Session Launcher is pre-filled with the
+value that was typed the last time a session was started.  It is persisted in
+`%APPDATA%\VTCCP\appsettings.json` under `lastOperatorId`.  
+- To change operators: type a new value before clicking **Start Session**.  
+- To clear it permanently: delete or blank the field before starting, or edit
+  `appsettings.json` directly.
+
+---
+
+### Live Excel Monitoring (Real-Time Save)
+
+`SessionManager.AddRecord()` calls `ExcelWriter.Save()` after every appended row.
+The file can therefore be opened in Excel during a session and watched live.
+
+**How this differs from Webscan:**  
+Webscan writes an `.xls` (legacy binary format) file via an OLEDB / COM-layer
+connection that keeps a shared file handle open for the duration of the session.
+Excel recognises OLEDB sources and can auto-refresh the sheet without any prompt.
+
+VTCCP writes `.xlsx` (Open XML ZIP archive) via EPPlus.  Each `Save()` rewrites
+the entire ZIP file and closes it.  When Excel has the same `.xlsx` file open:
+
+| Excel state | What you see |
+|---|---|
+| File open, no edits in progress | Yellow notification bar: *"This file has changed. Reload?"* — click **Reload** to see new rows. |
+| File open, you are editing a cell | Excel holds its own copy; the disk version is updated silently. You will see a reload prompt when you next save or switch away. |
+| File not open | No prompt; next time you open it all rows are present. |
+
+The notification bar appears in Excel 2016 and later.  Earlier versions may show
+a modal dialog instead.  In all cases the data is correctly on disk — open/reload
+the file to see the current rows.
+
+**Recommendation:** Open the file in Excel *after* starting the session and use
+the yellow bar to refresh between scans.  Do not edit the file while a session is
+running; edits will be lost when Excel reloads the EPPlus-saved copy.
+
+If silent live updates (Webscan style) are a hard requirement in a future version,
+the `XlsAdapter` (NPOI) path can be extended to use an OLEDB write-behind strategy,
+but this requires Excel to be installed on the host machine.
+
+---
+
+### Software Trigger in Push Mode
+
+In Push mode VTCCP does not maintain a persistent DMCC connection.  The
+**⚡ Trigger Scan** button opens a short-lived TCP connection to port 23, sends the
+`TRIGGER` command, reads and surfaces the device's response code, then disconnects.
+
+#### Prerequisites for the software trigger to work
+
+1. **Device trigger type must be set to "Single"** (or another type that honours
+   software trigger commands).  In DMST:
+   *Device Settings → Trigger → Trigger Type → Single*  
+   Trigger types "Presentation" and "Self" ignore DMCC `TRIGGER` commands entirely.
+
+2. **DMST must not be connected to the device at the moment the button is pressed.**  
+   Port 23 accepts only one DMCC client at a time.  If DMST is open and connected,
+   VTCCP's connection attempt will be refused and the status bar will show:
+   `Trigger error: No connection could be made because the target machine actively
+   refused it.`  
+   Close DMST (or disconnect its Telnet session) before using the software trigger.
+   Alternatively, use the physical trigger on the device directly — the push result
+   arrives via the Network Client regardless of how the scan was initiated.
+
+3. **A barcode must be in the field of view** when the trigger fires, otherwise the
+   device returns DMCC status code 6 (No Read) and the status bar shows:
+   `Trigger fired — no symbol in field of view.`
+
+#### DMCC TRIGGER response codes
+
+| Code | Meaning | VTCCP status bar |
+|------|---------|-----------------|
+| 0 | Trigger accepted; device is scanning | "Trigger sent — waiting for push result…" |
+| 6 | Trigger fired; no symbol decoded | "Trigger fired — no symbol in field of view." |
+| 8 | Device busy; trigger rejected | "Device busy — trigger rejected. Wait a moment and retry." |
+| Other | Firmware-specific error | "Trigger: device returned code N — *body*" |
+
+If the status bar shows code 0 but no push result arrives (Records stays at 0),
+see the **Push Mode Network Setup** section below.
+
+---
+
+### Push Mode Network Setup
+
+Push mode requires the DataMan device's **Network Client** to be configured to
+push XML results to VTCCP's host PC.
+
+**In DMST:**
+1. *Device Settings → Communication → Network Client*
+2. Set **IP Address** to the VTCCP host PC's IP (e.g. `10.10.10.19`)
+3. Set **Port** to the `DmstListenPort` value in the VTCCP device profile (default `9004`)
+4. Set **Format** to *Full XML* (or ensure the DMST push script is installed — see above)
+5. Enable the Network Client checkbox
+6. *Save Settings → Write to device*
+
+**Windows Firewall:**  
+VTCCP's push listener binds to `0.0.0.0:<DmstListenPort>`.  On a fresh Windows
+install the Windows Defender Firewall will block inbound TCP on that port.  Either:
+- Allow VTCCP through the firewall when prompted on first session start, or
+- Manually add an inbound rule: *Control Panel → Firewall → Advanced Settings →
+  Inbound Rules → New Rule → Port → TCP → Specific port: 9004 → Allow*
+
+**Confirming the push path:**  
+Use DMST's *Network Client → Test Connection* button (if available in your firmware)
+or scan a barcode while watching the VTCCP session for a record increment.
+
+---
+
+### DMST Push Script vs. Default XML Format
+
+If `DmstPushScript_v1.js` is NOT installed, the device pushes a minimal XML payload
+that `DmstResultParser` can still parse for identity and overall-grade columns, but
+the majority of the 167-column schema will be blank.
+
+Install the script for full column coverage (see the **DMST Push Script** section
+above and the installation steps in the script's header comments).
 
 ---
 
