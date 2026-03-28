@@ -217,7 +217,13 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
             if (!triggered)
             {
-                tcs.TrySetResult(null);
+                // Both TRIGGER forms failed.  The device is likely in Continuous or
+                // Presentation mode (trigger type 0 on firmware 6.x) — it auto-scans
+                // when a label is presented and does not accept explicit TRIGGER commands.
+                // Keep waiting for XmlResultArrived; the device will fire it automatically.
+                System.Diagnostics.Debug.WriteLine(
+                    "[VTCCP-SDK] TRIGGER rejected — device in auto-scan mode; " +
+                    "waiting for XmlResultArrived on label presentation...");
             }
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
