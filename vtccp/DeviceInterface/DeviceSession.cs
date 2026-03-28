@@ -22,7 +22,7 @@ public sealed class DeviceSession : IAsyncDisposable
 {
     private readonly DeviceConfig       _cfg;
     private readonly VerificationXmlMap _map;
-    private readonly DmccClient         _client;
+    private readonly DataManSdkClient   _client;
     private DmstListener?               _listener;
     private bool                        _disposed;
 
@@ -47,7 +47,7 @@ public sealed class DeviceSession : IAsyncDisposable
     {
         _cfg    = config ?? throw new ArgumentNullException(nameof(config));
         _map    = map ?? new VerificationXmlMap();
-        _client = new DmccClient(_cfg);
+        _client = new DataManSdkClient(_cfg);
     }
 
     // ── Connection ────────────────────────────────────────────────────────────

@@ -12,4 +12,13 @@
     <ProjectReference Include="..\ExcelEngine\ExcelEngine.csproj" />
   </ItemGroup>
 
+  <!-- Cognex DataMan SDK — ships with DataMan Software (DMST).
+       Port 44444 binary protocol; replaces our raw ASCII DmccClient. -->
+  <ItemGroup>
+    <Reference Include="Cognex.DataMan.SDK.PC">
+      <HintPath>C:\Program Files (x86)\Cognex\DataMan\DataMan Software v25.4.1\Cognex.DataMan.SDK.PC.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
 </Project>

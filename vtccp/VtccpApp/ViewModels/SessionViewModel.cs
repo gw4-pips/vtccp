@@ -357,13 +357,8 @@ public sealed class SessionViewModel : ViewModelBase
             $"[VTCCP-DMCC] Trigger attempt: {cfg.Host}:{cfg.Port}  " +
             $"connect={cfg.ConnectTimeoutMs}ms  response={cfg.ResponseTimeoutMs}ms  idle={cfg.IdleGapMs}ms");
 
-        await using var client = new DeviceInterface.Dmcc.DmccClient(cfg);
+        await using var client = new DeviceInterface.Dmcc.DataManSdkClient(cfg);
         await client.ConnectAsync();
-
-        var banner = client.WelcomeBanner ?? "(null)";
-        System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-DMCC] Connected.  Banner ({banner.Length} chars): " +
-            $"{(banner.Length > 120 ? banner[..120] + "…" : banner).Replace("\r", "\\r").Replace("\n", "\\n")}");
 
         var resp = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.Trigger);
 
@@ -383,9 +378,8 @@ public sealed class SessionViewModel : ViewModelBase
                 "Device busy — trigger rejected. Wait a moment and retry.",
 
             DeviceInterface.Dmcc.DmccStatus.NoResponse =>
-                $"Trigger: device connected (banner: '{banner.Trim()}') but sent no reply to TRIGGER command " +
-                $"(code -2).  If DataMan Setup Tool is open, close it first.  " +
-                $"If closed, check VS Output for [VTCCP-DMCC] lines to see the raw exchange.",
+                "Trigger: SDK connected but device sent no reply to TRIGGER (code -2). " +
+                "Check VS Output for [VTCCP-SDK] lines.",
 
             DeviceInterface.Dmcc.DmccStatus.Timeout =>
                 "Trigger: connection timed out (code -3). " +
@@ -473,7 +467,7 @@ public sealed class SessionViewModel : ViewModelBase
             cfg.ConnectTimeoutMs  = 2_000;
             cfg.ResponseTimeoutMs = 3_000;
 
-            await using var client = new DeviceInterface.Dmcc.DmccClient(cfg);
+            await using var client = new DeviceInterface.Dmcc.DataManSdkClient(cfg);
             await client.ConnectAsync();
 
             // Configure full result format (required once per connection).
