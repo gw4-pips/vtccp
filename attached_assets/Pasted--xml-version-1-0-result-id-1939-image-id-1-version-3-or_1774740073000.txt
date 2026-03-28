@@ -1,0 +1,4891 @@
+<?xml version="1.0"?>
+<result id="1939" image_id="-1" version="3" origin="common">
+	<general>
+		<status>GOOD READ</status>
+		<result_source>DM475-63530E-PIPS-Verif-Lab</result_source>
+		<full_string encoding="base64">PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjxETUNDUmVzcG9uc2U+DQo8RE1TeW1WZXJSZXNwb25zZT4NCjxEYXRlVGltZT4yMDI2LTAzLTI4VDE5OjE4OjM0PC9EYXRlVGltZT4NCjxTeW1ib2xvZ3lOYW1lPkRhdGEgTWF0cml4PC9TeW1ib2xvZ3lOYW1lPg0KPERlY29kZWREYXRhPlRCMkFWTlNYREtaQkhXOTE0OFdHMlpZREszQzFBN0RHPC9EZWNvZGVkRGF0YT4NCjxfRGJnUktleXM+Y29udGVudHxkZWNvZGVkfHN5bWJvbG9neTwvX0RiZ1JLZXlzPg0KPF9EYmdSUEtleXM+cnA9ZW1wdHk8L19EYmdSUEtleXM+DQo8X0RiZ1FQYXRoPm5vbmU8L19EYmdRUGF0aD4NCjxfRGJnUUtleXM+cT1udWxsPC9fRGJnUUtleXM+DQo8L0RNU3ltVmVyUmVzcG9uc2U+DQo8L0RNQ0NSZXNwb25zZT4=</full_string>
+		<trigger_index>5</trigger_index>
+		<trigger_time>0</trigger_time>
+		<decode_time>166</decode_time>
+		<symbology>Data Matrix</symbology>
+		<generator>DM475-63530E-PIPS-Verif-Lab</generator>
+		<bca_result>No Stats</bca_result>
+		<bca_parcel>No Stats</bca_parcel>
+		<bca_face>No Stats</bca_face>
+		<bca_position>{-1, -1, -1}</bca_position>
+		<read_setup>0</read_setup>
+		<module_size>9.84</module_size>
+	</general>
+	<statistics>
+		<read_stats>
+			<good_reads>1939</good_reads>
+			<bad_reads>0</bad_reads>
+			<passed_validations>0</passed_validations>
+			<failed_validations>0</failed_validations>
+			<triggers_missed>0</triggers_missed>
+			<cancelled_trigger_on_holdoffs>0</cancelled_trigger_on_holdoffs>
+			<cancelled_trigger_off_holdoffs>0</cancelled_trigger_off_holdoffs>
+			<trigger_overruns>0</trigger_overruns>
+			<buffer_overflows>0</buffer_overflows>
+			<item_count>0</item_count>
+			<decoded_symbols>
+				<read_setup index="0">1939</read_setup>
+				<read_setup index="16">0</read_setup>
+			</decoded_symbols>
+		</read_stats>
+	</statistics>
+	<trucheck_verificaiton_result>
+		<status>valid</status>
+		<CalibrationDate>1/15/2026 3:04:14 PM</CalibrationDate>
+		<OpticalVariant>DM475V</OpticalVariant>
+		<SymbolData>
+			<CalibrationState>0</CalibrationState>
+			<SymbologyType>DataMatrix</SymbologyType>
+			<DecodedData>TB2AVNSXDKZBHW9148WG2ZYDK3C1A7DG</DecodedData>
+			<Base64Data>VEIyQVZOU1hES1pCSFc5MTQ4V0cyWllESzNDMUE3REc=</Base64Data>
+			<VerificaitonTime>71</VerificaitonTime>
+			<PreDecodeTime>0</PreDecodeTime>
+			<BlurTime>12</BlurTime>
+			<ThreshTime>3</ThreshTime>
+			<StickTime>0</StickTime>
+			<LineSearchTime>10</LineSearchTime>
+			<CanidateEvaluationTime>9</CanidateEvaluationTime>
+			<PostDecodeTime>27</PostDecodeTime>
+			<ResultTime>0</ResultTime>
+			<ReportSection sectionType="GradingInfo" sectionTitle="Verification Grades">
+				<GradeInfo>
+					<Standard>ISO 15415:2011</Standard>
+					<Grade>3.0</Grade>
+					<ValueGrade>B</ValueGrade>
+					<Aperture>10</Aperture>
+					<Wavelength>660</Wavelength>
+					<Lighting>45Q</Lighting>
+					<FormalGrade>3.0/10/660/45Q</FormalGrade>
+				</GradeInfo>
+				<GradeInfo>
+					<Standard>Custom</Standard>
+					<Grade>Pass</Grade>
+				</GradeInfo>
+			</ReportSection>
+			<ReportSection sectionType="GradeHistory" sectionTitle="Grade History">
+				<FailWindow>1</FailWindow>
+				<MaxFailCount>1</MaxFailCount>
+				<CurrentFailCount>0</CurrentFailCount>
+				<VerificationOverallPass>1</VerificationOverallPass>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>4.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>4.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+				<Grade>3.0</Grade>
+			</ReportSection>
+			<ReportSection sectionType="Table" sectionTitle="ISO15415 Quality Parameters">
+				<Parameter>
+					<Number>1</Number>
+					<Name>Unused Error Correction (UEC)</Name>
+					<Grade>4.0</Grade>
+					<Value>100.0%</Value>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>2</Number>
+					<Name>Symbol Contrast (SC)</Name>
+					<Grade>3.0</Grade>
+					<Value>70%</Value>
+					<Data>Rl/Rd (74/4)</Data>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>3a</Number>
+					<Name>Modulation (MOD)</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>3b</Number>
+					<Name>Reflectance Margin (RM)</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>4</Number>
+					<Name>Axial Nonuniformity (ANU)</Name>
+					<Grade>4.0</Grade>
+					<Value>4.1%</Value>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>5</Number>
+					<Name>Grid Nonuniformity (GNU)</Name>
+					<Grade>4.0</Grade>
+					<Value>7.5%</Value>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>6</Number>
+					<Name>Fixed Pattern Damage (FPD)</Name>
+					<Grade>4.0</Grade>
+					<Value>4.0</Value>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>7</Number>
+					<Name>Left 'L' Side (LLS)</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>8</Number>
+					<Name>Bottom 'L' Side (BLS)</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>9</Number>
+					<Name>Left Quiet Zone (LQZ)</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>10</Number>
+					<Name>Bottom Quiet Zone (BQZ)</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>11</Number>
+					<Name>Top Quiet Zone (TQZ)</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>12</Number>
+					<Name>Right Quiet Zone (RQZ)</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>13</Number>
+					<Name>Top Transition Ratio (TTR)</Name>
+					<Grade>4.0</Grade>
+					<Value>0%</Value>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>14</Number>
+					<Name>Right Transition Ratio (RTR)</Name>
+					<Grade>4.0</Grade>
+					<Value>0%</Value>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>15</Number>
+					<Name>Top Clock Track (TCT)</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>16</Number>
+					<Name>Right Clock Track (RCT)</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>17</Number>
+					<Name>Average Grade (AG)</Name>
+					<Grade>4.0</Grade>
+					<Value>4.0</Value>
+					<Check>PASS</Check>
+				</Parameter>
+				<Parameter>
+					<Number>18</Number>
+					<Name>DECODE</Name>
+					<Grade>4.0</Grade>
+					<Check>PASS</Check>
+				</Parameter>
+			</ReportSection>
+			<ReportSection sectionType="Table" sectionTitle="General Characteristics">
+				<Parameter>
+					<Name>Matrix Size</Name>
+					<Data>22x22 (Data: 20x20)</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Horizontal BWG</Name>
+					<Data>3%</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Vertical BWG</Name>
+					<Data>-7%</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Encoded characters</Name>
+					<Data>32</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Total Codewords</Name>
+					<Data>50</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Data Codewords</Name>
+					<Data>30</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Error Correction Budget</Name>
+					<Data>20</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Errors Corrected</Name>
+					<Data>0</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Error Capacity Used</Name>
+					<Data>0</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Error Correction Type</Name>
+					<Data>ECC 200</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Image</Name>
+					<Data>Black on white</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Nominal X Dim</Name>
+					<Data>13.1 mil</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Pixels per Module</Name>
+					<Data>9.85</Data>
+				</Parameter>
+				<Parameter>
+					<Name>Contrast Uniformity</Name>
+					<Data>43 at module(3,8)</Data>
+				</Parameter>
+				<Parameter>
+					<Name>MRD</Name>
+					<Data>40% (55% - 15%)</Data>
+				</Parameter>
+			</ReportSection>
+			<ReportSection sectionType="TabularData" sectionTitle="ASCII Values">
+				<Value>084</Value>
+				<Value>066</Value>
+				<Value>050</Value>
+				<Value>065</Value>
+				<Value>086</Value>
+				<Value>078</Value>
+				<Value>083</Value>
+				<Value>088</Value>
+				<Value>068</Value>
+				<Value>075</Value>
+				<Value>090</Value>
+				<Value>066</Value>
+				<Value>072</Value>
+				<Value>087</Value>
+				<Value>057</Value>
+				<Value>049</Value>
+				<Value>052</Value>
+				<Value>056</Value>
+				<Value>087</Value>
+				<Value>071</Value>
+				<Value>050</Value>
+				<Value>090</Value>
+				<Value>089</Value>
+				<Value>068</Value>
+				<Value>075</Value>
+				<Value>051</Value>
+				<Value>067</Value>
+				<Value>049</Value>
+				<Value>065</Value>
+				<Value>055</Value>
+				<Value>068</Value>
+				<Value>071</Value>
+			</ReportSection>
+			<ReportSection sectionType="TabularData" sectionTitle="Codewords">
+				<Value>230</Value>
+				<Value>208</Value>
+				<Value>159</Value>
+				<Value>093</Value>
+				<Value>020</Value>
+				<Value>205</Value>
+				<Value>218</Value>
+				<Value>156</Value>
+				<Value>040</Value>
+				<Value>136</Value>
+				<Value>238</Value>
+				<Value>032</Value>
+				<Value>141</Value>
+				<Value>228</Value>
+				<Value>039</Value>
+				<Value>249</Value>
+				<Value>194</Value>
+				<Value>151</Value>
+				<Value>041</Value>
+				<Value>033</Value>
+				<Value>124</Value>
+				<Value>254</Value>
+				<Value>069</Value>
+				<Value>072</Value>
+				<Value>129</Value>
+				<Value>209</Value>
+				<Value>104</Value>
+				<Value>254</Value>
+				<Value>150</Value>
+				<Value>045</Value>
+				<Value>048</Value>
+				<Value>220</Value>
+				<Value>126</Value>
+				<Value>055</Value>
+				<Value>182</Value>
+				<Value>106</Value>
+				<Value>124</Value>
+				<Value>104</Value>
+				<Value>142</Value>
+				<Value>085</Value>
+				<Value>160</Value>
+				<Value>189</Value>
+				<Value>192</Value>
+				<Value>077</Value>
+				<Value>128</Value>
+				<Value>000</Value>
+				<Value>082</Value>
+				<Value>143</Value>
+				<Value>034</Value>
+				<Value>036</Value>
+				<Notation>*=Fixed by Error Correction</Notation>
+			</ReportSection>
+			<ReportSection sectionType="Table" sectionTitle="Encodation Analysis">
+				<ColumnHeaders>
+					<ColName>Codeword</ColName>
+					<ColName>Mode</ColName>
+					<ColName>Result</ColName>
+				</ColumnHeaders>
+				<Parameter>
+					<Name>230</Name>
+					<Mode>ASCII</Mode>
+					<Result>SWITCH TO C40 MODE</Result>
+				</Parameter>
+				<Parameter>
+					<Name>208, 159</Name>
+					<Mode>C40</Mode>
+					<Result>TB2</Result>
+				</Parameter>
+				<Parameter>
+					<Name>093, 020</Name>
+					<Mode>C40</Mode>
+					<Result>AVN</Result>
+				</Parameter>
+				<Parameter>
+					<Name>205, 218</Name>
+					<Mode>C40</Mode>
+					<Result>SXD</Result>
+				</Parameter>
+				<Parameter>
+					<Name>156, 040</Name>
+					<Mode>C40</Mode>
+					<Result>KZB</Result>
+				</Parameter>
+				<Parameter>
+					<Name>136, 238</Name>
+					<Mode>C40</Mode>
+					<Result>HW9</Result>
+				</Parameter>
+				<Parameter>
+					<Name>032, 141</Name>
+					<Mode>C40</Mode>
+					<Result>148</Result>
+				</Parameter>
+				<Parameter>
+					<Name>228, 039</Name>
+					<Mode>C40</Mode>
+					<Result>WG2</Result>
+				</Parameter>
+				<Parameter>
+					<Name>249, 194</Name>
+					<Mode>C40</Mode>
+					<Result>ZYD</Result>
+				</Parameter>
+				<Parameter>
+					<Name>151, 041</Name>
+					<Mode>C40</Mode>
+					<Result>K3C</Result>
+				</Parameter>
+				<Parameter>
+					<Name>033, 124</Name>
+					<Mode>C40</Mode>
+					<Result>1A7</Result>
+				</Parameter>
+				<Parameter>
+					<Name>254</Name>
+					<Mode>C40</Mode>
+					<Result>C40 UNLATCH</Result>
+				</Parameter>
+				<Parameter>
+					<Name>069</Name>
+					<Mode>ASCII</Mode>
+					<Result>D</Result>
+				</Parameter>
+				<Parameter>
+					<Name>072</Name>
+					<Mode>ASCII</Mode>
+					<Result>G</Result>
+				</Parameter>
+				<Parameter>
+					<Name>129</Name>
+					<Mode>ASCII</Mode>
+					<Result>ASCII PAD</Result>
+				</Parameter>
+				<Parameter>
+					<Name>209</Name>
+					<Mode>ASCII</Mode>
+					<Result>ASCII PAD</Result>
+				</Parameter>
+				<Parameter>
+					<Name>104</Name>
+					<Mode>ASCII</Mode>
+					<Result>ASCII PAD</Result>
+				</Parameter>
+				<Parameter>
+					<Name>254</Name>
+					<Mode>ASCII</Mode>
+					<Result>ASCII PAD</Result>
+				</Parameter>
+				<Parameter>
+					<Name>150</Name>
+					<Mode>ASCII</Mode>
+					<Result>ASCII PAD</Result>
+				</Parameter>
+				<Parameter>
+					<Name>045</Name>
+					<Mode>ASCII</Mode>
+					<Result>ASCII PAD</Result>
+				</Parameter>
+				<Parameter>
+					<Name>048, 220, 126, 055, 182, 106, 124, 104, 142, 085, 160, 189, 192, 077, 128, 000, 082, 143, 034, 036</Name>
+					<Mode>ECC</Mode>
+					<Result> </Result>
+				</Parameter>
+			</ReportSection>
+			<GridData>
+				<SymbolSize>
+					<Rows>22</Rows>
+					<Columns>22</Columns>
+					<QuietZone>1</QuietZone>
+				</SymbolSize>
+				<Aperture>7.869</Aperture>
+				<Regions>1</Regions>
+				<SymbolRegion>
+					<UpperLeft>1089.584,1118.172</UpperLeft>
+					<UpperRight>1089.853,1118.172</UpperRight>
+					<LowerLeft>877.861,1117.535</LowerLeft>
+					<LowerRight>878.130,1338.632</LowerRight>
+				</SymbolRegion>
+				<GridIntersection row="-1" column="-1">
+					<Center>873.311,1112.565</Center>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="0">
+					<Center>873.280,1122.516</Center>
+					<Mod>68</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="1">
+					<Center>873.249,1132.704</Center>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="2">
+					<Center>873.218,1142.837</Center>
+					<Mod>73</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="3">
+					<Center>873.187,1152.693</Center>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="4">
+					<Center>873.156,1162.765</Center>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="5">
+					<Center>873.125,1172.880</Center>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="6">
+					<Center>873.094,1182.990</Center>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="7">
+					<Center>873.063,1193.101</Center>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="8">
+					<Center>873.032,1203.235</Center>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="9">
+					<Center>873.002,1212.963</Center>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="10">
+					<Center>872.971,1222.932</Center>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="11">
+					<Center>872.940,1233.170</Center>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="12">
+					<Center>872.909,1243.203</Center>
+					<Mod>72</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="13">
+					<Center>872.878,1253.109</Center>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="14">
+					<Center>872.847,1263.348</Center>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="15">
+					<Center>872.816,1273.351</Center>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="16">
+					<Center>872.785,1283.472</Center>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="17">
+					<Center>872.754,1293.666</Center>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="18">
+					<Center>872.724,1303.416</Center>
+					<Mod>55</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="19">
+					<Center>872.693,1313.399</Center>
+					<Mod>74</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="20">
+					<Center>872.662,1323.477</Center>
+					<Mod>66</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="21">
+					<Center>872.632,1333.359</Center>
+					<Mod>72</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="-1" column="22">
+					<Center>872.601,1343.242</Center>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="-1">
+					<Center>882.934,1112.604</Center>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="0">
+					<Center>882.904,1122.555</Center>
+					<IdealCenter>882.904,1122.555</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="1">
+					<Center>882.872,1132.743</Center>
+					<IdealCenter>882.873,1132.596</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="2">
+					<Center>882.841,1142.877</Center>
+					<IdealCenter>882.842,1142.636</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="3">
+					<Center>882.811,1152.733</Center>
+					<IdealCenter>882.811,1152.677</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="4">
+					<Center>882.780,1162.806</Center>
+					<IdealCenter>882.780,1162.718</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="5">
+					<Center>882.748,1172.922</Center>
+					<IdealCenter>882.749,1172.758</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="6">
+					<Center>882.717,1183.031</Center>
+					<IdealCenter>882.718,1182.799</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="7">
+					<Center>882.686,1193.143</Center>
+					<IdealCenter>882.687,1192.839</IdealCenter>
+					<Mod>76</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="8">
+					<Center>882.655,1203.278</Center>
+					<IdealCenter>882.656,1202.880</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="9">
+					<Center>882.625,1213.006</Center>
+					<IdealCenter>882.625,1212.921</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="10">
+					<Center>882.594,1222.976</Center>
+					<IdealCenter>882.594,1222.961</IdealCenter>
+					<Mod>78</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="11">
+					<Center>882.563,1233.213</Center>
+					<IdealCenter>882.563,1233.002</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="12">
+					<Center>882.532,1243.248</Center>
+					<IdealCenter>882.532,1243.042</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="13">
+					<Center>882.501,1253.154</Center>
+					<IdealCenter>882.501,1253.083</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="14">
+					<Center>882.470,1263.393</Center>
+					<IdealCenter>882.470,1263.124</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="15">
+					<Center>882.439,1273.397</Center>
+					<IdealCenter>882.440,1273.164</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="16">
+					<Center>882.408,1283.518</Center>
+					<IdealCenter>882.409,1283.205</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="17">
+					<Center>882.376,1293.713</Center>
+					<IdealCenter>882.378,1293.245</IdealCenter>
+					<Mod>65</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="18">
+					<Center>882.346,1303.463</Center>
+					<IdealCenter>882.347,1303.286</IdealCenter>
+					<Mod>81</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="19">
+					<Center>882.315,1313.446</Center>
+					<IdealCenter>882.316,1313.327</IdealCenter>
+					<Mod>42</Mod>
+					<Grade>3.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="20">
+					<Center>882.284,1323.525</Center>
+					<IdealCenter>882.285,1323.367</IdealCenter>
+					<Mod>78</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="21">
+					<Center>882.254,1333.408</Center>
+					<IdealCenter>882.254,1333.408</IdealCenter>
+					<Mod>74</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="0" column="22">
+					<Center>882.223,1343.291</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>73</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="-1">
+					<Center>892.558,1112.642</Center>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="0">
+					<Center>892.527,1122.594</Center>
+					<IdealCenter>892.544,1122.594</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="1">
+					<Center>892.496,1132.782</Center>
+					<IdealCenter>892.513,1132.635</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="2">
+					<Center>892.464,1142.917</Center>
+					<IdealCenter>892.482,1142.676</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="3">
+					<Center>892.434,1152.774</Center>
+					<IdealCenter>892.451,1152.717</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="4">
+					<Center>892.403,1162.847</Center>
+					<IdealCenter>892.420,1162.758</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="5">
+					<Center>892.372,1172.963</Center>
+					<IdealCenter>892.389,1172.799</IdealCenter>
+					<Mod>80</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="6">
+					<Center>892.340,1183.073</Center>
+					<IdealCenter>892.358,1182.840</IdealCenter>
+					<Mod>81</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="7">
+					<Center>892.309,1193.185</Center>
+					<IdealCenter>892.327,1192.882</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="8">
+					<Center>892.278,1203.320</Center>
+					<IdealCenter>892.296,1202.923</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="9">
+					<Center>892.248,1213.049</Center>
+					<IdealCenter>892.265,1212.964</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="10">
+					<Center>892.217,1223.019</Center>
+					<IdealCenter>892.234,1223.005</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="11">
+					<Center>892.185,1233.257</Center>
+					<IdealCenter>892.203,1233.046</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="12">
+					<Center>892.154,1243.292</Center>
+					<IdealCenter>892.172,1243.087</IdealCenter>
+					<Mod>77</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="13">
+					<Center>892.124,1253.198</Center>
+					<IdealCenter>892.141,1253.128</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="14">
+					<Center>892.092,1263.438</Center>
+					<IdealCenter>892.110,1263.169</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="15">
+					<Center>892.061,1273.442</Center>
+					<IdealCenter>892.079,1273.210</IdealCenter>
+					<Mod>70</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="16">
+					<Center>892.030,1283.564</Center>
+					<IdealCenter>892.048,1283.251</IdealCenter>
+					<Mod>73</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="17">
+					<Center>891.999,1293.759</Center>
+					<IdealCenter>892.017,1293.292</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="18">
+					<Center>891.968,1303.510</Center>
+					<IdealCenter>891.986,1303.333</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="19">
+					<Center>891.938,1313.493</Center>
+					<IdealCenter>891.955,1313.374</IdealCenter>
+					<Mod>72</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="20">
+					<Center>891.906,1323.572</Center>
+					<IdealCenter>891.924,1323.415</IdealCenter>
+					<Mod>73</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="21">
+					<Center>891.876,1333.456</Center>
+					<IdealCenter>891.893,1333.456</IdealCenter>
+					<Mod>72</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="1" column="22">
+					<Center>891.845,1343.340</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>71</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="-1">
+					<Center>902.183,1112.681</Center>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="0">
+					<Center>902.153,1122.633</Center>
+					<IdealCenter>902.185,1122.633</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="1">
+					<Center>902.121,1132.822</Center>
+					<IdealCenter>902.154,1132.675</IdealCenter>
+					<Mod>68</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="2">
+					<Center>902.090,1142.957</Center>
+					<IdealCenter>902.123,1142.716</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="3">
+					<Center>902.059,1152.814</Center>
+					<IdealCenter>902.092,1152.758</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="4">
+					<Center>902.028,1162.888</Center>
+					<IdealCenter>902.061,1162.799</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="5">
+					<Center>901.997,1173.004</Center>
+					<IdealCenter>902.030,1172.841</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="6">
+					<Center>901.965,1183.115</Center>
+					<IdealCenter>901.999,1182.882</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="7">
+					<Center>901.934,1193.227</Center>
+					<IdealCenter>901.968,1192.924</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="8">
+					<Center>901.903,1203.363</Center>
+					<IdealCenter>901.937,1202.965</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="9">
+					<Center>901.873,1213.092</Center>
+					<IdealCenter>901.905,1213.007</IdealCenter>
+					<Mod>46</Mod>
+					<Grade>3.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="10">
+					<Center>901.842,1223.063</Center>
+					<IdealCenter>901.874,1223.048</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="11">
+					<Center>901.810,1233.301</Center>
+					<IdealCenter>901.843,1233.090</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="12">
+					<Center>901.779,1243.336</Center>
+					<IdealCenter>901.812,1243.131</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="13">
+					<Center>901.748,1253.243</Center>
+					<IdealCenter>901.781,1253.173</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="14">
+					<Center>901.717,1263.484</Center>
+					<IdealCenter>901.750,1263.214</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="15">
+					<Center>901.686,1273.488</Center>
+					<IdealCenter>901.719,1273.256</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="16">
+					<Center>901.654,1283.610</Center>
+					<IdealCenter>901.688,1283.297</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="17">
+					<Center>901.623,1293.806</Center>
+					<IdealCenter>901.657,1293.339</IdealCenter>
+					<Mod>77</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="18">
+					<Center>901.593,1303.557</Center>
+					<IdealCenter>901.626,1303.380</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="19">
+					<Center>901.562,1313.541</Center>
+					<IdealCenter>901.595,1313.422</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="20">
+					<Center>901.531,1323.620</Center>
+					<IdealCenter>901.564,1323.463</IdealCenter>
+					<Mod>75</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="21">
+					<Center>901.500,1333.504</Center>
+					<IdealCenter>901.532,1333.505</IdealCenter>
+					<Mod>67</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="2" column="22">
+					<Center>901.469,1343.388</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>68</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="-1">
+					<Center>911.839,1112.719</Center>
+					<Mod>77</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="0">
+					<Center>911.808,1122.672</Center>
+					<IdealCenter>911.826,1122.672</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="1">
+					<Center>911.777,1132.861</Center>
+					<IdealCenter>911.795,1132.714</IdealCenter>
+					<Mod>73</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="2">
+					<Center>911.745,1142.997</Center>
+					<IdealCenter>911.764,1142.756</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="3">
+					<Center>911.715,1152.854</Center>
+					<IdealCenter>911.732,1152.798</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="4">
+					<Center>911.684,1162.929</Center>
+					<IdealCenter>911.701,1162.840</IdealCenter>
+					<Mod>77</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="5">
+					<Center>911.652,1173.045</Center>
+					<IdealCenter>911.670,1172.882</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="6">
+					<Center>911.621,1183.157</Center>
+					<IdealCenter>911.639,1182.924</IdealCenter>
+					<Mod>75</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="7">
+					<Center>911.589,1193.270</Center>
+					<IdealCenter>911.608,1192.966</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="8">
+					<Center>911.558,1203.405</Center>
+					<IdealCenter>911.577,1203.008</IdealCenter>
+					<Mod>43</Mod>
+					<Grade>3.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="9">
+					<Center>911.528,1213.135</Center>
+					<IdealCenter>911.546,1213.050</IdealCenter>
+					<Mod>68</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="10">
+					<Center>911.497,1223.106</Center>
+					<IdealCenter>911.514,1223.092</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="11">
+					<Center>911.465,1233.345</Center>
+					<IdealCenter>911.483,1233.134</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="12">
+					<Center>911.434,1243.381</Center>
+					<IdealCenter>911.452,1243.176</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="13">
+					<Center>911.403,1253.288</Center>
+					<IdealCenter>911.421,1253.217</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="14">
+					<Center>911.372,1263.529</Center>
+					<IdealCenter>911.390,1263.259</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="15">
+					<Center>911.341,1273.534</Center>
+					<IdealCenter>911.359,1273.301</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="16">
+					<Center>911.309,1283.656</Center>
+					<IdealCenter>911.328,1283.343</IdealCenter>
+					<Mod>70</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="17">
+					<Center>911.278,1293.853</Center>
+					<IdealCenter>911.296,1293.385</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="18">
+					<Center>911.247,1303.604</Center>
+					<IdealCenter>911.265,1303.427</IdealCenter>
+					<Mod>76</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="19">
+					<Center>911.216,1313.588</Center>
+					<IdealCenter>911.234,1313.469</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="20">
+					<Center>911.185,1323.668</Center>
+					<IdealCenter>911.203,1323.511</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="21">
+					<Center>911.154,1333.553</Center>
+					<IdealCenter>911.172,1333.553</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="3" column="22">
+					<Center>911.124,1343.437</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="-1">
+					<Center>921.609,1112.759</Center>
+					<Mod>70</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="0">
+					<Center>921.578,1122.712</Center>
+					<IdealCenter>921.467,1122.711</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="1">
+					<Center>921.546,1132.901</Center>
+					<IdealCenter>921.435,1132.754</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="2">
+					<Center>921.515,1143.037</Center>
+					<IdealCenter>921.404,1142.796</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="3">
+					<Center>921.484,1152.896</Center>
+					<IdealCenter>921.373,1152.839</IdealCenter>
+					<Mod>81</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="4">
+					<Center>921.453,1162.970</Center>
+					<IdealCenter>921.342,1162.881</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="5">
+					<Center>921.421,1173.087</Center>
+					<IdealCenter>921.311,1172.923</IdealCenter>
+					<Mod>81</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="6">
+					<Center>921.390,1183.199</Center>
+					<IdealCenter>921.279,1182.966</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="7">
+					<Center>921.358,1193.312</Center>
+					<IdealCenter>921.248,1193.008</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="8">
+					<Center>921.327,1203.449</Center>
+					<IdealCenter>921.217,1203.051</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="9">
+					<Center>921.297,1213.178</Center>
+					<IdealCenter>921.186,1213.093</IdealCenter>
+					<Mod>71</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="10">
+					<Center>921.266,1223.150</Center>
+					<IdealCenter>921.154,1223.135</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="11">
+					<Center>921.234,1233.390</Center>
+					<IdealCenter>921.123,1233.177</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="12">
+					<Center>921.203,1243.426</Center>
+					<IdealCenter>921.092,1243.220</IdealCenter>
+					<Mod>64</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="13">
+					<Center>921.172,1253.333</Center>
+					<IdealCenter>921.061,1253.262</IdealCenter>
+					<Mod>81</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="14">
+					<Center>921.140,1263.575</Center>
+					<IdealCenter>921.030,1263.305</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="15">
+					<Center>921.109,1273.580</Center>
+					<IdealCenter>920.998,1273.347</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="16">
+					<Center>921.077,1283.703</Center>
+					<IdealCenter>920.967,1283.389</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="17">
+					<Center>921.046,1293.900</Center>
+					<IdealCenter>920.936,1293.432</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="18">
+					<Center>921.015,1303.651</Center>
+					<IdealCenter>920.905,1303.474</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="19">
+					<Center>920.984,1313.636</Center>
+					<IdealCenter>920.874,1313.516</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="20">
+					<Center>920.953,1323.717</Center>
+					<IdealCenter>920.842,1323.559</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="21">
+					<Center>920.922,1333.602</Center>
+					<IdealCenter>920.811,1333.601</IdealCenter>
+					<Mod>81</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="4" column="22">
+					<Center>920.892,1343.487</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="-1">
+					<Center>931.238,1112.797</Center>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="0">
+					<Center>931.207,1122.751</Center>
+					<IdealCenter>931.107,1122.750</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="1">
+					<Center>931.175,1132.941</Center>
+					<IdealCenter>931.076,1132.793</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="2">
+					<Center>931.144,1143.077</Center>
+					<IdealCenter>931.045,1142.836</IdealCenter>
+					<Mod>74</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="3">
+					<Center>931.113,1152.936</Center>
+					<IdealCenter>931.013,1152.879</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="4">
+					<Center>931.082,1163.011</Center>
+					<IdealCenter>930.982,1162.922</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="5">
+					<Center>931.050,1173.128</Center>
+					<IdealCenter>930.951,1172.965</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="6">
+					<Center>931.019,1183.240</Center>
+					<IdealCenter>930.920,1183.007</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="7">
+					<Center>930.987,1193.354</Center>
+					<IdealCenter>930.888,1193.050</IdealCenter>
+					<Mod>75</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="8">
+					<Center>930.956,1203.491</Center>
+					<IdealCenter>930.857,1203.093</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="9">
+					<Center>930.925,1213.221</Center>
+					<IdealCenter>930.826,1213.136</IdealCenter>
+					<Mod>76</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="10">
+					<Center>930.894,1223.194</Center>
+					<IdealCenter>930.795,1223.179</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="11">
+					<Center>930.862,1233.433</Center>
+					<IdealCenter>930.763,1233.221</IdealCenter>
+					<Mod>77</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="12">
+					<Center>930.831,1243.470</Center>
+					<IdealCenter>930.732,1243.264</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="13">
+					<Center>930.800,1253.378</Center>
+					<IdealCenter>930.701,1253.307</IdealCenter>
+					<Mod>80</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="14">
+					<Center>930.768,1263.620</Center>
+					<IdealCenter>930.669,1263.350</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="15">
+					<Center>930.737,1273.626</Center>
+					<IdealCenter>930.638,1273.393</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="16">
+					<Center>930.706,1283.749</Center>
+					<IdealCenter>930.607,1283.435</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="17">
+					<Center>930.674,1293.946</Center>
+					<IdealCenter>930.576,1293.478</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="18">
+					<Center>930.644,1303.698</Center>
+					<IdealCenter>930.544,1303.521</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="19">
+					<Center>930.613,1313.684</Center>
+					<IdealCenter>930.513,1313.564</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="20">
+					<Center>930.581,1323.765</Center>
+					<IdealCenter>930.482,1323.607</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="21">
+					<Center>930.550,1333.650</Center>
+					<IdealCenter>930.451,1333.650</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="5" column="22">
+					<Center>930.520,1343.535</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="-1">
+					<Center>940.743,1112.835</Center>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="0">
+					<Center>940.712,1122.789</Center>
+					<IdealCenter>940.748,1122.790</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="1">
+					<Center>940.680,1132.980</Center>
+					<IdealCenter>940.717,1132.833</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="2">
+					<Center>940.648,1143.116</Center>
+					<IdealCenter>940.685,1142.876</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="3">
+					<Center>940.617,1152.976</Center>
+					<IdealCenter>940.654,1152.919</IdealCenter>
+					<Mod>78</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="4">
+					<Center>940.586,1163.051</Center>
+					<IdealCenter>940.623,1162.963</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="5">
+					<Center>940.554,1173.169</Center>
+					<IdealCenter>940.591,1173.006</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="6">
+					<Center>940.523,1183.282</Center>
+					<IdealCenter>940.560,1183.049</IdealCenter>
+					<Mod>80</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="7">
+					<Center>940.491,1193.396</Center>
+					<IdealCenter>940.529,1193.092</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="8">
+					<Center>940.460,1203.533</Center>
+					<IdealCenter>940.497,1203.136</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="9">
+					<Center>940.429,1213.264</Center>
+					<IdealCenter>940.466,1213.179</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="10">
+					<Center>940.398,1223.237</Center>
+					<IdealCenter>940.435,1223.222</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="11">
+					<Center>940.366,1233.477</Center>
+					<IdealCenter>940.403,1233.265</IdealCenter>
+					<Mod>80</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="12">
+					<Center>940.335,1243.514</Center>
+					<IdealCenter>940.372,1243.309</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="13">
+					<Center>940.304,1253.422</Center>
+					<IdealCenter>940.341,1253.352</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="14">
+					<Center>940.272,1263.665</Center>
+					<IdealCenter>940.309,1263.395</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="15">
+					<Center>940.241,1273.671</Center>
+					<IdealCenter>940.278,1273.438</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="16">
+					<Center>940.209,1283.794</Center>
+					<IdealCenter>940.247,1283.482</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="17">
+					<Center>940.177,1293.992</Center>
+					<IdealCenter>940.215,1293.525</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="18">
+					<Center>940.147,1303.745</Center>
+					<IdealCenter>940.184,1303.568</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="19">
+					<Center>940.116,1313.731</Center>
+					<IdealCenter>940.153,1313.611</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="20">
+					<Center>940.084,1323.812</Center>
+					<IdealCenter>940.121,1323.655</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="21">
+					<Center>940.054,1333.698</Center>
+					<IdealCenter>940.090,1333.698</IdealCenter>
+					<Mod>71</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="6" column="22">
+					<Center>940.023,1343.583</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>99</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="-1">
+					<Center>950.264,1112.873</Center>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="0">
+					<Center>950.233,1122.828</Center>
+					<IdealCenter>950.389,1122.829</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="1">
+					<Center>950.201,1133.019</Center>
+					<IdealCenter>950.357,1132.872</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="2">
+					<Center>950.169,1143.156</Center>
+					<IdealCenter>950.326,1142.916</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="3">
+					<Center>950.139,1153.016</Center>
+					<IdealCenter>950.294,1152.960</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="4">
+					<Center>950.107,1163.091</Center>
+					<IdealCenter>950.263,1163.003</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="5">
+					<Center>950.075,1173.210</Center>
+					<IdealCenter>950.232,1173.047</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="6">
+					<Center>950.044,1183.323</Center>
+					<IdealCenter>950.200,1183.091</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="7">
+					<Center>950.012,1193.438</Center>
+					<IdealCenter>950.169,1193.134</IdealCenter>
+					<Mod>76</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="8">
+					<Center>949.980,1203.575</Center>
+					<IdealCenter>950.137,1203.178</IdealCenter>
+					<Mod>80</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="9">
+					<Center>949.950,1213.306</Center>
+					<IdealCenter>950.106,1213.222</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="10">
+					<Center>949.919,1223.279</Center>
+					<IdealCenter>950.075,1223.266</IdealCenter>
+					<Mod>81</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="11">
+					<Center>949.887,1233.520</Center>
+					<IdealCenter>950.043,1233.309</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="12">
+					<Center>949.855,1243.557</Center>
+					<IdealCenter>950.012,1243.353</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="13">
+					<Center>949.824,1253.467</Center>
+					<IdealCenter>949.980,1253.397</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="14">
+					<Center>949.792,1263.709</Center>
+					<IdealCenter>949.949,1263.440</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="15">
+					<Center>949.761,1273.716</Center>
+					<IdealCenter>949.918,1273.484</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="16">
+					<Center>949.729,1283.840</Center>
+					<IdealCenter>949.886,1283.528</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="17">
+					<Center>949.698,1294.038</Center>
+					<IdealCenter>949.855,1293.571</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="18">
+					<Center>949.667,1303.791</Center>
+					<IdealCenter>949.823,1303.615</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="19">
+					<Center>949.636,1313.777</Center>
+					<IdealCenter>949.792,1313.659</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="20">
+					<Center>949.604,1323.859</Center>
+					<IdealCenter>949.760,1323.702</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="21">
+					<Center>949.573,1333.745</Center>
+					<IdealCenter>949.729,1333.746</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="7" column="22">
+					<Center>949.543,1343.632</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="-1">
+					<Center>960.083,1112.913</Center>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="0">
+					<Center>960.052,1122.868</Center>
+					<IdealCenter>960.029,1122.868</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="1">
+					<Center>960.020,1133.059</Center>
+					<IdealCenter>959.998,1132.912</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="2">
+					<Center>959.988,1143.197</Center>
+					<IdealCenter>959.967,1142.956</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="3">
+					<Center>959.957,1153.057</Center>
+					<IdealCenter>959.935,1153.000</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="4">
+					<Center>959.926,1163.133</Center>
+					<IdealCenter>959.904,1163.044</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="5">
+					<Center>959.894,1173.252</Center>
+					<IdealCenter>959.872,1173.088</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="6">
+					<Center>959.862,1183.365</Center>
+					<IdealCenter>959.841,1183.132</IdealCenter>
+					<Mod>76</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="7">
+					<Center>959.831,1193.480</Center>
+					<IdealCenter>959.809,1193.177</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="8">
+					<Center>959.799,1203.619</Center>
+					<IdealCenter>959.778,1203.221</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="9">
+					<Center>959.768,1213.350</Center>
+					<IdealCenter>959.746,1213.265</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="10">
+					<Center>959.737,1223.324</Center>
+					<IdealCenter>959.715,1223.309</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="11">
+					<Center>959.705,1233.565</Center>
+					<IdealCenter>959.683,1233.353</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="12">
+					<Center>959.674,1243.603</Center>
+					<IdealCenter>959.652,1243.397</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="13">
+					<Center>959.643,1253.512</Center>
+					<IdealCenter>959.620,1253.441</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="14">
+					<Center>959.610,1263.755</Center>
+					<IdealCenter>959.589,1263.486</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="15">
+					<Center>959.579,1273.762</Center>
+					<IdealCenter>959.557,1273.530</IdealCenter>
+					<Mod>78</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="16">
+					<Center>959.547,1283.887</Center>
+					<IdealCenter>959.526,1283.574</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="17">
+					<Center>959.515,1294.086</Center>
+					<IdealCenter>959.494,1293.618</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="18">
+					<Center>959.485,1303.839</Center>
+					<IdealCenter>959.463,1303.662</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="19">
+					<Center>959.454,1313.826</Center>
+					<IdealCenter>959.431,1313.706</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="20">
+					<Center>959.422,1323.908</Center>
+					<IdealCenter>959.400,1323.750</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="21">
+					<Center>959.391,1333.795</Center>
+					<IdealCenter>959.369,1333.795</IdealCenter>
+					<Mod>76</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="8" column="22">
+					<Center>959.360,1343.681</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="-1">
+					<Center>969.865,1112.952</Center>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="0">
+					<Center>969.834,1122.907</Center>
+					<IdealCenter>969.670,1122.907</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="1">
+					<Center>969.802,1133.099</Center>
+					<IdealCenter>969.639,1132.951</IdealCenter>
+					<Mod>78</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="2">
+					<Center>969.770,1143.237</Center>
+					<IdealCenter>969.607,1142.996</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="3">
+					<Center>969.739,1153.098</Center>
+					<IdealCenter>969.576,1153.041</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="4">
+					<Center>969.707,1163.174</Center>
+					<IdealCenter>969.544,1163.085</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="5">
+					<Center>969.675,1173.294</Center>
+					<IdealCenter>969.512,1173.130</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="6">
+					<Center>969.644,1183.408</Center>
+					<IdealCenter>969.481,1183.174</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="7">
+					<Center>969.612,1193.523</Center>
+					<IdealCenter>969.449,1193.219</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="8">
+					<Center>969.580,1203.662</Center>
+					<IdealCenter>969.418,1203.263</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="9">
+					<Center>969.549,1213.394</Center>
+					<IdealCenter>969.386,1213.308</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="10">
+					<Center>969.518,1223.368</Center>
+					<IdealCenter>969.355,1223.353</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="11">
+					<Center>969.486,1233.609</Center>
+					<IdealCenter>969.323,1233.397</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="12">
+					<Center>969.455,1243.648</Center>
+					<IdealCenter>969.292,1243.442</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="13">
+					<Center>969.423,1253.558</Center>
+					<IdealCenter>969.260,1253.486</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="14">
+					<Center>969.391,1263.801</Center>
+					<IdealCenter>969.229,1263.531</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="15">
+					<Center>969.360,1273.809</Center>
+					<IdealCenter>969.197,1273.575</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="16">
+					<Center>969.328,1283.934</Center>
+					<IdealCenter>969.166,1283.620</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="17">
+					<Center>969.296,1294.133</Center>
+					<IdealCenter>969.134,1293.665</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="18">
+					<Center>969.265,1303.887</Center>
+					<IdealCenter>969.102,1303.709</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="19">
+					<Center>969.234,1313.874</Center>
+					<IdealCenter>969.071,1313.754</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="20">
+					<Center>969.202,1323.957</Center>
+					<IdealCenter>969.039,1323.798</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="21">
+					<Center>969.171,1333.844</Center>
+					<IdealCenter>969.008,1333.843</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="9" column="22">
+					<Center>969.140,1343.731</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="-1">
+					<Center>979.609,1112.991</Center>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="0">
+					<Center>979.577,1122.947</Center>
+					<IdealCenter>979.311,1122.946</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="1">
+					<Center>979.545,1133.139</Center>
+					<IdealCenter>979.279,1132.991</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="2">
+					<Center>979.513,1143.277</Center>
+					<IdealCenter>979.248,1143.036</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="3">
+					<Center>979.482,1153.138</Center>
+					<IdealCenter>979.216,1153.081</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="4">
+					<Center>979.451,1163.216</Center>
+					<IdealCenter>979.185,1163.126</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="5">
+					<Center>979.419,1173.336</Center>
+					<IdealCenter>979.153,1173.171</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="6">
+					<Center>979.387,1183.450</Center>
+					<IdealCenter>979.121,1183.216</IdealCenter>
+					<Mod>70</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="7">
+					<Center>979.355,1193.566</Center>
+					<IdealCenter>979.090,1193.261</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="8">
+					<Center>979.323,1203.705</Center>
+					<IdealCenter>979.058,1203.306</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="9">
+					<Center>979.293,1213.437</Center>
+					<IdealCenter>979.027,1213.351</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="10">
+					<Center>979.261,1223.412</Center>
+					<IdealCenter>978.995,1223.396</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="11">
+					<Center>979.229,1233.654</Center>
+					<IdealCenter>978.963,1233.441</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="12">
+					<Center>979.198,1243.693</Center>
+					<IdealCenter>978.932,1243.486</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="13">
+					<Center>979.166,1253.603</Center>
+					<IdealCenter>978.900,1253.531</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="14">
+					<Center>979.134,1263.847</Center>
+					<IdealCenter>978.869,1263.576</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="15">
+					<Center>979.103,1273.855</Center>
+					<IdealCenter>978.837,1273.621</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="16">
+					<Center>979.071,1283.980</Center>
+					<IdealCenter>978.805,1283.666</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="17">
+					<Center>979.039,1294.180</Center>
+					<IdealCenter>978.774,1293.711</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="18">
+					<Center>979.008,1303.934</Center>
+					<IdealCenter>978.742,1303.756</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="19">
+					<Center>978.977,1313.922</Center>
+					<IdealCenter>978.711,1313.801</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="20">
+					<Center>978.945,1324.005</Center>
+					<IdealCenter>978.679,1323.846</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="21">
+					<Center>978.914,1333.892</Center>
+					<IdealCenter>978.647,1333.891</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="10" column="22">
+					<Center>978.883,1343.780</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="-1">
+					<Center>989.424,1113.030</Center>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="0">
+					<Center>989.393,1122.987</Center>
+					<IdealCenter>988.952,1122.985</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="1">
+					<Center>989.361,1133.179</Center>
+					<IdealCenter>988.920,1133.030</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="2">
+					<Center>989.329,1143.318</Center>
+					<IdealCenter>988.888,1143.076</IdealCenter>
+					<Mod>80</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="3">
+					<Center>989.298,1153.180</Center>
+					<IdealCenter>988.857,1153.121</IdealCenter>
+					<Mod>72</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="4">
+					<Center>989.266,1163.257</Center>
+					<IdealCenter>988.825,1163.167</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="5">
+					<Center>989.234,1173.378</Center>
+					<IdealCenter>988.793,1173.212</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="6">
+					<Center>989.202,1183.492</Center>
+					<IdealCenter>988.762,1183.258</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="7">
+					<Center>989.170,1193.609</Center>
+					<IdealCenter>988.730,1193.303</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="8">
+					<Center>989.138,1203.748</Center>
+					<IdealCenter>988.698,1203.349</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="9">
+					<Center>989.108,1213.481</Center>
+					<IdealCenter>988.667,1213.394</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="10">
+					<Center>989.076,1223.456</Center>
+					<IdealCenter>988.635,1223.439</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="11">
+					<Center>989.044,1233.699</Center>
+					<IdealCenter>988.603,1233.485</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="12">
+					<Center>989.012,1243.738</Center>
+					<IdealCenter>988.572,1243.531</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="13">
+					<Center>988.981,1253.649</Center>
+					<IdealCenter>988.540,1253.576</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="14">
+					<Center>988.949,1263.893</Center>
+					<IdealCenter>988.508,1263.621</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="15">
+					<Center>988.917,1273.901</Center>
+					<IdealCenter>988.477,1273.667</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="16">
+					<Center>988.885,1284.027</Center>
+					<IdealCenter>988.445,1283.712</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="17">
+					<Center>988.853,1294.228</Center>
+					<IdealCenter>988.413,1293.758</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="18">
+					<Center>988.822,1303.982</Center>
+					<IdealCenter>988.382,1303.803</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="19">
+					<Center>988.791,1313.970</Center>
+					<IdealCenter>988.350,1313.849</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="20">
+					<Center>988.759,1324.054</Center>
+					<IdealCenter>988.318,1323.894</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="21">
+					<Center>988.728,1333.942</Center>
+					<IdealCenter>988.287,1333.940</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="11" column="22">
+					<Center>988.697,1343.830</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="-1">
+					<Center>999.083,1113.069</Center>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="0">
+					<Center>999.051,1123.026</Center>
+					<IdealCenter>998.592,1123.024</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="1">
+					<Center>999.019,1133.219</Center>
+					<IdealCenter>998.561,1133.070</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="2">
+					<Center>998.987,1143.358</Center>
+					<IdealCenter>998.529,1143.116</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="3">
+					<Center>998.956,1153.220</Center>
+					<IdealCenter>998.497,1153.162</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="4">
+					<Center>998.924,1163.298</Center>
+					<IdealCenter>998.465,1163.208</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="5">
+					<Center>998.892,1173.419</Center>
+					<IdealCenter>998.434,1173.253</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="6">
+					<Center>998.860,1183.534</Center>
+					<IdealCenter>998.402,1183.299</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="7">
+					<Center>998.828,1193.651</Center>
+					<IdealCenter>998.370,1193.345</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="8">
+					<Center>998.796,1203.791</Center>
+					<IdealCenter>998.338,1203.391</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="9">
+					<Center>998.765,1213.524</Center>
+					<IdealCenter>998.307,1213.437</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="10">
+					<Center>998.734,1223.500</Center>
+					<IdealCenter>998.275,1223.483</IdealCenter>
+					<Mod>81</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="11">
+					<Center>998.701,1233.743</Center>
+					<IdealCenter>998.243,1233.529</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="12">
+					<Center>998.670,1243.782</Center>
+					<IdealCenter>998.211,1243.575</IdealCenter>
+					<Mod>74</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="13">
+					<Center>998.638,1253.693</Center>
+					<IdealCenter>998.180,1253.621</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="14">
+					<Center>998.606,1263.938</Center>
+					<IdealCenter>998.148,1263.667</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="15">
+					<Center>998.574,1273.947</Center>
+					<IdealCenter>998.116,1273.712</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="16">
+					<Center>998.542,1284.073</Center>
+					<IdealCenter>998.085,1283.758</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="17">
+					<Center>998.510,1294.274</Center>
+					<IdealCenter>998.053,1293.804</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="18">
+					<Center>998.479,1304.029</Center>
+					<IdealCenter>998.021,1303.850</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="19">
+					<Center>998.448,1314.018</Center>
+					<IdealCenter>997.989,1313.896</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="20">
+					<Center>998.416,1324.102</Center>
+					<IdealCenter>997.958,1323.942</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="21">
+					<Center>998.385,1333.990</Center>
+					<IdealCenter>997.926,1333.988</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="12" column="22">
+					<Center>998.354,1343.879</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>99</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="-1">
+					<Center>1008.764,1113.108</Center>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="0">
+					<Center>1008.732,1123.065</Center>
+					<IdealCenter>1008.233,1123.063</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="1">
+					<Center>1008.700,1133.259</Center>
+					<IdealCenter>1008.201,1133.109</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="2">
+					<Center>1008.668,1143.398</Center>
+					<IdealCenter>1008.169,1143.156</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="3">
+					<Center>1008.637,1153.260</Center>
+					<IdealCenter>1008.138,1153.202</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="4">
+					<Center>1008.605,1163.339</Center>
+					<IdealCenter>1008.106,1163.248</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="5">
+					<Center>1008.573,1173.460</Center>
+					<IdealCenter>1008.074,1173.295</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="6">
+					<Center>1008.541,1183.576</Center>
+					<IdealCenter>1008.042,1183.341</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="7">
+					<Center>1008.509,1193.693</Center>
+					<IdealCenter>1008.010,1193.387</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="8">
+					<Center>1008.477,1203.834</Center>
+					<IdealCenter>1007.979,1203.434</IdealCenter>
+					<Mod>99</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="9">
+					<Center>1008.446,1213.567</Center>
+					<IdealCenter>1007.947,1213.480</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="10">
+					<Center>1008.414,1223.543</Center>
+					<IdealCenter>1007.915,1223.526</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="11">
+					<Center>1008.382,1233.787</Center>
+					<IdealCenter>1007.883,1233.573</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="12">
+					<Center>1008.350,1243.827</Center>
+					<IdealCenter>1007.851,1243.619</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="13">
+					<Center>1008.319,1253.738</Center>
+					<IdealCenter>1007.820,1253.665</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="14">
+					<Center>1008.286,1263.984</Center>
+					<IdealCenter>1007.788,1263.712</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="15">
+					<Center>1008.255,1273.993</Center>
+					<IdealCenter>1007.756,1273.758</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="16">
+					<Center>1008.223,1284.120</Center>
+					<IdealCenter>1007.724,1283.804</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="17">
+					<Center>1008.190,1294.321</Center>
+					<IdealCenter>1007.692,1293.851</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="18">
+					<Center>1008.159,1304.076</Center>
+					<IdealCenter>1007.661,1303.897</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="19">
+					<Center>1008.128,1314.065</Center>
+					<IdealCenter>1007.629,1313.943</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="20">
+					<Center>1008.096,1324.150</Center>
+					<IdealCenter>1007.597,1323.990</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="21">
+					<Center>1008.065,1334.039</Center>
+					<IdealCenter>1007.565,1334.036</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="13" column="22">
+					<Center>1008.033,1343.927</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="-1">
+					<Center>1018.460,1113.146</Center>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="0">
+					<Center>1018.428,1123.104</Center>
+					<IdealCenter>1017.874,1123.102</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="1">
+					<Center>1018.396,1133.298</Center>
+					<IdealCenter>1017.842,1133.149</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="2">
+					<Center>1018.364,1143.438</Center>
+					<IdealCenter>1017.810,1143.195</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="3">
+					<Center>1018.333,1153.301</Center>
+					<IdealCenter>1017.778,1153.242</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="4">
+					<Center>1018.301,1163.380</Center>
+					<IdealCenter>1017.746,1163.289</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="5">
+					<Center>1018.268,1173.502</Center>
+					<IdealCenter>1017.714,1173.336</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="6">
+					<Center>1018.236,1183.618</Center>
+					<IdealCenter>1017.682,1183.383</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="7">
+					<Center>1018.204,1193.736</Center>
+					<IdealCenter>1017.651,1193.429</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="8">
+					<Center>1018.172,1203.877</Center>
+					<IdealCenter>1017.619,1203.476</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="9">
+					<Center>1018.141,1213.611</Center>
+					<IdealCenter>1017.587,1213.523</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="10">
+					<Center>1018.110,1223.587</Center>
+					<IdealCenter>1017.555,1223.570</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="11">
+					<Center>1018.077,1233.831</Center>
+					<IdealCenter>1017.523,1233.617</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="12">
+					<Center>1018.045,1243.871</Center>
+					<IdealCenter>1017.491,1243.664</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="13">
+					<Center>1018.014,1253.783</Center>
+					<IdealCenter>1017.459,1253.710</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="14">
+					<Center>1017.981,1264.029</Center>
+					<IdealCenter>1017.428,1263.757</IdealCenter>
+					<Mod>78</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="15">
+					<Center>1017.950,1274.039</Center>
+					<IdealCenter>1017.396,1273.804</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="16">
+					<Center>1017.918,1284.166</Center>
+					<IdealCenter>1017.364,1283.851</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="17">
+					<Center>1017.885,1294.368</Center>
+					<IdealCenter>1017.332,1293.897</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="18">
+					<Center>1017.854,1304.124</Center>
+					<IdealCenter>1017.300,1303.944</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="19">
+					<Center>1017.823,1314.113</Center>
+					<IdealCenter>1017.268,1313.991</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="20">
+					<Center>1017.791,1324.198</Center>
+					<IdealCenter>1017.236,1324.038</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="21">
+					<Center>1017.759,1334.087</Center>
+					<IdealCenter>1017.205,1334.084</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="14" column="22">
+					<Center>1017.728,1343.977</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="-1">
+					<Center>1028.109,1113.185</Center>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="0">
+					<Center>1028.077,1123.143</Center>
+					<IdealCenter>1027.514,1123.141</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="1">
+					<Center>1028.045,1133.338</Center>
+					<IdealCenter>1027.483,1133.188</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="2">
+					<Center>1028.013,1143.478</Center>
+					<IdealCenter>1027.451,1143.235</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="3">
+					<Center>1027.981,1153.342</Center>
+					<IdealCenter>1027.419,1153.283</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="4">
+					<Center>1027.949,1163.421</Center>
+					<IdealCenter>1027.387,1163.330</IdealCenter>
+					<Mod>78</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="5">
+					<Center>1027.917,1173.543</Center>
+					<IdealCenter>1027.355,1173.377</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="6">
+					<Center>1027.885,1183.660</Center>
+					<IdealCenter>1027.323,1183.424</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="7">
+					<Center>1027.853,1193.778</Center>
+					<IdealCenter>1027.291,1193.472</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="8">
+					<Center>1027.821,1203.919</Center>
+					<IdealCenter>1027.259,1203.519</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="9">
+					<Center>1027.790,1213.654</Center>
+					<IdealCenter>1027.227,1213.566</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="10">
+					<Center>1027.758,1223.630</Center>
+					<IdealCenter>1027.195,1223.613</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="11">
+					<Center>1027.725,1233.875</Center>
+					<IdealCenter>1027.163,1233.661</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="12">
+					<Center>1027.693,1243.916</Center>
+					<IdealCenter>1027.131,1243.708</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="13">
+					<Center>1027.662,1253.828</Center>
+					<IdealCenter>1027.099,1253.755</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="14">
+					<Center>1027.630,1264.075</Center>
+					<IdealCenter>1027.068,1263.802</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="15">
+					<Center>1027.598,1274.085</Center>
+					<IdealCenter>1027.036,1273.849</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="16">
+					<Center>1027.565,1284.212</Center>
+					<IdealCenter>1027.004,1283.897</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="17">
+					<Center>1027.533,1294.414</Center>
+					<IdealCenter>1026.972,1293.944</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="18">
+					<Center>1027.502,1304.171</Center>
+					<IdealCenter>1026.940,1303.991</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="19">
+					<Center>1027.470,1314.161</Center>
+					<IdealCenter>1026.908,1314.038</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="20">
+					<Center>1027.438,1324.246</Center>
+					<IdealCenter>1026.876,1324.086</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="21">
+					<Center>1027.407,1334.136</Center>
+					<IdealCenter>1026.844,1334.133</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="15" column="22">
+					<Center>1027.375,1344.025</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="-1">
+					<Center>1037.687,1113.224</Center>
+					<Mod>78</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="0">
+					<Center>1037.655,1123.182</Center>
+					<IdealCenter>1037.155,1123.180</IdealCenter>
+					<Mod>74</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="1">
+					<Center>1037.623,1133.377</Center>
+					<IdealCenter>1037.123,1133.228</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="2">
+					<Center>1037.590,1143.518</Center>
+					<IdealCenter>1037.091,1143.275</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="3">
+					<Center>1037.559,1153.382</Center>
+					<IdealCenter>1037.059,1153.323</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="4">
+					<Center>1037.527,1163.462</Center>
+					<IdealCenter>1037.027,1163.371</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="5">
+					<Center>1037.495,1173.584</Center>
+					<IdealCenter>1036.995,1173.418</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="6">
+					<Center>1037.462,1183.701</Center>
+					<IdealCenter>1036.963,1183.466</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="7">
+					<Center>1037.430,1193.820</Center>
+					<IdealCenter>1036.931,1193.514</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="8">
+					<Center>1037.398,1203.962</Center>
+					<IdealCenter>1036.899,1203.562</IdealCenter>
+					<Mod>75</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="9">
+					<Center>1037.367,1213.697</Center>
+					<IdealCenter>1036.867,1213.609</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="10">
+					<Center>1037.335,1223.674</Center>
+					<IdealCenter>1036.835,1223.657</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="11">
+					<Center>1037.302,1233.918</Center>
+					<IdealCenter>1036.803,1233.704</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="12">
+					<Center>1037.271,1243.960</Center>
+					<IdealCenter>1036.771,1243.752</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="13">
+					<Center>1037.239,1253.873</Center>
+					<IdealCenter>1036.739,1253.800</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="14">
+					<Center>1037.206,1264.120</Center>
+					<IdealCenter>1036.707,1263.848</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="15">
+					<Center>1037.174,1274.130</Center>
+					<IdealCenter>1036.675,1273.895</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="16">
+					<Center>1037.142,1284.258</Center>
+					<IdealCenter>1036.643,1283.943</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="17">
+					<Center>1037.110,1294.461</Center>
+					<IdealCenter>1036.611,1293.990</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="18">
+					<Center>1037.079,1304.217</Center>
+					<IdealCenter>1036.579,1304.038</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="19">
+					<Center>1037.047,1314.208</Center>
+					<IdealCenter>1036.547,1314.086</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="20">
+					<Center>1037.015,1324.293</Center>
+					<IdealCenter>1036.515,1324.133</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="21">
+					<Center>1036.983,1334.184</Center>
+					<IdealCenter>1036.483,1334.181</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="16" column="22">
+					<Center>1036.952,1344.074</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="-1">
+					<Center>1047.267,1113.262</Center>
+					<Mod>81</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="0">
+					<Center>1047.236,1123.221</Center>
+					<IdealCenter>1046.796,1123.219</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="1">
+					<Center>1047.203,1133.416</Center>
+					<IdealCenter>1046.764,1133.267</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="2">
+					<Center>1047.171,1143.558</Center>
+					<IdealCenter>1046.732,1143.315</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="3">
+					<Center>1047.139,1153.422</Center>
+					<IdealCenter>1046.700,1153.364</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="4">
+					<Center>1047.107,1163.502</Center>
+					<IdealCenter>1046.667,1163.412</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="5">
+					<Center>1047.075,1173.625</Center>
+					<IdealCenter>1046.635,1173.460</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="6">
+					<Center>1047.042,1183.743</Center>
+					<IdealCenter>1046.603,1183.508</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="7">
+					<Center>1047.010,1193.862</Center>
+					<IdealCenter>1046.571,1193.556</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="8">
+					<Center>1046.978,1204.004</Center>
+					<IdealCenter>1046.539,1203.604</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="9">
+					<Center>1046.947,1213.739</Center>
+					<IdealCenter>1046.507,1213.652</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="10">
+					<Center>1046.915,1223.717</Center>
+					<IdealCenter>1046.475,1223.700</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="11">
+					<Center>1046.882,1233.962</Center>
+					<IdealCenter>1046.443,1233.748</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="12">
+					<Center>1046.850,1244.004</Center>
+					<IdealCenter>1046.411,1243.797</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="13">
+					<Center>1046.819,1253.917</Center>
+					<IdealCenter>1046.379,1253.845</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="14">
+					<Center>1046.786,1264.165</Center>
+					<IdealCenter>1046.347,1263.893</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="15">
+					<Center>1046.754,1274.176</Center>
+					<IdealCenter>1046.315,1273.941</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="16">
+					<Center>1046.722,1284.304</Center>
+					<IdealCenter>1046.283,1283.989</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="17">
+					<Center>1046.689,1294.507</Center>
+					<IdealCenter>1046.251,1294.037</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="18">
+					<Center>1046.658,1304.264</Center>
+					<IdealCenter>1046.219,1304.085</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="19">
+					<Center>1046.626,1314.255</Center>
+					<IdealCenter>1046.187,1314.133</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="20">
+					<Center>1046.594,1324.341</Center>
+					<IdealCenter>1046.155,1324.181</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="21">
+					<Center>1046.562,1334.232</Center>
+					<IdealCenter>1046.123,1334.229</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="17" column="22">
+					<Center>1046.531,1344.122</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="-1">
+					<Center>1056.893,1113.300</Center>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="0">
+					<Center>1056.861,1123.260</Center>
+					<IdealCenter>1056.437,1123.258</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="1">
+					<Center>1056.829,1133.456</Center>
+					<IdealCenter>1056.404,1133.307</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="2">
+					<Center>1056.796,1143.598</Center>
+					<IdealCenter>1056.372,1143.355</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="3">
+					<Center>1056.765,1153.462</Center>
+					<IdealCenter>1056.340,1153.404</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="4">
+					<Center>1056.733,1163.543</Center>
+					<IdealCenter>1056.308,1163.452</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="5">
+					<Center>1056.700,1173.666</Center>
+					<IdealCenter>1056.276,1173.501</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="6">
+					<Center>1056.668,1183.784</Center>
+					<IdealCenter>1056.244,1183.550</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="7">
+					<Center>1056.635,1193.904</Center>
+					<IdealCenter>1056.212,1193.598</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="8">
+					<Center>1056.603,1204.047</Center>
+					<IdealCenter>1056.180,1203.647</IdealCenter>
+					<Mod>80</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="9">
+					<Center>1056.572,1213.782</Center>
+					<IdealCenter>1056.147,1213.695</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="10">
+					<Center>1056.540,1223.760</Center>
+					<IdealCenter>1056.115,1223.744</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="11">
+					<Center>1056.507,1234.006</Center>
+					<IdealCenter>1056.083,1233.792</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="12">
+					<Center>1056.475,1244.048</Center>
+					<IdealCenter>1056.051,1243.841</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="13">
+					<Center>1056.443,1253.962</Center>
+					<IdealCenter>1056.019,1253.889</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="14">
+					<Center>1056.411,1264.210</Center>
+					<IdealCenter>1055.987,1263.938</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="15">
+					<Center>1056.379,1274.221</Center>
+					<IdealCenter>1055.955,1273.987</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="16">
+					<Center>1056.346,1284.350</Center>
+					<IdealCenter>1055.923,1284.035</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="17">
+					<Center>1056.314,1294.554</Center>
+					<IdealCenter>1055.891,1294.083</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="18">
+					<Center>1056.283,1304.311</Center>
+					<IdealCenter>1055.858,1304.132</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="19">
+					<Center>1056.251,1314.302</Center>
+					<IdealCenter>1055.826,1314.181</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="20">
+					<Center>1056.218,1324.389</Center>
+					<IdealCenter>1055.794,1324.229</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="21">
+					<Center>1056.187,1334.280</Center>
+					<IdealCenter>1055.762,1334.278</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="18" column="22">
+					<Center>1056.155,1344.171</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>96</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="-1">
+					<Center>1066.641,1113.339</Center>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="0">
+					<Center>1066.609,1123.299</Center>
+					<IdealCenter>1066.077,1123.297</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="1">
+					<Center>1066.577,1133.496</Center>
+					<IdealCenter>1066.045,1133.346</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="2">
+					<Center>1066.544,1143.638</Center>
+					<IdealCenter>1066.013,1143.395</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="3">
+					<Center>1066.513,1153.503</Center>
+					<IdealCenter>1065.981,1153.444</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="4">
+					<Center>1066.480,1163.584</Center>
+					<IdealCenter>1065.948,1163.493</IdealCenter>
+					<Mod>75</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="5">
+					<Center>1066.448,1173.708</Center>
+					<IdealCenter>1065.916,1173.542</IdealCenter>
+					<Mod>80</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="6">
+					<Center>1066.416,1183.826</Center>
+					<IdealCenter>1065.884,1183.591</IdealCenter>
+					<Mod>72</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="7">
+					<Center>1066.383,1193.947</Center>
+					<IdealCenter>1065.852,1193.640</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="8">
+					<Center>1066.351,1204.090</Center>
+					<IdealCenter>1065.820,1203.689</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="9">
+					<Center>1066.319,1213.826</Center>
+					<IdealCenter>1065.788,1213.738</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="10">
+					<Center>1066.288,1223.804</Center>
+					<IdealCenter>1065.755,1223.787</IdealCenter>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="11">
+					<Center>1066.255,1234.050</Center>
+					<IdealCenter>1065.723,1233.836</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="12">
+					<Center>1066.223,1244.093</Center>
+					<IdealCenter>1065.691,1243.885</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="13">
+					<Center>1066.191,1254.007</Center>
+					<IdealCenter>1065.659,1253.934</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="14">
+					<Center>1066.158,1264.256</Center>
+					<IdealCenter>1065.627,1263.983</IdealCenter>
+					<Mod>76</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="15">
+					<Center>1066.126,1274.267</Center>
+					<IdealCenter>1065.594,1274.032</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="16">
+					<Center>1066.094,1284.397</Center>
+					<IdealCenter>1065.562,1284.081</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="17">
+					<Center>1066.061,1294.601</Center>
+					<IdealCenter>1065.530,1294.130</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="18">
+					<Center>1066.030,1304.359</Center>
+					<IdealCenter>1065.498,1304.179</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="19">
+					<Center>1065.998,1314.350</Center>
+					<IdealCenter>1065.466,1314.228</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="20">
+					<Center>1065.965,1324.437</Center>
+					<IdealCenter>1065.433,1324.277</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="21">
+					<Center>1065.934,1334.329</Center>
+					<IdealCenter>1065.401,1334.326</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="19" column="22">
+					<Center>1065.902,1344.220</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="-1">
+					<Center>1075.947,1113.377</Center>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="0">
+					<Center>1075.915,1123.337</Center>
+					<IdealCenter>1075.718,1123.336</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="1">
+					<Center>1075.882,1133.534</Center>
+					<IdealCenter>1075.686,1133.386</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="2">
+					<Center>1075.850,1143.677</Center>
+					<IdealCenter>1075.653,1143.435</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="3">
+					<Center>1075.818,1153.542</Center>
+					<IdealCenter>1075.621,1153.485</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="4">
+					<Center>1075.786,1163.624</Center>
+					<IdealCenter>1075.589,1163.534</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="5">
+					<Center>1075.753,1173.748</Center>
+					<IdealCenter>1075.557,1173.583</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="6">
+					<Center>1075.721,1183.867</Center>
+					<IdealCenter>1075.524,1183.633</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="7">
+					<Center>1075.688,1193.987</Center>
+					<IdealCenter>1075.492,1193.682</IdealCenter>
+					<Mod>70</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="8">
+					<Center>1075.656,1204.131</Center>
+					<IdealCenter>1075.460,1203.732</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="9">
+					<Center>1075.625,1213.867</Center>
+					<IdealCenter>1075.428,1213.781</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="10">
+					<Center>1075.592,1223.846</Center>
+					<IdealCenter>1075.396,1223.831</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="11">
+					<Center>1075.560,1234.093</Center>
+					<IdealCenter>1075.363,1233.880</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="12">
+					<Center>1075.527,1244.136</Center>
+					<IdealCenter>1075.331,1243.930</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="13">
+					<Center>1075.495,1254.051</Center>
+					<IdealCenter>1075.299,1253.979</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="14">
+					<Center>1075.463,1264.299</Center>
+					<IdealCenter>1075.266,1264.029</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="15">
+					<Center>1075.431,1274.312</Center>
+					<IdealCenter>1075.234,1274.078</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="16">
+					<Center>1075.398,1284.441</Center>
+					<IdealCenter>1075.202,1284.127</IdealCenter>
+					<Mod>81</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="17">
+					<Center>1075.365,1294.646</Center>
+					<IdealCenter>1075.170,1294.177</IdealCenter>
+					<Mod>80</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="18">
+					<Center>1075.334,1304.404</Center>
+					<IdealCenter>1075.137,1304.226</IdealCenter>
+					<Mod>82</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="19">
+					<Center>1075.302,1314.396</Center>
+					<IdealCenter>1075.105,1314.276</IdealCenter>
+					<Mod>66</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="20">
+					<Center>1075.270,1324.484</Center>
+					<IdealCenter>1075.073,1324.325</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="21">
+					<Center>1075.238,1334.375</Center>
+					<IdealCenter>1075.041,1334.375</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="20" column="22">
+					<Center>1075.206,1344.267</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="-1">
+					<Center>1085.391,1113.415</Center>
+					<Mod>97</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="0">
+					<Center>1085.359,1123.375</Center>
+					<IdealCenter>1085.359,1123.375</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="1">
+					<Center>1085.326,1133.573</Center>
+					<IdealCenter>1085.326,1133.425</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="2">
+					<Center>1085.293,1143.716</Center>
+					<IdealCenter>1085.294,1143.475</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="3">
+					<Center>1085.261,1153.582</Center>
+					<IdealCenter>1085.262,1153.525</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="4">
+					<Center>1085.229,1163.664</Center>
+					<IdealCenter>1085.229,1163.575</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="5">
+					<Center>1085.197,1173.788</Center>
+					<IdealCenter>1085.197,1173.625</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="6">
+					<Center>1085.164,1183.908</Center>
+					<IdealCenter>1085.165,1183.675</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="7">
+					<Center>1085.131,1194.028</Center>
+					<IdealCenter>1085.132,1193.724</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="8">
+					<Center>1085.099,1204.172</Center>
+					<IdealCenter>1085.100,1203.774</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="9">
+					<Center>1085.068,1213.910</Center>
+					<IdealCenter>1085.068,1213.824</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="10">
+					<Center>1085.035,1223.889</Center>
+					<IdealCenter>1085.036,1223.874</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="11">
+					<Center>1085.002,1234.136</Center>
+					<IdealCenter>1085.003,1233.924</IdealCenter>
+					<Mod>93</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="12">
+					<Center>1084.970,1244.179</Center>
+					<IdealCenter>1084.971,1243.974</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="13">
+					<Center>1084.938,1254.094</Center>
+					<IdealCenter>1084.939,1254.024</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="14">
+					<Center>1084.905,1264.344</Center>
+					<IdealCenter>1084.906,1264.074</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="15">
+					<Center>1084.873,1274.356</Center>
+					<IdealCenter>1084.874,1274.124</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="16">
+					<Center>1084.841,1284.487</Center>
+					<IdealCenter>1084.842,1284.173</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="17">
+					<Center>1084.808,1294.691</Center>
+					<IdealCenter>1084.809,1294.223</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="18">
+					<Center>1084.776,1304.450</Center>
+					<IdealCenter>1084.777,1304.273</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="19">
+					<Center>1084.744,1314.443</Center>
+					<IdealCenter>1084.745,1314.323</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="20">
+					<Center>1084.712,1324.531</Center>
+					<IdealCenter>1084.712,1324.373</IdealCenter>
+					<Mod>84</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="21">
+					<Center>1084.680,1334.423</Center>
+					<IdealCenter>1084.680,1334.423</IdealCenter>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>1</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="21" column="22">
+					<Center>1084.648,1344.315</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="-1">
+					<Center>1094.833,1113.452</Center>
+					<Mod>87</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="0">
+					<Center>1094.801,1123.414</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>90</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="1">
+					<Center>1094.768,1133.611</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="2">
+					<Center>1094.735,1143.755</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="3">
+					<Center>1094.704,1153.621</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>95</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="4">
+					<Center>1094.671,1163.703</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>78</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="5">
+					<Center>1094.638,1173.829</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>61</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="6">
+					<Center>1094.606,1183.948</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>83</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="7">
+					<Center>1094.573,1194.070</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="8">
+					<Center>1094.541,1204.214</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>85</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="9">
+					<Center>1094.509,1213.952</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="10">
+					<Center>1094.477,1223.931</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>94</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="11">
+					<Center>1094.444,1234.179</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>92</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="12">
+					<Center>1094.412,1244.223</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="13">
+					<Center>1094.380,1254.138</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="14">
+					<Center>1094.347,1264.388</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>78</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="15">
+					<Center>1094.314,1274.401</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="16">
+					<Center>1094.282,1284.532</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="17">
+					<Center>1094.249,1294.737</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>88</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="18">
+					<Center>1094.218,1304.496</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="19">
+					<Center>1094.185,1314.489</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>74</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="20">
+					<Center>1094.153,1324.577</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>86</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="21">
+					<Center>1094.121,1334.470</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>91</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+				<GridIntersection row="22" column="22">
+					<Center>1094.089,1344.363</Center>
+					<IdealCenter>0.000,0.000</IdealCenter>
+					<Mod>98</Mod>
+					<Grade>4.0</Grade>
+					<IsBlack>0</IsBlack>
+				</GridIntersection>
+			</GridData>
+			<HistData>
+				<ImageHist>
+					<Threshold>101</Threshold>
+					<RMin>11</RMin>
+					<RMax>191</RMax>
+					<Bin value="11">54</Bin>
+					<Bin value="12">72</Bin>
+					<Bin value="13">76</Bin>
+					<Bin value="14">76</Bin>
+					<Bin value="15">120</Bin>
+					<Bin value="16">144</Bin>
+					<Bin value="17">128</Bin>
+					<Bin value="18">162</Bin>
+					<Bin value="19">155</Bin>
+					<Bin value="20">147</Bin>
+					<Bin value="21">129</Bin>
+					<Bin value="22">139</Bin>
+					<Bin value="23">174</Bin>
+					<Bin value="24">110</Bin>
+					<Bin value="25">103</Bin>
+					<Bin value="26">113</Bin>
+					<Bin value="27">93</Bin>
+					<Bin value="28">91</Bin>
+					<Bin value="29">70</Bin>
+					<Bin value="30">77</Bin>
+					<Bin value="31">96</Bin>
+					<Bin value="32">73</Bin>
+					<Bin value="33">71</Bin>
+					<Bin value="34">75</Bin>
+					<Bin value="35">64</Bin>
+					<Bin value="36">82</Bin>
+					<Bin value="37">58</Bin>
+					<Bin value="38">67</Bin>
+					<Bin value="39">63</Bin>
+					<Bin value="40">63</Bin>
+					<Bin value="41">50</Bin>
+					<Bin value="42">52</Bin>
+					<Bin value="43">40</Bin>
+					<Bin value="44">43</Bin>
+					<Bin value="45">48</Bin>
+					<Bin value="46">62</Bin>
+					<Bin value="47">65</Bin>
+					<Bin value="48">68</Bin>
+					<Bin value="49">50</Bin>
+					<Bin value="50">62</Bin>
+					<Bin value="51">49</Bin>
+					<Bin value="52">47</Bin>
+					<Bin value="53">53</Bin>
+					<Bin value="54">53</Bin>
+					<Bin value="55">34</Bin>
+					<Bin value="56">54</Bin>
+					<Bin value="57">44</Bin>
+					<Bin value="58">51</Bin>
+					<Bin value="59">42</Bin>
+					<Bin value="60">51</Bin>
+					<Bin value="61">44</Bin>
+					<Bin value="62">39</Bin>
+					<Bin value="63">34</Bin>
+					<Bin value="64">40</Bin>
+					<Bin value="65">45</Bin>
+					<Bin value="66">51</Bin>
+					<Bin value="67">41</Bin>
+					<Bin value="68">30</Bin>
+					<Bin value="69">41</Bin>
+					<Bin value="70">48</Bin>
+					<Bin value="71">51</Bin>
+					<Bin value="72">42</Bin>
+					<Bin value="73">59</Bin>
+					<Bin value="74">60</Bin>
+					<Bin value="75">52</Bin>
+					<Bin value="76">43</Bin>
+					<Bin value="77">53</Bin>
+					<Bin value="78">37</Bin>
+					<Bin value="79">36</Bin>
+					<Bin value="80">42</Bin>
+					<Bin value="81">45</Bin>
+					<Bin value="82">42</Bin>
+					<Bin value="83">41</Bin>
+					<Bin value="84">36</Bin>
+					<Bin value="85">41</Bin>
+					<Bin value="86">39</Bin>
+					<Bin value="87">50</Bin>
+					<Bin value="88">41</Bin>
+					<Bin value="89">48</Bin>
+					<Bin value="90">44</Bin>
+					<Bin value="91">45</Bin>
+					<Bin value="92">56</Bin>
+					<Bin value="93">49</Bin>
+					<Bin value="94">34</Bin>
+					<Bin value="95">42</Bin>
+					<Bin value="96">45</Bin>
+					<Bin value="97">43</Bin>
+					<Bin value="98">35</Bin>
+					<Bin value="99">40</Bin>
+					<Bin value="100">46</Bin>
+					<Bin value="101">60</Bin>
+					<Bin value="102">50</Bin>
+					<Bin value="103">64</Bin>
+					<Bin value="104">60</Bin>
+					<Bin value="105">56</Bin>
+					<Bin value="106">49</Bin>
+					<Bin value="107">48</Bin>
+					<Bin value="108">50</Bin>
+					<Bin value="109">45</Bin>
+					<Bin value="110">47</Bin>
+					<Bin value="111">39</Bin>
+					<Bin value="112">52</Bin>
+					<Bin value="113">40</Bin>
+					<Bin value="114">52</Bin>
+					<Bin value="115">52</Bin>
+					<Bin value="116">59</Bin>
+					<Bin value="117">54</Bin>
+					<Bin value="118">45</Bin>
+					<Bin value="119">47</Bin>
+					<Bin value="120">48</Bin>
+					<Bin value="121">56</Bin>
+					<Bin value="122">57</Bin>
+					<Bin value="123">49</Bin>
+					<Bin value="124">59</Bin>
+					<Bin value="125">50</Bin>
+					<Bin value="126">62</Bin>
+					<Bin value="127">54</Bin>
+					<Bin value="128">52</Bin>
+					<Bin value="129">56</Bin>
+					<Bin value="130">60</Bin>
+					<Bin value="131">65</Bin>
+					<Bin value="132">79</Bin>
+					<Bin value="133">70</Bin>
+					<Bin value="134">46</Bin>
+					<Bin value="135">50</Bin>
+					<Bin value="136">58</Bin>
+					<Bin value="137">61</Bin>
+					<Bin value="138">54</Bin>
+					<Bin value="139">52</Bin>
+					<Bin value="140">59</Bin>
+					<Bin value="141">64</Bin>
+					<Bin value="142">56</Bin>
+					<Bin value="143">67</Bin>
+					<Bin value="144">56</Bin>
+					<Bin value="145">65</Bin>
+					<Bin value="146">56</Bin>
+					<Bin value="147">54</Bin>
+					<Bin value="148">63</Bin>
+					<Bin value="149">48</Bin>
+					<Bin value="150">67</Bin>
+					<Bin value="151">62</Bin>
+					<Bin value="152">71</Bin>
+					<Bin value="153">62</Bin>
+					<Bin value="154">81</Bin>
+					<Bin value="155">79</Bin>
+					<Bin value="156">87</Bin>
+					<Bin value="157">85</Bin>
+					<Bin value="158">75</Bin>
+					<Bin value="159">75</Bin>
+					<Bin value="160">61</Bin>
+					<Bin value="161">82</Bin>
+					<Bin value="162">89</Bin>
+					<Bin value="163">95</Bin>
+					<Bin value="164">84</Bin>
+					<Bin value="165">78</Bin>
+					<Bin value="166">101</Bin>
+					<Bin value="167">109</Bin>
+					<Bin value="168">104</Bin>
+					<Bin value="169">94</Bin>
+					<Bin value="170">108</Bin>
+					<Bin value="171">98</Bin>
+					<Bin value="172">108</Bin>
+					<Bin value="173">113</Bin>
+					<Bin value="174">99</Bin>
+					<Bin value="175">109</Bin>
+					<Bin value="176">100</Bin>
+					<Bin value="177">90</Bin>
+					<Bin value="178">111</Bin>
+					<Bin value="179">104</Bin>
+					<Bin value="180">108</Bin>
+					<Bin value="181">90</Bin>
+					<Bin value="182">91</Bin>
+					<Bin value="183">87</Bin>
+					<Bin value="184">73</Bin>
+					<Bin value="185">40</Bin>
+					<Bin value="186">40</Bin>
+					<Bin value="187">28</Bin>
+					<Bin value="188">21</Bin>
+					<Bin value="189">10</Bin>
+					<Bin value="190">9</Bin>
+					<Bin value="191">3</Bin>
+				</ImageHist>
+				<SymbolHist>
+					<Threshold>101</Threshold>
+					<RMin>11</RMin>
+					<RMax>191</RMax>
+					<Bin value="12">11</Bin>
+					<Bin value="13">6</Bin>
+					<Bin value="14">14</Bin>
+					<Bin value="15">21</Bin>
+					<Bin value="16">28</Bin>
+					<Bin value="17">18</Bin>
+					<Bin value="18">28</Bin>
+					<Bin value="19">26</Bin>
+					<Bin value="20">27</Bin>
+					<Bin value="21">20</Bin>
+					<Bin value="22">12</Bin>
+					<Bin value="23">11</Bin>
+					<Bin value="24">6</Bin>
+					<Bin value="25">6</Bin>
+					<Bin value="26">5</Bin>
+					<Bin value="27">1</Bin>
+					<Bin value="28">2</Bin>
+					<Bin value="29">3</Bin>
+					<Bin value="30">2</Bin>
+					<Bin value="33">1</Bin>
+					<Bin value="34">1</Bin>
+					<Bin value="36">1</Bin>
+					<Bin value="39">1</Bin>
+					<Bin value="139">1</Bin>
+					<Bin value="140">1</Bin>
+					<Bin value="143">1</Bin>
+					<Bin value="151">1</Bin>
+					<Bin value="156">1</Bin>
+					<Bin value="159">1</Bin>
+					<Bin value="160">1</Bin>
+					<Bin value="161">2</Bin>
+					<Bin value="162">1</Bin>
+					<Bin value="163">3</Bin>
+					<Bin value="164">5</Bin>
+					<Bin value="165">3</Bin>
+					<Bin value="166">5</Bin>
+					<Bin value="167">5</Bin>
+					<Bin value="168">5</Bin>
+					<Bin value="169">4</Bin>
+					<Bin value="170">7</Bin>
+					<Bin value="171">5</Bin>
+					<Bin value="172">8</Bin>
+					<Bin value="173">6</Bin>
+					<Bin value="174">8</Bin>
+					<Bin value="175">13</Bin>
+					<Bin value="176">11</Bin>
+					<Bin value="177">14</Bin>
+					<Bin value="178">19</Bin>
+					<Bin value="179">16</Bin>
+					<Bin value="180">18</Bin>
+					<Bin value="181">17</Bin>
+					<Bin value="182">18</Bin>
+					<Bin value="183">22</Bin>
+					<Bin value="184">22</Bin>
+					<Bin value="185">18</Bin>
+					<Bin value="186">16</Bin>
+					<Bin value="187">20</Bin>
+					<Bin value="188">9</Bin>
+					<Bin value="189">11</Bin>
+					<Bin value="190">4</Bin>
+					<Bin value="191">2</Bin>
+					<Bin value="193">1</Bin>
+				</SymbolHist>
+			</HistData>
+			<Regions>
+				<Region>
+					<Label>LLS</Label>
+					<Vertex>1117.560,878.107</Vertex>
+					<Vertex>1127.630,878.076</Vertex>
+					<Vertex>1128.493,1090.063</Vertex>
+					<Vertex>1118.414,1090.096</Vertex>
+				</Region>
+				<Region>
+					<Label>BLS</Label>
+					<Vertex>1118.376,1080.653</Vertex>
+					<Vertex>1339.345,1079.943</Vertex>
+					<Vertex>1339.393,1089.385</Vertex>
+					<Vertex>1118.414,1090.096</Vertex>
+				</Region>
+				<Region>
+					<Label>LQZ</Label>
+					<Vertex>1107.570,868.514</Vertex>
+					<Vertex>1117.521,868.484</Vertex>
+					<Vertex>1118.452,1099.538</Vertex>
+					<Vertex>1108.491,1099.570</Vertex>
+				</Region>
+				<Region>
+					<Label>BQZ</Label>
+					<Vertex>1108.453,1090.128</Vertex>
+					<Vertex>1349.285,1089.353</Vertex>
+					<Vertex>1349.333,1098.794</Vertex>
+					<Vertex>1108.491,1099.570</Vertex>
+				</Region>
+				<Region>
+					<Label>TQZ</Label>
+					<Vertex>1107.570,868.514</Vertex>
+					<Vertex>1348.160,867.775</Vertex>
+					<Vertex>1348.208,877.397</Vertex>
+					<Vertex>1107.609,878.138</Vertex>
+				</Region>
+				<Region>
+					<Label>RQZ</Label>
+					<Vertex>1338.277,867.805</Vertex>
+					<Vertex>1348.160,867.775</Vertex>
+					<Vertex>1349.333,1098.794</Vertex>
+					<Vertex>1339.440,1098.825</Vertex>
+				</Region>
+				<Region>
+					<Label>TTR</Label>
+					<Vertex>1117.521,868.484</Vertex>
+					<Vertex>1338.277,867.805</Vertex>
+					<Vertex>1338.374,887.050</Vertex>
+					<Vertex>1117.599,887.731</Vertex>
+				</Region>
+				<Region>
+					<Label>RTR</Label>
+					<Vertex>1328.442,877.458</Vertex>
+					<Vertex>1348.208,877.397</Vertex>
+					<Vertex>1349.285,1089.353</Vertex>
+					<Vertex>1329.500,1089.417</Vertex>
+				</Region>
+				<Region>
+					<Label>TCT</Label>
+					<Vertex>1117.560,878.107</Vertex>
+					<Vertex>1338.325,877.427</Vertex>
+					<Vertex>1338.374,887.050</Vertex>
+					<Vertex>1117.599,887.731</Vertex>
+				</Region>
+				<Region>
+					<Label>RCT</Label>
+					<Vertex>1328.442,877.458</Vertex>
+					<Vertex>1338.325,877.427</Vertex>
+					<Vertex>1339.393,1089.385</Vertex>
+					<Vertex>1329.500,1089.417</Vertex>
+				</Region>
+			</Regions>
+		</SymbolData>
+	</trucheck_verificaiton_result>
+</result>
