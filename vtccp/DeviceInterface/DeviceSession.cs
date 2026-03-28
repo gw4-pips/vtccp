@@ -111,17 +111,31 @@ public sealed class DeviceSession : IAsyncDisposable
         {
             _originalTriggerType = trigResp.Body.Trim();
 
-            // Switch to Single if the device is NOT already in a software-trigger mode.
-            bool needsSingle = !_originalTriggerType.Equals("Single",    StringComparison.OrdinalIgnoreCase)
-                            && !_originalTriggerType.Equals("Software",  StringComparison.OrdinalIgnoreCase)
-                            && !_originalTriggerType.Equals("Continuous",StringComparison.OrdinalIgnoreCase)
-                            && !_originalTriggerType.Equals("Self",      StringComparison.OrdinalIgnoreCase);
+            // Trigger type may be returned as a string ("Single", "External") or
+            // as an integer code ("0" = External, "1" = Single, "2" = Continuous,
+            // "3" = Self/Presentation).  Accept either form.
+            bool isSoftwareMode =
+                _originalTriggerType.Equals("Single",     StringComparison.OrdinalIgnoreCase)
+             || _originalTriggerType.Equals("Software",   StringComparison.OrdinalIgnoreCase)
+             || _originalTriggerType.Equals("Continuous", StringComparison.OrdinalIgnoreCase)
+             || _originalTriggerType.Equals("Self",       StringComparison.OrdinalIgnoreCase)
+             || _originalTriggerType == "1"   // Single
+             || _originalTriggerType == "2"   // Continuous
+             || _originalTriggerType == "3";  // Self / Presentation
 
-            if (needsSingle)
+            if (!isSoftwareMode)
             {
+                // "SET TRIGGER.TYPE 1" (integer) — string form "Single" is rejected
+                // by some DMV firmware with InvalidParameterException.
                 var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
                 System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-DMCC] SET TRIGGER.TYPE Single: code={setResp.StatusCode}");
+                    $"[VTCCP-DMCC] SET TRIGGER.TYPE 1: code={setResp.StatusCode}  " +
+                    $"(was '{_originalTriggerType}')");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-DMCC] Trigger already in software mode '{_originalTriggerType}' — no change.");
             }
         }
         else

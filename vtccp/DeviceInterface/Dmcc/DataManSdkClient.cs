@@ -183,26 +183,43 @@ public sealed class DataManSdkClient : IAsyncDisposable
         _system!.XmlResultArrived += xmlHandler;
         try
         {
-            // Send trigger — "TRIGGER 1" is required on this firmware;
-            // plain "TRIGGER" throws InvalidParameterException.
+            // Fire the trigger.  Try each form in turn; every exception is caught
+            // so the enclosing await never throws and the timeout path stays clean.
+            bool triggered = false;
             await Task.Run(() =>
             {
+                // Attempt 1: TRIGGER 1
                 try
                 {
-                    _system.SendCommand("TRIGGER 1");
-                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER 1 sent.");
+                    _system!.SendCommand("TRIGGER 1");
+                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER 1 sent OK.");
+                    triggered = true;
+                    return;
                 }
-                catch (CognexSdk.InvalidParameterException)
+                catch (Exception ex1)
                 {
-                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER 1 failed, retrying TRIGGER...");
-                    _system.SendCommand("TRIGGER");
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SDK] TRIGGER 1 failed ({ex1.GetType().Name}: {ex1.Message}), trying plain TRIGGER...");
                 }
-                catch (Exception ex)
+
+                // Attempt 2: plain TRIGGER
+                try
                 {
-                    System.Diagnostics.Debug.WriteLine($"[VTCCP-SDK] TRIGGER failed: {ex.GetType().Name}: {ex.Message}");
-                    tcs.TrySetResult(null);
+                    _system!.SendCommand("TRIGGER");
+                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER sent OK.");
+                    triggered = true;
+                }
+                catch (Exception ex2)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SDK] TRIGGER also failed ({ex2.GetType().Name}: {ex2.Message}).");
                 }
             }, ct);
+
+            if (!triggered)
+            {
+                tcs.TrySetResult(null);
+            }
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(timeoutMs);

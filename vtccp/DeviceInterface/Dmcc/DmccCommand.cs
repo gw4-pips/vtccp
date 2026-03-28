@@ -57,10 +57,11 @@ public static class DmccCommand
 
     /// <summary>
     /// Sets the trigger type to Single (software trigger enabled).
+    /// Uses integer code 1 — some DMV firmware rejects the string form "Single".
     /// Allows VTCCP to fire scans via the TRIGGER command without a hardware signal.
     /// Saved in session only — DeviceSession restores the original value on disconnect.
     /// </summary>
-    public const string SetTriggerTypeSingle = "SET TRIGGER.TYPE Single";
+    public const string SetTriggerTypeSingle = "SET TRIGGER.TYPE 1";
 
     // ── Device control ────────────────────────────────────────────────────────
 
