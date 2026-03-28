@@ -6,36 +6,49 @@ using System.Text;
 using ExcelEngine.Models;
 
 /// <summary>
-/// TCP listener that receives pushed DMST XML results from the DataMan device
-/// and fires a callback with the parsed <see cref="VerificationRecord"/>.
+/// TCP listener that receives pushed results from the DataMan device and fires a
+/// callback with the parsed <see cref="VerificationRecord"/>.
 ///
-/// The device must be configured to send DMST output to host_ip:port after each scan.
-/// This listener accepts one connection (the device), receives XML push payloads,
-/// parses each one, and raises the result callback.
+/// Two wire formats are supported automatically:
+///
+///   XML mode  — device sends a <DMCCResponse> (or other ResponseRoot) XML document.
+///               Detected when the first non-whitespace byte is '&lt;'.
+///               Used when Format Data scripting outputs a full XML blob.
+///
+///   Text mode — device sends plain-text lines (one decoded-string per CR/LF).
+///               Used when Format Data is in Basic/Standard mode and the device
+///               is configured with the Network Client push to our port.
+///               Each non-empty line becomes a minimal VerificationRecord
+///               (DecodedData populated; quality grades all null).
+///
+/// The device must be configured to connect to host_ip:port after each scan
+/// (DataMan Setup Tool → Communications → Network Client → Enabled, Host, Port).
 /// </summary>
 public sealed class DmstListener
 {
-    private readonly int                _port;
-    private readonly VerificationXmlMap _map;
-    private readonly VerificationRecord _context;
+    private readonly int                       _port;
+    private readonly VerificationXmlMap        _map;
+    private readonly VerificationRecord        _context;
     private readonly Action<VerificationRecord> _callback;
-    private TcpListener?       _server;
-    private CancellationTokenSource? _cts;
-    private Task?              _listenTask;
+    private TcpListener?              _server;
+    private CancellationTokenSource?  _cts;
+    private Task?                     _listenTask;
 
     public bool IsRunning => _listenTask is { IsCompleted: false };
 
     public DmstListener(
-        int                 port,
-        VerificationXmlMap  map,
-        VerificationRecord  sessionContext,
-        Action<VerificationRecord> resultCallback)
+        int                         port,
+        VerificationXmlMap          map,
+        VerificationRecord          sessionContext,
+        Action<VerificationRecord>  resultCallback)
     {
         _port     = port;
         _map      = map;
         _context  = sessionContext;
         _callback = resultCallback;
     }
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     public Task StartAsync(CancellationToken ct = default)
     {
@@ -54,12 +67,14 @@ public sealed class DmstListener
         _server?.Stop();
         if (_listenTask is not null)
         {
-            try { await _listenTask; } catch { /* expected cancellation */ }
+            try { await _listenTask; } catch { /* expected on cancel */ }
         }
         _listenTask = null;
         _cts?.Dispose();
         _cts = null;
     }
+
+    // ── Accept loop ───────────────────────────────────────────────────────────
 
     private async Task AcceptLoopAsync(CancellationToken ct)
     {
@@ -73,6 +88,8 @@ public sealed class DmstListener
         }
     }
 
+    // ── Per-client handler ────────────────────────────────────────────────────
+
     private async Task HandleClientAsync(TcpClient client, CancellationToken ct)
     {
         using (client)
@@ -80,6 +97,7 @@ public sealed class DmstListener
         {
             var sb  = new StringBuilder();
             var buf = new byte[8192];
+            bool? isXml = null;   // null = not yet determined
 
             while (!ct.IsCancellationRequested)
             {
@@ -88,20 +106,101 @@ public sealed class DmstListener
                 catch { break; }
 
                 if (n <= 0) break;
-                sb.Append(Encoding.UTF8.GetString(buf, 0, n));
 
-                // Each DMST push is a complete XML document; detect end of doc.
-                string accumulated = sb.ToString();
-                string trimmed = accumulated.TrimEnd();
-                if (trimmed.EndsWith($"</{_map.ResponseRoot}>", StringComparison.OrdinalIgnoreCase)
-                 || trimmed.EndsWith("?>", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Parse and fire callback.
-                    var record = DmstResultParser.Parse(accumulated, _map, _context);
-                    try { _callback(record); } catch { /* caller exception isolation */ }
-                    sb.Clear();
-                }
+                string chunk = Encoding.UTF8.GetString(buf, 0, n);
+                sb.Append(chunk);
+
+                // Determine format on first non-whitespace byte received.
+                if (isXml is null)
+                    isXml = sb.ToString().TrimStart().StartsWith('<');
+
+                if (isXml == true)
+                    ProcessXmlBuffer(sb);
+                else
+                    ProcessTextBuffer(sb);
+            }
+
+            // Drain any remaining text (connection closed without trailing newline).
+            if (isXml == false)
+            {
+                string remaining = sb.ToString().Trim();
+                if (remaining.Length > 0)
+                    FireText(remaining);
             }
         }
+    }
+
+    // ── XML buffer processing ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Fires once a complete XML document is accumulated (detected by closing root tag).
+    /// Leaves any data after the closing tag in the buffer (rare, but defensive).
+    /// </summary>
+    private void ProcessXmlBuffer(StringBuilder sb)
+    {
+        string accumulated = sb.ToString();
+        string trimmed     = accumulated.TrimEnd();
+
+        string closingTag  = $"</{_map.ResponseRoot}>";
+        int    tagIdx      = trimmed.LastIndexOf(closingTag, StringComparison.OrdinalIgnoreCase);
+
+        if (tagIdx < 0)
+        {
+            // Also accept a bare XML declaration end (<?xml …?>) as a single-line document.
+            if (trimmed.EndsWith("?>", StringComparison.Ordinal))
+                tagIdx = 0;
+        }
+
+        if (tagIdx < 0) return;   // incomplete — keep buffering
+
+        int endPos = tagIdx + closingTag.Length;
+        string xmlDoc = accumulated[..endPos];
+        string leftover = accumulated[endPos..];
+
+        sb.Clear();
+        sb.Append(leftover);
+
+        var record = DmstResultParser.Parse(xmlDoc, _map, _context);
+        Fire(record);
+    }
+
+    // ── Plain-text buffer processing ──────────────────────────────────────────
+
+    /// <summary>
+    /// Splits the buffer on newlines and fires a record for each complete line.
+    /// The last (potentially incomplete) fragment is left in the buffer.
+    /// </summary>
+    private void ProcessTextBuffer(StringBuilder sb)
+    {
+        string data = sb.ToString();
+        int lastNewline = data.LastIndexOfAny(['\n', '\r']);
+
+        if (lastNewline < 0) return;   // no complete line yet
+
+        string complete = data[..(lastNewline + 1)];
+        string leftover = data[(lastNewline + 1)..];
+
+        sb.Clear();
+        sb.Append(leftover);
+
+        foreach (string raw in complete.Split('\n'))
+        {
+            string line = raw.Trim('\r', '\n', ' ');
+            if (line.Length > 0)
+                FireText(line);
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void Fire(VerificationRecord r)
+    {
+        try { _callback(r); } catch { /* caller exception isolation */ }
+    }
+
+    private void FireText(string decodedLine)
+    {
+        var record = DmstResultParser.ParseText(decodedLine, _context);
+        Fire(record);
     }
 }

@@ -377,6 +377,63 @@ public static class DmstResultParser
         };
     }
 
+    // ── Plain-text entry point ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Creates a minimal <see cref="VerificationRecord"/> from a single plain-text
+    /// push line received via the DataMan Network Client (Format Data → Basic/Standard).
+    ///
+    /// Only <see cref="VerificationRecord.DecodedData"/> and session-context fields
+    /// are populated; all quality-grade fields remain null.
+    ///
+    /// The line may optionally be tab- or comma-delimited in the order:
+    ///   content [, decodeTimeMs [, symbology]]
+    /// If it contains no delimiter the whole string is treated as the decoded content.
+    /// </summary>
+    public static VerificationRecord ParseText(
+        string              line,
+        VerificationRecord? deviceContext = null)
+    {
+        // Try to split tab-delimited or comma-delimited fields.
+        // DataMan Standard format typically uses the configured delimiter; we try both.
+        string[] parts = line.Contains('\t')
+            ? line.Split('\t')
+            : line.Contains(',')
+                ? line.Split(',')
+                : [line];
+
+        string  content  = parts.Length > 0 ? parts[0].Trim() : line.Trim();
+        string? symbRaw  = parts.Length > 2 ? parts[2].Trim()   // field 3 = symbology
+                         : parts.Length > 1 ? null               // field 2 = decode-time (unused)
+                         : null;
+        string  symbology = NormaliseSymbologyName(symbRaw);
+
+        return new VerificationRecord
+        {
+            VerificationDateTime = DateTime.Now,
+            DecodedData          = content,
+            Symbology            = symbology,
+            SymbologyFamily      = new VerificationXmlMap().ClassifySymbology(symbology),
+
+            // Session context preserved from device context
+            OperatorId      = deviceContext?.OperatorId,
+            JobName         = deviceContext?.JobName,
+            BatchNumber     = deviceContext?.BatchNumber,
+            RollNumber      = deviceContext?.RollNumber,
+            CompanyName     = deviceContext?.CompanyName,
+            ProductName     = deviceContext?.ProductName,
+            CustomNote      = deviceContext?.CustomNote,
+            User1           = deviceContext?.User1,
+            User2           = deviceContext?.User2,
+            DeviceSerial    = deviceContext?.DeviceSerial,
+            DeviceName      = deviceContext?.DeviceName,
+            FirmwareVersion = deviceContext?.FirmwareVersion,
+            CalibrationDate = deviceContext?.CalibrationDate,
+        };
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
     private static VerificationRecord Fallback(VerificationRecord? ctx, string reason) =>
         new()
         {
