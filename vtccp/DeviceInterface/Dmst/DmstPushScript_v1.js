@@ -310,5 +310,13 @@ function onResult(decodeResults, readerProperties, outputResults) {
     o += '</DMSymVerResponse>\r\n'
        + '</DMCCResponse>';
 
-    output.content = o;
+    // Firmware 5.x / 6.x compatibility:
+    // Older firmware exposes a global 'output' object; newer firmware passes
+    // the output as the third parameter 'outputResults'.  Try both so the
+    // script works across revisions without modification.
+    if (typeof outputResults !== "undefined" && outputResults !== null) {
+        outputResults.content = o;
+    } else {
+        output.content = o;
+    }
 }
