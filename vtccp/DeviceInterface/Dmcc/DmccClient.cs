@@ -51,8 +51,9 @@ public sealed class DmccClient : IAsyncDisposable
         await _tcp.ConnectAsync(_cfg.Host, _cfg.Port, connectCts.Token);
         _stream = _tcp.GetStream();
 
-        // Read welcome banner (device sends it immediately on connect).
-        WelcomeBanner = await ReadUntilIdleAsync(ct);
+        // Read welcome banner with a short timeout — many devices send nothing
+        // and we must not stall for the full ResponseTimeoutMs here.
+        WelcomeBanner = await ReadUntilIdleAsync(ct, _cfg.BannerTimeoutMs);
     }
 
     /// <summary>Gracefully closes the connection.</summary>
@@ -88,18 +89,21 @@ public sealed class DmccClient : IAsyncDisposable
 
     /// <summary>
     /// Reads bytes until no new bytes arrive for <see cref="DeviceConfig.IdleGapMs"/>
-    /// milliseconds, or the overall <see cref="DeviceConfig.ResponseTimeoutMs"/> elapses.
+    /// milliseconds, or the overall timeout elapses.
+    ///
+    /// <paramref name="overrideTimeoutMs"/> overrides <see cref="DeviceConfig.ResponseTimeoutMs"/>
+    /// for this call only — used for the welcome-banner read which should time out quickly.
     ///
     /// Implementation note: NetworkStream.ReadAsync with a CancellationToken disposes the
     /// underlying socket on Linux when the token fires, destroying the connection.  To avoid
     /// this we run a synchronous Socket.Receive loop on a thread-pool thread; synchronous
     /// socket reads respect ReceiveTimeout without touching the socket lifetime.
     /// </summary>
-    private Task<string> ReadUntilIdleAsync(CancellationToken ct)
+    private Task<string> ReadUntilIdleAsync(CancellationToken ct, int? overrideTimeoutMs = null)
     {
         var socket = _tcp!.Client;
-        int idleGap   = _cfg.IdleGapMs;
-        int responseMs = _cfg.ResponseTimeoutMs;
+        int idleGap    = _cfg.IdleGapMs;
+        int responseMs = overrideTimeoutMs ?? _cfg.ResponseTimeoutMs;
 
         return Task.Run(() =>
         {

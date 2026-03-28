@@ -47,6 +47,21 @@ public static class DmccCommand
     /// </summary>
     public const string SetResultFormatFull = "SET DMCC.RESULT-FORMAT FULL";
 
+    // ── Trigger mode ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the current trigger type string, e.g. "External", "Single", "Continuous".
+    /// Used at session start to detect hardware-only trigger mode.
+    /// </summary>
+    public const string GetTriggerType = "GET TRIGGER.TYPE";
+
+    /// <summary>
+    /// Sets the trigger type to Single (software trigger enabled).
+    /// Allows VTCCP to fire scans via the TRIGGER command without a hardware signal.
+    /// Saved in session only — DeviceSession restores the original value on disconnect.
+    /// </summary>
+    public const string SetTriggerTypeSingle = "SET TRIGGER.TYPE Single";
+
     // ── Device control ────────────────────────────────────────────────────────
 
     /// <summary>Reboot the device. Use with caution in production.</summary>

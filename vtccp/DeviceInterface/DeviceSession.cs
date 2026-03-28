@@ -20,11 +20,18 @@ using ExcelEngine.Models;
 /// </summary>
 public sealed class DeviceSession : IAsyncDisposable
 {
-    private readonly DeviceConfig      _cfg;
+    private readonly DeviceConfig       _cfg;
     private readonly VerificationXmlMap _map;
-    private readonly DmccClient        _client;
-    private DmstListener?              _listener;
-    private bool                       _disposed;
+    private readonly DmccClient         _client;
+    private DmstListener?               _listener;
+    private bool                        _disposed;
+
+    /// <summary>
+    /// Original trigger type read from the device in ConnectAsync.
+    /// Restored in DisconnectAsync so VTCCP does not permanently alter device settings.
+    /// Null if GET TRIGGER.TYPE was not supported by this firmware.
+    /// </summary>
+    private string? _originalTriggerType;
 
     /// <summary>
     /// Device information queried during <see cref="ConnectAsync"/>.
@@ -75,21 +82,76 @@ public sealed class DeviceSession : IAsyncDisposable
         // Configure device for full result output.
         await _client.SendAsync(DmccCommand.SetResultFormatFull, ct);
 
-        // Query device info.
+        // Query device identity info.
         DeviceInfo = new DeviceInfo
         {
-            Type            = (await _client.SendAsync(DmccCommand.GetDeviceType,    ct)).Body,
-            FirmwareVersion = (await _client.SendAsync(DmccCommand.GetFirmwareVer,   ct)).Body,
-            Name            = (await _client.SendAsync(DmccCommand.GetDeviceName,    ct)).Body,
-            Serial          = (await _client.SendAsync(DmccCommand.GetDeviceId,      ct)).Body,
-            CalibrationDate = ParseCalibrationDate(
-                              (await _client.SendAsync(DmccCommand.GetCalibrationDate, ct)).Body),
+            Type            = (await _client.SendAsync(DmccCommand.GetDeviceType,  ct)).Body,
+            FirmwareVersion = (await _client.SendAsync(DmccCommand.GetFirmwareVer, ct)).Body,
+            Name            = (await _client.SendAsync(DmccCommand.GetDeviceName,  ct)).Body,
+            Serial          = (await _client.SendAsync(DmccCommand.GetDeviceId,    ct)).Body,
+            // CalibrationDate omitted from startup — GET CALIBRATION.DATE can time out
+            // (5 s) on devices that do not support it; it is not required for scanning.
         };
+
+        // ── Trigger mode ─────────────────────────────────────────────────────
+        // Many DMV devices default to External (hardware-only) trigger mode.
+        // Software TRIGGER commands are received but the device arms and waits
+        // for an electrical hardware pulse that never arrives, then times out
+        // (~6 s) and returns No Read without ever flashing the illumination.
+        //
+        // Query the current trigger type; if it is External (or any non-Single
+        // variant), switch to Single so VTCCP's software TRIGGER fires the scan
+        // immediately.  The original type is restored in DisconnectAsync so we
+        // do not permanently alter device settings.
+        var trigResp = await _client.SendAsync(DmccCommand.GetTriggerType, ct);
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-DMCC] Trigger type on connect: code={trigResp.StatusCode}  value='{trigResp.Body}'");
+
+        if (trigResp.IsSuccess && !string.IsNullOrWhiteSpace(trigResp.Body))
+        {
+            _originalTriggerType = trigResp.Body.Trim();
+
+            // Switch to Single if the device is NOT already in a software-trigger mode.
+            bool needsSingle = !_originalTriggerType.Equals("Single",    StringComparison.OrdinalIgnoreCase)
+                            && !_originalTriggerType.Equals("Software",  StringComparison.OrdinalIgnoreCase)
+                            && !_originalTriggerType.Equals("Continuous",StringComparison.OrdinalIgnoreCase)
+                            && !_originalTriggerType.Equals("Self",      StringComparison.OrdinalIgnoreCase);
+
+            if (needsSingle)
+            {
+                var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-DMCC] SET TRIGGER.TYPE Single: code={setResp.StatusCode}");
+            }
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] GET TRIGGER.TYPE not supported (code={trigResp.StatusCode}) — skipping trigger mode setup.");
+        }
     }
 
     /// <summary>Closes the DMCC connection and stops any active push listener.</summary>
     public async Task DisconnectAsync()
     {
+        // Restore the original trigger type so VTCCP does not permanently change
+        // the device's configured trigger source.
+        if (_originalTriggerType is not null && _client.IsConnected)
+        {
+            try
+            {
+                var restoreCmd = $"SET TRIGGER.TYPE {_originalTriggerType}";
+                await _client.SendAsync(restoreCmd);
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-DMCC] Restored trigger type to '{_originalTriggerType}'.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-DMCC] Could not restore trigger type: {ex.Message}");
+            }
+        }
+
         if (_listener is not null) await _listener.StopAsync();
         await _client.DisconnectAsync();
     }

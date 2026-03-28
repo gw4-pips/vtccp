@@ -32,6 +32,13 @@ public sealed class DeviceConfig
     /// </summary>
     public int IdleGapMs { get; set; } = 150;
 
+    /// <summary>
+    /// Maximum milliseconds to wait for the device's TCP welcome banner immediately
+    /// after connecting.  Many devices send nothing; 500 ms is enough to capture it
+    /// without stalling session start for 5+ seconds.
+    /// </summary>
+    public int BannerTimeoutMs { get; set; } = 500;
+
     // ── Result delivery ───────────────────────────────────────────────────────
 
     /// <summary>
