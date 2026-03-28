@@ -1,5 +1,7 @@
 namespace DeviceInterface.Dmcc;
 
+using System.Net;
+
 // Alias avoids name collision: the SDK also defines DmccResponse.
 using CognexSdk = Cognex.DataMan.SDK;
 
@@ -14,15 +16,16 @@ using CognexSdk = Cognex.DataMan.SDK;
 /// </summary>
 public sealed class DataManSdkClient : IAsyncDisposable
 {
-    private readonly DeviceConfig         _cfg;
-    private CognexSdk.EthSystemConnector? _connector;
-    private CognexSdk.DataManSystem?      _system;
-    private bool                          _disposed;
+    private readonly DeviceConfig          _cfg;
+    private CognexSdk.EthSystemConnector?  _connector;
+    private CognexSdk.DataManSystem?       _system;
+    private bool                           _isConnected;
+    private bool                           _disposed;
 
     // ── Public surface (mirrors DmccClient) ──────────────────────────────────
 
     /// <summary>True after a successful ConnectAsync and before DisconnectAsync.</summary>
-    public bool IsConnected => _system?.IsConnected ?? false;
+    public bool IsConnected => _isConnected && _system != null;
 
     /// <summary>Not applicable for the SDK path — always null.</summary>
     public string? WelcomeBanner => null;
@@ -36,7 +39,7 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
     /// <summary>
     /// Opens an SDK connection to the device.
-    /// EthSystemConnector uses port 44444 by default (the DataMan SDK protocol).
+    /// EthSystemConnector uses port 44444 by default (DataMan SDK protocol).
     /// </summary>
     public async Task ConnectAsync(CancellationToken ct = default)
     {
@@ -45,18 +48,22 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
         await Task.Run(() =>
         {
-            _connector = new CognexSdk.EthSystemConnector(_cfg.Host);
+            var ip     = IPAddress.Parse(_cfg.Host);
+            _connector = new CognexSdk.EthSystemConnector(ip);
             _system    = new CognexSdk.DataManSystem(_connector);
             _system.Connect();
+            _isConnected = true;
 
             System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-SDK] Connected to {_cfg.Host}.  IsConnected={_system.IsConnected}");
+                $"[VTCCP-SDK] Connected to {_cfg.Host} via DataMan SDK.");
         }, ct);
     }
 
     /// <summary>Closes the SDK connection.</summary>
     public async Task DisconnectAsync()
     {
+        _isConnected = false;
+
         await Task.Run(() =>
         {
             try
@@ -78,8 +85,9 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
     /// <summary>
     /// Sends a DMCC command via the SDK and returns a parsed DmccResponse.
-    /// SendCommand returns the raw DMCC response string (status + body);
-    /// we feed it to DmccResponse.Parse() to produce a strongly-typed result.
+    /// SDK.SendCommand() returns Cognex.DataMan.SDK.DmccResponse; we call
+    /// ToString() to obtain the raw DMCC wire string, then parse it with
+    /// our DmccResponse.Parse().  The raw string is logged for diagnostics.
     /// </summary>
     public async Task<DmccResponse> SendAsync(string command, CancellationToken ct = default)
     {
@@ -89,13 +97,14 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
         return await Task.Run(() =>
         {
-            string? raw = _system!.SendCommand(command);
+            var sdkResp = _system!.SendCommand(command);
+            string raw  = sdkResp?.ToString() ?? string.Empty;
 
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-SDK] CMD '{command}' → " +
-                $"'{(raw ?? "<null>").Replace("\r", "\\r").Replace("\n", "\\n")}'");
+                $"'{raw.Replace("\r", "\\r").Replace("\n", "\\n")}'");
 
-            return DmccResponse.Parse(raw ?? string.Empty);
+            return DmccResponse.Parse(raw);
         }, ct);
     }
 
