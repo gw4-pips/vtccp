@@ -93,9 +93,47 @@ without socket teardown.
 ### DMST XML Parser (`DeviceInterface.Dmst`)
 - `VerificationXmlMap` — maps DataMan DMST XML element names to `VerificationRecord` field names;
   `ClassifySymbology()` returns the `SymbologyFamily` enum value.
+  Now includes `SCRlRd` element (Symbol Contrast Reflection Level / Reflection Difference pair).
 - `DmstResultParser.Parse(xml, map, contextRecord)` — parses DataMan verification result XML
   into a fully-populated `VerificationRecord`, merging device context (serial, operator, etc.)
   from the supplied context record.  Handles both 2D (ISO 15415) and 1D (ISO 15416) payloads.
+  Wires `SC_RlRd` through the record from the `<SCRlRd>` XML element.
+
+### DMST Push Script (`DeviceInterface/Dmst/DmstPushScript_v1.js`)
+Ready-to-paste JavaScript for **Format Data → Scripting → Data Formatting** in DMST.
+Replaces the default plain-text output with a complete
+`<DMCCResponse><DMSymVerResponse>…</DMSymVerResponse></DMCCResponse>` XML push that
+`DmstResultParser` can fully parse, producing a 167-column row in XLSX.
+
+**How to install:**
+1. Open DMST → Format Data → Scripting → *Data Formatting* tab
+2. Select the **Script-Based Formatting** radio button
+3. Paste the entire contents of `DmstPushScript_v1.js`
+4. Click **Save Settings → Write to device**
+
+**Coverage (firmware 6.x / DMV475):**
+
+| Section | XML elements emitted |
+|---|---|
+| Identity | `DateTime`, `SymbologyName`, `DecodedData` |
+| Grade summary | `FormalGrade`, `OverallGrade`, `OverallGradeNumeric` |
+| Verification settings | `ApertureRef`, `Wavelength`, `Lighting`, `Standard` |
+| 2D ISO 15415 quality | `UECPercent/Grade`, `SCPercent`, `SCRlRd`, `SCGrade`, `MODGrade`, `RMGrade`, `ANUPercent/Grade`, `GNUPercent/Grade`, `FPDGrade`, `DecodeGrade`, `AGValue/Grade` |
+| Matrix characteristics | `MatrixSize`, `HorizontalBWG`, `VerticalBWG`, `EncodedCharacters`, `TotalCodewords`, `DataCodewords`, `ErrorCorrectionBudget`, `ErrorsCorrected`, `ErrorCapacityUsed`, `ErrorCorrectionType`, `NominalXDim`, `PixelsPerModule`, `ImagePolarity`, `ContrastUniformity`, `MRD` |
+| Quiet zones | `LLSGrade`, `BLSGrade`, `LQZGrade`, `BQZGrade`, `TQZGrade`, `RQZGrade` |
+| Transition ratios | `TTRPercent/Grade`, `RTRPercent/Grade`, `TCTGrade`, `RCTGrade` |
+| Quadrant (≥32×32) | `ULQZ…`, `URQZ…`, `RUQZ…`, `RLQZ…`, per-quadrant TTR/RTR/TCT/RCT |
+| 1D ISO 15416 | `SymbolAnsiGrade`, `AvgEdge/RlRd/SC/MinEC/MOD/Defect/Dcod/DEC/LQZ/RQZ/HQZ/MinQZ`, `BWGPercent`, `Magnification`, `Ratio`, `NominalXDim1D` |
+| 1D per-scan | `<ScanResults><Scan number="n">…</Scan></ScanResults>` (max 10 scans) |
+
+The script is ECMAScript 5-compatible (no `const`/`let`, no arrow functions) and uses
+XML entity escaping so barcodes containing `<`, `>`, or `&` survive transit intact.
+All property accesses use a null-safe `prop()` helper — unknown paths emit empty elements
+rather than crashing the script.
+
+**Verifying firmware property names:** if a column arrives blank after enabling the script,
+check the annotated property-name comments in the `.js` file against the *Scripting API
+Reference* (DMST Help menu) for your exact firmware revision.
 
 ### Device Session (`DeviceInterface.DeviceSession`)
 - Connects to a DataMan device, queries `DeviceInfo` (type, firmware, serial, name, calibration

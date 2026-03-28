@@ -48,6 +48,7 @@ public sealed class VerificationXmlMap
     public string UECPercent    { get; set; } = "UECPercent";
     public string UECGrade      { get; set; } = "UECGrade";
     public string SCPercent     { get; set; } = "SCPercent";
+    public string SCRlRd        { get; set; } = "SCRlRd";
     public string SCGrade       { get; set; } = "SCGrade";
     public string MODGrade      { get; set; } = "MODGrade";
     public string RMGrade       { get; set; } = "RMGrade";

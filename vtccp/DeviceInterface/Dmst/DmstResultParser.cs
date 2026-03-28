@@ -112,6 +112,7 @@ public static class DmstResultParser
         decimal? uecPct  = Dec(map.UECPercent);
         GradingResult? uecGrade  = Grade(map.UECGrade);
         decimal? scPct   = Dec(map.SCPercent);
+        string?  scRlRd  = Str(map.SCRlRd);
         GradingResult? scGrade   = Grade(map.SCGrade);
         GradingResult? modGrade  = Grade(map.MODGrade);
         GradingResult? rmGrade   = Grade(map.RMGrade);
@@ -267,6 +268,7 @@ public static class DmstResultParser
             UEC_Percent     = uecPct,
             UEC_Grade       = uecGrade,
             SC_Percent      = scPct,
+            SC_RlRd         = scRlRd,
             SC_Grade        = scGrade,
             MOD_Grade       = modGrade,
             RM_Grade        = rmGrade,
