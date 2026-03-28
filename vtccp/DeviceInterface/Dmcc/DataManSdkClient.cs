@@ -61,7 +61,7 @@ public sealed class DataManSdkClient : IAsyncDisposable
             // with InvalidCommandException on some firmware versions).
             try
             {
-                _system.SetResultTypes(CognexSdk.ResultTypes.XmlResult);
+                _system.SetResultTypes(CognexSdk.ResultTypes.ReadXml);
                 System.Diagnostics.Debug.WriteLine(
                     $"[VTCCP-SDK] Connected to {_cfg.Host}. SetResultTypes(XmlResult) OK.");
             }
