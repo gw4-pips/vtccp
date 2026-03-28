@@ -323,20 +323,38 @@ public sealed class SessionViewModel : ViewModelBase
     /// <summary>
     /// Fire a DMCC TRIGGER over a short-lived connection and immediately close.
     /// Used in Push mode where no persistent DMCC session is maintained.
+    /// The push result arrives asynchronously via <see cref="OnPushRecord"/>.
     /// </summary>
     private async Task SendPushTriggerAsync()
     {
         if (SelectedDevice is null) return;
 
-        // Build a short-timeout config for the quick fire-and-forget connection.
+        // Short-timeout config — keep IdleGapMs from the profile so end-of-response
+        // detection works correctly with this device's firmware.
         var cfg = SelectedDevice.ToDeviceConfig();
         cfg.ConnectTimeoutMs  = 3_000;
         cfg.ResponseTimeoutMs = 3_000;
 
         await using var client = new DeviceInterface.Dmcc.DmccClient(cfg);
         await client.ConnectAsync();
-        await client.SendAsync("TRIGGER");
-        StatusMessage = "Trigger sent — waiting for push result…";
+
+        var resp = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.Trigger);
+
+        StatusMessage = resp.StatusCode switch
+        {
+            DeviceInterface.Dmcc.DmccStatus.Ok =>
+                "Trigger sent — waiting for push result…",
+
+            DeviceInterface.Dmcc.DmccStatus.NoRead =>
+                "Trigger fired — no symbol in field of view.",
+
+            DeviceInterface.Dmcc.DmccStatus.Busy =>
+                "Device busy — trigger rejected. Wait a moment and retry.",
+
+            _ => string.IsNullOrWhiteSpace(resp.Body)
+                    ? $"Trigger: device returned code {resp.StatusCode}."
+                    : $"Trigger: device returned code {resp.StatusCode} — {resp.Body}",
+        };
     }
 
     // ── Auto-Poll background loop ─────────────────────────────────────────────
