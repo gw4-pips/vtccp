@@ -43,7 +43,11 @@ public sealed class DevicesViewModel : ViewModelBase
     public bool IsEditing
     {
         get => _isEditing;
-        private set => Set(ref _isEditing, value);
+        private set
+        {
+            if (Set(ref _isEditing, value))
+                RelayCommand.Refresh();
+        }
     }
 
     public string StatusMessage

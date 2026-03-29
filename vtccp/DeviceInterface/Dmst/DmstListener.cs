@@ -99,38 +99,20 @@ public sealed class DmstListener
             var buf = new byte[8192];
             bool? isXml = null;   // null = not yet determined
 
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-DMST] Client connected from {client.Client.RemoteEndPoint}");
-
             while (!ct.IsCancellationRequested)
             {
                 int n;
                 try   { n = await stream.ReadAsync(buf, ct); }
-                catch (Exception ex) {
-                    System.Diagnostics.Debug.WriteLine($"[VTCCP-DMST] ReadAsync exception: {ex.Message}");
-                    break;
-                }
+                catch { break; }
 
-                if (n <= 0) {
-                    System.Diagnostics.Debug.WriteLine("[VTCCP-DMST] Connection closed by device (n<=0).");
-                    break;
-                }
+                if (n <= 0) break;
 
                 string chunk = Encoding.UTF8.GetString(buf, 0, n);
                 sb.Append(chunk);
 
                 // Determine format on first non-whitespace byte received.
                 if (isXml is null)
-                {
                     isXml = sb.ToString().TrimStart().StartsWith('<');
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-DMST] First chunk ({n} bytes), isXml={isXml}. " +
-                        $"Preview: {chunk[..Math.Min(120, chunk.Length)].Replace("\r","\\r").Replace("\n","\\n")}");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"[VTCCP-DMST] Subsequent chunk ({n} bytes).");
-                }
 
                 if (isXml == true)
                     ProcessXmlBuffer(sb);
@@ -142,17 +124,9 @@ public sealed class DmstListener
             if (isXml == false)
             {
                 string remaining = sb.ToString().Trim();
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-DMST] Draining text buffer ({remaining.Length} chars): {remaining[..Math.Min(80, remaining.Length)]}");
                 if (remaining.Length > 0)
                     FireText(remaining);
             }
-            else if (isXml is null)
-            {
-                System.Diagnostics.Debug.WriteLine("[VTCCP-DMST] Connection closed with no data received.");
-            }
-
-            System.Diagnostics.Debug.WriteLine("[VTCCP-DMST] HandleClientAsync exiting.");
         }
     }
 
@@ -177,27 +151,16 @@ public sealed class DmstListener
                 tagIdx = 0;
         }
 
-        if (tagIdx < 0)
-        {
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-DMST] XML closing tag '{closingTag}' not yet found (buffered {accumulated.Length} chars). Buffering.");
-            return;   // incomplete — keep buffering
-        }
+        if (tagIdx < 0) return;   // incomplete — keep buffering
 
-        int endPos = tagIdx + closingTag.Length;
-        string xmlDoc = accumulated[..endPos];
+        int endPos      = tagIdx + closingTag.Length;
+        string xmlDoc   = accumulated[..endPos];
         string leftover = accumulated[endPos..];
-
-        System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-DMST] Complete XML document found ({xmlDoc.Length} chars). Parsing. " +
-            $"XML preview: {xmlDoc[..Math.Min(600, xmlDoc.Length)].Replace("\r","").Replace("\n"," ")}");
 
         sb.Clear();
         sb.Append(leftover);
 
         var record = DmstResultParser.Parse(xmlDoc, _map, _context);
-        System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-DMST] Parsed record — DecodedData='{record.DecodedData}', Grade='{record.OverallGrade?.LetterGradeString}'. Firing callback.");
         Fire(record);
     }
 
@@ -220,8 +183,6 @@ public sealed class DmstListener
             string all = data.Trim();
             if (all.Length > 0)
             {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-DMST] Text mode, no newline — firing as complete record: '{all}'");
                 sb.Clear();
                 FireText(all);
             }

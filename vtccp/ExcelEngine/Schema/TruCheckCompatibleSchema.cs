@@ -72,19 +72,19 @@ public static class TruCheckCompatibleSchema
         cols.Add(Col("SymbolAnsiGrade_Numeric", "Symbol ANSI Grade", 14, SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("StartStopGrade_Numeric",  "Start/Stop Grade",  14, SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("StartStopSrpGrade_Numeric","Start/Stop SRP Grade", 16, SymbologyGroup.Linear1D, fam1D));
-        cols.Add(Col("Avg_Edge",   "Edge",   10, SymbologyGroup.Linear1D, fam1D));
+        cols.Add(Col("Avg_Edge",   "Edge",    10, SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("Avg_RlRd",   "Rl/Rd",  10, SymbologyGroup.Linear1D, fam1D));
-        cols.Add(Col("Avg_SC",     "SC",      8,  SymbologyGroup.Linear1D, fam1D));
+        cols.Add(Col("Avg_SC",     "SC/CC",   8,  SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("Avg_MinEC",  "MinEC",   8,  SymbologyGroup.Linear1D, fam1D));
-        cols.Add(Col("Avg_MOD",    "MOD",     8,  SymbologyGroup.Linear1D, fam1D));
-        cols.Add(Col("Avg_Defect", "DEF",     8,  SymbologyGroup.Linear1D, fam1D));
-        cols.Add(Col("Avg_DCOD",   "DCOD",    8,  SymbologyGroup.Linear1D, fam1D));
+        cols.Add(Col("Avg_MOD",    "Mod/CMOD",10, SymbologyGroup.Linear1D, fam1D));
+        cols.Add(Col("Avg_Defect", "Def",     8,  SymbologyGroup.Linear1D, fam1D));
+        cols.Add(Col("Avg_DCOD",   "DCD",     8,  SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("Avg_DEC",    "DEC",     8,  SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("Avg_LQZ",    "QZ-L",    8,  SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("Avg_RQZ",    "QZ-R",    8,  SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("Avg_HQZ",    "QZ-H",    8,  SymbologyGroup.Linear1D, fam1D));
-        cols.Add(Col("Avg_MinQZ",  "MinQZ",   8,  SymbologyGroup.Linear1D, fam1D));
-        cols.Add(Col("BWG_Percent","BWG%",    8,  SymbologyGroup.Linear1D, fam1D, numberFormat: "0.0"));
+        cols.Add(Col("Avg_MinQZ",  "QZ",      8,  SymbologyGroup.Linear1D, fam1D));
+        cols.Add(Col("BWG_Percent","BWG",      8,  SymbologyGroup.Linear1D, fam1D, numberFormat: "0.0"));
         cols.Add(Col("BWG_Mil",    "BWG(MIL)",10, SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("Magnification","Magnification", 12, SymbologyGroup.Linear1D, fam1D));
         cols.Add(Col("NominalXDim_1D","X Dim/Mag",   12, SymbologyGroup.Linear1D, fam1D));
@@ -111,7 +111,7 @@ public static class TruCheckCompatibleSchema
         cols.Add(Col("ANU_Grade_Numeric", "ANU Grade",   10, SymbologyGroup.TwoDCommon, fam2D, numberFormat: "0.0"));
         cols.Add(Col("GNU_Percent",       "GNU%",        8,  SymbologyGroup.TwoDCommon, fam2D, numberFormat: "0.0"));
         cols.Add(Col("GNU_Grade_Numeric", "GNU Grade",   10, SymbologyGroup.TwoDCommon, fam2D, numberFormat: "0.0"));
-        cols.Add(Col("FPD_Grade_Numeric", "FPD Grade",   10, SymbologyGroup.TwoDCommon, fam2D, numberFormat: "0.0"));
+        cols.Add(Col("FPD_Grade_Numeric", "FPD",          10, SymbologyGroup.TwoDCommon, fam2D, numberFormat: "0.0"));
         cols.Add(Col("DECODE_Grade_Numeric","DECODE Grade",10,SymbologyGroup.TwoDCommon, fam2D, numberFormat: "0.0"));
         cols.Add(Col("AG_Value",          "AG",          8,  SymbologyGroup.TwoDCommon, fam2D, numberFormat: "0.0"));
         cols.Add(Col("AG_Grade_Numeric",  "AG/DDG",      10, SymbologyGroup.TwoDCommon, fam2D, numberFormat: "0.0"));
@@ -130,7 +130,7 @@ public static class TruCheckCompatibleSchema
         cols.Add(Col("ImagePolarity",     "Image",       16, SymbologyGroup.TwoDCommon, fam2D));
         cols.Add(Col("NominalXDim_2D",    "Nominal X Dimension", 16, SymbologyGroup.TwoDCommon, fam2D, numberFormat: "0.0"));
         cols.Add(Col("PixelsPerModule",   "Pixels per Module",   16, SymbologyGroup.TwoDCommon, fam2D, numberFormat: "0.0"));
-        cols.Add(Col("ContrastUniformity","Contrast Uniformity", 16, SymbologyGroup.TwoDCommon, fam2D));
+        cols.Add(Col("ContrastUniformity","CU",                  10, SymbologyGroup.TwoDCommon, fam2D));
         cols.Add(Col("MRD",              "MRD Calculation",      16, SymbologyGroup.TwoDCommon, fam2D));
 
         // ── Block D: 2D Data Matrix Standard Parameters (≤26×26) ─────────────
@@ -140,26 +140,26 @@ public static class TruCheckCompatibleSchema
             SymbologyFamily.RectangularDataMatrix, SymbologyFamily.DMRE,
         };
 
-        cols.Add(Col("LLS_Grade_Numeric", "LLS Grade",  10, SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("LLS_Grade_Letter",  "LLS",         6,  SymbologyGroup.TwoDDataMatrix, famDM));
-        cols.Add(Col("BLS_Grade_Numeric", "BLS Grade",  10, SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("BLS_Grade_Letter",  "BLS",         6,  SymbologyGroup.TwoDDataMatrix, famDM));
-        cols.Add(Col("LQZ_Grade_Numeric", "LQZ Grade",  10, SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("LQZ_Grade_Letter",  "LQZ",         6,  SymbologyGroup.TwoDDataMatrix, famDM));
-        cols.Add(Col("BQZ_Grade_Numeric", "BQZ Grade",  10, SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("BQZ_Grade_Letter",  "BQZ",         6,  SymbologyGroup.TwoDDataMatrix, famDM));
-        cols.Add(Col("TQZ_Grade_Numeric", "TQZ Grade",  10, SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("TQZ_Grade_Letter",  "TQZ",         6,  SymbologyGroup.TwoDDataMatrix, famDM));
-        cols.Add(Col("RQZ_Grade_Numeric", "RQZ Grade",  10, SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("RQZ_Grade_Letter",  "RQZ",         6,  SymbologyGroup.TwoDDataMatrix, famDM));
+        cols.Add(Col("LLS_Grade_Numeric", "LLS",          8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
+        cols.Add(Col("LLS_Grade_Letter",  "LLS Ltr",     6,  SymbologyGroup.TwoDDataMatrix, famDM));
+        cols.Add(Col("BLS_Grade_Numeric", "BLS",          8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
+        cols.Add(Col("BLS_Grade_Letter",  "BLS Ltr",     6,  SymbologyGroup.TwoDDataMatrix, famDM));
+        cols.Add(Col("LQZ_Grade_Numeric", "LQZ",          8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
+        cols.Add(Col("LQZ_Grade_Letter",  "LQZ Ltr",     6,  SymbologyGroup.TwoDDataMatrix, famDM));
+        cols.Add(Col("BQZ_Grade_Numeric", "BQZ",          8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
+        cols.Add(Col("BQZ_Grade_Letter",  "BQZ Ltr",     6,  SymbologyGroup.TwoDDataMatrix, famDM));
+        cols.Add(Col("TQZ_Grade_Numeric", "TQZ",          8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
+        cols.Add(Col("TQZ_Grade_Letter",  "TQZ Ltr",     6,  SymbologyGroup.TwoDDataMatrix, famDM));
+        cols.Add(Col("RQZ_Grade_Numeric", "RQZ",          8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
+        cols.Add(Col("RQZ_Grade_Letter",  "RQZ Ltr",     6,  SymbologyGroup.TwoDDataMatrix, famDM));
         cols.Add(Col("TTR_Percent",       "TTR%",        8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("TTR_Grade_Numeric", "TTR Grade",  10, SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
+        cols.Add(Col("TTR_Grade_Numeric", "TTR",          8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
         cols.Add(Col("RTR_Percent",       "RTR%",        8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("RTR_Grade_Numeric", "RTR Grade",  10, SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("TCT_Grade_Numeric", "TCT Grade",  10, SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("TCT_Grade_Letter",  "TCT",         6,  SymbologyGroup.TwoDDataMatrix, famDM));
-        cols.Add(Col("RCT_Grade_Numeric", "RCT Grade",  10, SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
-        cols.Add(Col("RCT_Grade_Letter",  "RCT",         6,  SymbologyGroup.TwoDDataMatrix, famDM));
+        cols.Add(Col("RTR_Grade_Numeric", "RTR",          8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
+        cols.Add(Col("TCT_Grade_Numeric", "TCT",          8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
+        cols.Add(Col("TCT_Grade_Letter",  "TCT Ltr",     6,  SymbologyGroup.TwoDDataMatrix, famDM));
+        cols.Add(Col("RCT_Grade_Numeric", "RCT",          8,  SymbologyGroup.TwoDDataMatrix, famDM, numberFormat: "0.0"));
+        cols.Add(Col("RCT_Grade_Letter",  "RCT Ltr",     6,  SymbologyGroup.TwoDDataMatrix, famDM));
 
         // ── Block E: 2D Data Matrix Quadrant-Expanded (≥32×32) ────────────────
         cols.Add(Col("ULQZ_Grade_Numeric", "ULQZ",        8, SymbologyGroup.TwoDDataMatrixQuadrant, famDM, numberFormat: "0.0"));

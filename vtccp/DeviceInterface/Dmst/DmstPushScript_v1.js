@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.4
-//   Generated : 2026-03-28 16:22 UTC
+//   Version   : 1.5
+//   Generated : 2026-03-29 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
 //
@@ -18,17 +18,6 @@
 //           Fix: firmware 6.x may expose quality data at a path other than
 //           r.quality; added fallback chain (quality → verificationResult →
 //           symbolVerificationResult → symVerResult).
-//           Add: _Dbg* elements emitted in XML for firmware introspection;
-//           VTCCP parser ignores unknown elements so these are harmless and
-//           visible in the VS Output trace (first 600 chars of XML logged).
-//
-//   v1.4 — Fix: switched quality-path lookup from truthy || chain to
-//           explicit _pick() with !== null/undefined, so a quality object
-//           that evaluates as 0/false is not skipped.  Added 5 more quality
-//           path candidates (verificationResults, qualityResult, gradeResult,
-//           rp.quality, rp.verificationResult).  Added _DbgRPKeys probe on
-//           readerProperties to expose quality paths there.  Expanded _rProbe
-//           list with grade/gradeValue/verificationResults/gradeResult.
 //
 //   v1.3 — Fix: removed Object.keys() calls introduced in v1.2; the
 //           firmware's embedded JS engine does not support Object.keys(),
@@ -36,6 +25,16 @@
 //           outputResults.content was set, reverting every scan to plain-
 //           text Basic Formatting mode.  Replaced with a typeof probe loop
 //           over a known property list (ES3-compatible).
+//
+//   v1.4 — Fix: switched quality-path lookup from truthy || chain to
+//           explicit _pick() with !== null/undefined, so a quality object
+//           that evaluates as 0/false is not skipped.  Added 5 more quality
+//           path candidates (verificationResults, qualityResult, gradeResult,
+//           rp.quality, rp.verificationResult).  Added _DbgRPKeys probe on
+//           readerProperties.  Expanded _rProbe list.
+//
+//   v1.5 — Cleanup: removed all _Dbg* firmware introspection elements now
+//           that quality-path mapping is confirmed on DM475 fw 6.1.16_sr4.
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
@@ -133,51 +132,6 @@ function onResult(decodeResults, readerProperties, outputResults) {
          || _pick(rp, "verificationResult")
          || null;
 
-    // ── Debug probes (elements ignored by VTCCP; visible in VS Output trace) ─
-    // NOTE: Object.keys() omitted — not available in all firmware JS engines.
-
-    var _rProbe = ["content","decoded","symbology","symbologyName","symbologyString",
-                   "quality","verificationResult","symbolVerificationResult","symVerResult",
-                   "verificationResults","qualityResult","gradeResult","grade","gradeValue",
-                   "formalGrade","overallGrade","sc","mod","uec","rows","columns"];
-    var _dbgRKeys = "";
-    for (var _i = 0; _i < _rProbe.length; _i++) {
-        if (r && typeof r[_rProbe[_i]] !== "undefined") {
-            _dbgRKeys += (_dbgRKeys ? "|" : "") + _rProbe[_i];
-        }
-    }
-    if (!_dbgRKeys) { _dbgRKeys = "r=null"; }
-
-    var _rpProbe = ["quality","verificationResult","gradeResult","grade","sc","mod","uec"];
-    var _dbgRPKeys = "";
-    for (var _k = 0; _k < _rpProbe.length; _k++) {
-        if (rp && typeof rp[_rpProbe[_k]] !== "undefined") {
-            _dbgRPKeys += (_dbgRPKeys ? "|" : "") + _rpProbe[_k];
-        }
-    }
-    if (!_dbgRPKeys) { _dbgRPKeys = "rp=empty"; }
-
-    var _dbgQPath = "none";
-    if (_pick(r,  "quality"))                  { _dbgQPath = "r.quality"; }
-    else if (_pick(r,  "verificationResult"))       { _dbgQPath = "r.verificationResult"; }
-    else if (_pick(r,  "symbolVerificationResult")) { _dbgQPath = "r.symbolVerificationResult"; }
-    else if (_pick(r,  "symVerResult"))             { _dbgQPath = "r.symVerResult"; }
-    else if (_pick(r,  "verificationResults"))      { _dbgQPath = "r.verificationResults"; }
-    else if (_pick(r,  "qualityResult"))            { _dbgQPath = "r.qualityResult"; }
-    else if (_pick(r,  "gradeResult"))              { _dbgQPath = "r.gradeResult"; }
-    else if (_pick(rp, "quality"))                  { _dbgQPath = "rp.quality"; }
-    else if (_pick(rp, "verificationResult"))       { _dbgQPath = "rp.verificationResult"; }
-
-    var _qProbe = ["formalGrade","overallGrade","overallGradeValue","sc","scGrade",
-                   "mod","modGrade","uec","uecGrade","aperture","wavelength","rows","columns"];
-    var _dbgQKeys = "";
-    for (var _j = 0; _j < _qProbe.length; _j++) {
-        if (q && typeof q[_qProbe[_j]] !== "undefined") {
-            _dbgQKeys += (_dbgQKeys ? "|" : "") + _qProbe[_j];
-        }
-    }
-    if (!_dbgQKeys) { _dbgQKeys = "q=null"; }
-
     // ── XML assembly ──────────────────────────────────────────────────────────
 
     var o = '<?xml version="1.0" encoding="UTF-8"?>\r\n'
@@ -203,10 +157,6 @@ function onResult(decodeResults, readerProperties, outputResults) {
     }
     o += elem("SymbologyName", _symbStr);
     o += elem("DecodedData",   (r && r.decoded) ? esc(r.content) : "");
-    o += elem("_DbgRKeys",  _dbgRKeys);
-    o += elem("_DbgRPKeys", _dbgRPKeys);
-    o += elem("_DbgQPath",  _dbgQPath);
-    o += elem("_DbgQKeys",  _dbgQKeys);
 
     if (q) {
 
