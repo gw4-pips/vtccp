@@ -11,7 +11,7 @@ using ExcelEngine.Schema;
 ///
 /// Row layout:
 ///   Row 1: Title row — "VCCS DMV TruCheck Command Pilot — Job: {job} | ..."
-///   Row 2: Column header labels (bold, blue background)
+///   Row 2: Column header labels (bold, no fill, 45pt double-height, word-wrap)
 ///   Row 3+: Data rows (one per VerificationRecord)
 ///
 /// GS1 Data Format Check fields are written as dedicated columns
@@ -63,16 +63,21 @@ public sealed class ExcelWriter : IDisposable
 
         if (existed && existingRows >= FirstDataRow)
         {
-            _headersWritten = true;
             _nextDataRow = existingRows + 1;
             _dataRowCount = existingRows - (FirstDataRow - 1);
         }
         else
         {
-            _headersWritten = false;
             _nextDataRow = FirstDataRow;
             _dataRowCount = 0;
         }
+
+        // Always rewrite title + header rows on every open so that formatting
+        // (row height, word-wrap, no background fill) stays current even when
+        // appending to a file created with an older version of VTCCP.
+        WriteTitleRow();
+        WriteHeaderRow();
+        _headersWritten = true;
 
         ApplyColumnWidths();
     }
@@ -162,8 +167,9 @@ public sealed class ExcelWriter : IDisposable
         for (int i = 0; i < _schema.Columns.Count; i++)
             _adapter.WriteString(HeaderRow, i + 1, _schema.Columns[i].DisplayName);
 
+        _adapter.ClearRowFill(HeaderRow, _schema.Columns.Count);
         _adapter.SetRowBold(HeaderRow, _schema.Columns.Count);
-        _adapter.SetRowHeight(HeaderRow, 30.0);
+        _adapter.SetRowHeight(HeaderRow, 45.0);
         _adapter.SetRowWrapText(HeaderRow, _schema.Columns.Count);
     }
 

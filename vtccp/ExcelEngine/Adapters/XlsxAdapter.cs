@@ -67,6 +67,11 @@ public sealed class XlsxAdapter : IExcelAdapter
         _ws!.Column(col).Width = width;
     }
 
+    public void ClearRowFill(int row, int colCount)
+    {
+        _ws!.Cells[row, 1, row, colCount].Style.Fill.PatternType = ExcelFillStyle.None;
+    }
+
     public void SetRowBackground(int row, int colCount, uint argbColor)
     {
         var cells = _ws!.Cells[row, 1, row, colCount];

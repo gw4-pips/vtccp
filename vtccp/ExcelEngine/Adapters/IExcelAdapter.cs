@@ -33,6 +33,9 @@ public interface IExcelAdapter : IDisposable
     /// <summary>Set the column width in character units (approximate).</summary>
     void SetColumnWidth(int col, double width);
 
+    /// <summary>Remove background fill from every cell in the given row (no-fill / transparent).</summary>
+    void ClearRowFill(int row, int colCount);
+
     /// <summary>Apply background fill colour to a row (used for header rows).</summary>
     void SetRowBackground(int row, int colCount, uint argbColor);
 

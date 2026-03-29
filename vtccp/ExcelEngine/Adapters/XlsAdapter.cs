@@ -102,6 +102,18 @@ public sealed class XlsAdapter : IExcelAdapter
         _ws!.SetColumnWidth(col - 1, (int)(width * 256));
     }
 
+    public void ClearRowFill(int row, int colCount)
+    {
+        var r = GetOrCreateRow(row - 1);
+        for (int c = 0; c < colCount; c++)
+        {
+            var cell = r.GetCell(c) ?? r.CreateCell(c);
+            var style = _wb!.CreateCellStyle();
+            style.FillPattern = FillPattern.NoFill;
+            cell.CellStyle = style;
+        }
+    }
+
     public void SetRowBackground(int row, int colCount, uint argbColor)
     {
         var r = GetOrCreateRow(row - 1);
