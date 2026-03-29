@@ -150,8 +150,14 @@ public sealed class SessionManager : IDisposable
     /// <summary>
     /// Append a single VerificationRecord to the active session's output file.
     /// The sidecar is updated after every write for crash safety.
+    ///
+    /// Returns <c>true</c> if the record was flushed to disk immediately.
+    /// Returns <c>false</c> if the output file was locked by another process (e.g. Excel):
+    /// the record is still safely held in the in-memory workbook and will be written
+    /// by <see cref="CloseSession"/>.  Callers should surface a warning to the operator
+    /// so they know to close Excel before ending the session.
     /// </summary>
-    public void AddRecord(VerificationRecord record)
+    public bool AddRecord(VerificationRecord record)
     {
         EnsureOpen();
 
@@ -172,35 +178,69 @@ public sealed class SessionManager : IDisposable
 
         // Real-time flush: write to disk after every record so the file can be
         // opened in Excel and watched live (mirrors Webscan behaviour).
-        // If the file is currently locked by Excel we skip silently; the
-        // in-memory package is intact and CloseSession() will do the final save.
+        // If the file is currently locked by Excel, return false so the caller
+        // can warn the operator.  The in-memory workbook is intact.
         // NOTE: EPPlus wraps the underlying IOException as InvalidOperationException
-        //       ("Error saving file …") — catch both so either form is silenced.
-        try { _writer.Save(); }
+        //       ("Error saving file …") — catch both so either form is detected.
+        try
+        {
+            _writer.Save();
+            return true;
+        }
         catch (Exception ex) when (ex is IOException || ex is InvalidOperationException)
-        { /* file locked by Excel — data safe in memory; CloseSession() will flush */ }
+        {
+            _ = ex;
+            return false;  // caller should warn: close Excel to see new rows / before ending session
+        }
     }
 
     /// <summary>
     /// Save and close the active session. Removes the sidecar (job complete).
+    ///
+    /// Returns <c>null</c> on clean success.
+    /// Returns a rescue file path if the primary output was locked by Excel:
+    /// in that case all in-memory data is written to <c>&lt;outputPath&gt;.rescue.xlsx</c>
+    /// (or <c>.xls</c>) so no scan records are lost.
+    /// Returns an empty string if BOTH the primary save AND the rescue save failed
+    /// (extremely unlikely; indicates a permission or disk error beyond file locking).
     /// </summary>
-    public void CloseSession()
+    public string? CloseSession()
     {
-        if (_writer is null) return;
+        if (_writer is null) return null;
 
-        _writer.Save();
-        _writer.Dispose();
-        _writer = null;
+        string? rescuePath = null;
+        try
+        {
+            _writer.Save();
+        }
+        catch (Exception ex) when (ex is IOException || ex is InvalidOperationException)
+        {
+            // Primary path is locked (Excel is open).  Derive a rescue filename in the
+            // same directory so the operator can find all unsaved records.
+            // _outputPath is guaranteed non-null here (session was open and writer was valid).
+            string ext    = Path.GetExtension(_outputPath!);
+            rescuePath    = Path.ChangeExtension(_outputPath!, ".rescue" + ext);
+            try { _writer.SaveToPath(rescuePath); }
+            catch { rescuePath = string.Empty; }  // rescue also failed
+            _ = ex;
+        }
+        finally
+        {
+            _writer.Dispose();
+            _writer = null;
 
-        _adapter?.Dispose();
-        _adapter = null;
+            _adapter?.Dispose();
+            _adapter = null;
 
-        if (_sidecarPath is not null && File.Exists(_sidecarPath))
-            File.Delete(_sidecarPath);
+            if (_sidecarPath is not null && File.Exists(_sidecarPath))
+                File.Delete(_sidecarPath);
 
-        _currentSession = null;
-        _outputPath     = null;
-        _sidecarPath    = null;
+            _currentSession = null;
+            _outputPath     = null;
+            _sidecarPath    = null;
+        }
+
+        return rescuePath;
     }
 
     /// <summary>

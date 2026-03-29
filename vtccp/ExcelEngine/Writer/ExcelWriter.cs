@@ -141,8 +141,11 @@ public sealed class ExcelWriter : IDisposable
         }
     }
 
-    /// <summary>Save and close the underlying file.</summary>
+    /// <summary>Save the workbook to the path registered at Open().</summary>
     public void Save() => _adapter.Save();
+
+    /// <summary>Save the workbook to an explicit path (rescue copy when primary is locked).</summary>
+    public void SaveToPath(string path) => _adapter.SaveToPath(path);
 
     public void Dispose() => _adapter.Dispose();
 

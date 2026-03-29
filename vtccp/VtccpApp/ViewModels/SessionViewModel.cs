@@ -296,16 +296,25 @@ public sealed class SessionViewModel : ViewModelBase
         }
 
         // ── Step 3: save and close the session ────────────────────────────────
+        // CloseSession() returns null on clean save, a rescue path if the primary
+        // file was locked by Excel (all records still written to the rescue copy),
+        // or "" if even the rescue failed (disk / permission problem).
+        string? rescuePath = null;
         try
         {
             if (_sessionMgr is not null)
-                await Task.Run(() => _sessionMgr.CloseSession());
+                rescuePath = await Task.Run(() => _sessionMgr.CloseSession());
         }
         finally
         {
             await CleanupAsync();
-            IsRunning     = false;
-            StatusMessage = $"Session closed. {RecordCount} record(s) written.";
+            IsRunning = false;
+            StatusMessage = rescuePath switch
+            {
+                null => $"Session closed. {RecordCount} record(s) written.",
+                ""   => $"⚠ Session closed — file locked by Excel and rescue save also failed. {RecordCount} record(s) may be lost.",
+                _    => $"⚠ File was open in Excel — {RecordCount} record(s) saved to rescue copy: {rescuePath}",
+            };
         }
     }
 
@@ -525,12 +534,15 @@ public sealed class SessionViewModel : ViewModelBase
     private async Task AcceptRecordInnerAsync(VerificationRecord record)
     {
         if (_sessionMgr is null) return;
-        await Task.Run(() => _sessionMgr.AddRecord(record));
+        bool savedToDisk = await Task.Run(() => _sessionMgr.AddRecord(record));
         _history.AddRecord(record);
         _recordCount++; OnPropertyChanged(nameof(RecordCount));
         string grade = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
         string num   = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
-        StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}";
+        if (savedToDisk)
+            StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}";
+        else
+            StatusMessage = $"⚠ Record {RecordCount}: {record.Symbology} — {grade}{num}  [file open in Excel — close Excel before ending session]";
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

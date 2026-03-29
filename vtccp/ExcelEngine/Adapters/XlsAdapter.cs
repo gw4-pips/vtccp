@@ -205,6 +205,12 @@ public sealed class XlsAdapter : IExcelAdapter
         _wb!.Write(fs);
     }
 
+    public void SaveToPath(string path)
+    {
+        using var fs = new FileStream(path, FileMode.Create, FileAccess.Write);
+        _wb!.Write(fs);
+    }
+
     public void Dispose()
     {
         _wb?.Close();

@@ -113,6 +113,11 @@ public sealed class XlsxAdapter : IExcelAdapter
         _pkg!.SaveAs(new FileInfo(_filePath));
     }
 
+    public void SaveToPath(string path)
+    {
+        _pkg!.SaveAs(new FileInfo(path));
+    }
+
     public void Dispose()
     {
         _pkg?.Dispose();

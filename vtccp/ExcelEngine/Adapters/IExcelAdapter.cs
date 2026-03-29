@@ -54,6 +54,9 @@ public interface IExcelAdapter : IDisposable
     /// <summary>Save the workbook to the path provided in OpenOrCreate.</summary>
     void Save();
 
+    /// <summary>Save the workbook to an explicit path (used for rescue copies when the primary path is locked).</summary>
+    void SaveToPath(string path);
+
     /// <summary>Maximum data rows this format supports before the file must be rotated.</summary>
     int MaxDataRows { get; }
 }
