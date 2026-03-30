@@ -290,7 +290,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Visible in VTCCP VS Output as [VTCCP-DMST] RawXML.
     // Remove this section once the correct property names are confirmed.
 
-    o += elem("PushScriptDiag", "v1.7 q=" + _qSrc
+    o += elem("PushScriptDiag", "v1.9 q=" + _qSrc
           + " r.decoded=" + s(r && r.decoded)
           + " rType=" + (typeof r));
 
