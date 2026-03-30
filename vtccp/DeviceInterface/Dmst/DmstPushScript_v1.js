@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.8
+//   Version   : 1.9
 //   Generated : 2026-03-30 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
@@ -58,6 +58,21 @@
 //           Added "trucheck" and "metrics" to _rCandidates so q resolves.
 //           Added <DebugQFound> inner-property scan on the resolved q object
 //           to identify the exact names for overallGrade, uec, sc, etc.
+//
+//   v1.9 — Diagnostics: <DebugQFound> revealed only "modulation" and
+//           "decode" because the scan used abbreviations (uec, sc, mod, …)
+//           while Cognex DMST scripting uses full English camelCase names
+//           (uniformEdgeContrast, symbolContrast, modulation, …).
+//           Also both properties resolved to [object TrucheckMetric] —
+//           every grade lives one level deeper inside those sub-objects.
+//           This version:
+//           1. Replaces _qScanNames with full Cognex camelCase property
+//              names to find all TrucheckMetric entries on r.trucheck.
+//           2. Adds <DebugModFound> inner-property scan on q.modulation
+//              to reveal the exact field names inside a TrucheckMetric
+//              (e.g. grade/value, letter/numeric, gradeValue/percent, …).
+//           Once TrucheckMetric structure is known, all 167 grade columns
+//           can be wired correctly.
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
@@ -317,48 +332,61 @@ function onResult(decodeResults, readerProperties, outputResults) {
     o += elem("DebugRFound",  _rFound  || "(none)");
     o += elem("DebugRPFound", _rpFound || "(none)");
 
-    // Inner property scan on the resolved q object (v1.8).
-    // Tells us the exact property names for grade, uec, sc, etc.
+    // Inner property scan on the resolved q object (v1.9).
+    // Uses full Cognex camelCase names (not abbreviations like uec/sc/mod).
+    // All TrucheckMetric sub-objects will appear as "[object TrucheckMetr".
     var _qFound = "";
     if (q) {
         var _qScanNames = [
-            "overallGrade","OverallGrade","overallGradeValue","OverallGradeValue",
-            "overallGradeNumeric","grade","Grade","gradeValue","GradeValue",
-            "letterGrade","LetterGrade","numericGrade","NumericGrade",
-            "formalGrade","FormalGrade","passFailStatus","PassFailStatus",
-            "passFail","pass","fail","passed","failed","status","Status",
-            "aperture","Aperture","wavelength","Wavelength",
-            "lighting","Lighting","standard","Standard",
-            "uec","UEC","uecGrade","UECGrade","uecPercent","UECPercent",
-            "sc","SC","scGrade","SCGrade","scPercent","SCPercent",
-            "rl","RL","rd","RD","scRlRd","SCRlRd",
-            "mod","MOD","modGrade","MODGrade","modulation","Modulation",
-            "rm","RM","rmGrade","RMGrade",
-            "anu","ANU","anuGrade","ANUGrade",
-            "gnu","GNU","gnuGrade","GNUGrade",
-            "fpd","FPD","fpdGrade","FPDGrade",
-            "decodeGrade","DecodeGrade","decode","Decode",
-            "ag","AG","agGrade","AGGrade",
-            "lls","LLS","llsGrade","LLSGrade",
-            "bls","BLS","blsGrade","BLSGrade",
-            "lqz","LQZ","lqzGrade","LQZGrade",
-            "bqz","BQZ","bqzGrade","BQZGrade",
-            "tqz","TQZ","tqzGrade","TQZGrade",
-            "rqz","RQZ","rqzGrade","RQZGrade",
-            "ttr","TTR","ttrGrade","TTRGrade",
-            "rtr","RTR","rtrGrade","RTRGrade",
-            "tct","TCT","tctGrade","TCTGrade",
-            "rct","RCT","rctGrade","RCTGrade",
-            "rows","Rows","columns","Columns","cols","Cols",
-            "matrixSize","MatrixSize",
-            "encodedChars","EncodedChars","encodedCharacters","EncodedCharacters",
-            "totalCodewords","TotalCodewords","dataCodewords","DataCodewords",
-            "ecBudget","ECBudget","ecCorrected","ECCorrected",
-            "ecCapacityUsed","ECCapacityUsed","ecType","ECType",
-            "nominalXDim","NominalXDim","ppm","PPM",
-            "polarity","Polarity","contrastUniformity","ContrastUniformity",
-            "mrd","MRD","hBwg","HBwg","vBwg","VBwg",
-            "scans","Scans","ansiGrade","AnsiGrade","symbolAnsiGrade","SymbolAnsiGrade"
+            // ── Summary / overall ─────────────────────────────────────────────
+            "overallGrade","symbolGrade","grade","formalGrade",
+            "overallGradeValue","overallGradeNumeric","gradeValue","gradeNumeric",
+            "letterGrade","numericGrade","passFail","passFailStatus","status",
+            // ── Verification conditions ───────────────────────────────────────
+            "aperture","apertureRef","apertureReference",
+            "wavelength","lightingType","lighting","standard","verificationStandard",
+            // ── 2D DataMatrix ISO 15415 parameters (full Cognex names) ────────
+            "uniformEdgeContrast",        // UEC
+            "symbolContrast",             // SC
+            "rl","rd","reflectionLevel","reflectionDifference",
+            "modulation",                 // MOD  ✓ already found
+            "reflectanceMargin",          // RM
+            "axialNonUniformity",         // ANU
+            "gridNonUniformity",          // GNU
+            "fixedPatternDamage",         // FPD
+            "decode",                     // Decode  ✓ already found
+            "printGrowth",                // AG / Print Growth
+            // ── Quiet zones ───────────────────────────────────────────────────
+            "leftQuietZone","bottomQuietZone","rightQuietZone","topQuietZone",
+            "quietZone","quietZoneLeft","quietZoneBottom","quietZoneRight","quietZoneTop",
+            "lls","bls","lqz","bqz","tqz","rqz",
+            "leftLeftSymbolGap","bottomLeftSymbolGap",
+            // ── Per-quadrant quiet zones ──────────────────────────────────────
+            "ulqz","urqz","llqz","lrqz",
+            "upperLeftQuietZone","upperRightQuietZone",
+            "lowerLeftQuietZone","lowerRightQuietZone",
+            // ── TTR / RTR / TCT / RCT (ratios, clock tracks) ─────────────────
+            "ttr","rtr","tct","rct",
+            "topToTopRatio","rightToRightRatio",
+            "topClockTrack","rightClockTrack",
+            "topToTopRatioUL","topToTopRatioUR","topToTopRatioLL","topToTopRatioLR",
+            "rightToRightRatioUL","rightToRightRatioUR",
+            "rightToRightRatioLL","rightToRightRatioLR",
+            // ── Averages ──────────────────────────────────────────────────────
+            "avgEdge","avgRlRd","avgSc","avgMinEc","avgMod",
+            "avgDefect","avgDcod","avgDec","avgLqz","avgRqz","avgHqz","avgMinQz",
+            "averageEdge","averageModulation","averageSymbolContrast",
+            // ── Symbol metrics ────────────────────────────────────────────────
+            "matrixSize","nominalXDim","pixelsPerModule","ppm",
+            "encodedCharacters","encodedChars",
+            "totalCodewords","dataCodewords",
+            "errorCorrectionBudget","errorsCorrected","errorCapacityUsed","errorCorrectionType",
+            "ecBudget","ecCorrected","ecCapacityUsed","ecType",
+            // ── Geometry / measurement ────────────────────────────────────────
+            "horizontalBWG","verticalBWG","bwgPercent","magnification","ratio",
+            "nominalXDim1D","polarity","imagePolarity",
+            "contrastUniformity","mrd","minReflectanceDifference",
+            "symbolAnsiGrade","ansiGrade"
         ];
         for (var _qi = 0; _qi < _qScanNames.length; _qi++) {
             var _qn = _qScanNames[_qi];
@@ -368,6 +396,33 @@ function onResult(decodeResults, readerProperties, outputResults) {
         }
     }
     o += elem("DebugQFound", _qFound || "(q null or no props found)");
+
+    // Inner property scan on q.modulation — reveals TrucheckMetric structure.
+    // Both modulation and decode resolved to [object TrucheckMetric] (v1.8).
+    // This scan tells us the exact sub-property names: grade/value/letter/etc.
+    var _qModFound = "";
+    if (q && typeof q["modulation"] !== "undefined" && q["modulation"] !== null) {
+        var _qm = q["modulation"];
+        var _qmNames = [
+            "grade","Grade","gradeValue","GradeValue","gradeNumeric","GradeNumeric",
+            "value","Value","letter","Letter","numeric","Numeric","number","Number",
+            "percent","Percent","percentage","Percentage",
+            "score","Score","result","Result","data","Data",
+            "letterGrade","LetterGrade","numericGrade","NumericGrade",
+            "symbol","Symbol","iso","ISO","ansi","ANSI",
+            "raw","Raw","measurement","Measurement","calculated","Calculated",
+            "pass","Pass","fail","Fail","passFail","PassFail","status","Status",
+            "min","Min","max","Max","average","Average","avg","Avg",
+            "a","b","c","d","f","A","B","C","D","F"
+        ];
+        for (var _qmi = 0; _qmi < _qmNames.length; _qmi++) {
+            var _qmn = _qmNames[_qmi];
+            if (typeof _qm[_qmn] !== "undefined" && _qm[_qmn] !== null) {
+                _qModFound += _qmn + "=" + String(_qm[_qmn]).substring(0, 20) + ";";
+            }
+        }
+    }
+    o += elem("DebugModFound", _qModFound || "(modulation null or no props found)");
 
     if (q) {
 
