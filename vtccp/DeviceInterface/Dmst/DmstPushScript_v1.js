@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.6
+//   Version   : 1.7
 //   Generated : 2026-03-30 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
@@ -45,6 +45,13 @@
 //           itself (array-level) and try nested sub-paths (.result, .data,
 //           .isoResult).  Confirmed ES3-compatible (no Object.keys, no
 //           const/let, no arrow functions, no template literals).
+//
+//   v1.7 — Diagnostics: all 34 quality-path probes returned null on DM475
+//           fw 6.1.16_sr4 (r exists as object, r.decoded=true, but no quality
+//           property found).  This version adds a full property-presence scan
+//           using typeof on 80 candidate names on both r and rp, reporting the
+//           defined ones in <DebugRFound> / <DebugRPFound> XML elements.
+//           This will identify the exact property name used by this firmware.
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
@@ -254,13 +261,53 @@ function onResult(decodeResults, readerProperties, outputResults) {
     o += elem("SymbologyName", _symbStr);
     o += elem("DecodedData",   (r && r.decoded) ? esc(r.content) : "");
 
-    // ── Diagnostic element (v1.6) ─────────────────────────────────────────────
-    // Reports which quality-object path resolved, or "none" if all probes
-    // failed.  Visible in VTCCP VS Output as [VTCCP-DMST] RawXML.
-    // Remove this section once the correct path is identified and confirmed.
-    o += elem("PushScriptDiag", "v1.6 q=" + _qSrc
+    // ── Diagnostic elements (v1.7) ───────────────────────────────────────────
+    // Reports which quality-object path resolved (or "none"), plus a comma-
+    // separated list of every property name that is defined on r and rp.
+    // Visible in VTCCP VS Output as [VTCCP-DMST] RawXML.
+    // Remove this section once the correct property names are confirmed.
+
+    o += elem("PushScriptDiag", "v1.7 q=" + _qSrc
           + " r.decoded=" + s(r && r.decoded)
           + " rType=" + (typeof r));
+
+    // Probe every plausible property name on decodeResults[0] and rp using
+    // typeof — collect the ones that are actually defined.
+    var _scanNames = [
+        "quality","Quality","verificationResult","VerificationResult",
+        "symbolVerificationResult","SymbolVerificationResult",
+        "symVerResult","SymVerResult","verificationResults","VerificationResults",
+        "qualityResult","QualityResult","gradeResult","GradeResult",
+        "isoResult","IsoResult","truCheckResult","TruCheckResult",
+        "verResult","VerResult","isoVerResult","IsoVerResult",
+        "verificationData","VerificationData","gradeData","GradeData",
+        "verification","Verification","grade","Grade","gradeInfo","GradeInfo",
+        "result","Result","data","Data",
+        "decoded","content","symbology","symbologyName",
+        "readString","image","id","index","type","format","score",
+        "confidence","error","status","noRead","pass","fail",
+        "passed","failed","decodes","strings",
+        "qualityGrades","QualityGrades","grades","Grades",
+        "gradeResults","GradeResults","verifyResult","VerifyResult",
+        "isoGrades","IsoGrades","metrics","Metrics","parameters","Parameters",
+        "barCode","barcode","code","resultData","outputData",
+        "scanResult","scanResults","scanData","scanGrade",
+        "trucheck","truCheck","TruCheck",
+        "overall","overallGrade","letterGrade","numericGrade",
+        "verificationGrade","VerificationGrade",
+        "symbolResult","SymbolResult","symbolData","SymbolData",
+        "readResult","ReadResult","decodeResult","DecodeResult"
+    ];
+
+    var _rFound  = "";
+    var _rpFound = "";
+    for (var _pi = 0; _pi < _scanNames.length; _pi++) {
+        var _pn = _scanNames[_pi];
+        if (r  && typeof r[_pn]  !== "undefined" && r[_pn]  !== null) { _rFound  += _pn + ","; }
+        if (rp && typeof rp[_pn] !== "undefined" && rp[_pn] !== null) { _rpFound += _pn + ","; }
+    }
+    o += elem("DebugRFound",  _rFound  || "(none)");
+    o += elem("DebugRPFound", _rpFound || "(none)");
 
     if (q) {
 
