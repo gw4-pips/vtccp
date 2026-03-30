@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.14
+//   Version   : 1.15
 //   Generated : 2026-03-30 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
@@ -73,6 +73,26 @@
 //              (e.g. grade/value, letter/numeric, gradeValue/percent, …).
 //           Once TrucheckMetric structure is known, all 167 grade columns
 //           can be wired correctly.
+//
+//   v1.15 — FIX: for-in scan (v1.14) revealed correct property names on q.
+//           All 18 DataMatrix parameters are now accessible; we were simply
+//           using wrong camelCase for 5 of them.  Fixed q-side bindings:
+//             unusedErrorCorrection → UEC grade  (was 'uniformEdgeContrast')
+//             axialNonuniformity    → ANU grade  (was 'axialNonUniformity' cap-U)
+//             gridNonuniformity     → GNU grade  (was 'gridNonUniformity' cap-U)
+//             leftLSide             → LLS grade  (was 'leftL'/'lls')
+//             bottomLSide           → BLS grade  (was 'bottomL'/'bls')
+//           Fixed m-side bindings (r.metrics):
+//             'UEC'                 → UEC%       (was 'uniformEdgeContrast')
+//             extremeReflectance    → Rl (max reflectance 0–1)
+//             reflectMin            → Rd (min reflectance 0–1)
+//           True ISO SC% = (Rl − Rd) × 100 now emitted (gives 71% vs 72.5%)
+//           SCRlRd built as "Rl_pct/Rd_pct" (e.g. "75/4")
+//           HorizontalBWG / VerticalBWG wired to horizontalMarkGrowth /
+//             verticalMarkGrowth (raw unit TBD; emitting mmVal for now).
+//           DebugQEnum removed (q property list fully known).
+//           DebugMEnum kept + DebugMEnum2 added (skip first 16) to see
+//             truncated tail — looking for TTR%/RTR% Metric objects.
 //
 //   v1.14 — PROBE: Name-based probes cannot find LLS/BLS grades or TTR%/RTR%.
 //           Switch to for-in enumeration of both r.trucheck and r.metrics so
@@ -388,67 +408,32 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.14 q=" + _qSrc + " m=" + (m ? "found" : "null")
+    o += elem("PushScriptDiag", "v1.15 q=" + _qSrc + " m=" + (m ? "found" : "null")
           + " r.decoded=" + s(r && r.decoded)
           + " rType=" + (typeof r));
 
-    // ── v1.14 for-in enumeration ──────────────────────────────────────────────
-    // Name-based probes miss properties whose names we haven't guessed.
-    // for-in visits every enumerable own property regardless of name.
-    // Truncated to 25 chars per value; max 60 entries per object.
-
-    // r.trucheck (q) — looking for LLS, BLS, TTR%, RTR%, and any unknowns.
-    var _qEnum = "";
-    var _qEnumCount = 0;
-    if (q) {
-        for (var _qk in q) {
-            if (_qEnumCount >= 60) { _qEnum += "…(more)"; break; }
-            var _qkv = q[_qk];
-            _qEnum += _qk + "=" + String(_qkv).substring(0, 25) + ";";
-            _qEnumCount++;
-        }
-    }
-    o += elem("DebugQEnum", _qEnum || "(q null)");
-
-    // r.metrics (m) — looking for topClockTrack, rightClockTrack, ttr, rtr,
-    // leftL, bottomL, lls, bls, and any new Metric objects.
+    // ── v1.15 r.metrics for-in enumeration (pages 1 & 2) ─────────────────────
+    // q (r.trucheck) property list fully confirmed by v1.14 scan; no longer probed.
+    // m (r.metrics) was truncated in v1.14; two pages to capture the full list.
+    // Page 1 (entries 0-19) — confirmed: symbolContrast, cellContrast,
+    //   axialNonUniformity, printGrowth, UEC, modulation, fixedPatternDamage,
+    //   gridNonUniformity, extremeReflectance, reflectMin, edgeContrastMin,
+    //   singleScanInt, multiScanInt, signalToNoiseRatio, horizontalMarkGrowth,
+    //   verticalMarkGrowth (v1.14 scan — cut off at #16).
+    // Page 2 (entries 16+) — looking for TTR%, RTR%, and any remaining unknowns.
     var _mEnum = "";
-    var _mEnumCount = 0;
+    var _mEnum2 = "";
+    var _mEnumIdx = 0;
     if (m) {
         for (var _mk in m) {
-            if (_mEnumCount >= 60) { _mEnum += "…(more)"; break; }
-            var _mkv = m[_mk];
-            _mEnum += _mk + "=" + String(_mkv).substring(0, 25) + ";";
-            _mEnumCount++;
+            var _mkStr = _mk + "=" + String(m[_mk]).substring(0, 20) + ";";
+            if (_mEnumIdx < 16) { _mEnum  += _mkStr; }
+            else                { _mEnum2 += _mkStr; }
+            _mEnumIdx++;
         }
     }
-    o += elem("DebugMEnum", _mEnum || "(m null)");
-
-    // r.content — may hold dimension/encoding characteristics.
-    var _rContent = _pick(r, "content");
-    var _rcEnum = "";
-    if (_rContent) {
-        var _rcCount = 0;
-        for (var _rck in _rContent) {
-            if (_rcCount >= 40) { _rcEnum += "…(more)"; break; }
-            _rcEnum += _rck + "=" + String(_rContent[_rck]).substring(0, 25) + ";";
-            _rcCount++;
-        }
-    }
-    o += elem("DebugContentEnum", _rcEnum || "(r.content null or empty)");
-
-    // r.image — may hold pixel/dimension data.
-    var _rImage = _pick(r, "image");
-    var _riEnum = "";
-    if (_rImage) {
-        var _riCount = 0;
-        for (var _rik in _rImage) {
-            if (_riCount >= 40) { _riEnum += "…(more)"; break; }
-            _riEnum += _rik + "=" + String(_rImage[_rik]).substring(0, 25) + ";";
-            _riCount++;
-        }
-    }
-    o += elem("DebugImageEnum", _riEnum || "(r.image null or empty)");
+    o += elem("DebugMEnum",  _mEnum  || "(m null)");
+    o += elem("DebugMEnum2", _mEnum2 || "(m has ≤16 props)");
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //
@@ -458,31 +443,60 @@ function onResult(decodeResults, readerProperties, outputResults) {
     //     m  = r.metrics   — sibling object; expected to carry % values, overall
     //                        grade, verification conditions, and symbol dimensions
     //
-    //   Confirmed TrucheckMetric properties on q (v1.9 scan):
-    //     symbolContrast, modulation, reflectanceMargin, fixedPatternDamage,
-    //     decode, printGrowth, leftQuietZone, bottomQuietZone, rightQuietZone,
-    //     topQuietZone, topClockTrack, rightClockTrack
-    //
-    //   NOT on q (absent from v1.9 scan):
-    //     uniformEdgeContrast, axialNonUniformity, gridNonUniformity,
-    //     overallGrade, all % measurement values, all dimension values
-    //     → probed from m (r.metrics) via DebugMetricsFound in this run
+    //   Confirmed TrucheckMetric properties on q (v1.14 for-in scan) — 18 params:
+    //     unusedErrorCorrection (UEC), symbolContrast, modulation (TrucheckMetricGrade),
+    //     reflectanceMargin (TrucheckMetricGrade), axialNonuniformity, gridNonuniformity,
+    //     fixedPatternDamage, decode, printGrowth, leftLSide (TrucheckMetricGrade),
+    //     bottomLSide (TrucheckMetricGrade), leftQuietZone (TrucheckMetricGrade),
+    //     bottomQuietZone (TrucheckMetricGrade), topQuietZone, rightQuietZone,
+    //     topClockTrack, rightClockTrack
+    //     Also: UII, batch, calibrationDate (device/label metadata, not quality grades)
+    //   CAMELCASE TRAPS: q uses lowercase 'u' (axialNon*u*niformity),
+    //                    m uses capital 'U' (axialNon*U*niformity).
+    //   Confirmed Metric properties on m (v1.14 scan, page 1):
+    //     symbolContrast, cellContrast, axialNonUniformity, printGrowth, UEC,
+    //     modulation, fixedPatternDamage, gridNonUniformity, extremeReflectance (Rl),
+    //     reflectMin (Rd), edgeContrastMin, singleScanInt, multiScanInt,
+    //     signalToNoiseRatio, horizontalMarkGrowth (HBW), verticalMarkGrowth (VBW)
+    //     Page 2 (v1.15 scan) — TTR%/RTR% Metric objects TBD.
 
     if (q) {
 
-        // Bind TrucheckMetric sub-objects once (safe: _pick returns null if absent)
+        // ── q (r.trucheck) TrucheckMetric bindings — confirmed names from v1.14 scan
+        var _uec = _pick(q, "unusedErrorCorrection");  // UEC  (v1.15 — was wrong name)
         var _sc  = _pick(q, "symbolContrast");
         var _mod = _pick(q, "modulation");
         var _rm  = _pick(q, "reflectanceMargin");
+        var _anu = _pick(q, "axialNonuniformity");     // ANU  lowercase 'u' (v1.15)
+        var _gnu = _pick(q, "gridNonuniformity");      // GNU  lowercase 'u' (v1.15)
         var _fpd = _pick(q, "fixedPatternDamage");
-        var _dec = _pick(q, "decode");
-        var _ag  = _pick(q, "printGrowth");
+        var _lls = _pick(q, "leftLSide");              // LLS  (v1.15 — was 'leftL')
+        var _bls = _pick(q, "bottomLSide");            // BLS  (v1.15 — was 'bottomL')
         var _lqz = _pick(q, "leftQuietZone");
         var _bqz = _pick(q, "bottomQuietZone");
         var _rqz = _pick(q, "rightQuietZone");
         var _tqz = _pick(q, "topQuietZone");
         var _tct = _pick(q, "topClockTrack");
         var _rct = _pick(q, "rightClockTrack");
+        var _dec = _pick(q, "decode");
+        var _ag  = _pick(q, "printGrowth");
+
+        // ── m (r.metrics) Rl/Rd bindings for true ISO SC% and SCRlRd (v1.15) ──
+        //   extremeReflectance = Rl (max module reflectance, 0–1 ratio)
+        //   reflectMin         = Rd (min module reflectance, 0–1 ratio)
+        //   True SC% = (Rl − Rd) × 100; e.g. (0.75 − 0.04) × 100 = 71%.
+        var _mRl    = _pick(m, "extremeReflectance");
+        var _mRd    = _pick(m, "reflectMin");
+        var _rlRaw  = (_mRl && typeof _mRl["raw"] !== "undefined") ? parseFloat(_mRl["raw"]) : NaN;
+        var _rdRaw  = (_mRd && typeof _mRd["raw"] !== "undefined") ? parseFloat(_mRd["raw"]) : NaN;
+        var _rlOk   = !isNaN(_rlRaw) && _rlRaw !== -1;
+        var _rdOk   = !isNaN(_rdRaw) && _rdRaw !== -1;
+        var _scPct  = (_rlOk && _rdOk)
+                        ? s(Math.round((_rlRaw - _rdRaw) * 1000) / 10)
+                        : mmPct(_pick(m, "symbolContrast"));  // fallback
+        var _rlInt  = _rlOk ? String(Math.round(_rlRaw * 100)) : "";
+        var _rdInt  = _rdOk ? String(Math.round(_rdRaw * 100)) : "";
+        var _scRlRd = (_rlInt && _rdInt) ? (_rlInt + "/" + _rdInt) : "";
 
         // ── Grading summary ───────────────────────────────────────────────────
         //   m.overallGrade is a [object Metric] with .grade (letter/NA) / .raw (number/-1).
@@ -502,32 +516,31 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("Standard",    prop(m, "standard") || prop(m, "verificationStandard"));
 
         // ── 2D ISO 15415 quality parameters ───────────────────────────────────
-        //   UEC — not on q; probe m
-        o += elem("UECPercent", prop(m, "uniformEdgeContrast") || prop(m, "uniformEdgeContrastPercent"));
-        o += elem("UECGrade",   prop(m, "uniformEdgeContrastGrade") || prop(m, "uecGrade"));
+        //   UEC — grade from q.unusedErrorCorrection; % from m.UEC (v1.15)
+        o += elem("UECPercent", mmPct(_pick(m, "UEC")));   // 'UEC' key on m (not 'uniformEdgeContrast')
+        o += elem("UECGrade",   tmGrade(_uec));
 
-        //   SC — grade from q.symbolContrast; percent from m.symbolContrast (Metric)
-        o += elem("SCPercent",  mmPct(_pick(m, "symbolContrast")));   // raw 0–1 ratio → ×100
-        var _rl = prop(m, "rl") || prop(m, "reflectionLevel");
-        var _rd = prop(m, "rd") || prop(m, "reflectionDifference");
-        o += elem("SCRlRd",     (_rl && _rd) ? (_rl + "/" + _rd) : prop(m, "scRlRd"));
+        //   SC — grade from q.symbolContrast; true ISO SC% = (Rl−Rd)×100 (v1.15)
+        //        Rl = m.extremeReflectance.raw, Rd = m.reflectMin.raw (both 0–1 ratio)
+        o += elem("SCPercent",  _scPct);
+        o += elem("SCRlRd",     _scRlRd);
         o += elem("SCGrade",    tmGrade(_sc));
 
-        //   MOD — grade from q.modulation; percent from m
+        //   MOD — grade from q.modulation
         o += elem("MODGrade",   tmGrade(_mod));
 
-        //   RM — grade from q.reflectanceMargin; percent from m
+        //   RM — grade from q.reflectanceMargin
         o += elem("RMGrade",    tmGrade(_rm));
 
-        //   ANU — on m (Metric); not on q. mmVal = measurement, mmGrade = letter.
-        var _mANU = _pick(m, "axialNonUniformity");
-        o += elem("ANUPercent", mmPct(_mANU));   // raw 0–1 ratio → ×100
-        o += elem("ANUGrade",   mmGrade(_mANU));
+        //   ANU — grade from q.axialNonuniformity (lowercase u); % from m.axialNonUniformity (capital U)
+        var _mANU = _pick(m, "axialNonUniformity");   // capital U on m-side
+        o += elem("ANUPercent", mmPct(_mANU));
+        o += elem("ANUGrade",   tmGrade(_anu));        // from q (v1.15 — was mmGrade(_mANU))
 
-        //   GNU — on m (Metric); not on q.
-        var _mGNU = _pick(m, "gridNonUniformity");
-        o += elem("GNUPercent", mmPct(_mGNU));   // raw 0–1 ratio → ×100
-        o += elem("GNUGrade",   mmGrade(_mGNU));
+        //   GNU — grade from q.gridNonuniformity (lowercase u); % from m.gridNonUniformity (capital U)
+        var _mGNU = _pick(m, "gridNonUniformity");    // capital U on m-side
+        o += elem("GNUPercent", mmPct(_mGNU));
+        o += elem("GNUGrade",   tmGrade(_gnu));        // from q (v1.15 — was mmGrade(_mGNU))
 
         //   FPD — grade from q.fixedPatternDamage
         o += elem("FPDGrade",   tmGrade(_fpd));
@@ -546,8 +559,8 @@ function onResult(decodeResults, readerProperties, outputResults) {
         var _msz  = prop(m, "matrixSize") || prop(m, "size")
                     || ((_rows && _cols) ? (_rows + "x" + _cols) : "");
         o += elem("MatrixSize",            _msz);
-        o += elem("HorizontalBWG",         prop(m, "horizontalBWG") || prop(m, "hBwg"));
-        o += elem("VerticalBWG",           prop(m, "verticalBWG")   || prop(m, "vBwg"));
+        o += elem("HorizontalBWG",         mmVal(_pick(m, "horizontalMarkGrowth")));  // v1.15 confirmed
+        o += elem("VerticalBWG",           mmVal(_pick(m, "verticalMarkGrowth")));
         o += elem("EncodedCharacters",     prop(m, "encodedCharacters") || prop(m, "encodedChars"));
         o += elem("TotalCodewords",        prop(m, "totalCodewords"));
         o += elem("DataCodewords",         prop(m, "dataCodewords"));
@@ -561,10 +574,10 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("ContrastUniformity",    mmVal(_pick(m, "contrastUniformity")));
         o += elem("MRD",                   prop(m, "mrd") || prop(m, "minReflectanceDifference"));
 
-        // ── 2D quiet zones ────────────────────────────────────────────────────
-        //   LLSGrade / BLSGrade — no JS counterpart found yet; may be on m
-        o += elem("LLSGrade", prop(m, "lls") || prop(m, "leftLeftSymbolGap"));
-        o += elem("BLSGrade", prop(m, "bls") || prop(m, "bottomLeftSymbolGap"));
+        // ── 2D L-side and quiet zones ─────────────────────────────────────────
+        //   LLS/BLS — confirmed on q as leftLSide / bottomLSide (v1.15)
+        o += elem("LLSGrade", tmGrade(_lls));
+        o += elem("BLSGrade", tmGrade(_bls));
         //   LQZ/BQZ/TQZ/RQZ — from q TrucheckMetric sub-objects (confirmed v1.9)
         o += elem("LQZGrade", tmGrade(_lqz));
         o += elem("BQZGrade", tmGrade(_bqz));
