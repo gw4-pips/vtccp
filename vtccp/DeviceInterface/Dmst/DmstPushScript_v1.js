@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.7
+//   Version   : 1.8
 //   Generated : 2026-03-30 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
@@ -52,6 +52,12 @@
 //           using typeof on 80 candidate names on both r and rp, reporting the
 //           defined ones in <DebugRFound> / <DebugRPFound> XML elements.
 //           This will identify the exact property name used by this firmware.
+//
+//   v1.8 — Fix: property scan revealed quality object is at r.trucheck
+//           (all lowercase — all previous probes used camelCase variants).
+//           Added "trucheck" and "metrics" to _rCandidates so q resolves.
+//           Added <DebugQFound> inner-property scan on the resolved q object
+//           to identify the exact names for overallGrade, uec, sc, etc.
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
@@ -148,6 +154,8 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
     // --- decodeResults[0] first-level candidates ---
     var _rCandidates = [
+        "trucheck",             // DM475 fw 6.1.16_sr4 confirmed (v1.8)
+        "metrics",              // also present on r — may carry measurement data
         "quality",
         "verificationResult",
         "symbolVerificationResult",
@@ -308,6 +316,58 @@ function onResult(decodeResults, readerProperties, outputResults) {
     }
     o += elem("DebugRFound",  _rFound  || "(none)");
     o += elem("DebugRPFound", _rpFound || "(none)");
+
+    // Inner property scan on the resolved q object (v1.8).
+    // Tells us the exact property names for grade, uec, sc, etc.
+    var _qFound = "";
+    if (q) {
+        var _qScanNames = [
+            "overallGrade","OverallGrade","overallGradeValue","OverallGradeValue",
+            "overallGradeNumeric","grade","Grade","gradeValue","GradeValue",
+            "letterGrade","LetterGrade","numericGrade","NumericGrade",
+            "formalGrade","FormalGrade","passFailStatus","PassFailStatus",
+            "passFail","pass","fail","passed","failed","status","Status",
+            "aperture","Aperture","wavelength","Wavelength",
+            "lighting","Lighting","standard","Standard",
+            "uec","UEC","uecGrade","UECGrade","uecPercent","UECPercent",
+            "sc","SC","scGrade","SCGrade","scPercent","SCPercent",
+            "rl","RL","rd","RD","scRlRd","SCRlRd",
+            "mod","MOD","modGrade","MODGrade","modulation","Modulation",
+            "rm","RM","rmGrade","RMGrade",
+            "anu","ANU","anuGrade","ANUGrade",
+            "gnu","GNU","gnuGrade","GNUGrade",
+            "fpd","FPD","fpdGrade","FPDGrade",
+            "decodeGrade","DecodeGrade","decode","Decode",
+            "ag","AG","agGrade","AGGrade",
+            "lls","LLS","llsGrade","LLSGrade",
+            "bls","BLS","blsGrade","BLSGrade",
+            "lqz","LQZ","lqzGrade","LQZGrade",
+            "bqz","BQZ","bqzGrade","BQZGrade",
+            "tqz","TQZ","tqzGrade","TQZGrade",
+            "rqz","RQZ","rqzGrade","RQZGrade",
+            "ttr","TTR","ttrGrade","TTRGrade",
+            "rtr","RTR","rtrGrade","RTRGrade",
+            "tct","TCT","tctGrade","TCTGrade",
+            "rct","RCT","rctGrade","RCTGrade",
+            "rows","Rows","columns","Columns","cols","Cols",
+            "matrixSize","MatrixSize",
+            "encodedChars","EncodedChars","encodedCharacters","EncodedCharacters",
+            "totalCodewords","TotalCodewords","dataCodewords","DataCodewords",
+            "ecBudget","ECBudget","ecCorrected","ECCorrected",
+            "ecCapacityUsed","ECCapacityUsed","ecType","ECType",
+            "nominalXDim","NominalXDim","ppm","PPM",
+            "polarity","Polarity","contrastUniformity","ContrastUniformity",
+            "mrd","MRD","hBwg","HBwg","vBwg","VBwg",
+            "scans","Scans","ansiGrade","AnsiGrade","symbolAnsiGrade","SymbolAnsiGrade"
+        ];
+        for (var _qi = 0; _qi < _qScanNames.length; _qi++) {
+            var _qn = _qScanNames[_qi];
+            if (typeof q[_qn] !== "undefined" && q[_qn] !== null) {
+                _qFound += _qn + "=" + String(q[_qn]).substring(0, 20) + ";";
+            }
+        }
+    }
+    o += elem("DebugQFound", _qFound || "(q null or no props found)");
 
     if (q) {
 
