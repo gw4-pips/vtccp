@@ -160,6 +160,10 @@ public sealed class DmstListener
         sb.Clear();
         sb.Append(leftover);
 
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-DMST] RawXML ({xmlDoc.Length} chars): " +
+            (xmlDoc.Length <= 4000 ? xmlDoc : xmlDoc[..4000] + "…[truncated]"));
+
         var record = DmstResultParser.Parse(xmlDoc, _map, _context);
         Fire(record);
     }

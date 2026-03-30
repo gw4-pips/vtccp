@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.5
-//   Generated : 2026-03-29 UTC
+//   Version   : 1.6
+//   Generated : 2026-03-30 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
 //
@@ -35,6 +35,16 @@
 //
 //   v1.5 — Cleanup: removed all _Dbg* firmware introspection elements now
 //           that quality-path mapping is confirmed on DM475 fw 6.1.16_sr4.
+//           (NOTE: turned out to be premature — quality path still not found.)
+//
+//   v1.6 — Diagnostics re-added: quality-path has never been confirmed on
+//           DM475 fw 6.1.16_sr4 (all scans arrive with empty grade columns).
+//           Added <PushScriptDiag> element reporting which quality source
+//           was resolved, plus 10 additional property-path candidates on
+//           decodeResults[0] and readerProperties.  Also probe decodeResults
+//           itself (array-level) and try nested sub-paths (.result, .data,
+//           .isoResult).  Confirmed ES3-compatible (no Object.keys, no
+//           const/let, no arrow functions, no template literals).
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
@@ -119,18 +129,104 @@ function onResult(decodeResults, readerProperties, outputResults) {
         return (typeof v !== "undefined" && v !== null) ? v : null;
     }
 
-    // Firmware-compatibility: try all known quality-object paths.
-    // Prefer r (decodeResults[0]); fall back to readerProperties.
-    var q = _pick(r,  "quality")
-         || _pick(r,  "verificationResult")
-         || _pick(r,  "symbolVerificationResult")
-         || _pick(r,  "symVerResult")
-         || _pick(r,  "verificationResults")
-         || _pick(r,  "qualityResult")
-         || _pick(r,  "gradeResult")
-         || _pick(rp, "quality")
-         || _pick(rp, "verificationResult")
-         || null;
+    // ── Quality-object discovery ──────────────────────────────────────────────
+    // Try every known property path in priority order.  _qSource records which
+    // one succeeded so <PushScriptDiag> can report it.  If every probe returns
+    // null the <PushScriptDiag> element will say "none" and all grade columns
+    // will be empty — paste the VS Output [VTCCP-DMST] RawXML line to the
+    // VTCCP agent so it can identify the correct path.
+
+    var q       = null;
+    var _qSrc   = "none";
+
+    // --- decodeResults[0] first-level candidates ---
+    var _rCandidates = [
+        "quality",
+        "verificationResult",
+        "symbolVerificationResult",
+        "symVerResult",
+        "verificationResults",
+        "qualityResult",
+        "gradeResult",
+        "isoResult",
+        "truCheckResult",
+        "verResult",
+        "isoVerResult",
+        "verificationData",
+        "gradeData",
+        "verification",
+        "grade",
+        "gradeInfo",
+        "result",
+        "data"
+    ];
+
+    for (var _ri = 0; _ri < _rCandidates.length; _ri++) {
+        var _v = _pick(r, _rCandidates[_ri]);
+        if (_v !== null) {
+            q     = _v;
+            _qSrc = "r." + _rCandidates[_ri];
+            break;
+        }
+    }
+
+    // --- readerProperties candidates (only if r-level search failed) ---
+    if (q === null) {
+        var _rpCandidates = [
+            "quality",
+            "verificationResult",
+            "symbolVerificationResult",
+            "symVerResult",
+            "qualityResult",
+            "verificationData",
+            "truCheckResult",
+            "isoResult",
+            "gradeResult",
+            "verResult",
+            "gradeData",
+            "verification"
+        ];
+        for (var _rpi = 0; _rpi < _rpCandidates.length; _rpi++) {
+            var _pv = _pick(rp, _rpCandidates[_rpi]);
+            if (_pv !== null) {
+                q     = _pv;
+                _qSrc = "rp." + _rpCandidates[_rpi];
+                break;
+            }
+        }
+    }
+
+    // --- decodeResults array-level (some firmware puts quality on the array) ---
+    if (q === null) {
+        var _arrCandidates = [
+            "quality",
+            "verificationResult",
+            "qualityResult",
+            "gradeResult"
+        ];
+        for (var _ai = 0; _ai < _arrCandidates.length; _ai++) {
+            var _av = _pick(decodeResults, _arrCandidates[_ai]);
+            if (_av !== null) {
+                q     = _av;
+                _qSrc = "decodeResults." + _arrCandidates[_ai];
+                break;
+            }
+        }
+    }
+
+    // --- nested sub-paths on r.result and r.data (last resort) ---
+    if (q === null && _pick(r, "result") !== null) {
+        var _rResult = _pick(r, "result");
+        var _subKeys = ["quality", "verificationResult", "gradeResult", "isoResult"];
+        for (var _si = 0; _si < _subKeys.length; _si++) {
+            var _sv = _pick(_rResult, _subKeys[_si]);
+            if (_sv !== null) {
+                q     = _sv;
+                _qSrc = "r.result." + _subKeys[_si];
+                break;
+            }
+        }
+    }
 
     // ── XML assembly ──────────────────────────────────────────────────────────
 
@@ -157,6 +253,14 @@ function onResult(decodeResults, readerProperties, outputResults) {
     }
     o += elem("SymbologyName", _symbStr);
     o += elem("DecodedData",   (r && r.decoded) ? esc(r.content) : "");
+
+    // ── Diagnostic element (v1.6) ─────────────────────────────────────────────
+    // Reports which quality-object path resolved, or "none" if all probes
+    // failed.  Visible in VTCCP VS Output as [VTCCP-DMST] RawXML.
+    // Remove this section once the correct path is identified and confirmed.
+    o += elem("PushScriptDiag", "v1.6 q=" + _qSrc
+          + " r.decoded=" + s(r && r.decoded)
+          + " rType=" + (typeof r));
 
     if (q) {
 
