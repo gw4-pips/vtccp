@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.12
+//   Version   : 1.13
 //   Generated : 2026-03-30 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
@@ -74,24 +74,19 @@
 //           Once TrucheckMetric structure is known, all 167 grade columns
 //           can be wired correctly.
 //
-//   v1.12 — CLEANUP: v1.11 inner scan revealed Metric has exactly .grade
-//           (string: letter "A"–"F" or "NA" when not computed) and .raw
-//           (number: measurement value or -1 when not measured/applicable).
-//           All -1/-1 and NA/NA pairs are correct firmware behavior for
-//           parameters not measured under the active verification standard
-//           (ANU, GNU, overallGrade, printGrowth, contrastUniformity all
-//           return NA/-1 because this standard does not compute them).
+//   v1.13 — CORRECTION: v1.12 incorrectly suppressed "NA" in mmGrade().
+//           OverallGrade, ANU, and GNU ARE measured and reported by the
+//           DM475 for this standard — "NA" is a valid device-returned grade
+//           when a parameter could not be computed for a specific scan.
+//           mmGrade() now returns the grade string as-is (including "NA").
+//           mmVal()/mmPct() continue to suppress -1 (numeric sentinel;
+//           -1 × 100 = -100% would be meaningless in the XLSX).
 //           SCPercent raw = 0.7254... is a 0–1 ratio; ×100 → 72.5%.
-//           This version:
-//           1. mmGrade() now suppresses "NA"/"N/A"/"-" → returns "".
-//           2. mmVal() now suppresses -1 → returns "".
-//           3. Adds mmPct(metric) for percentage fields (raw × 100, 1 dp).
-//           4. Removes diagnostic elements — all property paths confirmed.
-//           UEC (uniformEdgeContrast) confirmed absent from both r.trucheck
-//           and r.metrics: genuinely not computed by this standard/config.
-//           Symbol dimension fields (MatrixSize, NominalXDim, etc.) are not
-//           exposed via the DMST scripting API for this firmware and will
-//           remain empty in push mode.
+//           UEC confirmed absent; symbol dimension fields not in DMST API.
+//
+//   v1.12 — CLEANUP: Metric confirmed as .grade + .raw; added mmPct();
+//           SCPercent/ANUPercent/GNUPercent switched to mmPct (×100);
+//           all diagnostic emit blocks removed (paths confirmed v1.11).
 //
 //   v1.11 — FIX: v1.10 revealed r.metrics is also a nested-object container
 //           — each named property is a [object Metric] sub-object, exactly
@@ -217,19 +212,19 @@ function onResult(decodeResults, readerProperties, outputResults) {
     function tmGrade(tm) { return (tm && typeof tm["grade"]        !== "undefined") ? s(tm["grade"])        : ""; }
     function tmNum(tm)   { return (tm && typeof tm["numericGrade"] !== "undefined") ? s(tm["numericGrade"]) : ""; }
 
-    // Metric helpers (v1.12) — Metric objects confirmed to have exactly:
-    //   .grade  — letter string ("A"–"F") or "NA" when not computed
-    //   .raw    — measurement number or -1 when not measured/applicable
-    // mmGrade() returns the grade letter; suppresses "NA"/"N/A"/"-" → "".
-    // mmVal()   returns the raw value as string; suppresses -1 → "".
-    // mmPct()   returns raw×100 rounded to 1 dp; suppresses -1 → "".
+    // Metric helpers (v1.13) — Metric objects confirmed to have exactly:
+    //   .grade  — letter string ("A"–"F") or "NA" (valid device output)
+    //   .raw    — measurement number, or -1 (numeric sentinel = no value)
+    // mmGrade() returns grade as-is — "NA" is a valid reported grade and
+    //           is NOT suppressed (device genuinely reports it per scan).
+    // mmVal()   returns raw as string; suppresses -1 (sentinel) → "".
+    // mmPct()   returns raw×100, 1 dp; suppresses -1 → "" (-100% invalid).
     //           Use mmPct for percentage columns (SCPercent, ANUPercent…).
     function mmGrade(met) {
         if (!met) { return ""; }
         var _v = met["grade"];
         if (typeof _v === "undefined" || _v === null) { return ""; }
-        var _sv = s(_v);
-        return (_sv === "NA" || _sv === "N/A" || _sv === "na" || _sv === "-") ? "" : _sv;
+        return s(_v);  // "NA" is a valid device-returned grade — pass through
     }
     function mmVal(met) {
         if (!met) { return ""; }
@@ -385,7 +380,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.12 q=" + _qSrc + " m=" + (m ? "found" : "null")
+    o += elem("PushScriptDiag", "v1.13 q=" + _qSrc + " m=" + (m ? "found" : "null")
           + " r.decoded=" + s(r && r.decoded)
           + " rType=" + (typeof r));
 
