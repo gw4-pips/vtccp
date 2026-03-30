@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.13
+//   Version   : 1.14
 //   Generated : 2026-03-30 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
@@ -73,6 +73,14 @@
 //              (e.g. grade/value, letter/numeric, gradeValue/percent, …).
 //           Once TrucheckMetric structure is known, all 167 grade columns
 //           can be wired correctly.
+//
+//   v1.14 — PROBE: Name-based probes cannot find LLS/BLS grades or TTR%/RTR%.
+//           Switch to for-in enumeration of both r.trucheck and r.metrics so
+//           every property is visible regardless of name.  Also enumerate
+//           r.content and r.image for dimension data.  Targeted fix:
+//           SCPercent uses mmPct which returns 72.5% but device shows 71%
+//           (device uses integer pixel math; ours is float ratio); tolerable
+//           until a better source is found.
 //
 //   v1.13 — CORRECTION: v1.12 incorrectly suppressed "NA" in mmGrade().
 //           OverallGrade, ANU, and GNU ARE measured and reported by the
@@ -380,11 +388,67 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.13 q=" + _qSrc + " m=" + (m ? "found" : "null")
+    o += elem("PushScriptDiag", "v1.14 q=" + _qSrc + " m=" + (m ? "found" : "null")
           + " r.decoded=" + s(r && r.decoded)
           + " rType=" + (typeof r));
 
-    // All property paths confirmed in v1.11. Diagnostics removed in v1.12.
+    // ── v1.14 for-in enumeration ──────────────────────────────────────────────
+    // Name-based probes miss properties whose names we haven't guessed.
+    // for-in visits every enumerable own property regardless of name.
+    // Truncated to 25 chars per value; max 60 entries per object.
+
+    // r.trucheck (q) — looking for LLS, BLS, TTR%, RTR%, and any unknowns.
+    var _qEnum = "";
+    var _qEnumCount = 0;
+    if (q) {
+        for (var _qk in q) {
+            if (_qEnumCount >= 60) { _qEnum += "…(more)"; break; }
+            var _qkv = q[_qk];
+            _qEnum += _qk + "=" + String(_qkv).substring(0, 25) + ";";
+            _qEnumCount++;
+        }
+    }
+    o += elem("DebugQEnum", _qEnum || "(q null)");
+
+    // r.metrics (m) — looking for topClockTrack, rightClockTrack, ttr, rtr,
+    // leftL, bottomL, lls, bls, and any new Metric objects.
+    var _mEnum = "";
+    var _mEnumCount = 0;
+    if (m) {
+        for (var _mk in m) {
+            if (_mEnumCount >= 60) { _mEnum += "…(more)"; break; }
+            var _mkv = m[_mk];
+            _mEnum += _mk + "=" + String(_mkv).substring(0, 25) + ";";
+            _mEnumCount++;
+        }
+    }
+    o += elem("DebugMEnum", _mEnum || "(m null)");
+
+    // r.content — may hold dimension/encoding characteristics.
+    var _rContent = _pick(r, "content");
+    var _rcEnum = "";
+    if (_rContent) {
+        var _rcCount = 0;
+        for (var _rck in _rContent) {
+            if (_rcCount >= 40) { _rcEnum += "…(more)"; break; }
+            _rcEnum += _rck + "=" + String(_rContent[_rck]).substring(0, 25) + ";";
+            _rcCount++;
+        }
+    }
+    o += elem("DebugContentEnum", _rcEnum || "(r.content null or empty)");
+
+    // r.image — may hold pixel/dimension data.
+    var _rImage = _pick(r, "image");
+    var _riEnum = "";
+    if (_rImage) {
+        var _riCount = 0;
+        for (var _rik in _rImage) {
+            if (_riCount >= 40) { _riEnum += "…(more)"; break; }
+            _riEnum += _rik + "=" + String(_rImage[_rik]).substring(0, 25) + ";";
+            _riCount++;
+        }
+    }
+    o += elem("DebugImageEnum", _riEnum || "(r.image null or empty)");
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //
