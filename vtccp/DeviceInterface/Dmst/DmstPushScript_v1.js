@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.9
+//   Version   : 1.10
 //   Generated : 2026-03-30 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
@@ -73,6 +73,27 @@
 //              (e.g. grade/value, letter/numeric, gradeValue/percent, …).
 //           Once TrucheckMetric structure is known, all 167 grade columns
 //           can be wired correctly.
+//
+//   v1.10 — WIRING: v1.9 confirmed all 12 TrucheckMetric properties on
+//           r.trucheck and that every TrucheckMetric has exactly .grade
+//           (letter) and .numericGrade (integer). Adds tmGrade/tmNum
+//           helper functions.  Wires all 12 confirmed grade columns:
+//             symbolContrast → SCGrade
+//             modulation     → MODGrade
+//             reflectanceMargin → RMGrade
+//             fixedPatternDamage → FPDGrade
+//             decode         → DecodeGrade
+//             printGrowth    → AGGrade
+//             leftQuietZone  → LQZGrade
+//             bottomQuietZone→ BQZGrade
+//             rightQuietZone → RQZGrade
+//             topQuietZone   → TQZGrade
+//             topClockTrack  → TCTGrade (also used for TTRGrade as alias)
+//             rightClockTrack→ RCTGrade (also used for RTRGrade as alias)
+//           Missing: UEC, ANU, GNU, overallGrade, all % values, dimensions.
+//           These are expected on r.metrics. Adds <DebugMetricsFound>
+//           probe on r.metrics to identify its exact property names.
+//           Removes DebugRFound/DebugRPFound (those questions are answered).
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // HOW TO INSTALL
@@ -156,6 +177,11 @@ function onResult(decodeResults, readerProperties, outputResults) {
         var v = obj[key];
         return (typeof v !== "undefined" && v !== null) ? v : null;
     }
+
+    // TrucheckMetric helpers (v1.10) — every sub-property on r.trucheck is a
+    // TrucheckMetric with exactly two fields: .grade (letter) and .numericGrade.
+    function tmGrade(tm) { return (tm && typeof tm["grade"]        !== "undefined") ? s(tm["grade"])        : ""; }
+    function tmNum(tm)   { return (tm && typeof tm["numericGrade"] !== "undefined") ? s(tm["numericGrade"]) : ""; }
 
     // ── Quality-object discovery ──────────────────────────────────────────────
     // Try every known property path in priority order.  _qSource records which
@@ -290,47 +316,64 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Visible in VTCCP VS Output as [VTCCP-DMST] RawXML.
     // Remove this section once the correct property names are confirmed.
 
-    o += elem("PushScriptDiag", "v1.9 q=" + _qSrc
+    // r.metrics — sibling of r.trucheck on decodeResults[0].
+    // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
+    var m = _pick(r, "metrics");
+
+    o += elem("PushScriptDiag", "v1.10 q=" + _qSrc + " m=" + (m ? "found" : "null")
           + " r.decoded=" + s(r && r.decoded)
           + " rType=" + (typeof r));
 
-    // Probe every plausible property name on decodeResults[0] and rp using
-    // typeof — collect the ones that are actually defined.
-    var _scanNames = [
-        "quality","Quality","verificationResult","VerificationResult",
-        "symbolVerificationResult","SymbolVerificationResult",
-        "symVerResult","SymVerResult","verificationResults","VerificationResults",
-        "qualityResult","QualityResult","gradeResult","GradeResult",
-        "isoResult","IsoResult","truCheckResult","TruCheckResult",
-        "verResult","VerResult","isoVerResult","IsoVerResult",
-        "verificationData","VerificationData","gradeData","GradeData",
-        "verification","Verification","grade","Grade","gradeInfo","GradeInfo",
-        "result","Result","data","Data",
-        "decoded","content","symbology","symbologyName",
-        "readString","image","id","index","type","format","score",
-        "confidence","error","status","noRead","pass","fail",
-        "passed","failed","decodes","strings",
-        "qualityGrades","QualityGrades","grades","Grades",
-        "gradeResults","GradeResults","verifyResult","VerifyResult",
-        "isoGrades","IsoGrades","metrics","Metrics","parameters","Parameters",
-        "barCode","barcode","code","resultData","outputData",
-        "scanResult","scanResults","scanData","scanGrade",
-        "trucheck","truCheck","TruCheck",
-        "overall","overallGrade","letterGrade","numericGrade",
-        "verificationGrade","VerificationGrade",
-        "symbolResult","SymbolResult","symbolData","SymbolData",
-        "readResult","ReadResult","decodeResult","DecodeResult"
-    ];
-
-    var _rFound  = "";
-    var _rpFound = "";
-    for (var _pi = 0; _pi < _scanNames.length; _pi++) {
-        var _pn = _scanNames[_pi];
-        if (r  && typeof r[_pn]  !== "undefined" && r[_pn]  !== null) { _rFound  += _pn + ","; }
-        if (rp && typeof rp[_pn] !== "undefined" && rp[_pn] !== null) { _rpFound += _pn + ","; }
+    // ── r.metrics probe (v1.10) ───────────────────────────────────────────────
+    // r.metrics is confirmed present on r. Probe for: overallGrade, UEC, ANU,
+    // GNU, SC%/MOD%/RM% measurement values, and symbol dimension fields.
+    var _mFound = "";
+    if (m) {
+        var _mNames = [
+            // Summary
+            "overallGrade","symbolGrade","grade","formalGrade","letterGrade",
+            "overallGradeValue","overallGradeNumeric","numericGrade","gradeNumeric",
+            "passFailStatus","passFail","status",
+            // Verification conditions
+            "aperture","apertureRef","wavelength","lighting","lightingType",
+            "standard","verificationStandard",
+            // ISO 15415 — percent/measurement values
+            "uniformEdgeContrast","uniformEdgeContrastPercent",
+            "symbolContrast","symbolContrastPercent","sc","rl","rd","scRlRd",
+            "modulation","modulationPercent","mod",
+            "reflectanceMargin","reflectanceMarginPercent","rm",
+            "axialNonUniformity","axialNonUniformityPercent","anu",
+            "gridNonUniformity","gridNonUniformityPercent","gnu",
+            "fixedPatternDamage","fpd",
+            "decode","printGrowth","ag",
+            // Quiet zone measurements
+            "leftQuietZone","bottomQuietZone","rightQuietZone","topQuietZone",
+            "lqz","bqz","rqz","tqz","lls","bls",
+            // TTR/RTR/TCT/RCT measurements
+            "topClockTrack","rightClockTrack","ttr","rtr","tct","rct",
+            "ttrPercent","rtrPercent","topToTopRatio","rightToRightRatio",
+            // Symbol dimensions
+            "matrixSize","rows","columns","cols","size",
+            "nominalXDim","pixelsPerModule","ppm",
+            "encodedCharacters","encodedChars","totalCodewords","dataCodewords",
+            "errorCorrectionBudget","ecBudget","errorsCorrected","ecCorrected",
+            "errorCapacityUsed","ecCapacityUsed","errorCorrectionType","ecType",
+            "horizontalBWG","verticalBWG","hBwg","vBwg","bwgPercent",
+            "magnification","ratio","nominalXDim1D","nominalXDim1d",
+            "polarity","imagePolarity","contrastUniformity","mrd",
+            "symbolAnsiGrade","ansiGrade",
+            // Average fields
+            "avgEdge","avgRlRd","avgSc","avgMinEc","avgMod",
+            "avgDefect","avgDcod","avgDec","avgLqz","avgRqz","avgHqz","avgMinQz"
+        ];
+        for (var _mi = 0; _mi < _mNames.length; _mi++) {
+            var _mn = _mNames[_mi];
+            if (typeof m[_mn] !== "undefined" && m[_mn] !== null) {
+                _mFound += _mn + "=" + String(m[_mn]).substring(0, 20) + ";";
+            }
+        }
     }
-    o += elem("DebugRFound",  _rFound  || "(none)");
-    o += elem("DebugRPFound", _rpFound || "(none)");
+    o += elem("DebugMetricsFound", _mFound || "(m null or no props found)");
 
     // Inner property scan on the resolved q object (v1.9).
     // Uses full Cognex camelCase names (not abbreviations like uec/sc/mod).
@@ -424,215 +467,185 @@ function onResult(decodeResults, readerProperties, outputResults) {
     }
     o += elem("DebugModFound", _qModFound || "(modulation null or no props found)");
 
+    // ── Grade emission (v1.10) ────────────────────────────────────────────────
+    //
+    //   Data sources:
+    //     q  = r.trucheck  — TrucheckResult; each sub-property is a TrucheckMetric
+    //                        with exactly .grade (letter) and .numericGrade (int)
+    //     m  = r.metrics   — sibling object; expected to carry % values, overall
+    //                        grade, verification conditions, and symbol dimensions
+    //
+    //   Confirmed TrucheckMetric properties on q (v1.9 scan):
+    //     symbolContrast, modulation, reflectanceMargin, fixedPatternDamage,
+    //     decode, printGrowth, leftQuietZone, bottomQuietZone, rightQuietZone,
+    //     topQuietZone, topClockTrack, rightClockTrack
+    //
+    //   NOT on q (absent from v1.9 scan):
+    //     uniformEdgeContrast, axialNonUniformity, gridNonUniformity,
+    //     overallGrade, all % measurement values, all dimension values
+    //     → probed from m (r.metrics) via DebugMetricsFound in this run
+
     if (q) {
 
+        // Bind TrucheckMetric sub-objects once (safe: _pick returns null if absent)
+        var _sc  = _pick(q, "symbolContrast");
+        var _mod = _pick(q, "modulation");
+        var _rm  = _pick(q, "reflectanceMargin");
+        var _fpd = _pick(q, "fixedPatternDamage");
+        var _dec = _pick(q, "decode");
+        var _ag  = _pick(q, "printGrowth");
+        var _lqz = _pick(q, "leftQuietZone");
+        var _bqz = _pick(q, "bottomQuietZone");
+        var _rqz = _pick(q, "rightQuietZone");
+        var _tqz = _pick(q, "topQuietZone");
+        var _tct = _pick(q, "topClockTrack");
+        var _rct = _pick(q, "rightClockTrack");
+
         // ── Grading summary ───────────────────────────────────────────────────
-        //   overallGrade      — "A" / "B" / "C" / "D" / "F"
-        //   overallGradeValue — 4.0 / 3.0 / 2.0 / 1.0 / 0.0  (ISO numeric)
-        //   formalGrade       — same letter from the formal standard column
+        //   overallGrade — not found on q; probe m (r.metrics) via DebugMetricsFound
+        //   For now emit from m using candidate names; will correct once confirmed.
+        var _ogLetter  = prop(m, "overallGrade") || prop(m, "symbolGrade") || prop(m, "grade") || prop(m, "letterGrade");
+        var _ogNumeric = prop(m, "overallGradeNumeric") || prop(m, "overallGradeValue") || prop(m, "numericGrade") || prop(m, "gradeNumeric");
+        o += elem("FormalGrade",         _ogLetter);
+        o += elem("OverallGrade",        _ogLetter);
+        o += elem("OverallGradeNumeric", _ogNumeric);
 
-        o += elem("FormalGrade",         prop(q, "formalGrade"));
-        o += elem("OverallGrade",        prop(q, "overallGrade"));
-        o += elem("OverallGradeNumeric", prop(q, "overallGradeValue"));
-
-        // ── Verification settings ─────────────────────────────────────────────
-        //   aperture   — integer aperture reference number
-        //   wavelength — integer nm (e.g. 660)
-        //   lighting   — "Axial", "45-degree", "Low-angle", …
-        //   standard   — "ISO/IEC 15415", "AIM DPM", …
-
-        o += elem("ApertureRef", prop(q, "aperture"));
-        o += elem("Wavelength",  prop(q, "wavelength"));
-        o += elem("Lighting",    prop(q, "lighting"));
-        o += elem("Standard",    prop(q, "standard"));
+        // ── Verification conditions ───────────────────────────────────────────
+        //   aperture / wavelength / lighting / standard — expected on m; empty until confirmed
+        o += elem("ApertureRef", prop(m, "aperture") || prop(m, "apertureRef"));
+        o += elem("Wavelength",  prop(m, "wavelength"));
+        o += elem("Lighting",    prop(m, "lighting") || prop(m, "lightingType"));
+        o += elem("Standard",    prop(m, "standard") || prop(m, "verificationStandard"));
 
         // ── 2D ISO 15415 quality parameters ───────────────────────────────────
-        //   uec / uecGrade           — Uniform Edge Contrast  %  / letter
-        //   sc  / scGrade            — Symbol Contrast  %  / letter
-        //   rl  / rd                 — Reflection Level / Difference (for SCRlRd column)
-        //   mod / modGrade           — Modulation % / letter
-        //   rm  / rmGrade            — Reflectance Margin % / letter
-        //   anu / anuGrade           — Axial Non-Uniformity % / letter
-        //   gnu / gnuGrade           — Grid Non-Uniformity % / letter
-        //   fpd / fpdGrade           — Fixed Pattern Damage / letter
-        //   decodeGrade              — Decode letter grade
-        //   ag  / agGrade            — Average Grade value / letter
+        //   UEC — not on q; probe m
+        o += elem("UECPercent", prop(m, "uniformEdgeContrast") || prop(m, "uniformEdgeContrastPercent"));
+        o += elem("UECGrade",   prop(m, "uniformEdgeContrastGrade") || prop(m, "uecGrade"));
 
-        o += elem("UECPercent", prop(q, "uec"));
-        o += elem("UECGrade",   prop(q, "uecGrade"));
-        o += elem("SCPercent",  prop(q, "sc"));
+        //   SC — grade from q.symbolContrast; percent from m
+        o += elem("SCPercent",  prop(m, "symbolContrast") || prop(m, "symbolContrastPercent") || prop(m, "sc"));
+        var _rl = prop(m, "rl") || prop(m, "reflectionLevel");
+        var _rd = prop(m, "rd") || prop(m, "reflectionDifference");
+        o += elem("SCRlRd",     (_rl && _rd) ? (_rl + "/" + _rd) : prop(m, "scRlRd"));
+        o += elem("SCGrade",    tmGrade(_sc));
 
-        // SC RL/RD — output as "RL/RD" pair e.g. "89/4"; try both property forms.
-        var rl = prop(q, "rl");
-        var rd = prop(q, "rd");
-        var scRlRd = (rl && rd) ? (rl + "/" + rd) : prop(q, "scRlRd");
-        o += elem("SCRlRd",    scRlRd);
-        o += elem("SCGrade",   prop(q, "scGrade"));
+        //   MOD — grade from q.modulation; percent from m
+        o += elem("MODGrade",   tmGrade(_mod));
 
-        o += elem("MODGrade",  prop(q, "modGrade"));
-        o += elem("RMGrade",   prop(q, "rmGrade"));
-        o += elem("ANUPercent",prop(q, "anu"));
-        o += elem("ANUGrade",  prop(q, "anuGrade"));
-        o += elem("GNUPercent",prop(q, "gnu"));
-        o += elem("GNUGrade",  prop(q, "gnuGrade"));
-        o += elem("FPDGrade",  prop(q, "fpdGrade"));
-        o += elem("DecodeGrade",prop(q, "decodeGrade"));
-        o += elem("AGValue",   prop(q, "ag"));
-        o += elem("AGGrade",   prop(q, "agGrade"));
+        //   RM — grade from q.reflectanceMargin; percent from m
+        o += elem("RMGrade",    tmGrade(_rm));
+
+        //   ANU — not on q; probe m
+        o += elem("ANUPercent", prop(m, "axialNonUniformity") || prop(m, "axialNonUniformityPercent") || prop(m, "anu"));
+        o += elem("ANUGrade",   prop(m, "axialNonUniformityGrade") || prop(m, "anuGrade"));
+
+        //   GNU — not on q; probe m
+        o += elem("GNUPercent", prop(m, "gridNonUniformity") || prop(m, "gridNonUniformityPercent") || prop(m, "gnu"));
+        o += elem("GNUGrade",   prop(m, "gridNonUniformityGrade") || prop(m, "gnuGrade"));
+
+        //   FPD — grade from q.fixedPatternDamage
+        o += elem("FPDGrade",   tmGrade(_fpd));
+
+        //   Decode — grade from q.decode
+        o += elem("DecodeGrade", tmGrade(_dec));
+
+        //   AG (Print Growth) — grade from q.printGrowth; value from m
+        o += elem("AGValue",    prop(m, "printGrowth") || prop(m, "ag") || prop(m, "printGrowthValue"));
+        o += elem("AGGrade",    tmGrade(_ag));
 
         // ── 2D matrix characteristics ─────────────────────────────────────────
-        //   rows / columns           — e.g. 16 / 16 → written as "16x16"
-        //   hBwg / vBwg              — Horizontal / Vertical Bar Width Growth %
-        //   encodedChars             — encoded character count
-        //   totalCodewords           — total ECC codewords
-        //   dataCodewords            — data codewords
-        //   ecBudget                 — error correction budget (total ECC codewords)
-        //   ecCorrected              — errors corrected
-        //   ecCapacityUsed           — ECC capacity used %
-        //   ecType                   — "ECC 200", "Reed-Solomon", …
-        //   nominalXDim              — nominal X dimension (device units; typically mils or mm)
-        //   ppm                      — pixels per module
-        //   polarity                 — "Dark on Light" / "Light on Dark"
-        //   contrastUniformity       — uniformity descriptor string
-        //   mrd                      — minimum reflectance difference
+        //   All expected on m (r.metrics) — DebugMetricsFound will confirm names
+        var _rows = prop(m, "rows");
+        var _cols = prop(m, "columns") || prop(m, "cols");
+        var _msz  = prop(m, "matrixSize") || prop(m, "size")
+                    || ((_rows && _cols) ? (_rows + "x" + _cols) : "");
+        o += elem("MatrixSize",            _msz);
+        o += elem("HorizontalBWG",         prop(m, "horizontalBWG") || prop(m, "hBwg"));
+        o += elem("VerticalBWG",           prop(m, "verticalBWG")   || prop(m, "vBwg"));
+        o += elem("EncodedCharacters",     prop(m, "encodedCharacters") || prop(m, "encodedChars"));
+        o += elem("TotalCodewords",        prop(m, "totalCodewords"));
+        o += elem("DataCodewords",         prop(m, "dataCodewords"));
+        o += elem("ErrorCorrectionBudget", prop(m, "errorCorrectionBudget") || prop(m, "ecBudget"));
+        o += elem("ErrorsCorrected",       prop(m, "errorsCorrected")       || prop(m, "ecCorrected"));
+        o += elem("ErrorCapacityUsed",     prop(m, "errorCapacityUsed")     || prop(m, "ecCapacityUsed"));
+        o += elem("ErrorCorrectionType",   prop(m, "errorCorrectionType")   || prop(m, "ecType"));
+        o += elem("NominalXDim",           prop(m, "nominalXDim"));
+        o += elem("PixelsPerModule",       prop(m, "pixelsPerModule") || prop(m, "ppm"));
+        o += elem("ImagePolarity",         prop(m, "polarity") || prop(m, "imagePolarity"));
+        o += elem("ContrastUniformity",    prop(m, "contrastUniformity"));
+        o += elem("MRD",                   prop(m, "mrd") || prop(m, "minReflectanceDifference"));
 
-        var rows = prop(q, "rows");
-        var cols = prop(q, "columns");
-        var matrixSize = (rows && cols) ? (rows + "x" + cols) : "";
-        o += elem("MatrixSize",            matrixSize);
-        o += elem("HorizontalBWG",         prop(q, "hBwg"));
-        o += elem("VerticalBWG",           prop(q, "vBwg"));
-        o += elem("EncodedCharacters",     prop(q, "encodedChars"));
-        o += elem("TotalCodewords",        prop(q, "totalCodewords"));
-        o += elem("DataCodewords",         prop(q, "dataCodewords"));
-        o += elem("ErrorCorrectionBudget", prop(q, "ecBudget"));
-        o += elem("ErrorsCorrected",       prop(q, "ecCorrected"));
-        o += elem("ErrorCapacityUsed",     prop(q, "ecCapacityUsed"));
-        o += elem("ErrorCorrectionType",   prop(q, "ecType"));
-        o += elem("NominalXDim",           prop(q, "nominalXDim"));
-        o += elem("PixelsPerModule",       prop(q, "ppm"));
-        o += elem("ImagePolarity",         prop(q, "polarity"));
-        o += elem("ContrastUniformity",    prop(q, "contrastUniformity"));
-        o += elem("MRD",                   prop(q, "mrd"));
+        // ── 2D quiet zones ────────────────────────────────────────────────────
+        //   LLSGrade / BLSGrade — no JS counterpart found yet; may be on m
+        o += elem("LLSGrade", prop(m, "lls") || prop(m, "leftLeftSymbolGap"));
+        o += elem("BLSGrade", prop(m, "bls") || prop(m, "bottomLeftSymbolGap"));
+        //   LQZ/BQZ/TQZ/RQZ — from q TrucheckMetric sub-objects (confirmed v1.9)
+        o += elem("LQZGrade", tmGrade(_lqz));
+        o += elem("BQZGrade", tmGrade(_bqz));
+        o += elem("TQZGrade", tmGrade(_tqz));
+        o += elem("RQZGrade", tmGrade(_rqz));
 
-        // ── 2D quiet zones / border grades ────────────────────────────────────
-        //   lls / llsGrade   — Left L-finder score  / letter
-        //   bls / blsGrade   — Bottom L-finder score / letter
-        //   lqz / lqzGrade   — Left Quiet Zone / letter
-        //   bqz / bqzGrade   — Bottom Quiet Zone / letter
-        //   tqz / tqzGrade   — Top Quiet Zone / letter
-        //   rqz / rqzGrade   — Right Quiet Zone / letter
+        // ── 2D clock track / transition ratio grades ──────────────────────────
+        //   topClockTrack    → TTRGrade and TCTGrade (best guess until confirmed)
+        //   rightClockTrack  → RTRGrade and RCTGrade
+        //   % values expected on m — empty until DebugMetricsFound confirms names
+        o += elem("TTRPercent", prop(m, "ttrPercent") || prop(m, "topToTopRatio") || prop(m, "ttr"));
+        o += elem("TTRGrade",   tmGrade(_tct));
+        o += elem("RTRPercent", prop(m, "rtrPercent") || prop(m, "rightToRightRatio") || prop(m, "rtr"));
+        o += elem("RTRGrade",   tmGrade(_rct));
+        o += elem("TCTGrade",   tmGrade(_tct));
+        o += elem("RCTGrade",   tmGrade(_rct));
 
-        o += elem("LLSGrade", prop(q, "llsGrade"));
-        o += elem("BLSGrade", prop(q, "blsGrade"));
-        o += elem("LQZGrade", prop(q, "lqzGrade"));
-        o += elem("BQZGrade", prop(q, "bqzGrade"));
-        o += elem("TQZGrade", prop(q, "tqzGrade"));
-        o += elem("RQZGrade", prop(q, "rqzGrade"));
+        // ── Per-quadrant parameters (matrices ≥ 32×32 only) ──────────────────
+        //   No JS property names found yet for per-quadrant data; all empty.
+        o += elem("ULQZGrade",     "");
+        o += elem("URQZGrade",     "");
+        o += elem("RUQZGrade",     "");
+        o += elem("RLQZGrade",     "");
+        o += elem("ULQTTRPercent", "");
+        o += elem("ULQTTRGrade",   "");
+        o += elem("URQTTRPercent", "");
+        o += elem("URQTTRGrade",   "");
+        o += elem("LLQTTRPercent", "");
+        o += elem("LLQTTRGrade",   "");
+        o += elem("LRQTTRPercent", "");
+        o += elem("LRQTTRGrade",   "");
+        o += elem("ULQRTRPercent", "");
+        o += elem("ULQRTRGrade",   "");
+        o += elem("URQRTRPercent", "");
+        o += elem("URQRTRGrade",   "");
+        o += elem("LLQRTRPercent", "");
+        o += elem("LLQRTRGrade",   "");
+        o += elem("LRQRTRPercent", "");
+        o += elem("LRQRTRGrade",   "");
+        o += elem("ULQTCTGrade",   "");
+        o += elem("URQTCTGrade",   "");
+        o += elem("LLQTCTGrade",   "");
+        o += elem("LRQTCTGrade",   "");
+        o += elem("ULQRCTGrade",   "");
+        o += elem("URQRCTGrade",   "");
+        o += elem("LLQRCTGrade",   "");
+        o += elem("LRQRCTGrade",   "");
 
-        // ── 2D transition ratios / clock tracks ───────────────────────────────
-        //   ttr / ttrGrade   — Top Transition Ratio % / letter
-        //   rtr / rtrGrade   — Right Transition Ratio % / letter
-        //   tct / tctGrade   — Top Clock Track grade letter
-        //   rct / rctGrade   — Right Clock Track grade letter
-
-        o += elem("TTRPercent", prop(q, "ttr"));
-        o += elem("TTRGrade",   prop(q, "ttrGrade"));
-        o += elem("RTRPercent", prop(q, "rtr"));
-        o += elem("RTRGrade",   prop(q, "rtrGrade"));
-        o += elem("TCTGrade",   prop(q, "tctGrade"));
-        o += elem("RCTGrade",   prop(q, "rctGrade"));
-
-        // ── 2D quadrant parameters (matrices ≥ 32×32 only) ───────────────────
-        //   Firmware 6.x exposes quadrant sub-object names as:
-        //     ulqz / urqz / ruqz / rlqz         — quiet zone grades (letter)
-        //     ulqTtr / urqTtr / llqTtr / lrqTtr — TTR % per quadrant
-        //     ulqTtrGrade / …Grade               — TTR letter grade per quadrant
-        //     ulqRtr / …  / ulqRtrGrade / …      — RTR % / grade per quadrant
-        //     ulqTct / ulqTctGrade / ulqRct / ulqRctGrade  — clock track grades
-        //   These will be empty for matrices smaller than 32×32.
-
-        o += elem("ULQZGrade", prop(q, "ulqzGrade"));
-        o += elem("URQZGrade", prop(q, "urqzGrade"));
-        o += elem("RUQZGrade", prop(q, "ruqzGrade"));
-        o += elem("RLQZGrade", prop(q, "rlqzGrade"));
-
-        o += elem("ULQTTRPercent", prop(q, "ulqTtr"));
-        o += elem("ULQTTRGrade",   prop(q, "ulqTtrGrade"));
-        o += elem("URQTTRPercent", prop(q, "urqTtr"));
-        o += elem("URQTTRGrade",   prop(q, "urqTtrGrade"));
-        o += elem("LLQTTRPercent", prop(q, "llqTtr"));
-        o += elem("LLQTTRGrade",   prop(q, "llqTtrGrade"));
-        o += elem("LRQTTRPercent", prop(q, "lrqTtr"));
-        o += elem("LRQTTRGrade",   prop(q, "lrqTtrGrade"));
-
-        o += elem("ULQRTRPercent", prop(q, "ulqRtr"));
-        o += elem("ULQRTRGrade",   prop(q, "ulqRtrGrade"));
-        o += elem("URQRTRPercent", prop(q, "urqRtr"));
-        o += elem("URQRTRGrade",   prop(q, "urqRtrGrade"));
-        o += elem("LLQRTRPercent", prop(q, "llqRtr"));
-        o += elem("LLQRTRGrade",   prop(q, "llqRtrGrade"));
-        o += elem("LRQRTRPercent", prop(q, "lrqRtr"));
-        o += elem("LRQRTRGrade",   prop(q, "lrqRtrGrade"));
-
-        o += elem("ULQTCTGrade", prop(q, "ulqTctGrade"));
-        o += elem("URQTCTGrade", prop(q, "urqTctGrade"));
-        o += elem("LLQTCTGrade", prop(q, "llqTctGrade"));
-        o += elem("LRQTCTGrade", prop(q, "lrqTctGrade"));
-        o += elem("ULQRCTGrade", prop(q, "ulqRctGrade"));
-        o += elem("URQRCTGrade", prop(q, "urqRctGrade"));
-        o += elem("LLQRCTGrade", prop(q, "llqRctGrade"));
-        o += elem("LRQRCTGrade", prop(q, "lrqRctGrade"));
-
-        // ── 1D ISO 15416 summary (only populated for 1D symbologies) ─────────
-        //   ansiGrade / symbolAnsiGrade  — overall ANSI letter grade
-        //   avgEdge / avgRlRd / avgSc / avgMinEc / avgMod / avgDefect
-        //   avgDcod / avgDec / avgLqz / avgRqz / avgHqz / avgMinQz
-        //   bwg        — Bar Width Growth %
-        //   magnification
-        //   ratio      — narrow-to-wide ratio
-        //   nominalXDim1d — 1D nominal X dimension
-
-        var ansiGrade = prop(q, "ansiGrade") || prop(q, "symbolAnsiGrade");
-        o += elem("SymbolAnsiGrade", ansiGrade);
-        o += elem("AvgEdge",     prop(q, "avgEdge"));
-        o += elem("AvgRlRd",     prop(q, "avgRlRd"));
-        o += elem("AvgSC",       prop(q, "avgSc"));
-        o += elem("AvgMinEC",    prop(q, "avgMinEc"));
-        o += elem("AvgMOD",      prop(q, "avgMod"));
-        o += elem("AvgDefect",   prop(q, "avgDefect"));
-        o += elem("AvgDcod",     prop(q, "avgDcod"));
-        o += elem("AvgDEC",      prop(q, "avgDec"));
-        o += elem("AvgLQZ",      prop(q, "avgLqz"));
-        o += elem("AvgRQZ",      prop(q, "avgRqz"));
-        o += elem("AvgHQZ",      prop(q, "avgHqz"));
-        o += elem("AvgMinQZ",    prop(q, "avgMinQz"));
-        o += elem("BWGPercent",      prop(q, "bwg"));
-        o += elem("Magnification",   prop(q, "magnification"));
-        o += elem("Ratio",           prop(q, "ratio"));
-        o += elem("NominalXDim1D",   prop(q, "nominalXDim1d") || prop(q, "nominalXDim"));
-
-        // ── Per-scan results for 1D (written as <ScanResults><Scan …>…) ──────
-        //   q.scans — array; each entry has: edge, sc, minEc, mod, defect, dec, lqz, rqz, hqz
-
-        if (q.scans && q.scans.length) {
-            o += "<ScanResults>\r\n";
-            for (var i = 0; i < q.scans.length && i < 10; i++) {
-                var sc = q.scans[i];
-                o += '<Scan number="' + (i + 1) + '">\r\n';
-                o += elem("Edge",   prop(sc, "edge"));
-                o += elem("SC",     prop(sc, "sc"));
-                o += elem("MinEC",  prop(sc, "minEc"));
-                o += elem("MOD",    prop(sc, "mod"));
-                o += elem("Defect", prop(sc, "defect"));
-                o += elem("DEC",    prop(sc, "dec"));
-                o += elem("LQZ",    prop(sc, "lqz"));
-                o += elem("RQZ",    prop(sc, "rqz"));
-                o += elem("HQZ",    prop(sc, "hqz"));
-                o += "</Scan>\r\n";
-            }
-            o += "</ScanResults>\r\n";
-        }
+        // ── 1D / ANSI summary ─────────────────────────────────────────────────
+        var _ansiGrade = prop(m, "ansiGrade") || prop(m, "symbolAnsiGrade");
+        o += elem("SymbolAnsiGrade", _ansiGrade);
+        o += elem("AvgEdge",   prop(m, "avgEdge"));
+        o += elem("AvgRlRd",   prop(m, "avgRlRd"));
+        o += elem("AvgSC",     prop(m, "avgSc"));
+        o += elem("AvgMinEC",  prop(m, "avgMinEc"));
+        o += elem("AvgMOD",    prop(m, "avgMod"));
+        o += elem("AvgDefect", prop(m, "avgDefect"));
+        o += elem("AvgDcod",   prop(m, "avgDcod"));
+        o += elem("AvgDEC",    prop(m, "avgDec"));
+        o += elem("AvgLQZ",    prop(m, "avgLqz"));
+        o += elem("AvgRQZ",    prop(m, "avgRqz"));
+        o += elem("AvgHQZ",    prop(m, "avgHqz"));
+        o += elem("AvgMinQZ",  prop(m, "avgMinQz"));
+        o += elem("BWGPercent",    prop(m, "bwgPercent") || prop(m, "bwg"));
+        o += elem("Magnification", prop(m, "magnification"));
+        o += elem("Ratio",         prop(m, "ratio"));
+        o += elem("NominalXDim1D", prop(m, "nominalXDim1D") || prop(m, "nominalXDim1d"));
 
     } // end if (q)
 
