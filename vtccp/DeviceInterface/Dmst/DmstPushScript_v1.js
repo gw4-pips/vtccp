@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.11
+//   Version   : 1.12
 //   Generated : 2026-03-30 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
@@ -73,6 +73,25 @@
 //              (e.g. grade/value, letter/numeric, gradeValue/percent, …).
 //           Once TrucheckMetric structure is known, all 167 grade columns
 //           can be wired correctly.
+//
+//   v1.12 — CLEANUP: v1.11 inner scan revealed Metric has exactly .grade
+//           (string: letter "A"–"F" or "NA" when not computed) and .raw
+//           (number: measurement value or -1 when not measured/applicable).
+//           All -1/-1 and NA/NA pairs are correct firmware behavior for
+//           parameters not measured under the active verification standard
+//           (ANU, GNU, overallGrade, printGrowth, contrastUniformity all
+//           return NA/-1 because this standard does not compute them).
+//           SCPercent raw = 0.7254... is a 0–1 ratio; ×100 → 72.5%.
+//           This version:
+//           1. mmGrade() now suppresses "NA"/"N/A"/"-" → returns "".
+//           2. mmVal() now suppresses -1 → returns "".
+//           3. Adds mmPct(metric) for percentage fields (raw × 100, 1 dp).
+//           4. Removes diagnostic elements — all property paths confirmed.
+//           UEC (uniformEdgeContrast) confirmed absent from both r.trucheck
+//           and r.metrics: genuinely not computed by this standard/config.
+//           Symbol dimension fields (MatrixSize, NominalXDim, etc.) are not
+//           exposed via the DMST scripting API for this firmware and will
+//           remain empty in push mode.
 //
 //   v1.11 — FIX: v1.10 revealed r.metrics is also a nested-object container
 //           — each named property is a [object Metric] sub-object, exactly
@@ -198,27 +217,35 @@ function onResult(decodeResults, readerProperties, outputResults) {
     function tmGrade(tm) { return (tm && typeof tm["grade"]        !== "undefined") ? s(tm["grade"])        : ""; }
     function tmNum(tm)   { return (tm && typeof tm["numericGrade"] !== "undefined") ? s(tm["numericGrade"]) : ""; }
 
-    // Metric helpers (v1.11) — every named sub-property on r.metrics is a
-    // [object Metric] whose inner property names are not yet confirmed.
-    // mmVal() cascades through likely measurement-value names in order.
-    // mmGrade() cascades through likely grade-letter names in order.
-    function mmVal(met) {
-        if (!met) { return ""; }
-        var _keys = ["value","percent","measurement","val","score","numericGrade","numericValue","numeric","number","raw","result","data"];
-        for (var _ki = 0; _ki < _keys.length; _ki++) {
-            var _kv = met[_keys[_ki]];
-            if (typeof _kv !== "undefined" && _kv !== null) { return s(_kv); }
-        }
-        return "";
-    }
+    // Metric helpers (v1.12) — Metric objects confirmed to have exactly:
+    //   .grade  — letter string ("A"–"F") or "NA" when not computed
+    //   .raw    — measurement number or -1 when not measured/applicable
+    // mmGrade() returns the grade letter; suppresses "NA"/"N/A"/"-" → "".
+    // mmVal()   returns the raw value as string; suppresses -1 → "".
+    // mmPct()   returns raw×100 rounded to 1 dp; suppresses -1 → "".
+    //           Use mmPct for percentage columns (SCPercent, ANUPercent…).
     function mmGrade(met) {
         if (!met) { return ""; }
-        var _keys = ["grade","letterGrade","letter","gradeValue","gradeString","symbol","iso","ansi","level","label"];
-        for (var _ki = 0; _ki < _keys.length; _ki++) {
-            var _kv = met[_keys[_ki]];
-            if (typeof _kv !== "undefined" && _kv !== null) { return s(_kv); }
-        }
-        return "";
+        var _v = met["grade"];
+        if (typeof _v === "undefined" || _v === null) { return ""; }
+        var _sv = s(_v);
+        return (_sv === "NA" || _sv === "N/A" || _sv === "na" || _sv === "-") ? "" : _sv;
+    }
+    function mmVal(met) {
+        if (!met) { return ""; }
+        var _v = met["raw"];
+        if (typeof _v === "undefined" || _v === null) { return ""; }
+        return (_v === -1 || _v === "-1") ? "" : s(_v);
+    }
+    function mmPct(met) {
+        if (!met) { return ""; }
+        var _v = met["raw"];
+        if (typeof _v === "undefined" || _v === null || _v === -1) { return ""; }
+        var _n = parseFloat(_v);
+        if (isNaN(_n)) { return ""; }
+        // Raw is 0–1 ratio; convert to percentage with 1 decimal place.
+        var _pct = Math.round(_n * 1000) / 10;
+        return s(_pct);
     }
 
     // ── Quality-object discovery ──────────────────────────────────────────────
@@ -358,176 +385,11 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.11 q=" + _qSrc + " m=" + (m ? "found" : "null")
+    o += elem("PushScriptDiag", "v1.12 q=" + _qSrc + " m=" + (m ? "found" : "null")
           + " r.decoded=" + s(r && r.decoded)
           + " rType=" + (typeof r));
 
-    // ── r.metrics probe (v1.10) ───────────────────────────────────────────────
-    // r.metrics is confirmed present on r. Probe for: overallGrade, UEC, ANU,
-    // GNU, SC%/MOD%/RM% measurement values, and symbol dimension fields.
-    var _mFound = "";
-    if (m) {
-        var _mNames = [
-            // Summary
-            "overallGrade","symbolGrade","grade","formalGrade","letterGrade",
-            "overallGradeValue","overallGradeNumeric","numericGrade","gradeNumeric",
-            "passFailStatus","passFail","status",
-            // Verification conditions
-            "aperture","apertureRef","wavelength","lighting","lightingType",
-            "standard","verificationStandard",
-            // ISO 15415 — percent/measurement values
-            "uniformEdgeContrast","uniformEdgeContrastPercent",
-            "symbolContrast","symbolContrastPercent","sc","rl","rd","scRlRd",
-            "modulation","modulationPercent","mod",
-            "reflectanceMargin","reflectanceMarginPercent","rm",
-            "axialNonUniformity","axialNonUniformityPercent","anu",
-            "gridNonUniformity","gridNonUniformityPercent","gnu",
-            "fixedPatternDamage","fpd",
-            "decode","printGrowth","ag",
-            // Quiet zone measurements
-            "leftQuietZone","bottomQuietZone","rightQuietZone","topQuietZone",
-            "lqz","bqz","rqz","tqz","lls","bls",
-            // TTR/RTR/TCT/RCT measurements
-            "topClockTrack","rightClockTrack","ttr","rtr","tct","rct",
-            "ttrPercent","rtrPercent","topToTopRatio","rightToRightRatio",
-            // Symbol dimensions
-            "matrixSize","rows","columns","cols","size",
-            "nominalXDim","pixelsPerModule","ppm",
-            "encodedCharacters","encodedChars","totalCodewords","dataCodewords",
-            "errorCorrectionBudget","ecBudget","errorsCorrected","ecCorrected",
-            "errorCapacityUsed","ecCapacityUsed","errorCorrectionType","ecType",
-            "horizontalBWG","verticalBWG","hBwg","vBwg","bwgPercent",
-            "magnification","ratio","nominalXDim1D","nominalXDim1d",
-            "polarity","imagePolarity","contrastUniformity","mrd",
-            "symbolAnsiGrade","ansiGrade",
-            // Average fields
-            "avgEdge","avgRlRd","avgSc","avgMinEc","avgMod",
-            "avgDefect","avgDcod","avgDec","avgLqz","avgRqz","avgHqz","avgMinQz"
-        ];
-        for (var _mi = 0; _mi < _mNames.length; _mi++) {
-            var _mn = _mNames[_mi];
-            if (typeof m[_mn] !== "undefined" && m[_mn] !== null) {
-                _mFound += _mn + "=" + String(m[_mn]).substring(0, 20) + ";";
-            }
-        }
-    }
-    o += elem("DebugMetricsFound", _mFound || "(m null or no props found)");
-
-    // Inner property scan on m.overallGrade (a Metric object) — reveals the
-    // exact sub-property names used inside Metric (value/percent/grade/etc.)
-    var _mogFound = "";
-    var _mog = m ? _pick(m, "overallGrade") : null;
-    if (_mog) {
-        var _mogNames = [
-            "grade","Grade","letterGrade","LetterGrade","letter","Letter",
-            "gradeValue","GradeValue","gradeString","GradeString",
-            "value","Value","percent","Percent","numericGrade","NumericGrade",
-            "numeric","Numeric","numericValue","NumericValue","number","Number",
-            "measurement","Measurement","val","Val","score","Score",
-            "result","Result","data","Data","raw","Raw",
-            "iso","ISO","ansi","ANSI","level","Level","label","Label",
-            "symbol","Symbol","status","Status","pass","Pass","fail","Fail"
-        ];
-        for (var _moi = 0; _moi < _mogNames.length; _moi++) {
-            var _mon = _mogNames[_moi];
-            if (typeof _mog[_mon] !== "undefined" && _mog[_mon] !== null) {
-                _mogFound += _mon + "=" + String(_mog[_mon]).substring(0, 20) + ";";
-            }
-        }
-    }
-    o += elem("DebugMetricOGFound", _mogFound || "(m.overallGrade null or no props)");
-
-    // Inner property scan on the resolved q object (v1.9).
-    // Uses full Cognex camelCase names (not abbreviations like uec/sc/mod).
-    // All TrucheckMetric sub-objects will appear as "[object TrucheckMetr".
-    var _qFound = "";
-    if (q) {
-        var _qScanNames = [
-            // ── Summary / overall ─────────────────────────────────────────────
-            "overallGrade","symbolGrade","grade","formalGrade",
-            "overallGradeValue","overallGradeNumeric","gradeValue","gradeNumeric",
-            "letterGrade","numericGrade","passFail","passFailStatus","status",
-            // ── Verification conditions ───────────────────────────────────────
-            "aperture","apertureRef","apertureReference",
-            "wavelength","lightingType","lighting","standard","verificationStandard",
-            // ── 2D DataMatrix ISO 15415 parameters (full Cognex names) ────────
-            "uniformEdgeContrast",        // UEC
-            "symbolContrast",             // SC
-            "rl","rd","reflectionLevel","reflectionDifference",
-            "modulation",                 // MOD  ✓ already found
-            "reflectanceMargin",          // RM
-            "axialNonUniformity",         // ANU
-            "gridNonUniformity",          // GNU
-            "fixedPatternDamage",         // FPD
-            "decode",                     // Decode  ✓ already found
-            "printGrowth",                // AG / Print Growth
-            // ── Quiet zones ───────────────────────────────────────────────────
-            "leftQuietZone","bottomQuietZone","rightQuietZone","topQuietZone",
-            "quietZone","quietZoneLeft","quietZoneBottom","quietZoneRight","quietZoneTop",
-            "lls","bls","lqz","bqz","tqz","rqz",
-            "leftLeftSymbolGap","bottomLeftSymbolGap",
-            // ── Per-quadrant quiet zones ──────────────────────────────────────
-            "ulqz","urqz","llqz","lrqz",
-            "upperLeftQuietZone","upperRightQuietZone",
-            "lowerLeftQuietZone","lowerRightQuietZone",
-            // ── TTR / RTR / TCT / RCT (ratios, clock tracks) ─────────────────
-            "ttr","rtr","tct","rct",
-            "topToTopRatio","rightToRightRatio",
-            "topClockTrack","rightClockTrack",
-            "topToTopRatioUL","topToTopRatioUR","topToTopRatioLL","topToTopRatioLR",
-            "rightToRightRatioUL","rightToRightRatioUR",
-            "rightToRightRatioLL","rightToRightRatioLR",
-            // ── Averages ──────────────────────────────────────────────────────
-            "avgEdge","avgRlRd","avgSc","avgMinEc","avgMod",
-            "avgDefect","avgDcod","avgDec","avgLqz","avgRqz","avgHqz","avgMinQz",
-            "averageEdge","averageModulation","averageSymbolContrast",
-            // ── Symbol metrics ────────────────────────────────────────────────
-            "matrixSize","nominalXDim","pixelsPerModule","ppm",
-            "encodedCharacters","encodedChars",
-            "totalCodewords","dataCodewords",
-            "errorCorrectionBudget","errorsCorrected","errorCapacityUsed","errorCorrectionType",
-            "ecBudget","ecCorrected","ecCapacityUsed","ecType",
-            // ── Geometry / measurement ────────────────────────────────────────
-            "horizontalBWG","verticalBWG","bwgPercent","magnification","ratio",
-            "nominalXDim1D","polarity","imagePolarity",
-            "contrastUniformity","mrd","minReflectanceDifference",
-            "symbolAnsiGrade","ansiGrade"
-        ];
-        for (var _qi = 0; _qi < _qScanNames.length; _qi++) {
-            var _qn = _qScanNames[_qi];
-            if (typeof q[_qn] !== "undefined" && q[_qn] !== null) {
-                _qFound += _qn + "=" + String(q[_qn]).substring(0, 20) + ";";
-            }
-        }
-    }
-    o += elem("DebugQFound", _qFound || "(q null or no props found)");
-
-    // Inner property scan on q.modulation — reveals TrucheckMetric structure.
-    // Both modulation and decode resolved to [object TrucheckMetric] (v1.8).
-    // This scan tells us the exact sub-property names: grade/value/letter/etc.
-    var _qModFound = "";
-    if (q && typeof q["modulation"] !== "undefined" && q["modulation"] !== null) {
-        var _qm = q["modulation"];
-        var _qmNames = [
-            "grade","Grade","gradeValue","GradeValue","gradeNumeric","GradeNumeric",
-            "value","Value","letter","Letter","numeric","Numeric","number","Number",
-            "percent","Percent","percentage","Percentage",
-            "score","Score","result","Result","data","Data",
-            "letterGrade","LetterGrade","numericGrade","NumericGrade",
-            "symbol","Symbol","iso","ISO","ansi","ANSI",
-            "raw","Raw","measurement","Measurement","calculated","Calculated",
-            "pass","Pass","fail","Fail","passFail","PassFail","status","Status",
-            "min","Min","max","Max","average","Average","avg","Avg",
-            "a","b","c","d","f","A","B","C","D","F"
-        ];
-        for (var _qmi = 0; _qmi < _qmNames.length; _qmi++) {
-            var _qmn = _qmNames[_qmi];
-            if (typeof _qm[_qmn] !== "undefined" && _qm[_qmn] !== null) {
-                _qModFound += _qmn + "=" + String(_qm[_qmn]).substring(0, 20) + ";";
-            }
-        }
-    }
-    o += elem("DebugModFound", _qModFound || "(modulation null or no props found)");
+    // All property paths confirmed in v1.11. Diagnostics removed in v1.12.
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //
@@ -564,8 +426,8 @@ function onResult(decodeResults, readerProperties, outputResults) {
         var _rct = _pick(q, "rightClockTrack");
 
         // ── Grading summary ───────────────────────────────────────────────────
-        //   m.overallGrade is a [object Metric] — use mmGrade/mmVal to extract.
-        //   DebugMetricOGFound will confirm the exact inner property names.
+        //   m.overallGrade is a [object Metric] with .grade (letter) / .raw (value).
+        //   mmGrade suppresses "NA"; mmVal suppresses -1 (not computed by this standard).
         var _mOG       = _pick(m, "overallGrade");
         var _ogLetter  = mmGrade(_mOG);
         var _ogNumeric = mmVal(_mOG);
@@ -586,7 +448,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("UECGrade",   prop(m, "uniformEdgeContrastGrade") || prop(m, "uecGrade"));
 
         //   SC — grade from q.symbolContrast; percent from m.symbolContrast (Metric)
-        o += elem("SCPercent",  mmVal(_pick(m, "symbolContrast")));
+        o += elem("SCPercent",  mmPct(_pick(m, "symbolContrast")));   // raw 0–1 ratio → ×100
         var _rl = prop(m, "rl") || prop(m, "reflectionLevel");
         var _rd = prop(m, "rd") || prop(m, "reflectionDifference");
         o += elem("SCRlRd",     (_rl && _rd) ? (_rl + "/" + _rd) : prop(m, "scRlRd"));
@@ -600,12 +462,12 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
         //   ANU — on m (Metric); not on q. mmVal = measurement, mmGrade = letter.
         var _mANU = _pick(m, "axialNonUniformity");
-        o += elem("ANUPercent", mmVal(_mANU));
+        o += elem("ANUPercent", mmPct(_mANU));   // raw 0–1 ratio → ×100
         o += elem("ANUGrade",   mmGrade(_mANU));
 
         //   GNU — on m (Metric); not on q.
         var _mGNU = _pick(m, "gridNonUniformity");
-        o += elem("GNUPercent", mmVal(_mGNU));
+        o += elem("GNUPercent", mmPct(_mGNU));   // raw 0–1 ratio → ×100
         o += elem("GNUGrade",   mmGrade(_mGNU));
 
         //   FPD — grade from q.fixedPatternDamage
