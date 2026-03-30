@@ -184,11 +184,12 @@ public static class DmstResultParser
         }
 
         // ── Symbology ─────────────────────────────────────────────────────────
-        // Firmware 6.x: <SymbologyType>DataMatrix</SymbologyType> (in SymbolData)
-        //           or: <general>/<symbology>Data Matrix</symbology>
-        // Legacy:       <SymbologyName>
+        // Firmware 6.x ReadXml: <SymbologyType>DataMatrix</SymbologyType> (in SymbolData)
+        //                   or: <general>/<symbology>Data Matrix</symbology>
+        // DMST push script:     <SymbologyName> (legacy DMSymVerResponse wrapper)
         string? symbName =
-            Str(map.SymbologyName)                                          // SymbologyType
+            Str(map.SymbologyName)                                          // "SymbologyType" (fw6.x)
+            ?? Str("SymbologyName")                                         // legacy push DMSymVerResponse
             ?? container.Descendants("symbology").FirstOrDefault()?.Value   // general/symbology
             ?? deviceContext?.Symbology
             ?? "Unknown";
@@ -235,16 +236,20 @@ public static class DmstResultParser
             calibDate = calibParsed;
 
         // ── Overall grade ─────────────────────────────────────────────────────
-        // Firmware 6.x: letter = <ValueGrade> (B), numeric = isoGradeInfo/<Grade> (3.0)
-        string? gradeLetterStr = Str(map.OverallGrade)    // "ValueGrade" → "B"
+        // Firmware 6.x ReadXml: letter = <ValueGrade> (B), numeric = isoGradeInfo/<Grade> (3.0)
+        // DMST push script:     letter = <OverallGrade>, numeric = <OverallGradeNumeric>
+        string? gradeLetterStr = Str(map.OverallGrade)    // "ValueGrade" (fw6.x)
+                              ?? Str("OverallGrade")        // legacy push DMSymVerResponse
                               ?? isoGradeInfo?.Element("ValueGrade")?.Value.Trim();
 
         decimal gradeNumeric = 0m;
         if (isoGradeInfo?.Element("Grade")?.Value is { } isoGradeStr)
             decimal.TryParse(isoGradeStr, NumberStyles.Any,
                 CultureInfo.InvariantCulture, out gradeNumeric);
-        else if (Dec(map.OverallGradeNumeric) is { } mn)
+        else if (Dec(map.OverallGradeNumeric) is { } mn)   // "Grade" element (fw6.x)
             gradeNumeric = mn;
+        else if (Dec("OverallGradeNumeric") is { } legacyNum)  // legacy push DMSymVerResponse
+            gradeNumeric = legacyNum;
 
         string? formalGrade =
             isoGradeInfo?.Element("FormalGrade")?.Value.Trim()
@@ -267,9 +272,12 @@ public static class DmstResultParser
             : null;
 
         // ── Verification settings ─────────────────────────────────────────────
-        // Firmware 6.x: inside isoGradeInfo directly; also found via Descendants
-        int? aperture  = isoGradeInfo?.Element("Aperture")  is { } ael
-                            && int.TryParse(ael.Value, out int ap) ? ap : Int(map.ApertureRef);
+        // Firmware 6.x ReadXml: inside isoGradeInfo/<Aperture>, <Wavelength>, …
+        // DMST push script:     direct children <ApertureRef>, <Wavelength>, …
+        int? aperture  = isoGradeInfo?.Element("Aperture") is { } ael
+                            && int.TryParse(ael.Value, out int ap) ? ap
+                         : Int(map.ApertureRef)   // "Aperture" (fw6.x Descendants)
+                           ?? Int("ApertureRef"); // legacy push DMSymVerResponse
         int? wavelength = isoGradeInfo?.Element("Wavelength") is { } wel
                             && int.TryParse(wel.Value, out int wv) ? wv : Int(map.Wavelength);
         string? lighting = isoGradeInfo?.Element("Lighting")?.Value.Trim() ?? Str(map.Lighting);
