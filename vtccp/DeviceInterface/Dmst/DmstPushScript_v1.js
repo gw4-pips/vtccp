@@ -421,8 +421,8 @@ function onResult(decodeResults, readerProperties, outputResults) {
         var _rct = _pick(q, "rightClockTrack");
 
         // ── Grading summary ───────────────────────────────────────────────────
-        //   m.overallGrade is a [object Metric] with .grade (letter) / .raw (value).
-        //   mmGrade suppresses "NA"; mmVal suppresses -1 (not computed by this standard).
+        //   m.overallGrade is a [object Metric] with .grade (letter/NA) / .raw (number/-1).
+        //   mmGrade passes "NA" through; mmVal suppresses -1 (numeric sentinel only).
         var _mOG       = _pick(m, "overallGrade");
         var _ogLetter  = mmGrade(_mOG);
         var _ogNumeric = mmVal(_mOG);
