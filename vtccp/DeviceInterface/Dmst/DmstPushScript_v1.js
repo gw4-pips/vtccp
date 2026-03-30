@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.10
+//   Version   : 1.11
 //   Generated : 2026-03-30 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
@@ -73,6 +73,21 @@
 //              (e.g. grade/value, letter/numeric, gradeValue/percent, …).
 //           Once TrucheckMetric structure is known, all 167 grade columns
 //           can be wired correctly.
+//
+//   v1.11 — FIX: v1.10 revealed r.metrics is also a nested-object container
+//           — each named property is a [object Metric] sub-object, exactly
+//           mirroring the r.trucheck / TrucheckMetric pattern.  Confirmed
+//           Metric properties: overallGrade, symbolContrast, modulation,
+//           reflectanceMargin, axialNonUniformity, gridNonUniformity,
+//           fixedPatternDamage, printGrowth, contrastUniformity.
+//           Adds mmVal(metric)/mmGrade(metric) helpers that cascade through
+//           likely sub-property names (value, percent, grade, measurement…)
+//           to extract the scalar from any Metric object.  Adds inner probe
+//           <DebugMetricOGFound> on m.overallGrade to confirm exact names.
+//           Fixes all [object Metric] outputs for OverallGrade, SCPercent,
+//           ANUPercent/Grade, GNUPercent/Grade, AGValue, ContrastUniformity.
+//           UEC (uniformEdgeContrast) absent from both r.trucheck and
+//           r.metrics — likely not measured for this standard/config.
 //
 //   v1.10 — WIRING: v1.9 confirmed all 12 TrucheckMetric properties on
 //           r.trucheck and that every TrucheckMetric has exactly .grade
@@ -182,6 +197,29 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // TrucheckMetric with exactly two fields: .grade (letter) and .numericGrade.
     function tmGrade(tm) { return (tm && typeof tm["grade"]        !== "undefined") ? s(tm["grade"])        : ""; }
     function tmNum(tm)   { return (tm && typeof tm["numericGrade"] !== "undefined") ? s(tm["numericGrade"]) : ""; }
+
+    // Metric helpers (v1.11) — every named sub-property on r.metrics is a
+    // [object Metric] whose inner property names are not yet confirmed.
+    // mmVal() cascades through likely measurement-value names in order.
+    // mmGrade() cascades through likely grade-letter names in order.
+    function mmVal(met) {
+        if (!met) { return ""; }
+        var _keys = ["value","percent","measurement","val","score","numericGrade","numericValue","numeric","number","raw","result","data"];
+        for (var _ki = 0; _ki < _keys.length; _ki++) {
+            var _kv = met[_keys[_ki]];
+            if (typeof _kv !== "undefined" && _kv !== null) { return s(_kv); }
+        }
+        return "";
+    }
+    function mmGrade(met) {
+        if (!met) { return ""; }
+        var _keys = ["grade","letterGrade","letter","gradeValue","gradeString","symbol","iso","ansi","level","label"];
+        for (var _ki = 0; _ki < _keys.length; _ki++) {
+            var _kv = met[_keys[_ki]];
+            if (typeof _kv !== "undefined" && _kv !== null) { return s(_kv); }
+        }
+        return "";
+    }
 
     // ── Quality-object discovery ──────────────────────────────────────────────
     // Try every known property path in priority order.  _qSource records which
@@ -320,7 +358,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.10 q=" + _qSrc + " m=" + (m ? "found" : "null")
+    o += elem("PushScriptDiag", "v1.11 q=" + _qSrc + " m=" + (m ? "found" : "null")
           + " r.decoded=" + s(r && r.decoded)
           + " rType=" + (typeof r));
 
@@ -374,6 +412,30 @@ function onResult(decodeResults, readerProperties, outputResults) {
         }
     }
     o += elem("DebugMetricsFound", _mFound || "(m null or no props found)");
+
+    // Inner property scan on m.overallGrade (a Metric object) — reveals the
+    // exact sub-property names used inside Metric (value/percent/grade/etc.)
+    var _mogFound = "";
+    var _mog = m ? _pick(m, "overallGrade") : null;
+    if (_mog) {
+        var _mogNames = [
+            "grade","Grade","letterGrade","LetterGrade","letter","Letter",
+            "gradeValue","GradeValue","gradeString","GradeString",
+            "value","Value","percent","Percent","numericGrade","NumericGrade",
+            "numeric","Numeric","numericValue","NumericValue","number","Number",
+            "measurement","Measurement","val","Val","score","Score",
+            "result","Result","data","Data","raw","Raw",
+            "iso","ISO","ansi","ANSI","level","Level","label","Label",
+            "symbol","Symbol","status","Status","pass","Pass","fail","Fail"
+        ];
+        for (var _moi = 0; _moi < _mogNames.length; _moi++) {
+            var _mon = _mogNames[_moi];
+            if (typeof _mog[_mon] !== "undefined" && _mog[_mon] !== null) {
+                _mogFound += _mon + "=" + String(_mog[_mon]).substring(0, 20) + ";";
+            }
+        }
+    }
+    o += elem("DebugMetricOGFound", _mogFound || "(m.overallGrade null or no props)");
 
     // Inner property scan on the resolved q object (v1.9).
     // Uses full Cognex camelCase names (not abbreviations like uec/sc/mod).
@@ -502,10 +564,11 @@ function onResult(decodeResults, readerProperties, outputResults) {
         var _rct = _pick(q, "rightClockTrack");
 
         // ── Grading summary ───────────────────────────────────────────────────
-        //   overallGrade — not found on q; probe m (r.metrics) via DebugMetricsFound
-        //   For now emit from m using candidate names; will correct once confirmed.
-        var _ogLetter  = prop(m, "overallGrade") || prop(m, "symbolGrade") || prop(m, "grade") || prop(m, "letterGrade");
-        var _ogNumeric = prop(m, "overallGradeNumeric") || prop(m, "overallGradeValue") || prop(m, "numericGrade") || prop(m, "gradeNumeric");
+        //   m.overallGrade is a [object Metric] — use mmGrade/mmVal to extract.
+        //   DebugMetricOGFound will confirm the exact inner property names.
+        var _mOG       = _pick(m, "overallGrade");
+        var _ogLetter  = mmGrade(_mOG);
+        var _ogNumeric = mmVal(_mOG);
         o += elem("FormalGrade",         _ogLetter);
         o += elem("OverallGrade",        _ogLetter);
         o += elem("OverallGradeNumeric", _ogNumeric);
@@ -522,8 +585,8 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("UECPercent", prop(m, "uniformEdgeContrast") || prop(m, "uniformEdgeContrastPercent"));
         o += elem("UECGrade",   prop(m, "uniformEdgeContrastGrade") || prop(m, "uecGrade"));
 
-        //   SC — grade from q.symbolContrast; percent from m
-        o += elem("SCPercent",  prop(m, "symbolContrast") || prop(m, "symbolContrastPercent") || prop(m, "sc"));
+        //   SC — grade from q.symbolContrast; percent from m.symbolContrast (Metric)
+        o += elem("SCPercent",  mmVal(_pick(m, "symbolContrast")));
         var _rl = prop(m, "rl") || prop(m, "reflectionLevel");
         var _rd = prop(m, "rd") || prop(m, "reflectionDifference");
         o += elem("SCRlRd",     (_rl && _rd) ? (_rl + "/" + _rd) : prop(m, "scRlRd"));
@@ -535,13 +598,15 @@ function onResult(decodeResults, readerProperties, outputResults) {
         //   RM — grade from q.reflectanceMargin; percent from m
         o += elem("RMGrade",    tmGrade(_rm));
 
-        //   ANU — not on q; probe m
-        o += elem("ANUPercent", prop(m, "axialNonUniformity") || prop(m, "axialNonUniformityPercent") || prop(m, "anu"));
-        o += elem("ANUGrade",   prop(m, "axialNonUniformityGrade") || prop(m, "anuGrade"));
+        //   ANU — on m (Metric); not on q. mmVal = measurement, mmGrade = letter.
+        var _mANU = _pick(m, "axialNonUniformity");
+        o += elem("ANUPercent", mmVal(_mANU));
+        o += elem("ANUGrade",   mmGrade(_mANU));
 
-        //   GNU — not on q; probe m
-        o += elem("GNUPercent", prop(m, "gridNonUniformity") || prop(m, "gridNonUniformityPercent") || prop(m, "gnu"));
-        o += elem("GNUGrade",   prop(m, "gridNonUniformityGrade") || prop(m, "gnuGrade"));
+        //   GNU — on m (Metric); not on q.
+        var _mGNU = _pick(m, "gridNonUniformity");
+        o += elem("GNUPercent", mmVal(_mGNU));
+        o += elem("GNUGrade",   mmGrade(_mGNU));
 
         //   FPD — grade from q.fixedPatternDamage
         o += elem("FPDGrade",   tmGrade(_fpd));
@@ -549,8 +614,8 @@ function onResult(decodeResults, readerProperties, outputResults) {
         //   Decode — grade from q.decode
         o += elem("DecodeGrade", tmGrade(_dec));
 
-        //   AG (Print Growth) — grade from q.printGrowth; value from m
-        o += elem("AGValue",    prop(m, "printGrowth") || prop(m, "ag") || prop(m, "printGrowthValue"));
+        //   AG (Print Growth) — grade from q.printGrowth; measurement from m (Metric)
+        o += elem("AGValue",    mmVal(_pick(m, "printGrowth")));
         o += elem("AGGrade",    tmGrade(_ag));
 
         // ── 2D matrix characteristics ─────────────────────────────────────────
@@ -572,7 +637,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("NominalXDim",           prop(m, "nominalXDim"));
         o += elem("PixelsPerModule",       prop(m, "pixelsPerModule") || prop(m, "ppm"));
         o += elem("ImagePolarity",         prop(m, "polarity") || prop(m, "imagePolarity"));
-        o += elem("ContrastUniformity",    prop(m, "contrastUniformity"));
+        o += elem("ContrastUniformity",    mmVal(_pick(m, "contrastUniformity")));
         o += elem("MRD",                   prop(m, "mrd") || prop(m, "minReflectanceDifference"));
 
         // ── 2D quiet zones ────────────────────────────────────────────────────
