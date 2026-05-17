@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "UFGBLDJLhUoYNr8R79bUx"
+uri = "file://dist/DmstPushScript_v1.16.txt"
+type = "text"
+title = "DmstPushScript v1.16 (paste into DMST Scripting tab)"

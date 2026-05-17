@@ -270,6 +270,18 @@ function onResult(decodeResults, readerProperties, outputResults) {
         var _pct = Math.round(_n * 1000) / 10;
         return s(_pct);
     }
+    // mmPctAuto (v1.16) — UEC.raw arrives already as 0–100 (giving 10000 with mmPct);
+    // others (symbolContrast, ANU, GNU) arrive as 0–1 ratio.  Auto-detect: if the
+    // raw value is > 1, assume it's already a percent; otherwise treat as ratio.
+    function mmPctAuto(met) {
+        if (!met) { return ""; }
+        var _v = met["raw"];
+        if (typeof _v === "undefined" || _v === null || _v === -1) { return ""; }
+        var _n = parseFloat(_v);
+        if (isNaN(_n)) { return ""; }
+        var _pct = (_n > 1) ? _n : (_n * 100);
+        return s(Math.round(_pct * 10) / 10);
+    }
 
     // ── Quality-object discovery ──────────────────────────────────────────────
     // Try every known property path in priority order.  _qSource records which
@@ -408,32 +420,31 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.15 q=" + _qSrc + " m=" + (m ? "found" : "null")
+    o += elem("PushScriptDiag", "v1.16 q=" + _qSrc + " m=" + (m ? "found" : "null")
           + " r.decoded=" + s(r && r.decoded)
           + " rType=" + (typeof r));
 
-    // ── v1.15 r.metrics for-in enumeration (pages 1 & 2) ─────────────────────
-    // q (r.trucheck) property list fully confirmed by v1.14 scan; no longer probed.
-    // m (r.metrics) was truncated in v1.14; two pages to capture the full list.
-    // Page 1 (entries 0-19) — confirmed: symbolContrast, cellContrast,
-    //   axialNonUniformity, printGrowth, UEC, modulation, fixedPatternDamage,
-    //   gridNonUniformity, extremeReflectance, reflectMin, edgeContrastMin,
-    //   singleScanInt, multiScanInt, signalToNoiseRatio, horizontalMarkGrowth,
-    //   verticalMarkGrowth (v1.14 scan — cut off at #16).
-    // Page 2 (entries 16+) — looking for TTR%, RTR%, and any remaining unknowns.
-    var _mEnum = "";
-    var _mEnum2 = "";
-    var _mEnumIdx = 0;
-    if (m) {
-        for (var _mk in m) {
-            var _mkStr = _mk + "=" + String(m[_mk]).substring(0, 20) + ";";
-            if (_mEnumIdx < 16) { _mEnum  += _mkStr; }
-            else                { _mEnum2 += _mkStr; }
-            _mEnumIdx++;
+    // ── v1.16 Metric introspection ────────────────────────────────────────────
+    // r.metrics property list fully confirmed by v1.15 (DebugMEnum/2): 30 names.
+    // Now drilling INTO a Metric object to find why some .raw reads were empty:
+    //   symbolContrast.raw = 0.831  → mmPct gave 83.1 ✓
+    //   UEC.raw           = 100     → mmPct gave 10000 ✗ (raw already in %)
+    //   axialNonUniformity.raw, gridNonUniformity.raw → empty (sentinel?)
+    //   extremeReflectance.raw, reflectMin.raw       → empty (different key?)
+    //   horizontalMarkGrowth.raw, verticalMarkGrowth.raw → empty (different key?)
+    // Enumerate own properties of 4 representative Metric objects.
+    function _metricEnum(label, met) {
+        if (!met) { return "(" + label + " null)"; }
+        var _out = "";
+        for (var _k in met) {
+            _out += _k + "=" + String(met[_k]).substring(0, 18) + ";";
         }
+        return _out || "(" + label + " empty)";
     }
-    o += elem("DebugMEnum",  _mEnum  || "(m null)");
-    o += elem("DebugMEnum2", _mEnum2 || "(m has ≤16 props)");
+    o += elem("DebugMetric_SC",  _metricEnum("symbolContrast",     _pick(m, "symbolContrast")));
+    o += elem("DebugMetric_UEC", _metricEnum("UEC",                _pick(m, "UEC")));
+    o += elem("DebugMetric_Rl",  _metricEnum("extremeReflectance", _pick(m, "extremeReflectance")));
+    o += elem("DebugMetric_HBW", _metricEnum("horizontalMarkGrowth", _pick(m, "horizontalMarkGrowth")));
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //
@@ -517,7 +528,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
         // ── 2D ISO 15415 quality parameters ───────────────────────────────────
         //   UEC — grade from q.unusedErrorCorrection; % from m.UEC (v1.15)
-        o += elem("UECPercent", mmPct(_pick(m, "UEC")));   // 'UEC' key on m (not 'uniformEdgeContrast')
+        o += elem("UECPercent", mmPctAuto(_pick(m, "UEC")));   // v1.16: auto-scale (raw arrives as 0–100)
         o += elem("UECGrade",   tmGrade(_uec));
 
         //   SC — grade from q.symbolContrast; true ISO SC% = (Rl−Rd)×100 (v1.15)
@@ -534,12 +545,12 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
         //   ANU — grade from q.axialNonuniformity (lowercase u); % from m.axialNonUniformity (capital U)
         var _mANU = _pick(m, "axialNonUniformity");   // capital U on m-side
-        o += elem("ANUPercent", mmPct(_mANU));
+        o += elem("ANUPercent", mmPctAuto(_mANU));     // v1.16: auto-scale
         o += elem("ANUGrade",   tmGrade(_anu));        // from q (v1.15 — was mmGrade(_mANU))
 
         //   GNU — grade from q.gridNonuniformity (lowercase u); % from m.gridNonUniformity (capital U)
         var _mGNU = _pick(m, "gridNonUniformity");    // capital U on m-side
-        o += elem("GNUPercent", mmPct(_mGNU));
+        o += elem("GNUPercent", mmPctAuto(_mGNU));     // v1.16: auto-scale
         o += elem("GNUGrade",   tmGrade(_gnu));        // from q (v1.15 — was mmGrade(_mGNU))
 
         //   FPD — grade from q.fixedPatternDamage
@@ -553,14 +564,16 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("AGGrade",    tmGrade(_ag));
 
         // ── 2D matrix characteristics ─────────────────────────────────────────
-        //   All expected on m (r.metrics) — DebugMetricsFound will confirm names
-        var _rows = prop(m, "rows");
-        var _cols = prop(m, "columns") || prop(m, "cols");
-        var _msz  = prop(m, "matrixSize") || prop(m, "size")
-                    || ((_rows && _cols) ? (_rows + "x" + _cols) : "");
+        //   v1.16: dataMatrixCellWidth/Height confirmed on m via DebugMEnum2.
+        //   MatrixSize built from "WxH" of cell counts.
+        var _mCW = _pick(m, "dataMatrixCellWidth");
+        var _mCH = _pick(m, "dataMatrixCellHeight");
+        var _cwV = mmVal(_mCW);
+        var _chV = mmVal(_mCH);
+        var _msz = (_cwV && _chV) ? (_cwV + "x" + _chV) : "";
         o += elem("MatrixSize",            _msz);
-        o += elem("HorizontalBWG",         mmVal(_pick(m, "horizontalMarkGrowth")));  // v1.15 confirmed
-        o += elem("VerticalBWG",           mmVal(_pick(m, "verticalMarkGrowth")));
+        o += elem("HorizontalBWG",         mmPctAuto(_pick(m, "horizontalMarkGrowth")));  // v1.16: auto-scale
+        o += elem("VerticalBWG",           mmPctAuto(_pick(m, "verticalMarkGrowth")));
         o += elem("EncodedCharacters",     prop(m, "encodedCharacters") || prop(m, "encodedChars"));
         o += elem("TotalCodewords",        prop(m, "totalCodewords"));
         o += elem("DataCodewords",         prop(m, "dataCodewords"));
@@ -585,12 +598,15 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("RQZGrade", tmGrade(_rqz));
 
         // ── 2D clock track / transition ratio grades ──────────────────────────
-        //   topClockTrack    → TTRGrade and TCTGrade (best guess until confirmed)
-        //   rightClockTrack  → RTRGrade and RCTGrade
-        //   % values expected on m — empty until DebugMetricsFound confirms names
-        o += elem("TTRPercent", prop(m, "ttrPercent") || prop(m, "topToTopRatio") || prop(m, "ttr"));
+        //   v1.16: TTR/RTR percentages sourced from m.{horizontal,vertical}MarkMisplacement
+        //   (DebugMEnum2 confirmed these are the ISO 15415 mark misplacement metrics,
+        //   which are the DM-firmware equivalent of TTR/RTR in Webscan terminology).
+        //   Grades for TTR/RTR continue to use q.topClockTrack/rightClockTrack until
+        //   firmware exposes a markMisplacement.grade (the Metric debug probe will tell).
+        //   TCT/RCT grades are the same q-side TrucheckMetric.
+        o += elem("TTRPercent", mmPctAuto(_pick(m, "horizontalMarkMisplacement")));
         o += elem("TTRGrade",   tmGrade(_tct));
-        o += elem("RTRPercent", prop(m, "rtrPercent") || prop(m, "rightToRightRatio") || prop(m, "rtr"));
+        o += elem("RTRPercent", mmPctAuto(_pick(m, "verticalMarkMisplacement")));
         o += elem("RTRGrade",   tmGrade(_rct));
         o += elem("TCTGrade",   tmGrade(_tct));
         o += elem("RCTGrade",   tmGrade(_rct));
