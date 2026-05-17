@@ -18,3 +18,9 @@ id = "btznxRcnRgFql4Ry18lYS"
 uri = "file://dist/DmstPushScript_v1.18.txt"
 type = "text"
 title = "DmstPushScript v1.18 — nested trucheck.overall/general + probes"
+
+[[outputs]]
+id = "nrQcUSh2JTaEm9vbYuhev"
+uri = "file://dist/DmstPushScript_v1.19.txt"
+type = "text"
+title = "DmstPushScript v1.19 — ISO/MRD fixes + TTR/RTR/Rl/Rd rewires + array probes"

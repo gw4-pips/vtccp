@@ -1,10 +1,29 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.18
+//   Version   : 1.19
 //   Generated : 2026-05-17 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
+//
+//   v1.19 — Three bug fixes + four major new wirings from v1.18 introspection:
+//             FIX 1: ISO branch matched "ISO 15415" exactly but device emits
+//                    "ISO 15415:2011" — caused SCGrade/MODGrade to fall through
+//                    to cellContrast/cellModulation (= "X").  Now uses indexOf.
+//             FIX 2: MRD key is uppercase "MRD" on q.general, not "mrd".
+//             FIX 3: distributedDamageGrade now emitted (new <DDGrade>).
+//             WIRE 1: TTR/RTR now from q.topTransitionRatio /
+//                     q.rightTransitionRatio (TrucheckMetric — has .raw + .grade)
+//                     instead of being aliased to TCT/RCT.
+//             WIRE 2: SC Rl/Rd now from q.reflectanceLight / q.reflectanceDark
+//                     (not m.extremeReflectance/m.reflectMin which gave -1).
+//             WIRE 3: AverageGrade emitted separately (q.averageGrade).
+//             WIRE 4: MinimumReflectance emitted (q.minimumReflectance.raw).
+//           New introspection probes for the unmapped territory: arrays
+//           (codewordArray, encodationAnalysisArray, modulationArray,
+//           applicationStdArray, asciiArray) and per-region patterns
+//           (upperLeftPattern, upperRightPattern, lowerLeftPattern).
+//           Removed v1.18 probes for q.overall and q.general — fully mapped.
 //
 //   v1.18 — BREAKTHROUGH: Cognex's official CSV-results template revealed that
 //           r.trucheck has NESTED sub-objects we never traversed:
@@ -448,7 +467,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.18 q=" + _qSrc + " m=" + (m ? "found" : "null"));
+    o += elem("PushScriptDiag", "v1.19 q=" + _qSrc + " m=" + (m ? "found" : "null"));
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //
@@ -514,7 +533,8 @@ function onResult(decodeResults, readerProperties, outputResults) {
         //   the contrast/modulation parameters come from cellContrast /
         //   cellModulation instead of symbolContrast / modulation.
         var _gradeStd = ovProp("gradingStandard");
-        var _isIso    = (_gradeStd === "ISO 15415");
+        //   v1.19: device emits "ISO 15415:2011" (with suffix); use prefix match.
+        var _isIso    = (_gradeStd.indexOf("ISO 15415") === 0);
         var _scSrc    = _isIso ? _sc  : _cc;   // for SCGrade + SCPercent
         var _modSrc   = _isIso ? _mod : _cm;   // for MODGrade
 
@@ -543,18 +563,21 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("UECPercent", mmPctAuto(_uec));
         o += elem("UECGrade",   tmGrade(_uec));
 
-        //   SC — TRUE ISO SC% from q.symbolContrast.raw (was wrong: r.metrics)
-        //   Keep Rl/Rd best-effort from m for the "SC Rl/Rd (xx/yy)" PDF line
-        var _mRl    = _pick(m, "extremeReflectance");
-        var _mRd    = _pick(m, "reflectMin");
-        var _rlRaw  = (_mRl && typeof _mRl["raw"] !== "undefined") ? parseFloat(_mRl["raw"]) : NaN;
-        var _rdRaw  = (_mRd && typeof _mRd["raw"] !== "undefined") ? parseFloat(_mRd["raw"]) : NaN;
-        var _rlInt  = (!isNaN(_rlRaw) && _rlRaw !== -1) ? String(Math.round(_rlRaw * 100)) : "";
-        var _rdInt  = (!isNaN(_rdRaw) && _rdRaw !== -1) ? String(Math.round(_rdRaw * 100)) : "";
+        //   SC — TRUE ISO SC% from q.symbolContrast.raw
+        //   Rl/Rd from q.reflectanceLight / q.reflectanceDark (v1.19; q-side, not m)
+        var _qRl    = _pick(q, "reflectanceLight");
+        var _qRd    = _pick(q, "reflectanceDark");
+        var _rlRaw  = (_qRl && typeof _qRl["raw"] !== "undefined") ? parseFloat(_qRl["raw"]) : NaN;
+        var _rdRaw  = (_qRd && typeof _qRd["raw"] !== "undefined") ? parseFloat(_qRd["raw"]) : NaN;
+        //   q-side reflectance might be 0–1 ratio or 0–100 — auto-detect by mag.
+        function _refToPct(_v) { return (_v > 1) ? _v : (_v * 100); }
+        var _rlInt  = (!isNaN(_rlRaw) && _rlRaw !== -1) ? String(Math.round(_refToPct(_rlRaw))) : "";
+        var _rdInt  = (!isNaN(_rdRaw) && _rdRaw !== -1) ? String(Math.round(_refToPct(_rdRaw))) : "";
         var _scRlRd = (_rlInt && _rdInt) ? (_rlInt + "/" + _rdInt) : "";
         o += elem("SCPercent",  mmPctAuto(_scSrc));
         o += elem("SCRlRd",     _scRlRd);
         o += elem("SCGrade",    tmGrade(_scSrc));
+        o += elem("MinReflectance", mmPctAuto(_pick(q, "minimumReflectance")));
 
         o += elem("MODGrade",   tmGrade(_modSrc));
         o += elem("RMGrade",    tmGrade(_rm));
@@ -592,7 +615,20 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("PixelsPerModule",       gnProp("pixelsPerModule") || gnProp("ppm"));
         o += elem("ImagePolarity",         gnProp("polarity") || gnProp("imagePolarity"));
         o += elem("ContrastUniformity",    gnProp("contrastUniformity"));
-        o += elem("MRD",                   gnProp("mrd") || gnProp("minReflectanceDifference"));
+        o += elem("MRD",                   gnProp("MRD") || gnProp("mrd"));
+        o += elem("ContrastUniformityRow", gnProp("contrastUniformityRow"));
+        o += elem("ContrastUniformityCol", gnProp("contrastUniformityCol"));
+
+        // ── v1.19 new grade emissions ─────────────────────────────────────────
+        //   distributedDamageGrade: per TKEnum it's a top-level q property —
+        //   probe whether it's a TrucheckMetric (.grade) or a bare string.
+        var _dd = _pick(q, "distributedDamageGrade");
+        o += elem("DDGrade", (_dd && typeof _dd === "object") ? tmGrade(_dd) : s(_dd));
+        //   averageGrade: separate TrucheckMetric carrying the ISO 15415 mean
+        //   grade across all parameters (different from overall).
+        var _avg = _pick(q, "averageGrade");
+        o += elem("AverageGrade",        tmGrade(_avg));
+        o += elem("AverageGradeNumeric", mmVal(_avg));
 
         // ── 2D L-side and quiet zones ─────────────────────────────────────────
         //   LLS/BLS — confirmed on q as leftLSide / bottomLSide (v1.15)
@@ -611,10 +647,15 @@ function onResult(decodeResults, readerProperties, outputResults) {
         //   Grades for TTR/RTR continue to use q.topClockTrack/rightClockTrack until
         //   firmware exposes a markMisplacement.grade (the Metric debug probe will tell).
         //   TCT/RCT grades are the same q-side TrucheckMetric.
-        o += elem("TTRPercent", mmPctAuto(_pick(m, "horizontalMarkMisplacement")));
-        o += elem("TTRGrade",   tmGrade(_tct));
-        o += elem("RTRPercent", mmPctAuto(_pick(m, "verticalMarkMisplacement")));
-        o += elem("RTRGrade",   tmGrade(_rct));
+        //   v1.19: TTR/RTR have their own q-side TrucheckMetrics (revealed by
+        //   v1.18 DebugTKEnum) — topTransitionRatio / rightTransitionRatio.
+        //   Both have .raw (numeric) and .grade.  No longer aliased to TCT/RCT.
+        var _ttr = _pick(q, "topTransitionRatio");
+        var _rtr = _pick(q, "rightTransitionRatio");
+        o += elem("TTRPercent", mmPctAuto(_ttr));
+        o += elem("TTRGrade",   tmGrade(_ttr));
+        o += elem("RTRPercent", mmPctAuto(_rtr));
+        o += elem("RTRGrade",   tmGrade(_rtr));
         o += elem("TCTGrade",   tmGrade(_tct));
         o += elem("RCTGrade",   tmGrade(_rct));
 
@@ -671,31 +712,62 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
     } // end if (q)
 
-    // ── v1.18 introspection probes ────────────────────────────────────────────
-    // Enumerate every own-property name of trucheck.overall and trucheck.general
-    // so v1.19 can wire any keys the CSV template didn't reveal (aperture,
-    // wavelength, lighting, matrixSize, codewords, MRD, etc.).  Removed in v1.19
-    // once the property names are confirmed.
-    function _enumKeys(obj, label) {
+    // ── v1.19 introspection probes ────────────────────────────────────────────
+    // q.overall and q.general are fully mapped — those probes removed.
+    // New probes target the high-value unmapped territory revealed by v1.18:
+    //   • arrays (codeword, encodation, modulation, applicationStd, ascii)
+    //     — for codeword/matrix-size reconstruction.
+    //   • per-region patterns (upperLeftPattern, etc.) — for ≥32x32 quadrants.
+    //   • reflectance metrics — to verify Rl/Rd unit scale (0–1 vs 0–100).
+    //   • notation/note strings — to verify they're plain strings.
+    function _enumKV(obj, label, max) {
         if (!obj) { return "(" + label + " null)"; }
+        if (typeof obj !== "object") { return "(" + label + " " + (typeof obj) + "=" + String(obj).substring(0, 30) + ")"; }
         var _out = "";
-        for (var _k in obj) { _out += _k + ";"; }
-        return _out || "(" + label + " empty)";
-    }
-    function _enumKV(obj, label) {
-        if (!obj) { return "(" + label + " null)"; }
-        var _out = "";
+        var _ct  = 0;
         for (var _k in obj) {
+            if (max && _ct >= max) { _out += "...;"; break; }
             var _v = obj[_k];
             var _t = (typeof _v);
-            var _vs = (_t === "object" && _v !== null) ? "[obj]" : String(_v).substring(0, 20);
+            var _vs;
+            if (_t === "object" && _v !== null) {
+                _vs = (typeof _v.length !== "undefined") ? ("[arr." + _v.length + "]") : "[obj]";
+            } else {
+                _vs = String(_v).substring(0, 20);
+            }
             _out += _k + "=" + _vs + ";";
+            _ct++;
         }
         return _out || "(" + label + " empty)";
     }
-    o += elem("DebugTKEnum",  _enumKeys(q,              "q"));
-    o += elem("DebugTOEnum",  _enumKV(_pick(q, "overall"), "q.overall"));
-    o += elem("DebugTGEnum",  _enumKV(_pick(q, "general"), "q.general"));
+    function _arrInfo(obj, label) {
+        if (!obj) { return "(" + label + " null)"; }
+        if (typeof obj.length === "undefined") { return "(" + label + " not-arr)"; }
+        var _len = obj.length;
+        var _first = (_len > 0) ? obj[0] : null;
+        var _firstDesc = (_first === null || typeof _first === "undefined")
+            ? "(empty)"
+            : (typeof _first === "object" ? _enumKV(_first, label + "[0]", 8) : String(_first).substring(0, 30));
+        return "len=" + _len + " first=" + _firstDesc;
+    }
+    o += elem("DebugRefLight",   _enumKV(_pick(q, "reflectanceLight"),    "q.reflectanceLight"));
+    o += elem("DebugRefDark",    _enumKV(_pick(q, "reflectanceDark"),     "q.reflectanceDark"));
+    o += elem("DebugMinRef",     _enumKV(_pick(q, "minimumReflectance"),  "q.minimumReflectance"));
+    o += elem("DebugDDGrade",    _enumKV(_pick(q, "distributedDamageGrade"), "q.distributedDamageGrade"));
+    o += elem("DebugAvgGrade",   _enumKV(_pick(q, "averageGrade"),        "q.averageGrade"));
+    o += elem("DebugULPattern",  _enumKV(_pick(q, "upperLeftPattern"),    "q.upperLeftPattern"));
+    o += elem("DebugURPattern",  _enumKV(_pick(q, "upperRightPattern"),   "q.upperRightPattern"));
+    o += elem("DebugLLPattern",  _enumKV(_pick(q, "lowerLeftPattern"),    "q.lowerLeftPattern"));
+    o += elem("DebugHClkTrack",  _enumKV(_pick(q, "horizontalClockTrack"),"q.horizontalClockTrack"));
+    o += elem("DebugVClkTrack",  _enumKV(_pick(q, "verticalClockTrack"),  "q.verticalClockTrack"));
+    o += elem("DebugCodewordArr",_arrInfo(_pick(q, "codewordArray"),      "q.codewordArray"));
+    o += elem("DebugEncAnArr",   _arrInfo(_pick(q, "encodationAnalysisArray"), "q.encodationAnalysisArray"));
+    o += elem("DebugModArr",     _arrInfo(_pick(q, "modulationArray"),    "q.modulationArray"));
+    o += elem("DebugAppStdArr",  _arrInfo(_pick(q, "applicationStdArray"),"q.applicationStdArray"));
+    o += elem("DebugAsciiArr",   _arrInfo(_pick(q, "asciiArray"),         "q.asciiArray"));
+    o += elem("DebugGradeNote",  s(_pick(q, "gradeInfoNotation")).substring(0, 80));
+    o += elem("DebugAppNote",    s(_pick(q, "appInfoNotation")).substring(0, 80));
+    o += elem("DebugCustNote",   s(_pick(q, "customNote")).substring(0, 80));
 
     o += '</DMSymVerResponse>\r\n'
        + '</DMCCResponse>';
