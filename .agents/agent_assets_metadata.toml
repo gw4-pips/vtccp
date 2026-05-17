@@ -36,3 +36,9 @@ id = "p-bFxzyQGUPpzl8ZrnDwW"
 uri = "file://dist/DmstPushScript_v1.21.txt"
 type = "text"
 title = "DmstPushScript v1.21 — multi-region (≥32×32 / 2-region rect) probes + ULQZ/URQZ/LLQZ wired"
+
+[[outputs]]
+id = "QPrRicJTlOt-fEfcVKgvc"
+uri = "file://dist/DmstPushScript_v1.22.txt"
+type = "text"
+title = "DmstPushScript v1.22 — rollback dead per-region wires, pivot probes to r.metrics + r-siblings, rect MatrixSize lookup"

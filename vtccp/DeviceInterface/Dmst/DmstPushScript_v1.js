@@ -1,10 +1,49 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.21
+//   Version   : 1.22
 //   Generated : 2026-05-17 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
+//
+//   v1.22 — Per-region scope pivot + rectangular MatrixSize.
+//             v1.21 proved a hard architectural limit: q.upperLeftPattern /
+//             upperRightPattern / lowerLeftPattern / horizontalClockTrack /
+//             verticalClockTrack / alignmentPatterns ALL return
+//             {grade:"F", numericGrade:0} regardless of actual symbol grade.
+//             They are inert placeholders.  The device's own PDF report for
+//             the same 16×36 scan shows all 12 per-region grades populated
+//             (ULQZ/URQZ/RUQZ/RLQZ + 4 TTR + 4 TCT all = A) — proving the
+//             data is computed in a separate report engine the JS push
+//             script cannot see.  The q.trucheck introspection path for
+//             per-region data is dead-ended.
+//             ROLLBACK: drop the misleading v1.21 ULQZ/URQZ/LLQZ/
+//                       HClockTrackGrade/VClockTrackGrade wires that
+//                       printed "F" everywhere.  Empty > false data.
+//             DROP PROBES: DebugULP/URP/LLP/HCT/VCT/AlignPat/LRPSearch
+//                          (all definitively dead — keys exist but never
+//                          populate).
+//             NEW PROBE 1: DebugMetricsKeys — full enum of r.metrics object.
+//                          PushScriptDiag has long confirmed m=found but the
+//                          metrics tree was never enumerated.
+//             NEW PROBE 2: DebugRSiblings — every r.* key we haven't named.
+//                          Looking for r.regions / r.report / r.dmsvReport /
+//                          anything else that might carry per-region data.
+//             NEW PROBE 3: DebugRectDims — try r.rowCount / r.columnCount /
+//                          r.numRows / r.numColumns / r.symbolWidth /
+//                          r.symbolHeight to find authoritative row×col
+//                          dimensions (instead of inferring from modArray).
+//             WIRE: rect-aware MatrixSize via modArray-length → ECC200
+//                   rect-size lookup table:
+//                       200=8x18 / 340=8x32 / 392=12x26 / 532=12x36 /
+//                       684=16x36 / 900=16x48 (+ QZ on both axes).
+//                   Square branch unchanged: side = sqrt(len) − 2.
+//                   Scan 2 (len=684) should now emit "16x36" instead of "".
+//             If v1.22's new probes also yield nothing useful, v1.23 will
+//             either pivot to a DMCC GET command for the structured report
+//             or ship Phase 1 with per-region columns empty for multi-region
+//             symbols (the legacy top-level fields cover 1-region symbols
+//             completely).
 //
 //   v1.21 — Per-region (≥32x32 / 2-region rectangular) support pass.
 //             The v1.20 32x32 scan proved that top-level TQZ/RQZ/TCT/RCT/
@@ -512,7 +551,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.21 q=" + _qSrc + " m=" + (m ? "found" : "null"));
+    o += elem("PushScriptDiag", "v1.22 q=" + _qSrc + " m=" + (m ? "found" : "null"));
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //
@@ -670,14 +709,30 @@ function onResult(decodeResults, readerProperties, outputResults) {
         //   Names confirmed from Cognex template: xDimension, contrastUniformity,
         //   horizontalBWG, verticalBWG.  Others probed below.
         //   v1.20: MatrixSize derived from modulationArray.length.
-        //   The array indexes ALL cells including a 1-cell quiet-zone wrapper,
-        //   so symbol side = sqrt(length) - 2.  (22×22 ECC200: 484+92 frame
+        //   Square symbols: modArray indexes ALL cells including a 1-cell QZ
+        //   wrapper, so side = sqrt(length) - 2.  (22×22 ECC200: 484+92 frame
         //   cells = 576 = 24² → 24-2 = 22.  Verified live.)
+        //   v1.22: rectangular symbols also wrap, so length = (rows+2)*(cols+2).
+        //   Without authoritative row/col fields, use a length→size lookup over
+        //   the 6 ECC200 rectangular sizes (verified scan: 16×36 → 18×38 = 684).
         var _modArr  = _pick(q, "modulationArray");
         var _modLen  = (_modArr && typeof _modArr.length !== "undefined") ? _modArr.length : 0;
         var _modSide = (_modLen > 0) ? Math.sqrt(_modLen) : 0;
         var _symSide = (_modSide === Math.floor(_modSide) && _modSide > 2) ? (_modSide - 2) : 0;
         var _msz     = (_symSide > 0) ? (_symSide + "x" + _symSide) : "";
+        if (!_msz && _modLen > 0) {
+            // ECC200 rectangular table (length-with-QZ → "rowsXcols")
+            var _rectMap = {
+                "200":  "8x18",
+                "340":  "8x32",
+                "392":  "12x26",
+                "532":  "12x36",
+                "684":  "16x36",
+                "900":  "16x48"
+            };
+            var _rectHit = _rectMap[String(_modLen)];
+            if (_rectHit) { _msz = _rectHit; }
+        }
 
         //   v1.20: codewordArray.length = total codewords for ECC200.
         //   Iterate to count isCorrected==1 for ErrorsCorrected.
@@ -757,25 +812,24 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("RCTGrade",   tmGrade(_rct));
 
         // ── Per-region parameters (≥ 32×32 / 2-region rectangular) ───────────
-        //   v1.21: wired from q.upperLeftPattern / upperRightPattern /
-        //   lowerLeftPattern (TrucheckMetric-shaped: {grade, numericGrade}).
-        //   LRQZGrade left empty pending probe — firmware exposes only 3 of 4.
-        //   Note column-name collision: existing schema has both ULQZ/URQZ
-        //   and RUQZ/RLQZ.  RUQZ/RLQZ kept empty (unknown semantics).
-        var _ulp = _pick(q, "upperLeftPattern");
-        var _urp = _pick(q, "upperRightPattern");
-        var _llp = _pick(q, "lowerLeftPattern");
-        o += elem("ULQZGrade",     tmGrade(_ulp));
-        o += elem("URQZGrade",     tmGrade(_urp));
-        o += elem("RUQZGrade",     "");
-        o += elem("RLQZGrade",     "");
-        o += elem("LLQZGrade",     tmGrade(_llp));
-        o += elem("LRQZGrade",     "");
-        //   Per-region clock track grades (single grade each per region row/col)
-        var _hct = _pick(q, "horizontalClockTrack");
-        var _vct = _pick(q, "verticalClockTrack");
-        o += elem("HClockTrackGrade", tmGrade(_hct));
-        o += elem("VClockTrackGrade", tmGrade(_vct));
+        //   v1.22: ROLLED BACK.  v1.21 probes (DebugULP/URP/LLP/HCT/VCT) all
+        //   returned grade=F/numericGrade=0 on BOTH a 32×32 (scan graded C
+        //   overall) AND a 16×36 2-region rect (scan graded D overall) — even
+        //   though the device's PDF report shows ULQZ/URQZ/RUQZ/RLQZ all = A
+        //   for the same 16×36 scan.  q.upperLeftPattern / upperRightPattern /
+        //   lowerLeftPattern / horizontalClockTrack / verticalClockTrack /
+        //   alignmentPatterns are inert placeholder objects in this firmware's
+        //   JS scope.  Emitting "F" for them was false data, so they go back
+        //   to empty.  v1.22 probes r.metrics / r-siblings to look for a
+        //   different scope that might carry per-region data.
+        o += elem("ULQZGrade",        "");
+        o += elem("URQZGrade",        "");
+        o += elem("RUQZGrade",        "");
+        o += elem("RLQZGrade",        "");
+        o += elem("LLQZGrade",        "");
+        o += elem("LRQZGrade",        "");
+        o += elem("HClockTrackGrade", "");
+        o += elem("VClockTrackGrade", "");
         o += elem("ULQTTRPercent", "");
         o += elem("ULQTTRGrade",   "");
         o += elem("URQTTRPercent", "");
@@ -823,17 +877,16 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
     } // end if (q)
 
-    // ── v1.21 introspection probes (multi-region focus) ───────────────────────
+    // ── v1.22 introspection probes (scope pivot — looking for per-region data
+    //   outside q.trucheck, which v1.21 proved is dead-ended) ──────────────────
     //   Retained from v1.20:
-    //     • DebugModSize    — matrix-size formula sanity
-    //     • DebugECCount    — errors-corrected cross-check
-    //   New for v1.21 (multi-region symbol mapping):
-    //     • DebugULP/URP/LLP/HCT/VCT — re-enabled (dropped in v1.20); now scanned
-    //       on a 32×32 should show real grades instead of all-F.
-    //     • DebugAlignPat — q.alignmentPatterns enum (array? object? grade?).
-    //     • DebugLRPSearch — try every plausible "4th-region" key name to find
-    //       where the lower-right region grade lives (if anywhere).
-    function _enumKV21(obj, label) {
+    //     • DebugModSize — matrix-size formula sanity
+    //     • DebugECCount — errors-corrected cross-check
+    //   New for v1.22:
+    //     • DebugMetricsKeys — full enum of r.metrics (m), never enumerated.
+    //     • DebugRSiblings   — every r.* key not already named, with shape hint.
+    //     • DebugRectDims    — try 8 candidate row/col fields under r.
+    function _enumKV22(obj, label) {
         if (!obj) { return "(" + label + " null)"; }
         if (typeof obj !== "object") {
             return "(" + label + " " + (typeof obj) + "=" + String(obj).substring(0, 30) + ")";
@@ -846,63 +899,68 @@ function onResult(decodeResults, readerProperties, outputResults) {
             if (_t === "object" && _v !== null) {
                 _vs = (typeof _v.length !== "undefined") ? ("[arr." + _v.length + "]") : "[obj]";
             } else {
-                _vs = String(_v).substring(0, 30);
+                _vs = String(_v).substring(0, 40);
             }
             _out += _k + "=" + _vs + ";";
         }
         return _out || "(" + label + " empty)";
     }
-    function _arrInfo21(obj, label) {
-        if (!obj) { return "(" + label + " null)"; }
-        if (typeof obj.length === "undefined") {
-            return "(" + label + " not-arr keys: " + _enumKV21(obj, label) + ")";
-        }
-        var _len = obj.length;
-        var _firstDesc = (_len > 0)
-            ? (typeof obj[0] === "object" ? _enumKV21(obj[0], label + "[0]") : String(obj[0]).substring(0, 30))
-            : "(empty)";
-        return "len=" + _len + " first=" + _firstDesc;
-    }
 
-    // Retained
-    var _v21mod  = _pick(q, "modulationArray");
-    var _v21mLen = (_v21mod && typeof _v21mod.length !== "undefined") ? _v21mod.length : 0;
-    var _v21mSq  = (_v21mLen > 0) ? Math.sqrt(_v21mLen) : 0;
+    // Retained from v1.20
+    var _v22mod  = _pick(q, "modulationArray");
+    var _v22mLen = (_v22mod && typeof _v22mod.length !== "undefined") ? _v22mod.length : 0;
+    var _v22mSq  = (_v22mLen > 0) ? Math.sqrt(_v22mLen) : 0;
     o += elem("DebugModSize",
-        "len=" + _v21mLen + " sqrt=" + _v21mSq + " sqr=" + (_v21mSq === Math.floor(_v21mSq)));
-    var _v21cw   = _pick(q, "codewordArray");
-    var _v21cwL  = (_v21cw && typeof _v21cw.length !== "undefined") ? _v21cw.length : 0;
-    var _v21ec   = 0;
-    if (_v21cw) {
-        for (var _v21i = 0; _v21i < _v21cwL; _v21i++) {
-            if (_v21cw[_v21i] && _v21cw[_v21i]["isCorrected"]) { _v21ec++; }
+        "len=" + _v22mLen + " sqrt=" + _v22mSq + " sqr=" + (_v22mSq === Math.floor(_v22mSq)));
+    var _v22cw   = _pick(q, "codewordArray");
+    var _v22cwL  = (_v22cw && typeof _v22cw.length !== "undefined") ? _v22cw.length : 0;
+    var _v22ec   = 0;
+    if (_v22cw) {
+        for (var _v22i = 0; _v22i < _v22cwL; _v22i++) {
+            if (_v22cw[_v22i] && _v22cw[_v22i]["isCorrected"]) { _v22ec++; }
         }
     }
-    o += elem("DebugECCount", "total=" + _v21cwL + " corrected=" + _v21ec);
+    o += elem("DebugECCount", "total=" + _v22cwL + " corrected=" + _v22ec);
 
-    // Per-region pattern + clock-track probes (re-enabled for multi-region scans)
-    o += elem("DebugULP",      _enumKV21(_pick(q, "upperLeftPattern"),    "q.upperLeftPattern"));
-    o += elem("DebugURP",      _enumKV21(_pick(q, "upperRightPattern"),   "q.upperRightPattern"));
-    o += elem("DebugLLP",      _enumKV21(_pick(q, "lowerLeftPattern"),    "q.lowerLeftPattern"));
-    o += elem("DebugHCT",      _enumKV21(_pick(q, "horizontalClockTrack"),"q.horizontalClockTrack"));
-    o += elem("DebugVCT",      _enumKV21(_pick(q, "verticalClockTrack"),  "q.verticalClockTrack"));
-    o += elem("DebugAlignPat", _arrInfo21(_pick(q, "alignmentPatterns"),  "q.alignmentPatterns"));
+    // NEW PROBE 1: full enum of r.metrics — m is captured at top of script.
+    //   If per-region data lives here we'll see fields like "regions[arr.4]",
+    //   "perRegionGrades", "leftUpperQuietZone", etc.
+    o += elem("DebugMetricsKeys", _enumKV22(m, "r.metrics"));
 
-    // Hunt for the 4th-region key — try every plausible name.
-    var _lrCandidates = [
-        "lowerRightPattern", "bottomRightPattern", "rightLowerPattern",
-        "lowerRPattern", "brPattern", "bottomRPattern",
-        "lowerRightLPattern", "lowerRightLSide", "fourthRegionPattern"
+    // NEW PROBE 2: every r-level sibling not already known.  Exclude keys we
+    //   already wire so the output stays focused on unknown territory.
+    var _known = {
+        "trucheck": 1, "metrics": 1
+    };
+    var _rSibStr = "";
+    if (r && typeof r === "object") {
+        for (var _rk in r) {
+            if (_known[_rk]) { continue; }
+            var _rv = r[_rk];
+            var _rvDesc;
+            if (_rv === null) { _rvDesc = "null"; }
+            else if (typeof _rv === "object") {
+                _rvDesc = (typeof _rv.length !== "undefined") ? ("[arr." + _rv.length + "]") : "[obj]";
+            } else {
+                _rvDesc = (typeof _rv) + "=" + String(_rv).substring(0, 30);
+            }
+            _rSibStr += _rk + "=" + _rvDesc + ";";
+        }
+    }
+    o += elem("DebugRSiblings", _rSibStr || "(no unknown r-siblings)");
+
+    // NEW PROBE 3: hunt for authoritative row/col dimensions under r.
+    var _dimKeys = [
+        "rowCount", "columnCount", "numRows", "numColumns",
+        "symbolWidth", "symbolHeight", "matrixWidth", "matrixHeight"
     ];
-    var _lrHit = "";
-    for (var _lri = 0; _lri < _lrCandidates.length; _lri++) {
-        var _lrK = _lrCandidates[_lri];
-        var _lrV = _pick(q, _lrK);
-        if (_lrV !== null) {
-            _lrHit += _lrK + "=" + _enumKV21(_lrV, _lrK) + " | ";
-        }
+    var _dimHit = "";
+    for (var _di = 0; _di < _dimKeys.length; _di++) {
+        var _dk = _dimKeys[_di];
+        var _dv = _pick(r, _dk);
+        if (_dv !== null) { _dimHit += _dk + "=" + String(_dv).substring(0, 20) + ";"; }
     }
-    o += elem("DebugLRPSearch", _lrHit || "(none of " + _lrCandidates.length + " candidates found)");
+    o += elem("DebugRectDims", _dimHit || "(none of " + _dimKeys.length + " r-dim candidates)");
 
     o += '</DMSymVerResponse>\r\n'
        + '</DMCCResponse>';
