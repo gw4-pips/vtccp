@@ -12,3 +12,9 @@ id = "9TL0yME647Zsv0i3BsdWY"
 uri = "file://dist/DmstPushScript_v1.17.txt"
 type = "text"
 title = "DmstPushScript v1.17 — production (no debug)"
+
+[[outputs]]
+id = "btznxRcnRgFql4Ry18lYS"
+uri = "file://dist/DmstPushScript_v1.18.txt"
+type = "text"
+title = "DmstPushScript v1.18 — nested trucheck.overall/general + probes"

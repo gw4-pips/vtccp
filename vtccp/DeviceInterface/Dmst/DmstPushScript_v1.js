@@ -1,22 +1,33 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.17
+//   Version   : 1.18
 //   Generated : 2026-05-17 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
 //
+//   v1.18 — BREAKTHROUGH: Cognex's official CSV-results template revealed that
+//           r.trucheck has NESTED sub-objects we never traversed:
+//             trucheck.overall.{gradingStandard,gradeLetter,gradeValue,
+//                               applicationStandardName,applicationStandardPass}
+//             trucheck.general.{xDimension,contrastUniformity,
+//                               horizontalBWG,verticalBWG,...}
+//             trucheck.<param>.raw          ← TRUE ISO percentages
+//                                             (q-side, NOT r.metrics)
+//           Previously we read percentages from r.metrics.<param>.raw which
+//           are firmware-internal half-cooked values (SC came out 71/82.7
+//           instead of the correct 79).  Switching to q.<param>.raw fixes
+//           SC, ANU, GNU, FPD percentages; q.overall fixes overall/formal
+//           grades; q.general fixes BWG, X-Dim, contrast uniformity.
+//           DPM-vs-ISO branch added (cellContrast/cellModulation when
+//           gradingStandard != "ISO 15415").
+//           Introspection probes for q.overall and q.general added to
+//           discover remaining keys (aperture, wavelength, lighting,
+//           matrixSize, encodedChars, codewords, MRD).
+//           DMCC GET path abandoned (firmware exposes no GET-able
+//           verification namespace — DMSV.* returns [101] invalid).
+//
 //   v1.17 — Production cleanup.  All debug probes removed (DebugMetric_*).
-//           Metric API fully characterized (v1.16 scan): {.raw, .grade}.
-//           Many m.<metric>.raw values arrive as -1 sentinel on fw 6.1.16_sr4
-//           (extremeReflectance, reflectMin, horizontalMarkGrowth,
-//           verticalMarkGrowth, dataMatrixCellWidth/Height,
-//           horizontal/verticalMarkMisplacement) — these measurements are
-//           computed internally by the device but NOT exposed to the script.
-//           Letter grades for all 18 parameters DO come through reliably
-//           from q.trucheck (TrucheckMetric).  Numeric percentages,
-//           dimensions, conditions, and codeword data must be fetched via
-//           a DMCC GET round-trip from VTCCP — see DmccResultEnricher.
 //
 //   v1.16 — UEC scaling fix (10000 → 100) via new mmPctAuto helper.
 //           ANUPercent/GNUPercent/HBW/VBW switched to mmPctAuto.
@@ -437,7 +448,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.17 q=" + _qSrc + " m=" + (m ? "found" : "null"));
+    o += elem("PushScriptDiag", "v1.18 q=" + _qSrc + " m=" + (m ? "found" : "null"));
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //
@@ -466,16 +477,29 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
     if (q) {
 
+        // ── v1.18 NESTED SUB-OBJECTS (per Cognex CSV template) ────────────────
+        //   q.overall   → grading standard, overall/formal grade, app standard
+        //   q.general   → x-dimension, contrast uniformity, horizontal/vertical BWG,
+        //                 plus probably matrix size, codewords, MRD (probed below)
+        var qOv = _pick(q, "overall");
+        var qGn = _pick(q, "general");
+
+        // Helper: pull any sub-object property as string (handles undefined/null)
+        function ovProp(key) { return qOv ? prop(qOv, key) : ""; }
+        function gnProp(key) { return qGn ? prop(qGn, key) : ""; }
+
         // ── q (r.trucheck) TrucheckMetric bindings — confirmed names from v1.14 scan
-        var _uec = _pick(q, "unusedErrorCorrection");  // UEC  (v1.15 — was wrong name)
+        var _uec = _pick(q, "unusedErrorCorrection");
         var _sc  = _pick(q, "symbolContrast");
+        var _cc  = _pick(q, "cellContrast");           // v1.18: DPM branch
         var _mod = _pick(q, "modulation");
+        var _cm  = _pick(q, "cellModulation");         // v1.18: DPM branch
         var _rm  = _pick(q, "reflectanceMargin");
-        var _anu = _pick(q, "axialNonuniformity");     // ANU  lowercase 'u' (v1.15)
-        var _gnu = _pick(q, "gridNonuniformity");      // GNU  lowercase 'u' (v1.15)
+        var _anu = _pick(q, "axialNonuniformity");     // lowercase 'u' on q-side
+        var _gnu = _pick(q, "gridNonuniformity");      // lowercase 'u' on q-side
         var _fpd = _pick(q, "fixedPatternDamage");
-        var _lls = _pick(q, "leftLSide");              // LLS  (v1.15 — was 'leftL')
-        var _bls = _pick(q, "bottomLSide");            // BLS  (v1.15 — was 'bottomL')
+        var _lls = _pick(q, "leftLSide");
+        var _bls = _pick(q, "bottomLSide");
         var _lqz = _pick(q, "leftQuietZone");
         var _bqz = _pick(q, "bottomQuietZone");
         var _rqz = _pick(q, "rightQuietZone");
@@ -485,100 +509,90 @@ function onResult(decodeResults, readerProperties, outputResults) {
         var _dec = _pick(q, "decode");
         var _ag  = _pick(q, "printGrowth");
 
-        // ── m (r.metrics) Rl/Rd bindings for true ISO SC% and SCRlRd (v1.15) ──
-        //   extremeReflectance = Rl (max module reflectance, 0–1 ratio)
-        //   reflectMin         = Rd (min module reflectance, 0–1 ratio)
-        //   True SC% = (Rl − Rd) × 100; e.g. (0.75 − 0.04) × 100 = 71%.
+        // ── Grading standard / DPM branch ─────────────────────────────────────
+        //   Per Cognex template: when overall.gradingStandard != "ISO 15415"
+        //   the contrast/modulation parameters come from cellContrast /
+        //   cellModulation instead of symbolContrast / modulation.
+        var _gradeStd = ovProp("gradingStandard");
+        var _isIso    = (_gradeStd === "ISO 15415");
+        var _scSrc    = _isIso ? _sc  : _cc;   // for SCGrade + SCPercent
+        var _modSrc   = _isIso ? _mod : _cm;   // for MODGrade
+
+        // ── Grading summary (v1.18: from q.overall) ───────────────────────────
+        var _ogLetter  = ovProp("gradeLetter");
+        var _ogNumeric = ovProp("gradeValue");
+        o += elem("FormalGrade",         _ogLetter ? (_ogNumeric + "/" + _ogLetter) : "");
+        o += elem("OverallGrade",        _ogLetter);
+        o += elem("OverallGradeNumeric", _ogNumeric);
+        o += elem("GradingStandard",     _gradeStd);
+        o += elem("ApplicationStandard", ovProp("applicationStandardName"));
+        o += elem("ApplicationPass",     ovProp("applicationStandardPass"));
+
+        // ── Verification conditions ───────────────────────────────────────────
+        //   Names TBD — probes below enumerate qOv to reveal actual keys.
+        //   Trying the most likely candidates from PDF report layout.
+        o += elem("ApertureRef", ovProp("aperture")   || ovProp("apertureRef")  || prop(m, "aperture"));
+        o += elem("Wavelength",  ovProp("wavelength") || ovProp("waveLength")   || prop(m, "wavelength"));
+        o += elem("Lighting",    ovProp("lighting")   || ovProp("lightingType") || prop(m, "lighting"));
+        o += elem("Standard",    _gradeStd            || prop(m, "standard"));
+
+        // ── 2D ISO 15415 quality parameters (v1.18: from q.<param>.raw) ───────
+        //   q-side TrucheckMetric has BOTH .grade AND .raw (confirmed by
+        //   Cognex template using decodeResults[0].trucheck.axialNonuniformity.raw).
+        //   mmVal / mmPctAuto work on any object with .raw — reusable.
+        o += elem("UECPercent", mmPctAuto(_uec));
+        o += elem("UECGrade",   tmGrade(_uec));
+
+        //   SC — TRUE ISO SC% from q.symbolContrast.raw (was wrong: r.metrics)
+        //   Keep Rl/Rd best-effort from m for the "SC Rl/Rd (xx/yy)" PDF line
         var _mRl    = _pick(m, "extremeReflectance");
         var _mRd    = _pick(m, "reflectMin");
         var _rlRaw  = (_mRl && typeof _mRl["raw"] !== "undefined") ? parseFloat(_mRl["raw"]) : NaN;
         var _rdRaw  = (_mRd && typeof _mRd["raw"] !== "undefined") ? parseFloat(_mRd["raw"]) : NaN;
-        var _rlOk   = !isNaN(_rlRaw) && _rlRaw !== -1;
-        var _rdOk   = !isNaN(_rdRaw) && _rdRaw !== -1;
-        var _scPct  = (_rlOk && _rdOk)
-                        ? s(Math.round((_rlRaw - _rdRaw) * 1000) / 10)
-                        : mmPct(_pick(m, "symbolContrast"));  // fallback
-        var _rlInt  = _rlOk ? String(Math.round(_rlRaw * 100)) : "";
-        var _rdInt  = _rdOk ? String(Math.round(_rdRaw * 100)) : "";
+        var _rlInt  = (!isNaN(_rlRaw) && _rlRaw !== -1) ? String(Math.round(_rlRaw * 100)) : "";
+        var _rdInt  = (!isNaN(_rdRaw) && _rdRaw !== -1) ? String(Math.round(_rdRaw * 100)) : "";
         var _scRlRd = (_rlInt && _rdInt) ? (_rlInt + "/" + _rdInt) : "";
-
-        // ── Grading summary ───────────────────────────────────────────────────
-        //   m.overallGrade is a [object Metric] with .grade (letter/NA) / .raw (number/-1).
-        //   mmGrade passes "NA" through; mmVal suppresses -1 (numeric sentinel only).
-        var _mOG       = _pick(m, "overallGrade");
-        var _ogLetter  = mmGrade(_mOG);
-        var _ogNumeric = mmVal(_mOG);
-        o += elem("FormalGrade",         _ogLetter);
-        o += elem("OverallGrade",        _ogLetter);
-        o += elem("OverallGradeNumeric", _ogNumeric);
-
-        // ── Verification conditions ───────────────────────────────────────────
-        //   aperture / wavelength / lighting / standard — expected on m; empty until confirmed
-        o += elem("ApertureRef", prop(m, "aperture") || prop(m, "apertureRef"));
-        o += elem("Wavelength",  prop(m, "wavelength"));
-        o += elem("Lighting",    prop(m, "lighting") || prop(m, "lightingType"));
-        o += elem("Standard",    prop(m, "standard") || prop(m, "verificationStandard"));
-
-        // ── 2D ISO 15415 quality parameters ───────────────────────────────────
-        //   UEC — grade from q.unusedErrorCorrection; % from m.UEC (v1.15)
-        o += elem("UECPercent", mmPctAuto(_pick(m, "UEC")));   // v1.16: auto-scale (raw arrives as 0–100)
-        o += elem("UECGrade",   tmGrade(_uec));
-
-        //   SC — grade from q.symbolContrast; true ISO SC% = (Rl−Rd)×100 (v1.15)
-        //        Rl = m.extremeReflectance.raw, Rd = m.reflectMin.raw (both 0–1 ratio)
-        o += elem("SCPercent",  _scPct);
+        o += elem("SCPercent",  mmPctAuto(_scSrc));
         o += elem("SCRlRd",     _scRlRd);
-        o += elem("SCGrade",    tmGrade(_sc));
+        o += elem("SCGrade",    tmGrade(_scSrc));
 
-        //   MOD — grade from q.modulation
-        o += elem("MODGrade",   tmGrade(_mod));
-
-        //   RM — grade from q.reflectanceMargin
+        o += elem("MODGrade",   tmGrade(_modSrc));
         o += elem("RMGrade",    tmGrade(_rm));
 
-        //   ANU — grade from q.axialNonuniformity (lowercase u); % from m.axialNonUniformity (capital U)
-        var _mANU = _pick(m, "axialNonUniformity");   // capital U on m-side
-        o += elem("ANUPercent", mmPctAuto(_mANU));     // v1.16: auto-scale
-        o += elem("ANUGrade",   tmGrade(_anu));        // from q (v1.15 — was mmGrade(_mANU))
+        //   ANU / GNU — percentages from q.<param>.raw (TRUE ISO values)
+        o += elem("ANUPercent", mmPctAuto(_anu));
+        o += elem("ANUGrade",   tmGrade(_anu));
+        o += elem("GNUPercent", mmPctAuto(_gnu));
+        o += elem("GNUGrade",   tmGrade(_gnu));
 
-        //   GNU — grade from q.gridNonuniformity (lowercase u); % from m.gridNonUniformity (capital U)
-        var _mGNU = _pick(m, "gridNonUniformity");    // capital U on m-side
-        o += elem("GNUPercent", mmPctAuto(_mGNU));     // v1.16: auto-scale
-        o += elem("GNUGrade",   tmGrade(_gnu));        // from q (v1.15 — was mmGrade(_mGNU))
-
-        //   FPD — grade from q.fixedPatternDamage
+        //   FPD — grade + raw from q.fixedPatternDamage
+        o += elem("FPDValue",   mmVal(_fpd));
         o += elem("FPDGrade",   tmGrade(_fpd));
 
-        //   Decode — grade from q.decode
         o += elem("DecodeGrade", tmGrade(_dec));
 
-        //   AG (Print Growth) — grade from q.printGrowth; measurement from m (Metric)
-        o += elem("AGValue",    mmVal(_pick(m, "printGrowth")));
+        //   AG (Print Growth)
+        o += elem("AGValue",    mmVal(_ag));
         o += elem("AGGrade",    tmGrade(_ag));
 
-        // ── 2D matrix characteristics ─────────────────────────────────────────
-        //   v1.16: dataMatrixCellWidth/Height confirmed on m via DebugMEnum2.
-        //   MatrixSize built from "WxH" of cell counts.
-        var _mCW = _pick(m, "dataMatrixCellWidth");
-        var _mCH = _pick(m, "dataMatrixCellHeight");
-        var _cwV = mmVal(_mCW);
-        var _chV = mmVal(_mCH);
-        var _msz = (_cwV && _chV) ? (_cwV + "x" + _chV) : "";
-        o += elem("MatrixSize",            _msz);
-        o += elem("HorizontalBWG",         mmPctAuto(_pick(m, "horizontalMarkGrowth")));  // v1.16: auto-scale
-        o += elem("VerticalBWG",           mmPctAuto(_pick(m, "verticalMarkGrowth")));
-        o += elem("EncodedCharacters",     prop(m, "encodedCharacters") || prop(m, "encodedChars"));
-        o += elem("TotalCodewords",        prop(m, "totalCodewords"));
-        o += elem("DataCodewords",         prop(m, "dataCodewords"));
-        o += elem("ErrorCorrectionBudget", prop(m, "errorCorrectionBudget") || prop(m, "ecBudget"));
-        o += elem("ErrorsCorrected",       prop(m, "errorsCorrected")       || prop(m, "ecCorrected"));
-        o += elem("ErrorCapacityUsed",     prop(m, "errorCapacityUsed")     || prop(m, "ecCapacityUsed"));
-        o += elem("ErrorCorrectionType",   prop(m, "errorCorrectionType")   || prop(m, "ecType"));
-        o += elem("NominalXDim",           prop(m, "nominalXDim"));
-        o += elem("PixelsPerModule",       prop(m, "pixelsPerModule") || prop(m, "ppm"));
-        o += elem("ImagePolarity",         prop(m, "polarity") || prop(m, "imagePolarity"));
-        o += elem("ContrastUniformity",    mmVal(_pick(m, "contrastUniformity")));
-        o += elem("MRD",                   prop(m, "mrd") || prop(m, "minReflectanceDifference"));
+        // ── 2D matrix / general characteristics (v1.18: from q.general) ───────
+        //   Names confirmed from Cognex template: xDimension, contrastUniformity,
+        //   horizontalBWG, verticalBWG.  Others probed below.
+        o += elem("MatrixSize",            gnProp("matrixSize") || gnProp("symbolSize") || gnProp("size"));
+        o += elem("HorizontalBWG",         gnProp("horizontalBWG"));
+        o += elem("VerticalBWG",           gnProp("verticalBWG"));
+        o += elem("EncodedCharacters",     gnProp("encodedCharacters") || gnProp("encodedChars"));
+        o += elem("TotalCodewords",        gnProp("totalCodewords"));
+        o += elem("DataCodewords",         gnProp("dataCodewords"));
+        o += elem("ErrorCorrectionBudget", gnProp("errorCorrectionBudget") || gnProp("ecBudget"));
+        o += elem("ErrorsCorrected",       gnProp("errorsCorrected"));
+        o += elem("ErrorCapacityUsed",     gnProp("errorCapacityUsed"));
+        o += elem("ErrorCorrectionType",   gnProp("errorCorrectionType") || gnProp("ecType"));
+        o += elem("NominalXDim",           gnProp("xDimension"));
+        o += elem("PixelsPerModule",       gnProp("pixelsPerModule") || gnProp("ppm"));
+        o += elem("ImagePolarity",         gnProp("polarity") || gnProp("imagePolarity"));
+        o += elem("ContrastUniformity",    gnProp("contrastUniformity"));
+        o += elem("MRD",                   gnProp("mrd") || gnProp("minReflectanceDifference"));
 
         // ── 2D L-side and quiet zones ─────────────────────────────────────────
         //   LLS/BLS — confirmed on q as leftLSide / bottomLSide (v1.15)
@@ -656,6 +670,32 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("NominalXDim1D", prop(m, "nominalXDim1D") || prop(m, "nominalXDim1d"));
 
     } // end if (q)
+
+    // ── v1.18 introspection probes ────────────────────────────────────────────
+    // Enumerate every own-property name of trucheck.overall and trucheck.general
+    // so v1.19 can wire any keys the CSV template didn't reveal (aperture,
+    // wavelength, lighting, matrixSize, codewords, MRD, etc.).  Removed in v1.19
+    // once the property names are confirmed.
+    function _enumKeys(obj, label) {
+        if (!obj) { return "(" + label + " null)"; }
+        var _out = "";
+        for (var _k in obj) { _out += _k + ";"; }
+        return _out || "(" + label + " empty)";
+    }
+    function _enumKV(obj, label) {
+        if (!obj) { return "(" + label + " null)"; }
+        var _out = "";
+        for (var _k in obj) {
+            var _v = obj[_k];
+            var _t = (typeof _v);
+            var _vs = (_t === "object" && _v !== null) ? "[obj]" : String(_v).substring(0, 20);
+            _out += _k + "=" + _vs + ";";
+        }
+        return _out || "(" + label + " empty)";
+    }
+    o += elem("DebugTKEnum",  _enumKeys(q,              "q"));
+    o += elem("DebugTOEnum",  _enumKV(_pick(q, "overall"), "q.overall"));
+    o += elem("DebugTGEnum",  _enumKV(_pick(q, "general"), "q.general"));
 
     o += '</DMSymVerResponse>\r\n'
        + '</DMCCResponse>';
