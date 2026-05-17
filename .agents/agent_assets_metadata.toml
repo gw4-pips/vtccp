@@ -42,3 +42,9 @@ id = "QPrRicJTlOt-fEfcVKgvc"
 uri = "file://dist/DmstPushScript_v1.22.txt"
 type = "text"
 title = "DmstPushScript v1.22 — rollback dead per-region wires, pivot probes to r.metrics + r-siblings, rect MatrixSize lookup"
+
+[[outputs]]
+id = "u7L-3ixawzorsYJ93knZk"
+uri = "file://dist/DmstPushScript_v1.23.txt"
+type = "text"
+title = "DmstPushScript v1.23 — final per-region probe round + Source wired from r.source"

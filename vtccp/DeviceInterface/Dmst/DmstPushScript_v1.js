@@ -1,10 +1,52 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.22
+//   Version   : 1.23
 //   Generated : 2026-05-17 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
+//
+//   v1.23 — Final probe round (last chance for per-region data) + free wins.
+//             v1.22 wins confirmed live:
+//               • MatrixSize=16x36 on 16×36 rect scan (lookup table hit
+//                 len=684 → "16x36" exactly matches PDF "16x36 (Data: 14x34)")
+//               • All 8 per-region grade fields back to empty (false data gone)
+//             v1.22 probes revealed:
+//               • r.metrics has 30 ISO 15415 grade objects (UEC, SC, MOD, RM,
+//                 ANU, GNU, FPD + 22 more) — all monolithic single-symbol
+//                 grades.  NO per-region keys.  Confirms the firmware doesn't
+//                 compute per-region ISO grades in JS scope.
+//               • r has 12 unknown siblings: source (DEVICE NAME!),
+//                 symbology[obj], image[obj], validation[obj], decoded/content/
+//                 decodeTime/triggerTime/timeout/readSetup/annotation/label/
+//                 custom_svg/barcodeAssignment.
+//               • r-level row/col candidates all missed — dims aren't on r,
+//                 likely inside r.symbology.
+//             WIRE: <Source> = r.source (DM475 device name; matches PDF
+//                   "Device Name" field).  Currently the only Phase 1 column
+//                   we could populate but weren't.
+//             FINAL PROBES (last per-region attempt before declaring scope
+//             dead):
+//               • DebugSymbology    — enum r.symbology (expect row/col dims).
+//               • DebugCellDefects  — enum r.metrics.cellDefects (per-region?).
+//               • DebugFPDefects    — enum r.metrics.finderPatternDefects
+//                                     (finder pattern = L-finder + clock track
+//                                     = exactly the per-region grading source).
+//               • DebugDMCellDims   — enum r.metrics.dataMatrixCellWidth +
+//                                     Height (single value vs per-region arr).
+//               • DebugValidation   — enum r.validation (app-pass details).
+//               • DebugMetricShape  — enum r.metrics.symbolContrast deeply
+//                                     (does any standard metric have hidden
+//                                     .regions[] / per-quadrant breakdown?).
+//             Retained: DebugModSize, DebugECCount (formula sanity).
+//             Dropped:  DebugRectDims (definitively miss at r-level).
+//             Re-enabled compact: DebugMetricsKeys + DebugRSiblings
+//                                 (useful baselines for any future scan).
+//             If v1.23 probes also return no per-region data, v1.24 = strip
+//             all probes, declare production rev, Phase 1 moves to C# parser/
+//             Excel exporter with per-region columns blank for multi-region
+//             symbols.  Per-region support deferred to a future phase using
+//             a DMCC GET command for the structured report (or PDF parsing).
 //
 //   v1.22 — Per-region scope pivot + rectangular MatrixSize.
 //             v1.21 proved a hard architectural limit: q.upperLeftPattern /
@@ -551,7 +593,10 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.22 q=" + _qSrc + " m=" + (m ? "found" : "null"));
+    o += elem("PushScriptDiag", "v1.23 q=" + _qSrc + " m=" + (m ? "found" : "null"));
+    // v1.23: device name from r.source (matches PDF "Device Name" field;
+    //        scan confirmed value "DM475-63530E-PIPS-Verif-Lab").
+    o += elem("Source",         (r && typeof r.source === "string") ? esc(r.source) : "");
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //
@@ -877,15 +922,22 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
     } // end if (q)
 
-    // ── v1.22 introspection probes (scope pivot — looking for per-region data
-    //   outside q.trucheck, which v1.21 proved is dead-ended) ──────────────────
+    // ── v1.23 introspection probes (FINAL per-region attempt) ─────────────────
     //   Retained from v1.20:
     //     • DebugModSize — matrix-size formula sanity
     //     • DebugECCount — errors-corrected cross-check
-    //   New for v1.22:
-    //     • DebugMetricsKeys — full enum of r.metrics (m), never enumerated.
-    //     • DebugRSiblings   — every r.* key not already named, with shape hint.
-    //     • DebugRectDims    — try 8 candidate row/col fields under r.
+    //   Retained from v1.22 (compact baselines):
+    //     • DebugMetricsKeys — r.metrics object list
+    //     • DebugRSiblings   — r.* unknown keys
+    //   New for v1.23:
+    //     • DebugSymbology    — enum r.symbology (expect row/col dims here).
+    //     • DebugCellDefects  — enum r.metrics.cellDefects (per-region?).
+    //     • DebugFPDefects    — enum r.metrics.finderPatternDefects.
+    //     • DebugDMCellDims   — enum r.metrics.dataMatrixCellWidth + Height.
+    //     • DebugValidation   — enum r.validation (app-pass detail).
+    //     • DebugMetricShape  — deep enum r.metrics.symbolContrast (any hidden
+    //                           .regions[] / per-quadrant breakdown in metrics?).
+    //   Dropped: DebugRectDims (definitively miss at r-level).
     function _enumKV22(obj, label) {
         if (!obj) { return "(" + label + " null)"; }
         if (typeof obj !== "object") {
@@ -949,18 +1001,34 @@ function onResult(decodeResults, readerProperties, outputResults) {
     }
     o += elem("DebugRSiblings", _rSibStr || "(no unknown r-siblings)");
 
-    // NEW PROBE 3: hunt for authoritative row/col dimensions under r.
-    var _dimKeys = [
-        "rowCount", "columnCount", "numRows", "numColumns",
-        "symbolWidth", "symbolHeight", "matrixWidth", "matrixHeight"
-    ];
-    var _dimHit = "";
-    for (var _di = 0; _di < _dimKeys.length; _di++) {
-        var _dk = _dimKeys[_di];
-        var _dv = _pick(r, _dk);
-        if (_dv !== null) { _dimHit += _dk + "=" + String(_dv).substring(0, 20) + ";"; }
-    }
-    o += elem("DebugRectDims", _dimHit || "(none of " + _dimKeys.length + " r-dim candidates)");
+    // v1.23 NEW PROBE 3: enum r.symbology (expected to hold authoritative
+    //   row/col dims; r-level candidates all missed in v1.22).
+    o += elem("DebugSymbology",  _enumKV22(_pick(r, "symbology"), "r.symbology"));
+
+    // v1.23 NEW PROBE 4: enum r.metrics.cellDefects — finder pattern + cell
+    //   defects are exactly the per-region inputs the PDF report uses.
+    o += elem("DebugCellDefects", _enumKV22(_pick(m, "cellDefects"), "r.metrics.cellDefects"));
+
+    // v1.23 NEW PROBE 5: enum r.metrics.finderPatternDefects — L-finder +
+    //   clock-track defect detail.  If per-region exists anywhere, it's here.
+    o += elem("DebugFPDefects",   _enumKV22(_pick(m, "finderPatternDefects"), "r.metrics.finderPatternDefects"));
+
+    // v1.23 NEW PROBE 6: enum r.metrics.dataMatrixCellWidth + Height — find
+    //   out if these are scalar grades or per-region arrays.
+    o += elem("DebugDMCellDims",
+        "W=" + _enumKV22(_pick(m, "dataMatrixCellWidth"),  "dmCellW") +
+        " H=" + _enumKV22(_pick(m, "dataMatrixCellHeight"), "dmCellH"));
+
+    // v1.23 NEW PROBE 7: enum r.validation — application-standard pass/fail
+    //   detail.  May give us the formal "Fail (Quality)" reasoning the PDF
+    //   shows on the 16×36 scan's <ApplicationPass> field.
+    o += elem("DebugValidation",  _enumKV22(_pick(r, "validation"), "r.validation"));
+
+    // v1.23 NEW PROBE 8: deep enum r.metrics.symbolContrast — if ANY standard
+    //   ISO 15415 metric hides a per-region breakdown, the symbolContrast
+    //   metric is the most likely place (it's the canonical single-symbol
+    //   metric).  Looking for hidden .regions[] / per-quadrant fields.
+    o += elem("DebugMetricShape", _enumKV22(_pick(m, "symbolContrast"), "r.metrics.symbolContrast"));
 
     o += '</DMSymVerResponse>\r\n'
        + '</DMCCResponse>';
