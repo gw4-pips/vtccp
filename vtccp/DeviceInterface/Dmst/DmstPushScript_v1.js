@@ -1,20 +1,27 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.16
+//   Version   : 1.17
 //   Generated : 2026-05-17 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
 //
-//   v1.16 — UEC scaling fix (10000 → 100) via new mmPctAuto helper that
-//           auto-detects 0–1 ratio vs 0–100 percent on Metric.raw.
-//           ANUPercent, GNUPercent, HBW, VBW switched to mmPctAuto.
-//           MatrixSize built from m.dataMatrixCellWidth × dataMatrixCellHeight.
-//           TTRPercent/RTRPercent wired to m.{horizontal,vertical}MarkMisplacement
-//           (DM-firmware equivalent of Webscan TTR/RTR).
-//           Debug probes: DebugMEnum/2 removed (complete from v1.15);
-//           added DebugMetric_{SC,UEC,Rl,HBW} per-Metric for-in probes to
-//           find why some Metric.raw reads were empty (next: v1.17 cleanup).
+//   v1.17 — Production cleanup.  All debug probes removed (DebugMetric_*).
+//           Metric API fully characterized (v1.16 scan): {.raw, .grade}.
+//           Many m.<metric>.raw values arrive as -1 sentinel on fw 6.1.16_sr4
+//           (extremeReflectance, reflectMin, horizontalMarkGrowth,
+//           verticalMarkGrowth, dataMatrixCellWidth/Height,
+//           horizontal/verticalMarkMisplacement) — these measurements are
+//           computed internally by the device but NOT exposed to the script.
+//           Letter grades for all 18 parameters DO come through reliably
+//           from q.trucheck (TrucheckMetric).  Numeric percentages,
+//           dimensions, conditions, and codeword data must be fetched via
+//           a DMCC GET round-trip from VTCCP — see DmccResultEnricher.
+//
+//   v1.16 — UEC scaling fix (10000 → 100) via new mmPctAuto helper.
+//           ANUPercent/GNUPercent/HBW/VBW switched to mmPctAuto.
+//           MatrixSize, TTR/RTR wired to dataMatrixCell* and markMisplacement
+//           (later found to be -1 sentinel — see v1.17 note).
 //
 //   v1.1 — Fix: use outputResults.content (firmware 6.x parameter) with
 //           fallback to global output (firmware 5.x) for cross-version
@@ -430,31 +437,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.16 q=" + _qSrc + " m=" + (m ? "found" : "null")
-          + " r.decoded=" + s(r && r.decoded)
-          + " rType=" + (typeof r));
-
-    // ── v1.16 Metric introspection ────────────────────────────────────────────
-    // r.metrics property list fully confirmed by v1.15 (DebugMEnum/2): 30 names.
-    // Now drilling INTO a Metric object to find why some .raw reads were empty:
-    //   symbolContrast.raw = 0.831  → mmPct gave 83.1 ✓
-    //   UEC.raw           = 100     → mmPct gave 10000 ✗ (raw already in %)
-    //   axialNonUniformity.raw, gridNonUniformity.raw → empty (sentinel?)
-    //   extremeReflectance.raw, reflectMin.raw       → empty (different key?)
-    //   horizontalMarkGrowth.raw, verticalMarkGrowth.raw → empty (different key?)
-    // Enumerate own properties of 4 representative Metric objects.
-    function _metricEnum(label, met) {
-        if (!met) { return "(" + label + " null)"; }
-        var _out = "";
-        for (var _k in met) {
-            _out += _k + "=" + String(met[_k]).substring(0, 18) + ";";
-        }
-        return _out || "(" + label + " empty)";
-    }
-    o += elem("DebugMetric_SC",  _metricEnum("symbolContrast",     _pick(m, "symbolContrast")));
-    o += elem("DebugMetric_UEC", _metricEnum("UEC",                _pick(m, "UEC")));
-    o += elem("DebugMetric_Rl",  _metricEnum("extremeReflectance", _pick(m, "extremeReflectance")));
-    o += elem("DebugMetric_HBW", _metricEnum("horizontalMarkGrowth", _pick(m, "horizontalMarkGrowth")));
+    o += elem("PushScriptDiag", "v1.17 q=" + _qSrc + " m=" + (m ? "found" : "null"));
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //

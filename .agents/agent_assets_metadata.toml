@@ -6,3 +6,9 @@ id = "UFGBLDJLhUoYNr8R79bUx"
 uri = "file://dist/DmstPushScript_v1.16.txt"
 type = "text"
 title = "DmstPushScript v1.16 — click Open to view/save"
+
+[[outputs]]
+id = "9TL0yME647Zsv0i3BsdWY"
+uri = "file://dist/DmstPushScript_v1.17.txt"
+type = "text"
+title = "DmstPushScript v1.17 — production (no debug)"
