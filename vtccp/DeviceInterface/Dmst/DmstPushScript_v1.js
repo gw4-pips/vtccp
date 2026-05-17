@@ -1,10 +1,31 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.19
+//   Version   : 1.20
 //   Generated : 2026-05-17 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
+//
+//   v1.20 — Final wirings from v1.19 introspection — Phase 1 feature-complete:
+//             FIX 1: reflectanceLight / reflectanceDark are PRIMITIVES (numbers),
+//                    not objects with .raw — `_qRl["raw"]` returned undefined.
+//                    Rebuilt SCRlRd to handle either shape.
+//             WIRE 1: MatrixSize from sqrt(modulationArray.length) - 2.
+//                     (22×22 ECC200 → 484 data + 2-cell quiet zone padding
+//                     wrapper = 576 = 24² → 24-2 = 22.  Confirmed 22×22.)
+//             WIRE 2: EncodedCharacters = encodationAnalysisArray.length.
+//             WIRE 3: TotalCodewords = codewordArray.length.
+//             WIRE 4: ErrorsCorrected = count of codewordArray[i].isCorrected.
+//             WIRE 5: CustomNote = q.customNote (device calibration metadata).
+//             COSMETIC: AGValue rounded to 1 decimal place (was 14-digit float).
+//           Most v1.19 probes dropped — those territories are mapped.
+//           Three retained for cross-validation: DebugModSize (matrix
+//           computation sanity), DebugModSample (modulationArray[0] full
+//           enumeration — to verify the "grade=(" oddity), DebugECCount
+//           (errorsCorrected verification).
+//           After v1.20 confirmation, v1.21 will strip all remaining probes
+//           and become the production rev; Phase 1 then turns to wiring the
+//           C# parser + Excel exporter.
 //
 //   v1.19 — Three bug fixes + four major new wirings from v1.18 introspection:
 //             FIX 1: ISO branch matched "ISO 15415" exactly but device emits
@@ -467,7 +488,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.19 q=" + _qSrc + " m=" + (m ? "found" : "null"));
+    o += elem("PushScriptDiag", "v1.20 q=" + _qSrc + " m=" + (m ? "found" : "null"));
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //
@@ -564,20 +585,38 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("UECGrade",   tmGrade(_uec));
 
         //   SC — TRUE ISO SC% from q.symbolContrast.raw
-        //   Rl/Rd from q.reflectanceLight / q.reflectanceDark (v1.19; q-side, not m)
-        var _qRl    = _pick(q, "reflectanceLight");
-        var _qRd    = _pick(q, "reflectanceDark");
-        var _rlRaw  = (_qRl && typeof _qRl["raw"] !== "undefined") ? parseFloat(_qRl["raw"]) : NaN;
-        var _rdRaw  = (_qRd && typeof _qRd["raw"] !== "undefined") ? parseFloat(_qRd["raw"]) : NaN;
-        //   q-side reflectance might be 0–1 ratio or 0–100 — auto-detect by mag.
+        //   Rl/Rd from q.reflectanceLight / q.reflectanceDark
+        //   v1.20: device emits these as PRIMITIVE NUMBERS, not objects with .raw.
+        //   Accept either shape: if object → use .raw; if number → use directly.
+        function _refNum(_x) {
+            if (_x === null || typeof _x === "undefined") { return NaN; }
+            if (typeof _x === "number") { return _x; }
+            if (typeof _x === "object" && typeof _x["raw"] !== "undefined") {
+                return parseFloat(_x["raw"]);
+            }
+            return parseFloat(_x);
+        }
         function _refToPct(_v) { return (_v > 1) ? _v : (_v * 100); }
+        var _rlRaw  = _refNum(_pick(q, "reflectanceLight"));
+        var _rdRaw  = _refNum(_pick(q, "reflectanceDark"));
         var _rlInt  = (!isNaN(_rlRaw) && _rlRaw !== -1) ? String(Math.round(_refToPct(_rlRaw))) : "";
         var _rdInt  = (!isNaN(_rdRaw) && _rdRaw !== -1) ? String(Math.round(_refToPct(_rdRaw))) : "";
         var _scRlRd = (_rlInt && _rdInt) ? (_rlInt + "/" + _rdInt) : "";
         o += elem("SCPercent",  mmPctAuto(_scSrc));
         o += elem("SCRlRd",     _scRlRd);
         o += elem("SCGrade",    tmGrade(_scSrc));
-        o += elem("MinReflectance", mmPctAuto(_pick(q, "minimumReflectance")));
+        //   MinReflectance: firmware returns raw=0/grade=F on most scans —
+        //   suppress when grade is F+raw=0 (firmware NA sentinel).
+        var _minR    = _pick(q, "minimumReflectance");
+        var _minRStr = "";
+        if (_minR) {
+            var _mrG = (typeof _minR["grade"] !== "undefined") ? String(_minR["grade"]) : "";
+            var _mrR = (typeof _minR["raw"]   !== "undefined") ? parseFloat(_minR["raw"]) : NaN;
+            if (!(_mrG === "F" && _mrR === 0)) {
+                _minRStr = mmPctAuto(_minR);
+            }
+        }
+        o += elem("MinReflectance", _minRStr);
 
         o += elem("MODGrade",   tmGrade(_modSrc));
         o += elem("RMGrade",    tmGrade(_rm));
@@ -594,23 +633,54 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
         o += elem("DecodeGrade", tmGrade(_dec));
 
-        //   AG (Print Growth)
-        o += elem("AGValue",    mmVal(_ag));
+        //   AG (Print Growth) — v1.20: round raw to 1 decimal place
+        function _round1(_x) {
+            var _n = parseFloat(_x);
+            return isNaN(_n) ? "" : s(Math.round(_n * 10) / 10);
+        }
+        var _agV = mmVal(_ag);
+        o += elem("AGValue",    _agV ? _round1(_agV) : "");
         o += elem("AGGrade",    tmGrade(_ag));
 
         // ── 2D matrix / general characteristics (v1.18: from q.general) ───────
         //   Names confirmed from Cognex template: xDimension, contrastUniformity,
         //   horizontalBWG, verticalBWG.  Others probed below.
-        o += elem("MatrixSize",            gnProp("matrixSize") || gnProp("symbolSize") || gnProp("size"));
+        //   v1.20: MatrixSize derived from modulationArray.length.
+        //   The array indexes ALL cells including a 1-cell quiet-zone wrapper,
+        //   so symbol side = sqrt(length) - 2.  (22×22 ECC200: 484+92 frame
+        //   cells = 576 = 24² → 24-2 = 22.  Verified live.)
+        var _modArr  = _pick(q, "modulationArray");
+        var _modLen  = (_modArr && typeof _modArr.length !== "undefined") ? _modArr.length : 0;
+        var _modSide = (_modLen > 0) ? Math.sqrt(_modLen) : 0;
+        var _symSide = (_modSide === Math.floor(_modSide) && _modSide > 2) ? (_modSide - 2) : 0;
+        var _msz     = (_symSide > 0) ? (_symSide + "x" + _symSide) : "";
+
+        //   v1.20: codewordArray.length = total codewords for ECC200.
+        //   Iterate to count isCorrected==1 for ErrorsCorrected.
+        var _cwArr   = _pick(q, "codewordArray");
+        var _cwLen   = (_cwArr && typeof _cwArr.length !== "undefined") ? _cwArr.length : 0;
+        var _ecCount = 0;
+        if (_cwArr && _cwLen > 0) {
+            for (var _i = 0; _i < _cwLen; _i++) {
+                var _cw = _cwArr[_i];
+                if (_cw && _cw["isCorrected"]) { _ecCount++; }
+            }
+        }
+
+        //   v1.20: encodationAnalysisArray.length = encoded character count.
+        var _eaArr = _pick(q, "encodationAnalysisArray");
+        var _eaLen = (_eaArr && typeof _eaArr.length !== "undefined") ? _eaArr.length : 0;
+
+        o += elem("MatrixSize",            _msz);
         o += elem("HorizontalBWG",         gnProp("horizontalBWG"));
         o += elem("VerticalBWG",           gnProp("verticalBWG"));
-        o += elem("EncodedCharacters",     gnProp("encodedCharacters") || gnProp("encodedChars"));
-        o += elem("TotalCodewords",        gnProp("totalCodewords"));
-        o += elem("DataCodewords",         gnProp("dataCodewords"));
-        o += elem("ErrorCorrectionBudget", gnProp("errorCorrectionBudget") || gnProp("ecBudget"));
-        o += elem("ErrorsCorrected",       gnProp("errorsCorrected"));
-        o += elem("ErrorCapacityUsed",     gnProp("errorCapacityUsed"));
-        o += elem("ErrorCorrectionType",   gnProp("errorCorrectionType") || gnProp("ecType"));
+        o += elem("EncodedCharacters",     _eaLen > 0 ? s(_eaLen) : "");
+        o += elem("TotalCodewords",        _cwLen > 0 ? s(_cwLen) : "");
+        o += elem("DataCodewords",         "");   // firmware does not split
+        o += elem("ErrorCorrectionBudget", "");   // firmware does not expose
+        o += elem("ErrorsCorrected",       _cwLen > 0 ? s(_ecCount) : "");
+        o += elem("ErrorCapacityUsed",     "");
+        o += elem("ErrorCorrectionType",   "ECC200");   // implied by Data Matrix
         o += elem("NominalXDim",           gnProp("xDimension"));
         o += elem("PixelsPerModule",       gnProp("pixelsPerModule") || gnProp("ppm"));
         o += elem("ImagePolarity",         gnProp("polarity") || gnProp("imagePolarity"));
@@ -629,6 +699,9 @@ function onResult(decodeResults, readerProperties, outputResults) {
         var _avg = _pick(q, "averageGrade");
         o += elem("AverageGrade",        tmGrade(_avg));
         o += elem("AverageGradeNumeric", mmVal(_avg));
+        //   v1.20: customNote = device calibration metadata string
+        //   (e.g. "Results from UPCE-44960 Cal. 23 JUN 2023").
+        o += elem("CustomNote",          s(_pick(q, "customNote")));
 
         // ── 2D L-side and quiet zones ─────────────────────────────────────────
         //   LLS/BLS — confirmed on q as leftLSide / bottomLSide (v1.15)
@@ -712,62 +785,41 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
     } // end if (q)
 
-    // ── v1.19 introspection probes ────────────────────────────────────────────
-    // q.overall and q.general are fully mapped — those probes removed.
-    // New probes target the high-value unmapped territory revealed by v1.18:
-    //   • arrays (codeword, encodation, modulation, applicationStd, ascii)
-    //     — for codeword/matrix-size reconstruction.
-    //   • per-region patterns (upperLeftPattern, etc.) — for ≥32x32 quadrants.
-    //   • reflectance metrics — to verify Rl/Rd unit scale (0–1 vs 0–100).
-    //   • notation/note strings — to verify they're plain strings.
-    function _enumKV(obj, label, max) {
-        if (!obj) { return "(" + label + " null)"; }
-        if (typeof obj !== "object") { return "(" + label + " " + (typeof obj) + "=" + String(obj).substring(0, 30) + ")"; }
-        var _out = "";
-        var _ct  = 0;
-        for (var _k in obj) {
-            if (max && _ct >= max) { _out += "...;"; break; }
-            var _v = obj[_k];
-            var _t = (typeof _v);
-            var _vs;
-            if (_t === "object" && _v !== null) {
-                _vs = (typeof _v.length !== "undefined") ? ("[arr." + _v.length + "]") : "[obj]";
-            } else {
-                _vs = String(_v).substring(0, 20);
-            }
-            _out += _k + "=" + _vs + ";";
-            _ct++;
+    // ── v1.20 introspection probes (reduced) ──────────────────────────────────
+    //   Three retained for cross-validation of v1.20's MatrixSize / EC count /
+    //   modulation-array shape.  All others stripped — territory is mapped.
+    //   v1.21 will remove these final probes.
+    var _v20mod  = _pick(q, "modulationArray");
+    var _v20mLen = (_v20mod && typeof _v20mod.length !== "undefined") ? _v20mod.length : 0;
+    var _v20mSq  = (_v20mLen > 0) ? Math.sqrt(_v20mLen) : 0;
+    o += elem("DebugModSize",
+        "len=" + _v20mLen + " sqrt=" + _v20mSq + " sqr=" + (_v20mSq === Math.floor(_v20mSq)));
+
+    //   Full enumeration of modulationArray[0] with longer value windows
+    //   to verify the "grade=(" oddity from v1.19 (was substring truncated
+    //   to 1 char — see if grade is actually a letter, paren-wrapped string,
+    //   or numeric code).
+    var _v20m0 = (_v20mod && _v20mLen > 0) ? _v20mod[0] : null;
+    var _v20m0Str = "(null)";
+    if (_v20m0 && typeof _v20m0 === "object") {
+        _v20m0Str = "";
+        for (var _v20k in _v20m0) {
+            var _v20v = _v20m0[_v20k];
+            _v20m0Str += _v20k + "(" + (typeof _v20v) + ")=" + String(_v20v).substring(0, 40) + ";";
         }
-        return _out || "(" + label + " empty)";
     }
-    function _arrInfo(obj, label) {
-        if (!obj) { return "(" + label + " null)"; }
-        if (typeof obj.length === "undefined") { return "(" + label + " not-arr)"; }
-        var _len = obj.length;
-        var _first = (_len > 0) ? obj[0] : null;
-        var _firstDesc = (_first === null || typeof _first === "undefined")
-            ? "(empty)"
-            : (typeof _first === "object" ? _enumKV(_first, label + "[0]", 8) : String(_first).substring(0, 30));
-        return "len=" + _len + " first=" + _firstDesc;
+    o += elem("DebugModSample", _v20m0Str);
+
+    //   Cross-check ErrorsCorrected: re-count and report alongside total.
+    var _v20cw   = _pick(q, "codewordArray");
+    var _v20cwL  = (_v20cw && typeof _v20cw.length !== "undefined") ? _v20cw.length : 0;
+    var _v20ec   = 0;
+    if (_v20cw) {
+        for (var _v20i = 0; _v20i < _v20cwL; _v20i++) {
+            if (_v20cw[_v20i] && _v20cw[_v20i]["isCorrected"]) { _v20ec++; }
+        }
     }
-    o += elem("DebugRefLight",   _enumKV(_pick(q, "reflectanceLight"),    "q.reflectanceLight"));
-    o += elem("DebugRefDark",    _enumKV(_pick(q, "reflectanceDark"),     "q.reflectanceDark"));
-    o += elem("DebugMinRef",     _enumKV(_pick(q, "minimumReflectance"),  "q.minimumReflectance"));
-    o += elem("DebugDDGrade",    _enumKV(_pick(q, "distributedDamageGrade"), "q.distributedDamageGrade"));
-    o += elem("DebugAvgGrade",   _enumKV(_pick(q, "averageGrade"),        "q.averageGrade"));
-    o += elem("DebugULPattern",  _enumKV(_pick(q, "upperLeftPattern"),    "q.upperLeftPattern"));
-    o += elem("DebugURPattern",  _enumKV(_pick(q, "upperRightPattern"),   "q.upperRightPattern"));
-    o += elem("DebugLLPattern",  _enumKV(_pick(q, "lowerLeftPattern"),    "q.lowerLeftPattern"));
-    o += elem("DebugHClkTrack",  _enumKV(_pick(q, "horizontalClockTrack"),"q.horizontalClockTrack"));
-    o += elem("DebugVClkTrack",  _enumKV(_pick(q, "verticalClockTrack"),  "q.verticalClockTrack"));
-    o += elem("DebugCodewordArr",_arrInfo(_pick(q, "codewordArray"),      "q.codewordArray"));
-    o += elem("DebugEncAnArr",   _arrInfo(_pick(q, "encodationAnalysisArray"), "q.encodationAnalysisArray"));
-    o += elem("DebugModArr",     _arrInfo(_pick(q, "modulationArray"),    "q.modulationArray"));
-    o += elem("DebugAppStdArr",  _arrInfo(_pick(q, "applicationStdArray"),"q.applicationStdArray"));
-    o += elem("DebugAsciiArr",   _arrInfo(_pick(q, "asciiArray"),         "q.asciiArray"));
-    o += elem("DebugGradeNote",  s(_pick(q, "gradeInfoNotation")).substring(0, 80));
-    o += elem("DebugAppNote",    s(_pick(q, "appInfoNotation")).substring(0, 80));
-    o += elem("DebugCustNote",   s(_pick(q, "customNote")).substring(0, 80));
+    o += elem("DebugECCount", "total=" + _v20cwL + " corrected=" + _v20ec);
 
     o += '</DMSymVerResponse>\r\n'
        + '</DMCCResponse>';

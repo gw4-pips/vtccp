@@ -24,3 +24,9 @@ id = "nrQcUSh2JTaEm9vbYuhev"
 uri = "file://dist/DmstPushScript_v1.19.txt"
 type = "text"
 title = "DmstPushScript v1.19 — ISO/MRD fixes + TTR/RTR/Rl/Rd rewires + array probes"
+
+[[outputs]]
+id = "pBLJLh6Dc3bVtlV4uSQ-7"
+uri = "file://dist/DmstPushScript_v1.20.txt"
+type = "text"
+title = "DmstPushScript v1.20 — Rl/Rd primitive fix + MatrixSize/codewords/CustomNote wired"
