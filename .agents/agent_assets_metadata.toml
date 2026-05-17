@@ -30,3 +30,9 @@ id = "pBLJLh6Dc3bVtlV4uSQ-7"
 uri = "file://dist/DmstPushScript_v1.20.txt"
 type = "text"
 title = "DmstPushScript v1.20 — Rl/Rd primitive fix + MatrixSize/codewords/CustomNote wired"
+
+[[outputs]]
+id = "p-bFxzyQGUPpzl8ZrnDwW"
+uri = "file://dist/DmstPushScript_v1.21.txt"
+type = "text"
+title = "DmstPushScript v1.21 — multi-region (≥32×32 / 2-region rect) probes + ULQZ/URQZ/LLQZ wired"

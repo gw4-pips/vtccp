@@ -1,10 +1,34 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.20
+//   Version   : 1.21
 //   Generated : 2026-05-17 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
+//
+//   v1.21 — Per-region (≥32x32 / 2-region rectangular) support pass.
+//             The v1.20 32x32 scan proved that top-level TQZ/RQZ/TCT/RCT/
+//             TTR/RTR all flip to "X" (NA) on multi-region symbols — the
+//             firmware moves that data into the per-region tree:
+//                upperLeftPattern / upperRightPattern / lowerLeftPattern
+//                horizontalClockTrack / verticalClockTrack / alignmentPatterns
+//             Each *Pattern object is {grade, numericGrade} (confirmed v1.19).
+//             WIRE 1: ULQZGrade / URQZGrade / LLQZGrade now sourced from
+//                     upperLeftPattern.grade / upperRightPattern.grade /
+//                     lowerLeftPattern.grade.  Preemptive — verified next scan.
+//             WIRE 2: LRQZGrade left empty for now; firmware exposes only
+//                     3 of 4 pattern slots.  Probe v1.21 tries fallback keys
+//                     (lowerRightPattern, bottomRightPattern, alignmentPatterns
+//                     index 3) to find where the 4th region lives, if at all.
+//             PROBE: re-added pattern + clockTrack probes (dropped in v1.20)
+//                    + new alignmentPatterns array probe + lowerRight key
+//                    enumeration.  Retained DebugModSize / DebugECCount.
+//                    Dropped DebugModSample (mystery solved — `grade` field
+//                    on modulationArray entries is a single paren-coded
+//                    modulation-bucket char, only relevant to Phase 2 PDF
+//                    heatmap reproduction).
+//           After v1.22 wires the per-region columns from probe data, v1.23
+//           becomes the production rev and Phase 1 moves to C# parser/Excel.
 //
 //   v1.20 — Final wirings from v1.19 introspection — Phase 1 feature-complete:
 //             FIX 1: reflectanceLight / reflectanceDark are PRIMITIVES (numbers),
@@ -488,7 +512,7 @@ function onResult(decodeResults, readerProperties, outputResults) {
     // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
     var m = _pick(r, "metrics");
 
-    o += elem("PushScriptDiag", "v1.20 q=" + _qSrc + " m=" + (m ? "found" : "null"));
+    o += elem("PushScriptDiag", "v1.21 q=" + _qSrc + " m=" + (m ? "found" : "null"));
 
     // ── Grade emission (v1.10) ────────────────────────────────────────────────
     //
@@ -732,12 +756,26 @@ function onResult(decodeResults, readerProperties, outputResults) {
         o += elem("TCTGrade",   tmGrade(_tct));
         o += elem("RCTGrade",   tmGrade(_rct));
 
-        // ── Per-quadrant parameters (matrices ≥ 32×32 only) ──────────────────
-        //   No JS property names found yet for per-quadrant data; all empty.
-        o += elem("ULQZGrade",     "");
-        o += elem("URQZGrade",     "");
+        // ── Per-region parameters (≥ 32×32 / 2-region rectangular) ───────────
+        //   v1.21: wired from q.upperLeftPattern / upperRightPattern /
+        //   lowerLeftPattern (TrucheckMetric-shaped: {grade, numericGrade}).
+        //   LRQZGrade left empty pending probe — firmware exposes only 3 of 4.
+        //   Note column-name collision: existing schema has both ULQZ/URQZ
+        //   and RUQZ/RLQZ.  RUQZ/RLQZ kept empty (unknown semantics).
+        var _ulp = _pick(q, "upperLeftPattern");
+        var _urp = _pick(q, "upperRightPattern");
+        var _llp = _pick(q, "lowerLeftPattern");
+        o += elem("ULQZGrade",     tmGrade(_ulp));
+        o += elem("URQZGrade",     tmGrade(_urp));
         o += elem("RUQZGrade",     "");
         o += elem("RLQZGrade",     "");
+        o += elem("LLQZGrade",     tmGrade(_llp));
+        o += elem("LRQZGrade",     "");
+        //   Per-region clock track grades (single grade each per region row/col)
+        var _hct = _pick(q, "horizontalClockTrack");
+        var _vct = _pick(q, "verticalClockTrack");
+        o += elem("HClockTrackGrade", tmGrade(_hct));
+        o += elem("VClockTrackGrade", tmGrade(_vct));
         o += elem("ULQTTRPercent", "");
         o += elem("ULQTTRGrade",   "");
         o += elem("URQTTRPercent", "");
@@ -785,41 +823,86 @@ function onResult(decodeResults, readerProperties, outputResults) {
 
     } // end if (q)
 
-    // ── v1.20 introspection probes (reduced) ──────────────────────────────────
-    //   Three retained for cross-validation of v1.20's MatrixSize / EC count /
-    //   modulation-array shape.  All others stripped — territory is mapped.
-    //   v1.21 will remove these final probes.
-    var _v20mod  = _pick(q, "modulationArray");
-    var _v20mLen = (_v20mod && typeof _v20mod.length !== "undefined") ? _v20mod.length : 0;
-    var _v20mSq  = (_v20mLen > 0) ? Math.sqrt(_v20mLen) : 0;
+    // ── v1.21 introspection probes (multi-region focus) ───────────────────────
+    //   Retained from v1.20:
+    //     • DebugModSize    — matrix-size formula sanity
+    //     • DebugECCount    — errors-corrected cross-check
+    //   New for v1.21 (multi-region symbol mapping):
+    //     • DebugULP/URP/LLP/HCT/VCT — re-enabled (dropped in v1.20); now scanned
+    //       on a 32×32 should show real grades instead of all-F.
+    //     • DebugAlignPat — q.alignmentPatterns enum (array? object? grade?).
+    //     • DebugLRPSearch — try every plausible "4th-region" key name to find
+    //       where the lower-right region grade lives (if anywhere).
+    function _enumKV21(obj, label) {
+        if (!obj) { return "(" + label + " null)"; }
+        if (typeof obj !== "object") {
+            return "(" + label + " " + (typeof obj) + "=" + String(obj).substring(0, 30) + ")";
+        }
+        var _out = "";
+        for (var _k in obj) {
+            var _v = obj[_k];
+            var _t = typeof _v;
+            var _vs;
+            if (_t === "object" && _v !== null) {
+                _vs = (typeof _v.length !== "undefined") ? ("[arr." + _v.length + "]") : "[obj]";
+            } else {
+                _vs = String(_v).substring(0, 30);
+            }
+            _out += _k + "=" + _vs + ";";
+        }
+        return _out || "(" + label + " empty)";
+    }
+    function _arrInfo21(obj, label) {
+        if (!obj) { return "(" + label + " null)"; }
+        if (typeof obj.length === "undefined") {
+            return "(" + label + " not-arr keys: " + _enumKV21(obj, label) + ")";
+        }
+        var _len = obj.length;
+        var _firstDesc = (_len > 0)
+            ? (typeof obj[0] === "object" ? _enumKV21(obj[0], label + "[0]") : String(obj[0]).substring(0, 30))
+            : "(empty)";
+        return "len=" + _len + " first=" + _firstDesc;
+    }
+
+    // Retained
+    var _v21mod  = _pick(q, "modulationArray");
+    var _v21mLen = (_v21mod && typeof _v21mod.length !== "undefined") ? _v21mod.length : 0;
+    var _v21mSq  = (_v21mLen > 0) ? Math.sqrt(_v21mLen) : 0;
     o += elem("DebugModSize",
-        "len=" + _v20mLen + " sqrt=" + _v20mSq + " sqr=" + (_v20mSq === Math.floor(_v20mSq)));
-
-    //   Full enumeration of modulationArray[0] with longer value windows
-    //   to verify the "grade=(" oddity from v1.19 (was substring truncated
-    //   to 1 char — see if grade is actually a letter, paren-wrapped string,
-    //   or numeric code).
-    var _v20m0 = (_v20mod && _v20mLen > 0) ? _v20mod[0] : null;
-    var _v20m0Str = "(null)";
-    if (_v20m0 && typeof _v20m0 === "object") {
-        _v20m0Str = "";
-        for (var _v20k in _v20m0) {
-            var _v20v = _v20m0[_v20k];
-            _v20m0Str += _v20k + "(" + (typeof _v20v) + ")=" + String(_v20v).substring(0, 40) + ";";
+        "len=" + _v21mLen + " sqrt=" + _v21mSq + " sqr=" + (_v21mSq === Math.floor(_v21mSq)));
+    var _v21cw   = _pick(q, "codewordArray");
+    var _v21cwL  = (_v21cw && typeof _v21cw.length !== "undefined") ? _v21cw.length : 0;
+    var _v21ec   = 0;
+    if (_v21cw) {
+        for (var _v21i = 0; _v21i < _v21cwL; _v21i++) {
+            if (_v21cw[_v21i] && _v21cw[_v21i]["isCorrected"]) { _v21ec++; }
         }
     }
-    o += elem("DebugModSample", _v20m0Str);
+    o += elem("DebugECCount", "total=" + _v21cwL + " corrected=" + _v21ec);
 
-    //   Cross-check ErrorsCorrected: re-count and report alongside total.
-    var _v20cw   = _pick(q, "codewordArray");
-    var _v20cwL  = (_v20cw && typeof _v20cw.length !== "undefined") ? _v20cw.length : 0;
-    var _v20ec   = 0;
-    if (_v20cw) {
-        for (var _v20i = 0; _v20i < _v20cwL; _v20i++) {
-            if (_v20cw[_v20i] && _v20cw[_v20i]["isCorrected"]) { _v20ec++; }
+    // Per-region pattern + clock-track probes (re-enabled for multi-region scans)
+    o += elem("DebugULP",      _enumKV21(_pick(q, "upperLeftPattern"),    "q.upperLeftPattern"));
+    o += elem("DebugURP",      _enumKV21(_pick(q, "upperRightPattern"),   "q.upperRightPattern"));
+    o += elem("DebugLLP",      _enumKV21(_pick(q, "lowerLeftPattern"),    "q.lowerLeftPattern"));
+    o += elem("DebugHCT",      _enumKV21(_pick(q, "horizontalClockTrack"),"q.horizontalClockTrack"));
+    o += elem("DebugVCT",      _enumKV21(_pick(q, "verticalClockTrack"),  "q.verticalClockTrack"));
+    o += elem("DebugAlignPat", _arrInfo21(_pick(q, "alignmentPatterns"),  "q.alignmentPatterns"));
+
+    // Hunt for the 4th-region key — try every plausible name.
+    var _lrCandidates = [
+        "lowerRightPattern", "bottomRightPattern", "rightLowerPattern",
+        "lowerRPattern", "brPattern", "bottomRPattern",
+        "lowerRightLPattern", "lowerRightLSide", "fourthRegionPattern"
+    ];
+    var _lrHit = "";
+    for (var _lri = 0; _lri < _lrCandidates.length; _lri++) {
+        var _lrK = _lrCandidates[_lri];
+        var _lrV = _pick(q, _lrK);
+        if (_lrV !== null) {
+            _lrHit += _lrK + "=" + _enumKV21(_lrV, _lrK) + " | ";
         }
     }
-    o += elem("DebugECCount", "total=" + _v20cwL + " corrected=" + _v20ec);
+    o += elem("DebugLRPSearch", _lrHit || "(none of " + _lrCandidates.length + " candidates found)");
 
     o += '</DMSymVerResponse>\r\n'
        + '</DMCCResponse>';
