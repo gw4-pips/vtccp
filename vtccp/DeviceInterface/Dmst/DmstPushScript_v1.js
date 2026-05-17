@@ -1,10 +1,20 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
-//   Version   : 1.15
-//   Generated : 2026-03-30 UTC
+//   Version   : 1.16
+//   Generated : 2026-05-17 UTC
 //   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
 //   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
+//
+//   v1.16 — UEC scaling fix (10000 → 100) via new mmPctAuto helper that
+//           auto-detects 0–1 ratio vs 0–100 percent on Metric.raw.
+//           ANUPercent, GNUPercent, HBW, VBW switched to mmPctAuto.
+//           MatrixSize built from m.dataMatrixCellWidth × dataMatrixCellHeight.
+//           TTRPercent/RTRPercent wired to m.{horizontal,vertical}MarkMisplacement
+//           (DM-firmware equivalent of Webscan TTR/RTR).
+//           Debug probes: DebugMEnum/2 removed (complete from v1.15);
+//           added DebugMetric_{SC,UEC,Rl,HBW} per-Metric for-in probes to
+//           find why some Metric.raw reads were empty (next: v1.17 cleanup).
 //
 //   v1.1 — Fix: use outputResults.content (firmware 6.x parameter) with
 //           fallback to global output (firmware 5.x) for cross-version
