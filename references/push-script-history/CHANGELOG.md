@@ -18,11 +18,74 @@ Install ritual (every version):
 
 ## Versions
 
+### v1.27 — 2026-05-18
+
+Filed: `v1.27.js` (also `dist/DmstPushScript_v1.27.txt`).
+Status: **authored, syntax-verified, awaiting device install**.
+Confirm by: `<PushScriptDiag>v1.27 q=r.trucheck m=found</PushScriptDiag>`.
+
+**Wire + probe release.** Driven by v1.26 live scan findings
+(catalog: `samples/live-scans/v1.26-2026-05-18-catalog.md`). Two scans:
+DM 16×36 live (09:24:53), QR v3 loaded-image (09:25:39).
+
+#### v1.27 changes
+
+**Wired (8 QR-specific grade params — first-class fields)**
+
+`DebugTrucheckKeys` (v1.26) confirmed all QR grade params are **top-level q keys**,
+not in `q.symbols[0]` (which is always null on this firmware). DM returns
+`tmGrade()=""` (sentinel `{raw:-1,grade:NA}`) for these QR-only params. A live QR
+scan is needed to see non-sentinel values.
+
+| New field | q path |
+|---|---|
+| `ULPGrade` | `q.upperLeftPattern` |
+| `URPGrade` | `q.upperRightPattern` |
+| `LLPGrade` | `q.lowerLeftPattern` |
+| `HCTGrade` | `q.horizontalClockTrack` |
+| `VCTGrade` | `q.verticalClockTrack` |
+| `ALPGrade` | `q.alignmentPatterns` |
+| `VIBGrade` | `q.versionInformationBlock` |
+| `FIBGrade` | `q.formatInformationBlock` |
+
+**Bug fix: `ErrorCorrectionType` for QR**
+
+v1.26 returned `"QR"` fallback (wrong; should be `"M"`/`"L"`/`"H"`/`"Q"`).
+v1.27 tries `gnProp("errorCorrectionLevel")` (q.general sub-key) first.
+`DebugGeneral` probe will confirm exact key name; wire fully in v1.28.
+
+**New probes (5)**
+
+| Probe | Target | Purpose |
+|---|---|---|
+| `DebugMinRef2` | `q.minimumReflectance` + `q.reflectanceDark` | Actual shape of MinRef obj; raw/grade values; check suppression logic |
+| `DebugQZObjs` | `q.topQuietZone`, `q.rightQuietZone` | Sub-key names for ULQZ/URQZ/RUQZ/RLQZ |
+| `DebugTTRCTObjs` | `q.topTransitionRatio`, `q.rightTransitionRatio`, `q.topClockTrack`, `q.rightClockTrack` | Sub-key names for all 8 TTR/CTR quadrant grades |
+| `DebugGeneral` | `q.general` | DataCodewords/ECBudget/ErrorCorrectionLevel/ErrorCapacityUsed/MaskPattern paths |
+| `DebugArrayElem0` | `q.modulationArray[0]`, `q.codewordArray[0]`, `q.encodationAnalysisArray[0]` | Element shape (number vs object) — B7 writer prerequisite |
+
+**Dropped probes (3 — all answered by v1.26)**
+
+- `DebugTrucheckKeys` — full 47-key map of `r.trucheck` confirmed
+- `DebugMinRef` — `r.metrics.extremeReflectance/reflectMin` are both `{raw:-1,grade:NA}` sentinels; source is `q.minimumReflectance`
+- `DebugSymbols0` — confirmed always null (DM live scan + QR loaded-image, v1.26)
+
+**Key v1.26 scan findings driving this release**
+
+- `q.modulationArray/codewordArray/encodationAnalysisArray/asciiArray` all **directly in push output** — B7 requires no separate DMCC command (UNBLOCKED)
+- `AverageGrade=X` for loaded QR — parser must accept X → null/N/A
+- `AGValue=-0.5` for loaded QR — negative AGValue is valid (loaded image)
+- `DebugTrucheckKeys` confirmed 47 top-level q keys including all QR grade param objects
+
+---
+
 ### v1.26 — 2026-05-18
 
 Filed: `v1.26.js` (also `dist/DmstPushScript_v1.26.txt`).
-Status: **authored, syntax-verified, awaiting device install**.
-Confirm by: `<PushScriptDiag>v1.26 q=r.trucheck m=found</PushScriptDiag>`.
+Status: **device-confirmed 2026-05-18** (DM live 09:24:53 + QR loaded-image 09:25:39).
+XMLs filed: `samples/live-scans/v1.26-2026-05-18-DM-Live-GS1Format06.xml`,
+`samples/live-scans/v1.26-2026-05-18-QR-LoadedImage-Email.xml`.
+Catalog: `samples/live-scans/v1.26-2026-05-18-catalog.md`.
 
 **Probe release.** Two new probes driven by v1.25 live DM scan findings
 (catalog: `samples/live-scans/v1.25-2026-05-18-DM-Live-GS1Format06-catalog.md`).
