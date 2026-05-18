@@ -1,0 +1,113 @@
+[VTCCP-DMST] RawXML (3133 chars): <?xml version="1.0" encoding="UTF-8"?>
+<DMCCResponse>
+<DMSymVerResponse>
+<DateTime>2026-03-30T14:38:44</DateTime>
+<SymbologyName>Data Matrix</SymbologyName>
+<DecodedData>TB2AVNSXDKZBHW9148WG2ZYDK3C1A7DG</DecodedData>
+<PushScriptDiag>v1.7 q=r.trucheck r.decoded=true rType=object</PushScriptDiag>
+<DebugRFound>decoded,content,symbology,image,metrics,trucheck,</DebugRFound>
+<DebugRPFound>(none)</DebugRPFound>
+<DebugQFound>modulation=[object TrucheckMetr;decode=[object TrucheckMetr;</DebugQFound>
+<FormalGrade></FormalGrade>
+<OverallGrade></OverallGrade>
+<OverallGradeNumeric></OverallGradeNumeric>
+<ApertureRef></ApertureRef>
+<Wavelength></Wavelength>
+<Lighting></Lighting>
+<Standard></Standard>
+<UECPercent></UECPercent>
+<UECGrade></UECGrade>
+<SCPercent></SCPercent>
+<SCRlRd></SCRlRd>
+<SCGrade></SCGrade>
+<MODGrade></MODGrade>
+<RMGrade></RMGrade>
+<ANUPercent></ANUPercent>
+<ANUGrade></ANUGrade>
+<GNUPercent></GNUPercent>
+<GNUGrade></GNUGrade>
+<FPDGrade></FPDGrade>
+<DecodeGrade></DecodeGrade>
+<AGValue></AGValue>
+<AGGrade></AGGrade>
+<MatrixSize></MatrixSize>
+<HorizontalBWG></HorizontalBWG>
+<VerticalBWG></VerticalBWG>
+<EncodedCharacters></EncodedCharacters>
+<TotalCodewords></TotalCodewords>
+<DataCodewords></DataCodewords>
+<ErrorCorrectionBudget></ErrorCorrectionBudget>
+<ErrorsCorrected></ErrorsCorrected>
+<ErrorCapacityUsed></ErrorCapacityUsed>
+<ErrorCorrectionType></ErrorCorrectionType>
+<NominalXDim></NominalXDim>
+<PixelsPerModule></PixelsPerModule>
+<ImagePolarity></ImagePolarity>
+<ContrastUniformity></ContrastUniformity>
+<MRD></MRD>
+<LLSGrade></LLSGrade>
+<BLSGrade></BLSGrade>
+<LQZGrade></LQZGrade>
+<BQZGrade></BQZGrade>
+<TQZGrade></TQZGrade>
+<RQZGrade></RQZGrade>
+<TTRPercent></TTRPercent>
+<TTRGrade></TTRGrade>
+<RTRPercent></RTRPercent>
+<RTRGrade></RTRGrade>
+<TCTGrade></TCTGrade>
+<RCTGrade></RCTGrade>
+<ULQZGrade></ULQZGrade>
+<URQZGrade></URQZGrade>
+<RUQZGrade></RUQZGrade>
+<RLQZGrade></RLQZGrade>
+<ULQTTRPercent></ULQTTRPercent>
+<ULQTTRGrade></ULQTTRGrade>
+<URQTTRPercent></URQTTRPercent>
+<URQTTRGrade></URQTTRGrade>
+<LLQTTRPercent></LLQTTRPercent>
+<LLQTTRGrade></LLQTTRGrade>
+<LRQTTRPercent></LRQTTRPercent>
+<LRQTTRGrade></LRQTTRGrade>
+<ULQRTRPercent></ULQRTRPercent>
+<ULQRTRGrade></ULQRTRGrade>
+<URQRTRPercent></URQRTRPercent>
+<URQRTRGrade></URQRTRGrade>
+<LLQRTRPercent></LLQRTRPercent>
+<LLQRTRGrade></LLQRTRGrade>
+<LRQRTRPercent></LRQRTRPercent>
+<LRQRTRGrade></LRQRTRGrade>
+<ULQTCTGrade></ULQTCTGrade>
+<URQTCTGrade></URQTCTGrade>
+<LLQTCTGrade></LLQTCTGrade>
+<LRQTCTGrade></LRQTCTGrade>
+<ULQRCTGrade></ULQRCTGrade>
+<URQRCTGrade></URQRCTGrade>
+<LLQRCTGrade></LLQRCTGrade>
+<LRQRCTGrade></LRQRCTGrade>
+<SymbolAnsiGrade></SymbolAnsiGrade>
+<AvgEdge></AvgEdge>
+<AvgRlRd></AvgRlRd>
+<AvgSC></AvgSC>
+<AvgMinEC></AvgMinEC>
+<AvgMOD></AvgMOD>
+<AvgDefect></AvgDefect>
+<AvgDcod></AvgDcod>
+<AvgDEC></AvgDEC>
+<AvgLQZ></AvgLQZ>
+<AvgRQZ></AvgRQZ>
+<AvgHQZ></AvgHQZ>
+<AvgMinQZ></AvgMinQZ>
+<BWGPercent></BWGPercent>
+<Magnification></Magnification>
+<Ratio></Ratio>
+<NominalXDim1D></NominalXDim1D>
+</DMSymVerResponse>
+</DMCCResponse>
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+The thread 30620 has exited with code 0 (0x0).
+The thread '.NET TP Worker' (61368) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (28616) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (45656) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (65764) has exited with code 0 (0x0).

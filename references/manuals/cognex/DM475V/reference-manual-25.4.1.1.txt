@@ -1,0 +1,2528 @@
+DataMan® 475 Verifier
+Reference Manual
+
+
+
+
+2025 December 17
+Revision: 25.4.1.1
+                                                                                                                 Legal Notices
+
+
+
+
+Legal Notices
+The software described in this document is furnished under license, and may be used or copied only in accordance with the
+terms of such license and with the inclusion of the copyright notice shown on this page. Neither the software, this document,
+nor any copies thereof may be provided to, or otherwise made available to, anyone other than the licensee. Title to, and
+ownership of, this software remains with Cognex Corporation or its licensor. Cognex Corporation assumes no responsibility
+for the use or reliability of its software on equipment that is not supplied by Cognex Corporation. Cognex Corporation makes
+no warranties, either express or implied, regarding the described software, its merchantability, non-infringement or its fitness
+for any particular purpose.
+The information in this document is subject to change without notice and should not be construed as a commitment by
+Cognex Corporation. Cognex Corporation is not responsible for any errors that may be present in either this document or the
+associated software.
+Companies, names, and data used in examples herein are fictitious unless otherwise noted. No part of this document may be
+reproduced or transmitted in any form or by any means, electronic or mechanical, for any purpose, nor transferred to any
+other media or language without the written permission of Cognex Corporation.
+Copyright © 2025. Cognex Corporation. All Rights Reserved.
+Portions of the hardware and software provided by Cognex may be covered by one or more U.S. and foreign patents, as well
+as pending U.S. and foreign patents listed on the Cognex web site at: cognex.com/patents.
+
+
+The following are registered trademarks of Cognex Corporation:
+2DMax, Advantage, AlignPlus, AssemblyPlus, Checker, Cognex, Cognex Vision For Industry, CVL, DataMan, DVT,
+EasyBuilder, Edge Intelligence, Hotbars, In-Sight, MX, OmniView, PatFind, PatFlex, PatInspect, PatMax, PatMax RedLine,
+PatQuick, PowerGrid, Smart View, SmartAdvisor, UltraLight, VisionPro, VisionView
+The following are trademarks of Cognex Corporation:
+The Cognex logo, 1DMax, 3D-Locate, 3DMax, BGAII, CheckPoint, Cognex VSoC, CVC-1000, FFD, iLearn, In-Sight (design
+insignia with cross-hairs), In-Sight 2000, InspectEdge, Inspection Designer, MVS, NotchMax, OCRMax, PatMax RedLine,
+ProofRead, SmartSync, ProfilePlus, SmartDisplay, SmartSystem, SMD4, VisiFlex, Xpand
+Portions copyright © Microsoft Corporation. All rights reserved.
+Portions copyright © MadCap Software, Inc. All rights reserved.
+
+Other product and company trademarks identified herein are the trademarks of their respective owners.
+
+
+
+
+                                                               2
+                                                        Table of Contents
+
+
+
+Table of Contents
+ Legal Notices                                                        2
+ Table of Contents                                                    3
+ Symbols                                                              5
+ Getting Started                                                      6
+  About the DataMan 475 Verifier                                      6
+  Supporting Documentation                                            6
+  DataMan 475 Verifier Accessories                                    7
+    Cables and Power Supply                                           7
+    Mounting Brackets                                                 8
+    Calibration Cards                                                 9
+    DataMan 475 Verifier Systems                                      9
+  About Verification                                                  9
+    Standards-Based Grading                                          10
+    ISO Compliant Verification Requirements                          11
+ Setting Up Your DataMan 475 Verifier                                13
+  Reader Layout                                                      13
+  Dimensions                                                         15
+    DataMan 475 Verifier Label Light                                 15
+    DataMan 475 Verifier DPM                                         15
+    DataMan 475 Verifier HD                                          16
+  Removing Illumination Attachment                                   17
+  Additional Information                                             21
+    DataMan 475 Verifier Specifications                              21
+    DataMan 475 Series Verifier Imager Specifications                23
+    LED Wavelengths                                                  24
+ User Interface                                                      25
+  Toolbar                                                            25
+ Using Your DataMan 475 Verifier                                     27
+  Setting Up DataMan Setup Tool                                      27
+    Verifying Your First Code                                        27
+    External Triggers                                                29
+  Verifying a 1D Barcode                                             29
+  Verifying a 2D Barcode                                             30
+  Verifications of Multiple Symbols                                  31
+  Selecting Regions                                                  33
+  Calibration                                                        34
+    Calibrate the DataMan 475 Verifier                               35
+    Supported NIST Calibration Symbols                               37
+    Calibration Frequency                                            37
+    Calibration Card                                                 38
+  Guided Focus Feedback                                              38
+  Standards-Based Grading Setup                                      42
+    Feature Key Activation                                           42
+
+
+
+
+                                                 3
+                                                    Table of Contents
+
+
+   Standards-Based Grading Reports                               42
+ Scripting                                                       43
+Settings                                                         45
+ Settings Menu                                                   45
+ Application Settings                                            45
+   Grading Standards and Parameters                              47
+   Application Standards Settings                                47
+   Dot Peen                                                      56
+ Calibration Settings                                            56
+ Trending Settings                                               57
+ User Information                                                58
+ Report Settings                                                 59
+ Navigation                                                      59
+   Results through Setup Tool (local machine)                    60
+   Results through FTP                                           63
+   Symbologies/Multi Mode                                        64
+ Setting Up FTP Transfer                                         64
+   Image FTP Transfer                                            65
+   Result FTP Transfer                                           65
+   Report FTP Transfer                                           66
+Examining the Results                                            67
+ 1D & 2D Verification                                            67
+ Main Tab                                                        67
+ General Characteristics Tab                                     68
+ Data Detail Tab                                                 69
+   Modulation Table Legend                                       71
+ Quality Detail Tab                                              71
+ Advanced Detail Tab                                             72
+ Histogram Tab                                                   73
+ Report Tab                                                      74
+Saving Reports                                                   75
+ Set Date and Time                                               76
+Cleaning and Maintenance                                         79
+ Cleaning the Verifier Housing                                   79
+ Cleaning the Verifier Lens Cover                                79
+Regulations and Conformity                                       80
+ For European Community Users                                    80
+Precautions                                                      82
+
+
+
+
+                                                4
+                                                                                                                   Symbols
+
+
+
+Symbols
+The following symbols indicate safety precautions and supplemental information:
+
+    WARNING: This symbol indicates a hazard that could cause death, serious personal injury or electrical shock.
+
+
+
+    CAUTION: This symbol indicates a hazard that could result in property damage.
+
+
+
+    Note: This symbol indicates additional information about a subject.
+
+
+
+    Tip: This symbol indicates suggestions and shortcuts that might not otherwise be apparent.
+
+
+
+
+                                                             5
+                                                                                                           Getting Started
+
+
+
+Getting Started
+This section provides general information about the DataMan 475 Verifier and the DataMan 475 Verifier accessories and
+systems.
+
+
+About the DataMan 475 Verifier
+
+
+
+
+The DataMan 475 Verifier provides immediate quality assurance benefits:
+    l   Sets alerts for when code quality begins to degrade
+    l   Grades up to 20 codes per second
+    l   Exports verification results to PLC, database, or FTP server as CSV, HTML, PDF, and custom formats
+    l   Improves processes with detailed analysis and diagnostic information for every code
+
+The DataMan 475 Verifier Label Light uses a four-quadrant, 45-degree lighting attachment. The DataMan Verifier 475 DPM
+and DataMan Verifier 475 HD use either a four-quadrant 30-degree, 45-degree, or 90-degree lighting attachment. Both types
+of 475 verifiers are compliant with the International Organization for Standardization (ISO/IEC) requirements for grading 1D
+and 2D label-based barcodes. The included calibration card and robust grading algorithms ensure that the DataMan 475
+Verifiers conform to ISO/IEC and application standards while providing accurate and repeatable results.
+The DataMan 475 Verifiers are packaged in a rugged, IP65-rated housing, and provide numerous ease-of-use features,
+including one button to trigger and one button to start tuning.
+
+
+Supporting Documentation
+This document provides basic information about how to configure and use the DataMan 475 Verifier. Additional information is
+available through the Windows Start menu or the DataMan Setup Tool Help menu after you install the DataMan software on
+your PC:
+    l   The DataMan Communications and Programming Guide shows you how to integrate your DataMan verifier into
+        your particular automation and factory environment.
+        Cognex->DataMan Software v x.x.x->Documentation->Communications->DataMan Communications and
+        Programming Guide
+    l   The DataMan Industrial Protocols Manual provides information on how to integrate DataMan verifier into your
+        particular environment using industrial protocols.
+        Cognex->DataMan Software v x.x.x->Documentation->Communications->DataMan Industrial Protocols Manual
+
+
+
+
+                                                              6
+                                                                                                         Getting Started
+
+   l   The DataMan Reader Configuration Codes document provides printable 2-D codes that you can use to configure
+       the DataMan verifier.
+       Cognex->DataMan Software v x.x.x->Documentation->English->Reader Configuration Codes
+   l   The DataMan 475 Verifier Quick Reference Guide provides essential information about the DataMan 475 Verifier.
+       Cognex->DataMan Software v x.x.x->Documentation->English->DM475V Series->DM475V Quick Reference Guide
+   l   The DataMan Fixed-Mount Readers Reference is a complete online hardware reference for the DataMan fixed-
+       mount ID verifier.
+       Cognex->DataMan Software v x.x.x->Documentation->English->DM475V ->Fixed-Mount Reference Manual
+   l   The DataMan Control Commands lists DataMan Control Commands with all relevant information. You can view this
+       help inside the Setup Tool or as a stand-alone help file.
+
+       Cognex->DataMan Software v x.x.x->Documentation->English->DataMan Control Commands
+   l   The Setup Tool Reference Manual describes the user interface of the DataMan Setup Tool software.
+       Cognex->DataMan Software v x.x.x->Documentation->English->Setup Tool Reference Manual
+   l   The Release Notes list detailed system requirements and additional information about this DataMan software
+       release.
+       Cognex->DataMan Software v x.x.x->Documentation->DataMan v x.x.x Release Notes
+   l   The Introduction to Barcode Verification page provides information about the grading standards.
+       https://www.cognex.com/what-is/barcode-verification
+
+
+DataMan 475 Verifier Accessories
+   Note: For ISO/IEC compliant verification, equip the DM475V with DMV-475V-LBL-0200, DMV-475V-DPM-0100, or
+   DMV-475V-HD lighting accessories. Use other light accessories for DM475V for Standards-Based Grading only.
+
+   Note: The product images below serve for illustration purposes only. You can purchase the following components
+   separately. For a list of options and accessories, contact your local Cognex sales representative.
+
+
+
+Cables and Power Supply
+   Note: Cables are sold separately.
+
+   CAUTION: All cable connectors are keyed to fit the connectors on the verifier. Do not force the connections or damage
+   may occur.
+
+              Accessory Name                                 Accessory Product Number                     Accessory
+                                                                                                          Illustration
+Power and I/O Breakout Cable, M12-12 to        CCB-PWRIO- xx (straight, xx specifies length: 5m,
+Flying Lead                                    10m, 15m)
+                                               CCB-PWRIO-xxR (right-angled, xx specifies length:
+                                               5m, 10m, 15m)
+X-Coded to A-Coded Ethernet cable adapter,     CCB-M12X8MS-XCAC
+0.5 m
+
+
+
+
+                                                             7
+                                                                                                      Getting Started
+
+
+              Accessory Name                              Accessory Product Number                     Accessory
+                                                                                                       Illustration
+Ethernet Cable, X-coded M12-8 to RJ-45        CCB-84901-2001-xx (straight, xx specifies length: 2m,
+                                              5m, 10m, 15m, 30m)
+I/O extension cable, straight, 5 m            CKR-200-CBL-EXT
+
+
+Connection module (up to 4 cameras including DMA-CCM-4X-xx
+network switch)
+xx can be EU, UK, or JP
+Connection module (1 camera)                  DMA-CCM-1-xx
+xx can be US, EU, UK, or JP
+
+
+Power supply and cable kit (includes US and   DMV-PS-02
+EU power supplies)
+
+
+
+
+Mounting Brackets
+            Accessory Name                     Accessory Product Number                  Accessory Illustration
+Mounting Bracket Kit                      DMBK-470-MNT
+
+
+Pivot Mounting Bracket                    DM100-PIVOTM-00
+
+
+
+
+External Heat Sink                        DMHS-370-470
+
+
+Stand Accessory                           DMV-FMOL-STAND
+
+
+
+
+Label Light Mounting Bracket              DMV-BRK-475LBL
+
+
+Stand Extension Arm                       DMV-BRK-STANDEXT
+
+
+
+
+                                                         8
+                                                                                                           Getting Started
+
+
+Calibration Cards
+       Product ID                                         Description                                        Image
+DMV-AICC                   Applied Image #AI-CCS-UPC/EAN 6mil Calibration and Conformance
+                           Test Card:
+                               l   Similar to discontinued GS1 EAN/UPC Calibration Card.
+                               l   Provides conformance testing on 1D barcodes.
+                               l   Provides traceability through an ISO 17025 accredited lab.
+                               l   This card is produced by an ISO 17025 accredited lab.
+
+DMV-DMCC                   Applied Image Data Matrix Calibration and Conformance Test Card:
+                               l   Similar to discontinued GS1 Data Matrix Calibration Card.
+                               l   Provides traceability through an ISO 17025 accredited lab.
+                               l   This card is produced by an ISO 17025 accredited lab.
+
+                                       Note: The barcode symbols on this card contain encoded
+                                       data that is generic and not GS1 formatted, but this is not
+                                       relevant for calibration purposes.
+
+DMV-CCC                    Cognex Standard Calibration Card contains Master Grade 1D and 2D
+                           symbols:
+                               l   For calibration only. Does not contain any ISO/IEC 15426
+                                   conformance test symbol.
+                               l   Provides traceability, but not to an accredited ISO 17025 lab.
+
+
+DataMan 475 Verifier Systems
+      System Name            Symbologies        Light Configurations          Verification Standards         Illustration
+DMV-475V-LBL-0200          1D, 2D, DPM        45° Label Light            ISO/IEC 15415, 15416, 29158
+
+
+
+
+DMV-475V-DPM-0100          1D, 2D, DPM        30°, 45°, 90° DPM          ISO/IEC 15415, 15416, 29158
+
+
+
+
+DMV-475V-HD                1D, 2D, DPM        30°, 45°, 90° DPM          ISO/IEC 15415, 15416, 29158
+
+
+
+
+About Verification
+Barcode verification is the process of grading the quality of 1D and 2D codes to globally accepted ISO standards using a
+device called a barcode verifier. A barcode verifier assigns an overall grade to a code based on measurements of several
+
+
+
+
+                                                                9
+                                                                                                              Getting Started
+
+quality parameters. The grade ranges from A to F, with A being the best grade. The quality parameters for code grading for
+different codes are defined by ISO standards:
+     l   ISO 15416 for 1D barcodes
+     l   ISO 15415 for 2D barcodes printed on a label
+     l   ISO/IEC TR 29158, also known as AIM DPM, for 2D Direct Part Mark (DPM) barcodes
+
+Depending on the code, the verifier measures different quality parameters, for example:
+     l   Symbol contrast
+     l   Modulation
+     l   Fixed pattern damage
+     l   Grid non-uniformity
+
+Application standards define the rules for verifiers to follow for grading codes, for example, minimum acceptable grade and
+required lighting. The following are examples of application standards of different industries:
+     l   GS1 is a standard used in retail, transportation, and food service industries.
+     l   Unique Identifier (UID) for MIL-STD-130 is a standard used for tracking items for the US Department of Defense.
+     l   Unique Device Identification (UDI) is a standard for all medical services, mandated by the FDA.
+
+Not all applications are able to conform to ISO standards due to mounting restrictions or barcode placement. Standards-
+Based Grading (SBG) is a solution that approximates an ISO-compliant barcode verification with flexibility. To find out more
+about SBG, see Standards-Based Grading on page 10.
+A standard for barcode verifiers is ISO/IEC 15426-2, which specifies the requirements for barcode verifiers. For more
+information, see ISO Compliant Verification Requirements on page 11
+To find out what setup you need for your verifier and find out more about barcode verification, visit the Cognex blogs.
+
+
+Standards-Based Grading
+Standards-Based Grading (SBG) is a feature key add-on that you can activate for the DM475V. SBG uses verification
+algorithms to produce well-defined, consistent results from the image of a code captured by a barcode reader in a real-world
+setup. SBG is the closest way to achieve verification results without having to conform to specific lighting angles, distances,
+or every International Organization for Standardization (ISO) standard parameter.
+
+The DM475V with ISO-compliant lighting meets the ISO or industry application guidelines. However, not all applications are
+able to use ISO-compliant verification due to mounting restrictions or barcode placement. By removing the lighting
+attachment component, SBG allows you to create a custom lighting setup for specific application needs. You can also use
+the liquid lens, expanding the field of view and depth of focus capabilities.
+
+    Note: SBG is a solution to produce reliable barcode verification results in situations where ISO/IEC compliance is not
+    required, but SBG cannot provide true verification results.
+
+SBG is ideal to use when existing barcode quality software, such as Process Control Metrics (PCM), is not reliable enough,
+and ISO compliance is not required or possible. With SBG, the reader can be calibrated to unify the cameras measurement of
+reflectivity levels and all ISO quality parameters are reported.
+The following table compares PCM, SBG, and ISO-compliant verification, with the verifier as the baseline:
+
+                           Capability                                Reader          PCM        SBG           Verification
+Reads Codes
+
+
+
+
+                                                                10
+                                                                                                                Getting Started
+
+
+Validates Data
+
+Code Quality Feedback
+
+ISO Parameter Grades                                                                 Some
+
+Calibrated
+
+Advanced Code Diagnostics
+
+Uses ISO Standard Decode Algorithm
+
+Fixed Angle Lighting
+
+Fully ISO Compliant
+
+
+Comparing SBG and PCM
+PCM uses proprietary algorithms to provide simple code quality feedback. Unlike SBG, PCM does not have a calibration
+process, does not follow the ISO grading algorithm requirements, or report every quality parameter. While PCM results can
+provide a good idea of code quality, the results can also vary significantly between setups and hardware used.
+SBG works within space constraints where the distance and angle between a reader and a code are inconsistent with the
+standard verifier setup.
+Comparing SBG and Verification
+With SBG, you can access the same robust software algorithms and user interface as Verification but without the lighting and
+fixed focal distance restrictions. Standardization makes Verification results from verifier to verifier more consistent but limits
+the type and placement of barcodes that can be verified. Use SBG to get the reliability of ISO-compliant verification without
+the limitations.
+
+
+ISO Compliant Verification Requirements
+The ISO/IEC 15426-2 is a conformance standard that specifies the requirements for verifiers to comply with ISO 14515.
+Conformance calibration cards are used to calibrate verifiers to this standard, which contain intentional errors. With
+calibration, SBG can approximate the conditions for an ISO-compliant setup.
+The verifier must meet the following requirements for ISO 15426-2 2D matrix codes:
+
+     l   Accommodate Reflectance Calibration based on two points: Rmax and Rmin.
+     l   Collect reflectance measurements twenty times past the quiet zones.
+     l   Establish a reference grayscale image and binarized image as described in ISO-15415.
+     l   Decode images according to the reference decode algorithm spelled out in the bar code specification.
+     l   Report individual values for each of the grades spelled out in ISO-15415.
+     l   Determine and report an overall symbol grade.
+     l   Report the decoded data.
+
+
+
+
+                                                               11
+                                                                                                               Getting Started
+
+    l   Be able to do a conformance test within certain percentages for all test symbols on a certified test card with the
+        following parameters:
+             l   Rmax +/- 5%
+             l   Rmin +/- 3%
+             l   UEC 0,0
+             l   GNU +/- 0,06
+             l   ANU +/- 0.02
+             l   Contrast Uniformity CU +/- 0,08 of the Mod Value
+             l   FPD per grade
+
+Requirements for the verifier to be compliant with ISO 15426-2:
+    l   Able to be calibrated with two calibration points: Rb & Rs.
+    l   Collect reflectance measurements across multiple scans.
+    l   Create an SRP.
+    l   Analyze the SRP.
+    l   Report Individual SRP scan grades.
+    l   Determine an overall symbol grade based on averages of the individual SRP grades and include aperture and
+        wavelength in the overall grade.
+    l   Report Data.
+    l   Report all symbol characters, such as Function One and Code 128 encoding structure.
+    l   Conform to a conformance test using industry standard test cards with the following parameters:
+             l   Rmax +/- 5%
+             l   Decodability +/- ,08
+             l   Defect +/- ,08
+             l   Other manufacturer test symbol values on the test card
+
+
+
+
+                                                               12
+                                                                                   Setting Up Your DataMan 475 Verifier
+
+
+
+Setting Up Your DataMan 475 Verifier
+This section provides information on the physical appearance of the DataMan 475 Verifier . It also details the steps of
+installing the lenses and filters of the verifier, and gives information on the imager.
+
+
+Reader Layout
+The following image shows the lighting system of the DataMan 475 Verifier Label and the mounting holes underneath the
+plastic lighting cover.
+
+
+
+
+                        Item                                                        Description
+1                                                     Lens
+2                                                     Label Light attachment
+3                                                     Mounting holes (M3 x 5 mm)
+4                                                     Indicator light ring
+5                                                     Ethernet connection
+6                                                     External lighting connection (disabled for verification)
+7                                                     Breakout cable connection
+8                                                     DPM Light attachment
+
+The image shows the back cover of the DataMan 475 Verifier and the functions of the indicator lights.
+
+
+
+
+                             Item                                                        Description
+1                                                               Trigger button
+
+
+
+
+                                                              13
+                                                                                        Setting Up Your DataMan 475 Verifier
+
+
+
+
+                               Item                                                         Description
+2                                                                Power
+3                                                                Train status
+4                                                                Good/bad read
+5                                                                Network
+6                                                                Error
+7                                                                Peak meter
+8                                                                Indicator light ring
+9                                                                SD card slot
+10                                                               Tuning button
+11                                                               Ethernet
+12                                                               External light control
+13                                                               Power, I/O, and RS-232
+
+The table explains the indicator light ring behavior.
+
+     Type                  Signal                       Color                                   Meaning
+                Power                          GREEN                 Power ON
+                                               GREEN                 Trained
+Status          Train status
+                                               YELLOW                Untrained
+                Error                          RED                   Error - check device log
+                                               GREEN                 Good read
+                Good/bad read
+                                               RED                   Bad read
+Action                                         YELLOW                Link up
+                Communication
+                                               blink                 Activity
+                Peak meter                     -                     Decode yield, train progress/quality
+
+
+
+
+                                                                14
+                                                                                  Setting Up Your DataMan 475 Verifier
+
+
+Dimensions
+    Note:
+         l   Dimensions are in millimeters [inches] and are for reference purposes only.
+         l   All specifications are for reference purposes only and can change without notice.
+
+Observe the following DataMan 475 Verifier dimensions when installing the verifier.
+
+
+DataMan 475 Verifier Label Light
+
+
+
+
+DataMan 475 Verifier DPM
+
+
+
+
+                                                              15
+                               Setting Up Your DataMan 475 Verifier
+
+
+DataMan 475 Verifier HD
+
+
+
+
+                          16
+                                                                                Setting Up Your DataMan 475 Verifier
+
+
+Removing Illumination Attachment
+In cases where only 90° lighting is necessary or space is limited, you can remove the lighting attachment from the DataMan
+475 Verifier DPM.
+Perform the following steps to safely remove the illumination attachment:
+
+   1. Remove the marked screws then pull the side illumination attachment away.
+
+
+
+
+                                                             17
+                                                                            Setting Up Your DataMan 475 Verifier
+
+2. Remove the screws of the cover plate located on the top of the illumination attachment.
+
+
+
+
+                                                        18
+                                                                       Setting Up Your DataMan 475 Verifier
+
+3. Pull the cover plate off from the top of the lighting attachment.
+
+
+
+
+                                                           19
+                                                                   Setting Up Your DataMan 475 Verifier
+
+4. Install the cover plate on the underside of the main housing.
+
+
+
+
+                                                         20
+                                                                                   Setting Up Your DataMan 475 Verifier
+
+   5. Fit the cover plate in place and tighten the screws with a torque value of 0.35 Nm for sealing.
+
+
+
+
+To reattach illumination attachment, follow this procedure in reversed order, then tighten the screws with a torque value of
+0.35 Nm for sealing.
+
+
+Additional Information
+DataMan 475 Verifier Specifications
+ Specification               DataMan 475 Label Light                    DataMan 475V DPM                DataMan 475V HD
+Lighting Types    660 nm, 45°, 4-quadrant                            660 nm, 45°, 4-quadrant
+                                                                     660 nm, 30°, 1-quadrant, 2-quadrant, 4-quadrant
+                                                                     660 nm, 90°
+Minimum X-        6 mil (0.15 mm)                                    3.75 mil (0.095 mm)          1 mil (0.025 mm)
+Dimension
+Working           60 mm                                              41 mm with side lighting attachment
+Distance                                                             71 mm without side lighting attachment
+
+
+
+
+                                                              21
+                                                                                   Setting Up Your DataMan 475 Verifier
+
+
+Specification                DataMan 475 Label Light                      DataMan 475V DPM               DataMan 475V HD
+Depth of Field    +/- 3 mm                                            5 mil symbols: +/- 1.5 mm 1 mil symbols: +/- 0.2 mm
+(Working                                                              15 mil symbols: +/- 2.5 mm 4 mil symbols: +/- 0.8 mm
+Distance
+tolerance)
+Weight            945 g                                               1940.1 g                       1900 g
+Field of View     80 x 60 mm                                          35 x 29 mm                     11 x 9 mm
+Dimensions        185 x 185 x 175 mm                                  286 x 145 x 193 mm             360 x 145 x 193 mm
+Lens Type         12 mm fixed focal length, f/4 fixed aperture, 2/3   35 mm fixed focal length,      75 mm fixed focal length,
+                  inch sensor format, C-mount lens (you cannot        f/4 fixed aperture, 2/3 inch   f/4 fixed aperture, 2/3 inch
+                  alter lens)                                         sensor format, C-mount         sensor format, C-mount
+                                                                      lens (you cannot alter lens)   lens (you cannot alter lens)
+Power             24 VDC ±10%, 1.5 A maximum (Label Light, 36 W peak power consumption)
+Consumption       Supplied by LPS or NEC class 2 only.
+Light             0.4 A
+Connector
+                      Note: The Light Connector is disabled while the Label Light or DPM accessory is in place.
+
+Case              0°C – 57°C (32°F – 134.6°F)
+Temperature1
+Operating         0 °C – 40°C (32 °F – 104°F)
+Temperature2
+Storage           -20°C – 80°C (-4°F – 176°F)
+Temperature
+Humidity          < 95% non-condensing
+Environmental     IP67                                                IP65 with cable                IP65 with cable
+characteristics
+Shock             IEC 60068-2-27: 18 shocks (3 shocks in each         -                              -
+(Shipping and     polarity in each (X, Y, Z) axis) 80 Gs (800 m/s2
+Storage)          at 11 ms, half-sinusoidal) with cables or cable
+                  plugs and appropriate lens cover attached.
+Vibration         IEC 60068-2-6: vibration test in each of the three -                               -
+(Shipping and     main axis for 2 hours @ 10 Gs (10 to 500 Hz at
+Storage)          100 m/s2 / 15 mm) with cables or cable plugs
+                  and appropriate lens cover attached.
+Supported         1D codes: Codabar, Code 39, Code 128, and Code 93, Interleaved 2 of 5, UPC/EAN/JAN
+Symbologies       2D codes: Data Matrix (ECC 200), QR Code, microQR Code Stacked codes: PDF 417
+Maximum           1D: 20 codes/second*                                2D: 10 codes/second*           Application Dependent
+Codes per         2D: 10 codes/second*
+Second
+Maximum           3.6 ft/second (1.1 m/second)                        4.6 ft/second (1.4             Application Dependent
+Linear Line                                                           m/second)
+Speed
+
+
+
+
+                                                              22
+                                                                                        Setting Up Your DataMan 475 Verifier
+
+
+    Specification              DataMan 475 Label Light                       DataMan 475V DPM              DataMan 475V HD
+Coplanarity         +/- 3° of coplanar                                    +/- 2° of coplanar           +/- 0.1° of coplanar
+Tolerance
+Approvals           CE, TUV, FCC, KC
+Industry            ISO/IEC 15415, ISO/IEC 15416, ISO/IEC 29158, ISO/IEC 15426-1, ISO/IEC 15426-2
+Standards
+Compliance
+Application         GS1, MIL-STD 130, UID, UDI, HIBCC, ISO/IEC 15434, Russian Crypto-code, Custom Application
+Standards           Standards
+Discrete I/O        HS Output 0,1,2,3                              IMAX             @ 12 VDC                    50 mA
+operating limits
+                                                                   RMIN                                         200 Ω
+                    Input 0 (Trigger)                              VIH              ±15 — ± 28 V
+                    Input 1,2,3                                    VIL              0—±5V
+                                                                   ITYP             @ 12 VDC                    2.0 mA
+                                                                                    @ 24 VDC                    4.2 mA
+
+Ethernet Speed 10/100/1000
+Image Sensor        2/3 inch CMOS, global shutter
+Image Sensor        8.8 mm x 6.6 mm (H x V); 3.45 µm square pixels 8.5 mm x 7.1 mm (H x V); 3.45 µm square pixels
+Properties
+Image               2448 x 2048
+Resolution
+(pixels)
+
+1
+Additional cooling measures may be required to keep the case temperature from exceeding 50°C. Examples of such
+measures include: extra heat sinking and/or air movement.
+2
+In situations where the operating temperature exceeds 40 °C, an external heat sink is required.
+
+
+DataMan 475 Series Verifier Imager Specifications
+       Specification                                                  DataMan 475 Imager
+Image Sensor                 2/3 inch CMOS, global shutter
+Image Sensor                 DM475 Verifier: 8.8 mm x 6.6 mm (H x V); 3.45 µm square pixels
+Properties                   DM475 DPM and HD: 8.5 mm x 7.1 mm (H x V); 3.45 µm square pixels
+Image Resolution             2448 x 2048
+(pixels)
+Electronic Shutter           Minimum exposure: 15 µs
+Speed                        Maximum exposure: 5000 µs
+                             Typically set at 30 µs by calibration process for ISO/IEC 15415.
+
+                                  Note: If the user adjusts the shutter speed, there is no guarantee that the verifier retains
+                                  compliance.
+
+
+
+
+                                                                 23
+                                                                                Setting Up Your DataMan 475 Verifier
+
+
+     Specification                                                 DataMan 475 Imager
+Image Acquisition at     37 Hz for imager without lighting.
+Full Resolution
+                             Note: Max. acquisition speed with 45 lighting degree accessory enabled is significantly less.
+                             Practical acquisition rate is application dependent.
+
+
+
+LED Wavelengths
+The following table shows LED types and the related peak wavelengths:
+
+                           LED                                                           λ [nm]
+RED                                                            660
+
+
+
+
+                                                              24
+                                                                                                             User Interface
+
+
+
+User Interface
+This section describes the settings and options of the TruCheck Verification window.
+
+
+
+
+Toolbar
+       Icon                                                       Function
+                   Settings: Opens up the settings menu allowing changes in the Application Settings, Calibration Settings,
+                   Trending Settings, User Information, Report Settings, and Navigation menus. For more information, see
+                   Settings on page 45.
+                   Calibration: Opens up the calibration window to calibrate the unit. For more information, see Calibration
+                   on page 34.
+
+
+                   Grid & Modulation Circles: Select Grid & Modulation Circles to apply a grid or a modulation circle to
+                   the image after verification. Use the drop-down menu to apply a Real Grid, an Ideal Grid, or both.Select
+                   Mod Circles Filled or Mod Circles Outlined options according to your needs.
+                   Original Image: Shows the image as the imager has aqcuired the image before post processing.
+
+
+
+
+                                                            25
+                                                                                                        User Interface
+
+
+Icon                                                      Function
+       45° illumination: Enables 45° illumination. 45° four-sided illumination is used primarily for labels. 45°
+       illumination is either not reported or reported as 45Q. If the system does not report illumination, it is
+       assumed to be 45Q.
+
+           Note: This lighting option is available on the DataMan 475V, the 475V DPM, and 475V HD.
+
+       Select this icon for 30° two-sided illumination. 30° two-sided illumination can be from either the
+       North/South or East/West. 30° two-sided illumination is useful on cylindrical surfaces. Select the sides in
+       parallel to the axis of the cylinder. This illumination is reported as 30T.
+
+           Note: This lighting option is available on DataMan 475V DPM and 475V HD.
+
+
+
+       Select this icon to use one side of the 30° lighting. Use the drop down menu to select one of the four
+       sides for 30° lighting. If you select this lighting option but you do not select any individual lighting side, the
+       software uses top 30° lighting. The system reports one side 30° illumination as 30S.
+
+           Note: This lighting option is available on DataMan 475V DPM and 475V HD.
+
+       Select this icon to use four side 30° illumination. Four side 30° illumination reduces glare from some
+       substrates, which cause poor Symbol Contrast or Modulation grading. The system reports four side 30°
+       illumination as 30Q and is used primarily for DPM applications.
+
+           Note: This lighting option is available on DataMan 475V DPM and 475V HD.
+
+       Select this icon for 90° specular illumination. 90° specular illumination works well on very shiny
+       substrates and Dot Peen Applications. 90° specular illumination is reported as 90.
+
+           Note: This lighting option is available on DataMan 475V DPM and 475V HD.
+
+
+
+
+                                                    26
+                                                                                         Using Your DataMan 475 Verifier
+
+
+
+Using Your DataMan 475 Verifier
+Setting Up DataMan Setup Tool
+This section provides information on the installation process of the DataMan Setup Tool and external triggers.
+
+
+Verifying Your First Code
+Follow the steps below to install and connect your verifier to the DataMan Setup Tool:
+
+   1. Download the latest version of the DataMan Setup Tool from http://www.cognex.com/support/dataman and follow the
+      on-screen steps.
+   2. Check the DataMan Release Notes for a full list of system requirements found at C:\Program Files
+      (x86)\Cognex\DataMan\DataMan Software <version>\Documentation\English.
+   3. Connect the DataMan 475 Verifier to your PC using the x-coded Ethernet cable and power the reader using the
+      breakout cable.
+   4. Launch the DataMan Setup Tool and click Refresh.
+
+
+
+
+            Note: Detected readers appear under COM ports or Network devices, or both.
+
+
+
+
+       If the verifier does not appear in the list of devices, you can use either the Add Device or Force Network Settings
+       options in the DataMan Setup Tool under Repair & Support. For more information, see the DataMan Setup Tool
+       Reference Manual.
+
+
+
+
+                                                             27
+                                                                                     Using Your DataMan 475 Verifier
+
+   5. Select a verifier from the list and double click it or click Connect.
+
+
+
+
+   6.   After connecting, the TruCheck window automatically opens.
+
+
+
+
+           Note: If TruCheck window does not open or needs to be re-opened at any point during verification, select the
+           TruCheck window icon under the View menu on the ribbon bar in Setup Tool.
+
+           Note: If you are running the DM475V at line speed, you may need to disconnect Setup Tool and obtain results
+           through the device output interface.
+
+
+    WARNING: Do not stare into the beam when adding, removing, or changing cables. Cognex recommends
+    disconnecting the verifier from power whenever you make physical changes to it.
+
+Follow the steps below to connect your reader to power and network:
+
+
+
+
+                                                               28
+                                                                                         Using Your DataMan 475 Verifier
+
+
+    CAUTION: Make sure that the verifier is not receiving power before you perform any I/O wiring or adjustments to I/O
+    devices.
+
+    CAUTION: Make sure that the Ethernet cable is grounded at the far end. Whatever this cable is plugged into (usually a
+    switch or router) should have a grounded Ethernet connector. Use a digital voltmeter to validate the grounding. If the far
+    end device is not grounded, add a ground wire in compliance with local electrical codes.
+
+   1. Connect the I/O+RS232+24 V cable to your reader.
+   2. Connect your reader through an Ethernet cable to your network for a network connection.
+   3. Connect the cable to a 24 V power supply.
+
+
+External Triggers
+If you are using external triggering, you can use any of the following methods to trigger your DataMan 475 Verifier :
+     l   Press the trigger button on the reader.
+     l   Send a pulse on the I/O cable:
+              l   Trigger + (orange or red)
+              l   Trigger - (black)
+     l   Send a serial trigger command over the RS-232 connection connection.
+     l   Press <CTRL-T> on the keyboard while the DataMan Setup Tool has the input focus.
+     l   Click the Trigger button in the DataMan Setup Tool:
+
+
+
+
+Verifying a 1D Barcode
+To verify a 1D barcode in the TruCheck Verification Window:
+
+   1. Navigate to the Main tab.
+   2. Click Go Live and center your symbol in the field of view. Alternatively, press and release the trigger button or press
+      Ctrl+T to Go Live. After selecting Go Live, the button changes to Verify.
+   3. Position the red target in the display over the center of the code.
+
+
+
+
+                                                               29
+                                                                                         Using Your DataMan 475 Verifier
+
+   4. Draw a selection region over the code, making sure that the region stays within the boundaries of the code. If the
+      region extends outside the area of the code, the verifier attempts to scan the empty part of the region, resulting in un-
+      decoded scans.
+
+           Note:
+                l   If you enable Linear Auto Detect in the 1D Settings menu, the selection region can extend beyond the
+                    boundaries of the code without affecting the grade. If you do not define a region, the verifier defaults to
+                    using Linear Auto Detect for linear bar codes, regardless of whether you have enabled the setting or not.
+                l   For linear symbols, the verifier examines areas outside the selection region in order to properly find and
+                    grade quiet zones. The region does not limit the verification to ignore areas outside the code, which can
+                    otherwise lead to wrong or misleading grade results.
+
+   5. Click Verify Code.
+
+
+Verifying a 2D Barcode
+To verify a 2D barode in the TruCheck Verification Window:
+
+   1. Navigate to the Main tab.
+
+   2. Click Go Live and center your symbol in the field of view. Alternatively, press and release the trigger button or press
+      Ctrl+T to Go Live.
+
+           Note: After selecting Go Live, the button changes to Verify.
+
+
+
+
+                                                              30
+                                                                                          Using Your DataMan 475 Verifier
+
+   3. Draw a selection region around the code to be verified, if necessary.
+
+            Note: Make sure to draw the region around the outside perimeter of the code including quiet zones. More
+            information on properly defining regions is explained in Selecting Regions on page 33.
+
+
+
+
+   4. Click Verify, or press and release the trigger button or Ctrl+T on the verifier to begin verification.
+
+            Note: The following screenshot shows a successful 2D barcode verification. Additional details in the TruCheck
+            window are displayed depending on grading and application standards.
+
+
+
+
+    Note: Use the tool bar buttons and tabs on the screen for in-depth analysis of codes. For more information, see
+    Examining the Results on page 67.
+
+
+Verifications of Multiple Symbols
+To enable the multiple barcode verification feature, complete the steps in DataMan Setup Tool before initiating verification in
+the TruCheck window.
+
+   1. Open DataMan Setup Tool.
+   2. To connect to the DM475 Verifier double click on the icon in the automatically generated list on the Start up page.
+
+            Note: If you have trouble connecting, refer to DataMan Setup Tool Reference manual.
+
+   3. Select Code Details from the Application Steps in Setup Tool.
+
+
+
+
+                                                               31
+                                                                                              Using Your DataMan 475 Verifier
+
+    4. Under the Basic tab, change the Number of Codes field to a value greater than 1 to see the expanded list of options
+       available.
+
+
+
+
+    5. Select the Number of Codes to be verified during a single trigger.
+    6. For Should partial result be reported as a good-read? select No.
+
+
+
+
+    7. Select the quantity of each symbology type to be verified in a single trigger under Maximum number of codes per
+       symbology you need to find.
+    8. Select the appropriate Sorting Priority.
+    9. Open the TruCheck window and initiate a verification.
+       For multiple verifications, select either a single region to identify all symbols for verification, or the entire field of view.
+
+See the individual results in the tabs with the help of the arrows at the top of the TruCheck verification window, following the
+successful verification of multiple symbols. If all verifications pass, the box is green. If any verification fails, the box is red.
+
+
+
+
+Saved Code Quality reports include an appended report containing individual result for each verified barcode.
+
+
+
+
+                                                                  32
+                                                                                           Using Your DataMan 475 Verifier
+
+
+Selecting Regions
+Requirements for specifying regions on the image are the following:
+     l   Specify a small sampling area, to speed up the verification process on verifiers with large fields of view,
+     l   Restrict a region for image brightness adjustments when grading according to AIM-DPM (ISO/IEC 29158)
+     l   Specify a barcode for verification when more than one barcode is present in the field of view
+
+If you do not specify a region, the whole image is used for verification.
+To specify a region, use the cursor to drag and drop.
+For Data Matrix symbols and QR Codes, specify the region around the outside perimeter including quiet zones of the code to
+capture the entire finder pattern within the selection to properly grade the code.
+
+When verifying a 1D symbol, select a region that includes the full width of the barcode including both quiet zones. To deselect
+a region, right-click in the Live View window.
+
+
+
+
+                                                                33
+Calibration
+Calibration informs the verifier about the grey scale levels of the verifier, telling it the most extreme dark and light values. This
+way, the verifier can establish a baseline to compare codes being verified and report a value for Symbol Contrast. In addition,
+this process also informs the verifier about pixel dimensions so that verifier can report X-dimension values.
+For ISO compliant barcode verification, make sure that the verifier is in a calibrated state.
+Calibration should be performed using a NIST traceable calibration card. See the Supported NIST Calibration Symbols on
+page 37 listed below.
+For Standards-Based Grading (SBG), the verifier does not report all quality parameters without calibration.
+Calibration with SBG
+The calibration process makes SBG one step closer to ISO compliant verification. You can use calibration to set a reflectance
+value baseline and to check how close the SBG setup results are to expected verification results. Use a conformance
+calibration card. For more information on Calibration Cards, see Calibration Cards on page 9. The card lists a grade and
+parameter values that an ISO compliant verifier should get, providing a reference point to gauge how accurate the SBG
+results are. Adjust the SBG setup, such as the lighting type, lighting angles, and focal distance, be closer to a ISO compliant
+verification setup to achieve ISO compliant verification results.
+In an uncalibrated state, the verifier does not report the following:
+     l   Aperture and Symbol Contrast (SC) for ISO/IEC 15415/15416 applications
+     l   Minimum Reflectance (MR) for ISO/IEC TR29158 (AIM-DPM) applications
+
+    Note: In an uncalibrated state, the verifier does not report aperture value, but uses the default aperture selection: Auto
+    50% for 1D applications or Auto 80% for 2D applications.
+
+
+
+
+                                                                34
+Calibrate the DataMan 475 Verifier
+  1. Click the Calibration icon in the top left corner in the TruCheck Verification window.
+  2. Enter the Rmax and Rmin values from the Calibration Card on page 38.
+
+
+
+
+     Use the Advanced Calibration option only if you use a non-NIST traceable calibration symbol. This option allows you
+     to enter the Custom X-Dimension (mils) value of the barcode that you use to calibrate the unit. The calibration
+     process uses the Custom X-Dimension (mils) value to calibrate dimension measurements.
+  3. Click Center Target.
+  4. A live image appears in the Calibration screen. Center the verifier over the calibration symbol.
+  5. Clicking Start Calibration prompts a Calibrating progress bar appear in the window
+
+
+
+
+                                                            35
+6. If the calibration is successful, one of two messages pop-up.
+   If you performed the calibration with one of the supported NIST-traceable calibration symbols, the pop-up displays
+   the following:
+
+
+
+
+   When you perform a successful calibration with a supported NIST-traceable calibration symbol, a calibration time
+   date stamp appears on the bottom of the TruCheck window and is printed in the header of the report. For the list of
+   NIST-tracable calibration symbols, see the step list.
+   If you performed the calibration successfully with any readable symbol other than the supported NIST-traceable
+   calibration symbols, the pop-up displays the following:
+
+
+
+
+   If you perform a successful calibration with a non NIST-traceable calibration symbol, no calibration date is recorded
+   on the reports or displayed on the Main tab in the TruCheck window. Instead, the message reads "Calibration
+   Complete (not NIST-traceable)".
+   If the calibration failed, see step 8.
+7. For both successful calibration messages, you have the options to Save Calibration to non-volatile memory
+
+   If you select Yes, the unit saves the calibration for subsequent verifications and the values to non-volatile memory. If
+   you power down the unit, the calibration persists.
+   If you select No, the unit saves the calibration for subsequent verifications but does not save the values to non-
+   volatile memory. If you power down the unit, the calibration values are lost.
+
+
+
+
+                                                          36
+   8. If the calibration failed, the pop-up displays the following message:
+
+
+
+
+         A failed calibration means that the calibration target was not detected. Ensure that:
+              l   A valid, readable barcode is visible within the field of view and in focus.
+              l   You have selected the region of interest that includes the barcode that you use for calibration.
+              l   The calibration barcode symbology type is supported.
+              l   The calibration barcode symbology type is enabled in Code Details tab in the Setup Tool window.
+              l   The unit is not set for multiple verifications.
+              l   No filtering is enabled.
+
+
+Supported NIST Calibration Symbols
+    Note: Store the calibration card away from direct light to avoid compromising the calibration symbol.
+
+     l   1D and 2D symbols on the Cognex Calibration Card (Cognex #DMV-CCC)
+     l   Symbols 1 and 5 on the Applied Image Conformance Calibration Standard Enhanced Test Card for ISO IEC
+         Datamatrix and GS1 Datamatrix (Cognex #DMV-DMCC)
+
+             Note: For the DM475V-HD, Cognex recommends to use Symbol 5 for calibration because it is a small X-
+             dimension barcode. For all other verifiers, Cognex recommends to use Symbol 1 for calibration.
+
+     l   Symbol 1 on the GS1 ISO/IEC Data Matrix & GS1 Datamatrix Calibrated Conformance Standard Test Card (Cognex
+         #DMV-GS1CC)
+     l   EAN-13 MASTER GRADE and UPC-A MASTER GRADE symbols on the GS1 Calibrated Conformance Standard
+         Test Card for EAN/UPC Symbol Verifiers (Cognex #DMV-AICC)
+
+
+Calibration Frequency
+Calibrate your verifier as needed to ensure accurate verification results:
+     l   Calibrate monthly for laboratory or QA environment, which is free of dust, vibration, bright sunlight, or oil particulates.
+     l   Calibrate weekly for production environments where contaminants exist.
+     l   Create a custom calibration schedule where internal quality guidelines demand more frequent calibration.
+
+
+
+
+                                                                    37
+Enable a calibration reminder in Calibration Settings to alert you about the next scheduled calibration. After enabling the
+calibration reminder, set the number of days for prompting a calibration reminder. For more information, see Calibration
+Settings on page 56.
+
+    Tip: Click Discard Calibration to remove all calibration values and return the verifier to an uncalibrated state.
+
+
+
+
+Calibration Card
+Conformance calibration cards are an industry tool designed to support the proper calibration of verifiers. The card contains
+Conformance Test Symbols with intentional imperfections that can check the reporting capabilities of the verifier and
+document conformance to industry standards such as ISO 15415, ISO 15416, and GS1 specifications.
+Be aware of the following regarding your calibration card:
+
+     l   Store the card away from dust and direct sunlight when not in use.
+     l   Calibration cards expire after 2 years from the in-use date.
+     l   Calibration does not require a specific symbology.
+         Calibrate your DataMan 475 Verifier using either type of calibration target, and the verifier is calibrated for both 1D
+         and 2D barcodes.
+
+See Calibration Cards for the Cognex Calibration Cards.
+
+
+Guided Focus Feedback
+Guided Focus Feedback is a feature that shows you which way to turn the hand wheel of the Stand accessory to position the
+verifier at the proper height for optimal focus on the barcode. You can enable or disable the Guided Focus Feedback in Live
+Mode. Failure to properly focus the verifier results in skewed results.
+The sharpness value indicates the sharpness of the image. Generally, move the verifier and watch as the number increases.
+At some point, if you continue moving the verifier in the same direction, the verifier passes the focal plane and starts to
+
+
+
+
+                                                                38
+become less focused, so the number decreases. At this point, move the verifier back to the position where it was at the
+highest focus.
+When using the adjustable height stand, then the guidance indicator (arrow) shows you which direction to turn the hand-
+wheel. If you are not using the stand, double-click on the focus indicator image to change the image set to arrows to indicate if
+the unit needs to be moved closer or further to the barcode.
+To use Guided Focus Feedback, perform the following steps in the Setup Tool window:
+
+   1. Select Optimize Image.
+   2. Expand the drop down menu under Live. Enable Decoding and Guided Focus Feedback in Live Mode. You must
+      enable Decoding for Guided Focus Feedback to work correctly.
+
+
+
+
+    Note: Guided Focus Feedback overrides Focus Feedback if it is enabled. You do not need to enable both.
+
+Guided Focus Feedback appears in the TruCheck window to the right of the image. When you enter the Live Mode for the
+first time, the guidance indicator displays an up and down arrow indicating that you should begin moving in either direction.
+
+    Note: If the Guidance Focus Feedback icons do not appear, click the Go Live button. You may need to close and
+    reopen the TruCheck window.
+
+
+
+
+                                                              39
+3. Move the verifier closer to or further from the target to make the image sharper so it can detect the code.
+   The guidance indicator is now a green or yellow arrow. Once the code is detected, the guidance indicator shows the
+   best direction to move the Stand handle of the Stand accessory to improve focus. The sharpness value appears
+   below the guidance indicator. As the image becomes sharper, the sharpness value increases.
+
+
+
+
+                                                          40
+4. As you continue to adjust the focus, the sharpness value will reach a maximum "peak" value and then decreases as
+   you go past the point of best focus. At this point, the guidance indicator turns green and the peak sharpness value
+   also appears. The guidance indicator shows which direction is the best focus position. As you adjust, the current
+   sharpness value approaches the peak sharpness value.
+
+        Note: Adjust the position very slowly at this point.
+
+
+
+
+5. When the verifier is in the best focus position, the sharpness score and the peak sharpness score are very close, and
+   the good focus checkmark appears. Verify your code now.
+
+
+
+
+                                                           41
+    Note:
+         l   When you start to setup the verifier, move the verifier close to focus by trial and error. The verifier does not know
+             if the out-of-focus image is due to the verifier being too close or too far from the image, so it cannot tell you which
+             direction to go. Once the verifier detects the code, the verifier can tell you which direction to move the verifier.
+             This is why the directional guidance does not appear until you successfully move the verifier close enough to
+             detect a code.
+         l   The verifier can get confused if the texture in the image is too complicated or if you move in the opposite
+             direction than the verifier suggests. Always use your judgment to determine whether the image is truly in focus.
+         l   Adjust slowly to improve the accuracy of the guidance.
+         l   If you are not using the Stand accessory but you want to use Guided Focus Feedback, you can select alternate
+             guidance indicators by double-clicking Focus Adjustment.
+
+
+
+Standards-Based Grading Setup
+Aim for an optical setup that is as close as possible to a fully ISO/IEC compliant verifier, especially the lighting angle. The
+system calculates parameter values in the same way as with a verifier, so the closer the setup is to a true verifier, the closer
+the results are to true verification. If the lighting setup is the same, parameter values between SBG and Verification converge.
+Make sure that you calibrate the system if you want to perform Standards-Based Grading. If you use the verifier without
+calibration, the verifier does not report all quality parameters, such as the aperture or Symbol Contrast (SC) for ISO/IEC
+15415/15416 applications and Minimum Reflectance (MR) for ISO/IEC TR29158 (AIM-DPM) applications. See Calibration
+on page 34.
+
+    Note: In an uncalibrated state, the verifier does not report aperture value, but uses the default aperture selection: Auto
+    80% for 2D applications and Auto 50% for 1D applications.
+
+
+
+Feature Key Activation
+If the TruCheck verification window does not pop up when using SBG, check your system info to confirm TCVerification is
+listed and not just Verification.
+
+
+
+
+Standards-Based Grading Reports
+Since SBG is a non-ISO compliant verification and the lighting set up is unknown, the grade report format is slightly altered.
+Non-conforming parameters, such as lighting and aperture, are not reported.
+
+
+
+
+                                                                 42
+Scripting
+Setup Tool allows you to customize a script for outputting results. Use Scripting to output a wide variety of information. For
+more details on customizing and making your own scripts, see DataMan Communications and Programming Guide. For
+verification results, Setup Tool provides two scripting templates listing the most common output formats for verification
+results in a CSV or an HTML report.
+To enable scripting using the scripting templates:
+
+   1. Select the Format Data application step and the radio button to enable Script-Based Formatting on the Basic tab.
+
+
+
+
+   2. Select the Scripting tab on the ribbon menu.
+
+
+
+
+   3. In the Scripting pane on the ribbon, click Open Script.
+
+
+
+
+                                                              43
+   4. Navigate to the location of the Scripting templates: C:\Program Files (x86)\Cognex\DataMan\DataMan
+      Software vx.x.x\Scripts. One scripting template generates results to a .CSV file and the other generates
+      results to an .HTML file.
+   5. To save the output to a file, click the Results History window on the right.
+   6. In the Logging option, check the box to Log all result codes to file system and select the option for Logging and
+      reporting settings….
+
+
+
+
+   7. In the Logging and reporting settings menu, enter a file Path and File Name under the Result Code section. After
+      providing a File Name, you must include either .CSV or .HTML depending on which template is selected.
+   8. Select OK to save and exit.
+
+    Note: If you do not include .CSV or .HTML after the file name, Setup Tool will not save the report correctly.
+
+
+
+
+You can customize the scripts to show more or less detail. For the full list of scripting options, see the DataMan
+Communications and Programming Guide.
+
+
+
+
+                                                              44
+                                                                                                                  Settings
+
+
+
+Settings
+This section describes the settings and the options available in the TruCheck Verification window.
+
+
+Settings Menu
+To access Settings, select Settings in the upper left corner of the TruCheck Verification window.
+
+
+
+
+Application Settings
+The content of the Application Settings window depends on which Application Standard you select. The application
+standard setting automatically sets many of the parameters. The Generic application standard allows you to customize all
+adjustable verification and process parameters. Selecting a pre-defined application standard ensures that the DataMan 475
+Verifier uses the appropriate grading parameters for your application.
+
+
+
+
+                                                            45
+                                                                                             Settings
+
+
+
+
+    Number             Element                                  Description
+1            Grading Standard            For any Application Standard selected, you need to
+                                         select a Grading standard, depending on your
+                                         application.
+                                         Available options are:
+                                              l   ISO 15415/6
+                                              l   ISO 29158 (AIM-DPM)
+2            Application Standard        You can select pre-defined and custom application
+                                         standards. Application standards are detailed barcode
+                                         guidelines for a specific industry listing rules for allowed
+                                         code types, sizes, placement, and data formats. For
+                                         more information, see Application Standards Settings
+                                         on page 47.
+
+                                              l   Selecting a pre-defined application standard
+                                                  ensures that the DM475 Verifier uses the
+                                                  appropriate grading parameters for your
+                                                  application.
+                                              l   Generic application standard allows you to
+                                                  customize all adjustable verification and process
+                                                  parameters.
+                                              l   Auto application standard setting allows the
+                                                  software to automatically select the appropriate
+                                                  application standard based on the data
+                                                  formatting in the code being verified.
+
+
+
+
+                                    46
+                                                                                                                       Settings
+
+
+
+
+             Number                            Element                                      Description
+3                                  Dot Peen                          The Dot Peen option helps you connect dots in case of
+                                                                     codes created through a process where dots are
+                                                                     peened onto a metal surface. Select Dot Peen to use
+                                                                     the AIM-DPM Stick algorithm to connect dots. For more
+                                                                     information, see in Dot Peen on page 56.
+
+The Reset Defaults button resets the Application Settings menu to the default settings (Auto).
+After clicking Reset Defaults, you must calibrate the verifier before using it. For more information, see Calibration on
+page 34.
+
+
+Grading Standards and Parameters
+For any Application Standard selected, you must use either ISO 15415 or ISO 29158 (AIM-DPM) depending on your
+application.
+     l   ISO 15415: Used for 2-D label based coder reports and displays verification results according to ISO/IEC 15415.
+     l   ISO 29158 (AIM-DPM): With ISO 29158 (AIM-DPM), you can select Dot Peen. When using AIM-DPM Grading,
+         verification uses X-dimension range instead of the aperture setting in accordance with the AIM-DPM methodology.
+
+For more information, visit support.cognex.com, and navigate to Resources > Introduction to Barcode Verification.
+
+
+Application Standards Settings
+Application Standards configure the verifier to grade according to pre-defined rules established by an industry standards
+body or other industry requirements.
+Select one of the options provided in the drop down box to specify the application standard.
+
+
+
+
+                                                              47
+                                                                                                                       Settings
+
+
+
+
+The available options are:
+     l   Pre-defined
+             o   GS1
+             o   HIBCC
+             o   UDI (GS1 or HIBCC)
+             o   UID (MIL-STD-130)
+             o   Auto
+             o   Cryptocode
+     l   Custom
+
+GS1
+GS1 application standard follows GS1 General Specification guidelines in code verification. GS1 General Specification
+Tables 1-11 describe several categories of applications. Select from the tables to specify the application category for your
+codes.
+
+
+
+
+                                                              48
+                                                                                                                        Settings
+
+
+
+
+If you select Auto (Warn if Ambiguous), the most applicable General Specification Table is automatically selected for you.
+
+
+
+
+The selected GS1 table is available in the Notes section of the report. For more information on the tables used for analysis,
+see GS1 General Specifications Standard.
+Specify ISO/IEC 15415 grading method for labels or ISO/IEC 29158 (AIM-DPM) grading method under Grading Standards
+in the TruCheck Verification settings window.
+Select Dot Peen, if applicable.
+
+    Note: The DataMan 475 Verifier uses the X-dimension of the decoded symbol to deduce which table applies. If the X-
+    dimension is outside the range allowed in your application, results are incorrect. To make sure that the verifier checks
+    all the correct requirements for your application, select the table in the GS1 General Specifications that applies to your
+    application.
+
+UID (MIL-STD-130)
+The UID (MIL-STD-130) application standard reports the quality standard according to the MIL-STD 130 specifying UID
+marks Construct 1 and Construct 2 that use data structure and code grade for verification. The MIL-STD 130 spells out
+acceptable grades and requirements for data format.
+
+
+
+
+                                                              49
+                                                                                                                    Settings
+
+Specify either the ISO/IEC 15415 grading or the ISO/IEC 29158 (AIM-DPM) grading for the MIL-STD-130 UID Application
+Standard. For more information, see Grading Standards and Parameters on page 47.
+
+
+
+
+Select Dot Peen, if applicable.
+
+UDI (GS1 or HIBCC)
+The UDI (GS1 or HIBCC) application standard checks symbols that meet UDI requirements for medical devices using either
+GS1 or HIBCC guidelines.
+Specify the ISO/IEC 15415 grading or the ISO/IEC 29158 grading. For more information, see Grading Standards and
+Parameters on page 47.
+
+
+
+
+    Note: UDI compliance requires data content that varies depending on the medical device the data is applicable to, so
+    the DM475V only validates the format, not the content. Validating format is automatic and in accordance with formatting
+    rules of the chosen grading standard guidelines.
+
+Select Dot Peen, if applicable.
+
+Generic
+Apply the Generic standard option when you are grading a code that is not expected to adhere to any pre-defined industry
+conformance standard, and so it can be customized with specific settings for:
+    l   Grading Standard: ISO 15415 or ISO 29158
+    l   Minimum and Maximum X-dimension
+    l   Minimum Acceptable Pass Grade
+    l   Data Format Check
+    l   Aperture Size
+
+
+
+
+                                                            50
+                                                                                                                       Settings
+
+
+
+
+Auto
+Apply the Auto application standard option to allow the verifier to select the correct application standard based on the format
+of the data encoded in the symbology. If the verifier detects GS1, HIBCC, or MIL-STD 130 standards within a symbology
+during verification, the verifier uses the correct application standard, respectively.
+
+    Note: Select the Custom application standard instead of Auto if the symbology contains data structure that the grading
+    of the automatic standards do not apply.
+
+
+
+
+Cryptocode
+The Cryptocode application standard checks symbols that meet Russian Cryptocode standard or other Cryptocode
+applications.
+
+
+
+
+                                                              51
+                                                                                                                    Settings
+
+
+
+
+Custom
+Apply the Custom standard option when you are grading a code that is not expected to adhere to any pre-defined industry
+conformance standard, and so it can be customized with specific settings for:
+    l   Grading Standard: ISO/IEC 15415 or ISO/IEC 29158
+    l   Minimum and Maximum X-dimension
+    l   Overall Pass Grade
+    l   Data Format Check
+    l   Aperture Size
+
+
+
+
+The Custom application setting options include Advanced Custom Application Standard option for the customization of
+grading by each individual quality parameter. The Advanced Custom Application Standard options allow you to select
+individual pass thresholds for each Quality Parameter for 1D and 2D symbologies. If a pass grade is selected for any of the
+Quality Parameters, the Overall Pass Grade, which is the Acceptance Criteria evaluation of Pass or Fail, is overridden for
+that parameter.
+
+
+
+
+                                                             52
+                                                                                                                    Settings
+
+
+    Note: For example, if you set the Overall Pass Grade to 1.5 and the Grid Non-Uniformity value individually to 3.5, a
+    symbol graded with a GNU value below 3.5 is given an Acceptance Criteria of Fail (Quality) even if the Overall Grade is
+    greater than 1.5. If you set all Advanced Custom options to N/A, the verification does not apply any Advanced Custom
+    application standard settings and evaluates the Quality Parameters according to the value in the Overall Pass Grade
+    only.
+
+Utilize the Advanced Custom Application Standard settings only in specific cases by users with a strong understanding of
+their application. Changing the Advanced Custom Application Standards directly impacts the Overall Grade during
+verification.
+In addition, the Advanced Custom Application Standard menu provides options to choose between ISO/IEC 18004 Quiet
+Zone (QZ) Requirement of a 4-module quiet zone or the ISO/IEC 16480 QZ Requirement of a 1-module quiet zone.
+You can choose between the following grading standard versions:
+    l   1D barcodes ISO/IEC 15416, versions: 2016 and 2025
+    l   2D barcodes: ISO/IEC 15415, versions: 2011 and 2024
+    l   DPM barcodes: ISO/IEC 29158, versions: 2011, 2020, and 2025
+
+At the bottom of the menu, a button is provided to Clear Advanced Parameters and reset all values back to N/A.
+
+
+
+
+                                                            53
+                                                                                                                       Settings
+
+
+
+
+Data Format Check
+You can apply a specific Data Format Check criteria to the data content of the code or leave the option as None. If you apply
+a specific Data Format Check , a Data Format Check grading box becomes available on the main screen of the User
+Interface to show the Pass or Fail grade. The report contains a Data Format Check table showing detailed parsing
+information.
+     l   GS1: The GS1 option checks the format of the data against GS1 formatting rules. GS1 codes generally begin with a
+         Function 1 <F1> character.
+     l   HIBCC: The HIBCC option checks the format of the data against HIBCC formatting rules. HIBCC codes generally
+         begin with a + character.
+     l   ISO/IEC 15434: The ISO 15434 option checks data for many industry standards which encode information using
+         ISO/IEC 15434 data structures. ISO/IEC 15434 codes generally begin with the sequence )]><RS>nn<GS> where nn
+         are two digits which are typically 05, 06 or 12. MIL-STD-130 and some shipping container applications use this
+         formatting style.
+
+
+
+
+Aperture Setting
+Aperture setting refers to a synthetic aperture as opposed to an optical aperture. Aperture is a circular region imposed on the
+pixels which comprise the individual modules making up the code. This process is mandated by the ISO/IEC 15415 and
+15416 standards. Set the aperture settings when choosing Generic Application Standards.
+Aperture Size setting is compatible with ISO/IEC 15415 only. AIM-DPM grading includes a blurred reference image, similar to
+ISO/IEC 15415. The AIM-DPM grading method dictates the aperture size to be either 50% or 80% of the symbol X-
+dimension.
+
+    Note: Aperture setting must match the Application Standard.
+
+
+
+
+                                                              54
+                                                                                                                        Settings
+
+Larger aperture sizes reduce:
+     l   Sensitivity to printing defects
+     l   Ability to resolve small elements in a code
+
+The size of the aperture is limited by the X-dimension of your symbols, or the X-dimension of your symbols is limited by the
+size of your aperture. Chose aperture size in application specification, quality specification or both. If you do not know the
+correct aperture size to select, choose Auto and the verifier uses guidelines in ISO/IEC 15415 to choose an aperture size
+based on the X-dimension of the code.
+Always specify an aperture size for the Generic Application Standard when using ISO/IEC 15415 Grading Standard.
+In the drop down menu, select:
+
+
+
+
+User Set
+The application allows you to specify the Aperture Setting. If you select User Set, an additional drop down menu shows up
+for you to select the aperture.
+
+
+
+
+Auto 50% or 80%
+The application automatically sets an aperture size based on 50% of the X-dimension for 1D symbologies and 80% of the X-
+dimension for 2D symbologies.
+Auto Aperture
+This chapter describes available automatic aperture settings.
+
+Auto Aperture for 1D Barcodes
+The application automatically sets an aperture size based on the X-dimension in accordance with the suggestion in ISO/IEC
+15416. For the Generic Application Standard, the following table applies for most symbologies:
+
+                          X-Dimension                                                      Aperture
+≤ 7.0 mil                                                        03 (3 mil)
+7.1 mil < x ≤ 13 mil                                             05 (5 mil)
+13 mil < x ≤ 25 mil                                              10 (10 mil)
+> 25 mil                                                         20 (20 mil)
+For UPC/EAN, regardless of X-dimension or magnification          06 (6 mil)
+
+You can override these rules by determining a specific aperture directly for any application that requires a specified aperture.
+An application specification (such as GS1 Gen Spec, or MIL-STD 129) specifies an aperture value which can be different
+than what the rules in the table would yield.
+
+Auto Aperture for 2D Barcodes
+The application automatically sets an aperture size based on the X-dimension in accordance with the suggestion in ISO/IEC
+15415. For the Generic Application Standard, the following table applies for most symbologies.
+
+
+
+
+                                                              55
+                                                                                                                  Settings
+
+
+                         X-Dimension                                                   Aperture
+≤ 6 mil                                                       02 (2 mil)
+6 mil < x ≤ 7.5 mil                                           03 (3 mil)
+7.5 mil < x ≤ 10 mil                                          05 (5 mil)
+10 mil < x ≤ 20 mil                                           08 (8 mil)
+20 mil < x ≤ 30 mil                                           16 (16 mil)
+≥ 30 mil                                                      20 (20 mil)
+
+
+    Note: AIM-DPM grading (ISO/IEC TR 29158) always selects an aperture automatically based on the X- Dimension of
+    the decoded symbol, which overrides the above rules. These rules apply to ISO/IEC 15415 grading if Auto Aperture is
+    selected.
+
+
+
+Dot Peen
+Use the dot peen option for codes created through a process where dots are peened onto a metal surface. Select Dot Peen
+to use the AIM-DPM Stick algorithm to connect dots.
+The following options are available when you select the Custom application standard:
+
+    Note: You can select Dot Peen only if you select ISO/IEC 29158 (AIM-DPM) as Grading Standard.
+
+    l     Min X-Dimension (mils)
+    l     Max X-Dimension (mils)
+    l     Pass Grade
+
+Min X-Dimension (mils)
+Set the minimum x-dimension value. It is not possible to set the value lower than 0.1 mil. Any code that falls below the
+minimum x-dimension receives a grade of Fail (X-Dimension out of Range). If you do not specify a minimum x-dimension, the
+application default is 5 mils.
+
+Max X-Dimension (mils)
+Set the highest possible x-dimension value. The highest value that can be set is 130 mils. Any code that is above the
+maximum x-dimension receives a grade of Fail (X-Dimension out of Range). If you do not specify a maximum x-dimension,
+the application defaults to 30 mils.
+
+Pass Grade
+Select a minimum passing grade based on a letter and a number which is C >1.5. Any verified code that does not receive an
+Overall Grade above the Pass Grade minimum receives a grade of Fail for Pass Grade on the User Interface and in the
+Report.
+
+
+
+
+Calibration Settings
+The Calibration Settings menu can enable a reminder for calibration as well as set the number of days that have elapsed
+since the previous calibration for the reminder.
+The verifier must be calibrated for ISO/IEC conformance.
+
+
+
+
+                                                           56
+                                                                                                                         Settings
+
+When the verifier is used in an uncalibrated state, neither the aperture nor Symbol Contrast (SC) for ISO/IEC 15415/15416
+applications and Minimum Reflectance (MR) for ISO/IEC TR29158 (AIM-DPM) applications are reported.
+
+    Note: If you use the verifier in an uncalibrated state, the default aperture selection is Auto 80% but no aperture value is
+    reported.
+
+In addition, there is a button to Discard Calibration and return the verifier to an uncalibrated state. Discarding the calibration
+can have some benefits. For example, if the ink and paper combination is not black and white, the software can reference the
+brighter and darker reflectance values of the codes, not just the extreme bright and dark values. Applications like UV greatly
+benefit from this feature.
+
+
+
+
+Trending Settings
+The Trending Settings menu allows users to set the threshold that determines if the trending is evaluated as Pass or Fail.
+With the option to set the values for X and Y, you can establish an overall verification failure when X out of the last Y
+verifications fail the current application standard.
+For example, if you set X to 3 and Y to 10, a message will show above the trending graph stating "Overall Verification Failure:
+0 out of the last 0 verifications failed the current application standard. Threshold is 3/10" whenever 3 or more of the last 10
+verifications resulted in a failing Overall Grade.
+The main screen in the TruCheck Window shows the trends. See User Interface on page 25.
+
+
+
+
+                                                               57
+                                                                                                                   Settings
+
+
+
+
+User Information
+The User Information menu provides fields for the user to include the Company Name, Operator Name, and Batch
+Number that are then added to the header of the report. Selecting the Auto Batch checkbox allows any batch number that is
+detected in the barcode to be added to the report. For example, if a GS1 DataMatrix symbol is verified that includes the
+Application Identifier for batch number, the batch number included is reported. Custom Note allows you to add a wide variety
+of information to the report.
+
+
+
+
+                                                            58
+                                                                                                                           Settings
+
+
+Report Settings
+The Report Settings menu allows you to select the unit of measurement for reporting values.
+
+
+
+
+                     Element                                                         Description
+Units of distance                                    Select a unit of measurement for reporting X-Dimension. You can
+                                                     choose:
+                                                          l   mils (thousandths of an inch)
+                                                          l   mm (millimeters)
+                                                          l   µm (micrometers)
+Generate Report                                      Check the Generate Report checkbox to allow generating reports.
+Report Sections                                      Each checkbox under Report Sections controls whether a particular
+                                                     section is included in the report. If you uncheck a checkbox, the report
+                                                     becomes smaller.
+
+
+Navigation
+The Navigation menu allows you to access certain options in the Setup Tool window to configure exporting results either
+through Setup Tool or FTP. The Navigation menu also provides a shortcut to enable or disable symbologies and to set up the
+verifier to verify multiple symbols in one verification. Click the View button to re-direct to the settings of each reporting option
+in Setup Tool.
+
+
+
+
+                                                                59
+                                                                                                                      Settings
+
+
+    Note: Maximize Setup Tool for the shortcuts to work. For more information on Setup Tool Panes, see the Setup Tool
+    Reference Manual.
+
+
+
+
+Results through Setup Tool (local machine)
+In the Results through Setup Tool (local machine) section, two options are available to navigate to the Setup Tool
+windows to set up a scripting menu for exporting verification results either as an HTML or CSV report:
+    l   Result Type
+    l   Result Formatting/Scripting
+
+For more information on the scripting options available for verification, see Scripting on page 43. For more information on
+broad scripting options available in Setup Tool, refer to the Scripting section of the DataMan Communications &
+Programming Guide.
+
+Result Type
+Click Result Type to open the Basic tab in the Format Data application step in Setup Tool. Select Script-Based
+Formatting to enable scripting for export of verification data to CSV or to custom, script-defined format.
+
+
+
+
+                                                              60
+                                                                                                                     Settings
+
+
+
+
+Result Formatting and Scripting
+The DataMan Setup Tool allows you to customize a script for outputting results. Use Scripting to output a wide variety of
+information. For verification results, the DataMan Setup Tool provides two scripting templates listing the most common
+output formats for verification results in a .csv or an .html report.
+For more details on customizing and making your own scripts, see DataMan Communications and Programming Guide.
+To enable scripting using the scripting templates provided:
+
+   1. Select the Format Data application step and the radio button to enable Script-Based Formatting on the Basic tab.
+
+
+
+
+                                                              61
+                                                                                                                       Settings
+
+   2. Select the Scripting tab on the ribbon menu.
+
+
+
+
+   3. In the Scripting pane on the ribbon, click Open Script.
+   4. Navigate to the location of the Scripting templates: C:\Program Files (x86)\Cognex\DataMan\DataMan
+      Software vx.x.x\Scripts. One scripting template generates results to a .csv file, and the other generates
+      results to an .html file.
+   5. To save the output to a file, click the Results History window on the right.
+   6. In the Logging option, check the box to Log all result codes to file system and select the option for Logging and
+      reporting settings….
+
+
+
+
+   7. In the Logging and reporting settings menu, enter a file Path and File Name under the Result Code section.
+
+
+
+
+            Note: After providing a File Name, you must include either .csv or .html, depending on which template is
+            selected. If you do not include .csv or .html after the file name, the report is not saved correctly.
+
+   8. Select OK to save and exit.
+
+You can customize the scripts to show more or less detail. For the full list of scripting options, see the DataMan
+Communications and Programming Guide.
+
+
+
+
+                                                              62
+                                                                                                                   Settings
+
+
+Results through FTP
+In the Results through FTP section, three options are available to navigate to windows in the Setup Tool that connect to an
+FTP server for exporting verification:
+    l   Image FTP Settings
+    l   Result FTP Settings
+    l   Report (scripting) FTP Settings
+
+For more information, see Setting Up FTP Transfer on page 64.
+
+Image FTP Settings
+Click Image FTP Settings to open the Image Transfer tab in the Format Data application step in Setup Tool. Enter
+information in this window to set up image export via FTP transfer.
+
+
+
+
+Result FTP Settings
+Click Result FTP Settings to open the Result FTP Transfer tab in the Format Data pane in Setup Tool. Enter information
+in this window to export verification results via FTP transfer.
+
+    Note: Minimize TruCheck window and click Setup Tool window on the taskbar.
+
+
+
+
+Report (scripting) FTP Settings
+Click Report FTP Settings to open the Report FTP Transfer tab in the Code Quality application step in Setup Tool. Enter
+information in this window to export verification results via FTP Transfer.
+
+
+
+
+                                                            63
+                                                                                                                    Settings
+
+
+
+
+Symbologies/Multi Mode
+Navigate to Code Details in Setup Tool that enable and disable symbology types and set up the verification of multiple
+symbols. For more information, see Verifications of Multiple Symbols on page 31.
+
+Symbologies/Number of Symbols
+Select Symbologies/Number of Symbols to open the Basic tab in the Code Details application step in Setup Tool. Enable
+or disable any symbology types and enable multiple verification in this window.
+
+
+
+
+Setting Up FTP Transfer
+To configure the Dataman 475V to export verification results through FTP, change settings in Setup Tool to communicate
+with an external FTP server. Setup Tool can export information about:
+    l   The image used for verification
+    l   The result information provided from the Result History pane in Setup Tool
+    l   The verification results provided in the Code Quality report.
+
+To begin setting up an FTP server, configure an FTP server to communicate with Setup Tool. To set up the necessary
+information in the Setup Tool window, choose from three panes available for FTP transfer depending on what you would like
+to transfer:
+
+
+
+
+                                                              64
+                                                                                                                          Settings
+
+     l   Image FTP Transfer
+     l   Result FTP Transfer
+     l   Report (scripting) FTP Transfer
+
+The TruCheck window provides shortcuts to the three Setup Tool panes Settings>Navigation>Results through FTP menu.
+For more information, see Results through FTP on page 63.
+You can also click Settings in Setup Tool on the ribbon menu and open Buffering and Transfer to access the FTP settings.
+
+
+Image FTP Transfer
+To set up image transfer via FTP, fill in the Server Address, the Username, and the Password (if applicable) fields
+depending on the setup of your FTP server settings.
+
+
+
+
+Result FTP Transfer
+To set up result transfer via FTP, fill in the Server Address, the Username, and, if the software prompts you, the
+Passwordfields, depending on the setup of your FTP server. Selecting this option exports the results available in the Result
+History pane of Setup Tool for exporting to the FTP server. After all required fields are filled in, select the box next to Enable
+Result Transfer via FTP. Use the FTP Transfer setting when exporting verification results using scripting. In case of using
+one of the included CSV script snippets, include the .csv file extension at the end of the File Name field, for
+example VerificationResults.csv.
+
+
+
+
+                                                               65
+                                                                                                                    Settings
+
+
+Report FTP Transfer
+To set up report transfer via FTP, fill in the Server Address , the Username, and the Password (if applicable) fields
+depending on the setup of your FTP server settings. Selecting this option exports the Code Quality report information to an
+FTP server. After all required fields are filled in, select the box next to Enable Code Quality Report Transfer.
+
+
+
+
+                                                            66
+                                                                                                   Examining the Results
+
+
+
+Examining the Results
+This section details how to view and analyze the verification results.
+
+
+1D & 2D Verification
+The following chapters discuss the user interface of the TruCheck Verification. The image displays the TruCheck Verification
+window.
+
+
+
+
+Main Tab
+The Main tab shows a snapshot of the verification results.
+Acceptance Criteria: Provides a Pass or Fail grade for the barcode and is dependent on the Application Standard
+selected. For more information, see Application Settings on page 45.
+Data: Shows the decoded data.
+Overall Grade: Shows the overall grade results for the barcode as both a letter grade (A) and numeric grade (4.0). A Formal
+Grade is provided in the format “Grade/Aperture/Wavelength/Lighting”.
+
+For example, a Formal Grade of “4.0/08/660/45” is interpreted as receiving a grade of 4.0 using 8 mil aperture (0.2 mm), 660
+nm wavelength, and 45° lighting.
+
+
+
+
+Format Grade: Indicates PASS or FAIL, depending on the Application Standard or Data Format Check criteria selected.
+For more information, see Application Settings on page 45.
+Symbology: The name of the type of barcode (for example, Data Matrix or Code 128).
+
+
+
+
+                                                               67
+                                                                                                       Examining the Results
+
+Grade Parameters: Provides information on the Quality Parameters grading for the barcode. For more information, see
+Quality Detail Tab on page 71.
+Grade Trending:
+
+
+
+
+The TruCheck window shows the grade trending values for symbol verified over time. The graph at the bottom of the Main
+window shows data points associated with the overall grade for each symbol verified. The grade trending reports the data
+point for each Overall Grade.
+
+In verifications where a symbol passes all quality parameters but, for another reason, fails the acceptance criteria such as
+data parsing error or X-dimension range, the grade is shown as an F. For example, if a symbol receives an overall grade of A
+(4.0) but fails for an X-dimension out of range, grade trending marks the data point as an F.
+
+
+
+
+   1. Enable or disable Grade Trending using the Trending checkbox in the Trending Settings menu.
+   2. Set a tolerance range for the number of verifications (X) allowed to fail out of the total number of verifications (Y)
+      specified.
+
+    Note: If the trending point falls below the specified threshold, trending is reported as an Overall Verification Failure. The
+    Pass Grade value set in the Application Settings menu determines if a symbol is a pass or fail for Grade Trending
+    purposes. Grade Trending does not show data points for verifications that result in a NO DECODE evaluation.
+
+    Note: Grade Trending data points remain populated and continue to trend on the Main window until you disconnect the
+    power from the verifier.
+
+
+General Characteristics Tab
+The General Characteristic Tab shows the physical characteristics of the verified barcode.
+The image shows the characteristics of a Data Matrix barcode:
+
+
+
+
+                                                               68
+                                                                                                   Examining the Results
+
+
+
+
+Contrast Uniformity verifies conformance with ISO/IEC 15426-2 as shown in the General Characteristics tab. Some of
+the contents of this screen depend on the symbology and settings on the Report Settings menu.
+The image shows the characteristics of a 1D barcode:
+
+
+
+
+Data Detail Tab
+The Data Detail tab shows all of the data encoded in the symbology in various ways, and makes the understanding of the
+symbology easier. The verbose interpretation of the symbology is especially helpful when the data is encoded incorrectly.
+The level of detail depends on the symbology and the selected Application Standards.
+The image shows the encoding information of a Data Matrix and the depiction of the symbol showing each module:
+
+
+
+
+                                                            69
+                                                                                                     Examining the Results
+
+
+
+
+The Data Detail tab contains the following parameters:
+
+   Data                                                            Content
+ Parameter
+Data            Refers to the data decoded from the symbology in normal, printable characters.
+Unicode         Shows the data interpreted as Unicode characters. The characters are the same as the characters in Data
+Data            section, except when the data in the symbology encodes non-latin characters, such as Kanji, using Unicode
+                encodation.
+ASCII           Gives ASCII value of each decoded character. ASCII values are helpful in case an unprintable character is
+Values          encoded in the symbology and you need to confirm that the character is correct.
+                For example, by looking at the ASCII values table, you can see that a <GS> in the decoded data is actually
+                the ASCII character with decimal value of 29, and not the four characters: “less than”, G, S, “greater than”.
+Codewords       Section lists the values of the raw codewords encoded in the symbology, including the error correction
+if applicable   codewords. An asterisk (*) denotes codewords which were decoded incorrectly and determined through
+                error correction decoding.
+Encodation      Shows the detailed conversion of raw codewords into decoded ASCII values using the encodation and
+Analysis if     compression methods defined for the symbology.
+applicable      For example, in Data Matrix an encodation method known as C40, the C40 method encodes 3 ASCII
+                characters in only two codewords. Similarly, PDF417 and other 2D symbologies have various methods of
+                encoding different types of data (such as numeric only data) in efficient ways. The encodation analysis table
+                can show you the process of this encodation or decoding.
+
+
+
+
+                                                              70
+                                                                                                     Examining the Results
+
+
+Modulation Table Legend
+To help interpret the color coding associated with the modulation table on the Data Detail tab, the software provides a legend.
+The letter grade associated with each modulation value range is shown on the left. The colors are distinguished based on
+whether the module is light (white) or dark (black).
+
+
+
+
+When a data checking failure occurs, a message indicates the cause of the failure.
+For example, if a check digit is incorrect, a message indicates the expected check digit value. When the verification detects
+and error, the application stops the parsing and generates a report.
+When you hover over the codewords in the Data Matrix Codeword table, the Code module display highlights modules
+constituting the 8-bit codeword are highlighted within the image to show where the data is encoded within a Data Matrix
+symbol.
+
+
+
+
+Quality Detail Tab
+The Quality Detail tab shows the measured quality parameters and lists the formal grade. Different symbologies and quality
+grading standards display pertinent data on the Quality Detail tab.
+Characteristics of a 2D Data Matrix code graded according to ISO/IEC 15415:
+
+
+
+
+                                                              71
+                                                                                                Examining the Results
+
+
+
+
+Characteristics of a 1D UPC-A symbol graded according to ISO/IEC 15416:
+
+
+
+
+Advanced Detail Tab
+The Advanced Detail tab shows in-depth information on the verified code. Depending on the type of the 1D or 2D code that
+was verified, the information on the Advance Detail tab may vary.
+The example shows the modulation values from the Histogram:
+
+
+
+
+                                                           72
+                                                                                                      Examining the Results
+
+
+
+
+The closer a value is to 0, the closer the module lands to the global threshold.
+     l   When a cell is marked with a 0, it means a value lands on or is on the wrong side of the global threshold and error
+         correction had to be used.
+     l   A dark red 0 indicates that a cell is shown as a space but it should be a module.
+     l   A light pink 0 indicates that it should be a space but it is shown as a module.
+
+
+Histogram Tab
+The Histogram tab shows the analysis of the reflectivity of each cell and associated grade.
+
+
+
+
+The horizontal axis on the histogram represents the brightness level with the dark elements on the left side and the bright
+elements on the right side. The brighter the element is, the histogram displays it farther to the right of the window. The height
+of each bar represents the number of elements with the same brightness associated with their position on the horizontal axis.
+The top graph of the histogram represents the brightness of all the pixels in the image. The bottom graph of the Histogram
+represents the center of modules in the symbol. The bottom graph only contains elements which are either definitively dark or
+definitively bright. The bars are grouped together because all the dark or bright modules of varying brightness are close to
+
+
+
+
+                                                                73
+                                                                                                       Examining the Results
+
+each other. Pixels with varying brightness are on the border between dark and light modules, therefore they obtain a middle
+value of brightness.
+The horizontal axis contains markers showing the global threshold (tall, orange line), and all modulation levels are separated
+for both dark and light elements.
+
+    Note: When grading according to ISO/IEC TR29158 (AIM-DPM), the Histogram gets different labeling. The location of
+    the 0% and 100% labels on the horizontal axis are at the means of the dark and light lobes of the Histogram and there is
+    no C level because the DPM grading method uses only A, B, D and F levels for Cell Modulation.
+
+
+Report Tab
+    Note: The Code Quality report contains the results specific to verification when the verification feature key is installed
+    and verification is enabled in the Setup Tool window. The Code Quality report contains the results and separate from
+    the previous Code Quality results that Process Control Metrics (PCM) generate.
+
+When you enable the Code Quality report, the Report tab becomes available in the TruCheck Verification window
+showing full verification results formatted into a printable report.
+
+
+
+
+                                                               74
+                                                                                                           Saving Reports
+
+
+
+Saving Reports
+You can see a preview of the report in the Report tab. See Report Tab on page 74.
+Check the Generate Report box in the Report Settings menu.
+
+
+
+
+You can save and print the report by right-clicking on the report. Select a printer or Save to PDF.
+Alternatively, you can save and print electronic reports by enabling the Code Quality report in the DataMan Setup Tool
+window:
+
+   1. Open the DataMan Setup Tool, and navigate to the Results History pane.
+   2. In the Logging drop-down menu, click on the Generate Code Quality reports.
+
+
+
+
+   3. In the same drop-down menu for Logging, select Logging and Reporting Settings to open the DataMan Setup
+      Tool Options window.
+
+
+
+
+                                                              75
+                                                                                                           Saving Reports
+
+   4. In the Reporting box, select the Path to save verification reports to your local computer or server. Include a
+      Filename Prefix or Filename Structure and select the Preferred Quality Report File Extension as either .html or
+       .pdf file.
+       For the Filename Prefix, you can enter a custom string, or use a predefined string variable that the system
+       automatically translates based on your settings. The following predefined strings are available:
+            l   {Grade}
+            l   {GradeLetter}
+            l   {GradeNumber}
+            l   {Symbology}
+            l   {Data}
+            l   {Batch}
+            l   {UII}
+            l   {Company}
+            l   {Operator}
+            l   {Note}
+
+            Note: The strings are case sensitive and must include the curly braces.
+
+
+
+
+            Note: The TruCheck Window only displays a report preview if you check the Generate Report checkbox under
+            Report Settings on page 59.
+
+
+Set Date and Time
+To place a time stamp on verification reports:
+
+
+
+
+                                                             76
+                                                                                                          Saving Reports
+
+1. Connect your verifier in the DataMan Setup Tool.
+2. Select Settings.
+
+
+
+
+3. Select System Settings.
+
+
+
+
+4. Select Device Time Settings from the dropdown menu.
+
+
+
+
+5. Choose your time zone from the dropdown menu and check Enable NTP.
+
+
+
+
+6. Enter an IP address for an NTP Time Server. An IP address can be found by searching the internet for NTP Time
+   servers.
+
+       Note: If the computer is not connected to the internet, you must connect it to a local time server on an internal
+       network.
+
+
+
+
+                                                         77
+                                Saving Reports
+
+7. Select Save Settings.
+
+
+
+
+                           78
+                                                                                                Cleaning and Maintenance
+
+
+
+Cleaning and Maintenance
+Cleaning the Verifier Housing
+To clean the outside of the verifier housing, use a small amount of mild detergent cleaner or isopropyl alcohol on a cleaning
+cloth. Do not pour the cleaner directly onto the verifier housing.
+
+    CAUTION: Do not attempt to clean any DataMan product with harsh or corrosive solvents, including lye, methyl ethyl
+    ketone (MEK) or gasoline.
+
+
+Cleaning the Verifier Lens Cover
+To remove dust from the lens cover, use a pressurized air duster. The air must be free of oil, moisture or other contaminants
+that could remain on the lens cover. To clean the plastic window of the lens cover, use a small amount of isopropyl alcohol on
+a cleaning cloth. Do not scratch the plastic window. Do not pour the alcohol directly on the plastic window.
+
+
+
+
+                                                              79
+                                                                                                Regulations and Conformity
+
+
+
+Regulations and Conformity
+     Note: For the most current CE and UKCA declaration and regulatory conformity information, see the Cognex support
+     site: cognex.com/support.
+
+DataMan 475 Verifier has Regulatory Model R00062, Label Light (DMV-475V-LBL-0200) has Accessory Model 50162, and
+meet or exceed the requirements of all applicable standards organizations for safe operation. However, as with any electrical
+equipment, the best way to ensure safe operation is to operate them according to the agency guidelines that follow. Please
+read these guidelines carefully before using your device.
+
+                                                    Safety and Regulatory
+Manufacturer      Cognex Corporation
+                  One Vision Drive
+                  Natick, MA 01760 USA
+USA               TÜV SÜD SCC/NRTL OSHA Scheme for UL/CAN 61010-1.
+                  FCC Part 15, Class A
+                  This equipment has been tested and found to comply with the limits for a Class A digital device, pursuant
+                  to part 15 of the FCC Rules. These limits are designed to provide reasonable protection against harmful
+                  interference when the equipment is operated in a commercial environment. This equipment generates,
+                  uses, and can radiate radio frequency energy and, if not installed and used in accordance with the
+                  instruction manual, may cause harmful interference to radio communications. Operation of this equipment
+                  in a residential area is likely to cause harmful interference in which case the user will be required to correct
+                  the interference at his own expense.
+Canada            TÜV SÜD SCC/NRTL OSHA Scheme for UL/CAN 61010-1.
+                  ICES-003, Class A
+                  This Class A digital apparatus complies with Canadian ICES-003. Cet appareil numérique de la classe A
+                  est conforme à la norme NMB-003 du Canada.
+Europe            DM475 (Regulatory Model R00062)
+                  Label Light (DMV-475V-LBL-0200) (Accessory Model 50162)
+                  The CE mark on the product indicates that the system has been tested to and conforms to the provisions
+                  noted within the 2014/30/EU Electromagnetic Compatibility Directive and the 2011/65/EU RoHS Directive.
+                  For further information, please contact: Cognex Corporation, One Vision Drive, Natick, MA 01760, USA.
+                  Cognex Corporation shall not be liable for use of our product with equipment (i.e., power supplies,
+                  personal computers, etc.) that is not CE.
+Korea             A급 기기 (업 무 용 방 송 통 신기 자 재 ): 이 기 기는 업무용 (A급) 전자파 적합 기 기 로 서 판 매 자 또 는 사 용
+                  자는 이 점 을 주 의 하 시 기 바라 며 , 가 정외의 지 역 에서 사 용하는 것을 목 적으 로 합 니다 .
+                  DM475 (Regulatory Model R00062)
+                  Label Light (DMV-475V-LBL-0200) (Accessory Model 50162)
+International  Conforms to IEC 61010-1, CAN/CSA-C22.2 No. 61010-1:2012 + UPD No. 1:2015-07, UL 61010-1:2012 +
+Product Safety R:2015-07, UL 61010-1:2012 + R:2015-07, EN 61010-1:2010.
+CB                TÜV SÜD, IEC/EN 61010-1. CB report available upon request.
+
+
+For European Community Users
+Cognex complies with Directive 2012/19/EU OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 4 July 2012 on
+waste electrical and electronic equipment (WEEE).
+This product has required the extraction and use of natural resources for its production. It may contain hazardous substances
+that could impact health and the environment, if not properly disposed.
+
+
+
+
+                                                               80
+                                                                                             Regulations and Conformity
+
+In order to avoid the dissemination of those substances in our environment and to diminish the pressure on the natural
+resources, we encourage you to use the appropriate take-back systems for product disposal. Those systems will reuse or
+recycle most of the materials of the product you are disposing in a sound way.
+
+
+
+      The crossed out wheeled bin symbol informs you that the product should not be disposed of along with municipal
+waste and invites you to use the appropriate separate take-back systems for product disposal.
+If you need more information on the collection, reuse, and recycling systems, please contact your local or regional waste
+administration.
+You may also contact your supplier for more information on the environmental performance of this product.
+
+
+
+
+                                                             81
+                                                                                                                    Precautions
+
+
+
+Precautions
+To reduce the risk of injury or equipment damage, observe the following precautions when you install the Cognex product:
+    l   The verifier is intended to be supplied by a UL or NRTL listed power supply with a 24VDC output rated for at least 2A
+        continuous and a maximum short circuit current rating of less than 8A and a maximum power rating of less than
+        100VA and marked Class 2 or Limited Power Source (LPS). Any other voltage creates a risk of fire or shock and can
+        damage the components. Applicable national and local wiring standards and rules must be followed.
+    l   Route cables and wires away from high-current wiring or high-voltage power sources to reduce the risk of damage or
+        malfunction from the following causes: over-voltage, line noise, electrostatic discharge (ESD), power surges, or other
+        irregularities in the power supply.
+    l   Do not install Cognex products where they are exposed to environmental hazards such as excessive heat, dust,
+        moisture, humidity, impact, vibration, corrosive substances, flammable substances, or static electricity.
+    l   Do not expose the image sensor to laser light. Image sensors can be damaged by direct, or reflected, laser light. If
+        your application requires laser light that might strike the image sensor, use a lens filter at the corresponding laser
+        wavelength. For suggestions, contact your local integrator or application engineer.
+    l   Changes or modifications not expressly approved by the party responsible for regulatory compliance could void the
+        user’s authority to operate the equipment.
+    l   Include service loops with cable connections.
+    l   Ensure that the cable bend radius begins at least six inches from the connector. Cable shielding can be degraded or
+        cables can be damaged or wear out faster if a service loop or bend radius is tighter than 10X the cable diameter.
+    l   This device should be used in accordance with the instructions in this manual.
+    l   All specifications are for reference purposes only and can change without notice.
+
+
+
+
+                                                               82
+                        Copyright © 2025
+Cognex Corporation. All Rights Reserved.
+

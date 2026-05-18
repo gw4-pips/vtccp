@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DMCCResponse>
+<DMSymVerResponse>
+<DateTime>2026-05-18T04:46:51</DateTime>
+<SymbologyName>Data Matrix</SymbologyName>
+<DecodedData>[)&amp;gt;<0x1E>06<0x1D>18VD89536<0x1D>1P8902A<0x1D>S3122A02965<0x1E><0x04></DecodedData>
+<PushScriptDiag>v1.23 q=r.trucheck m=found</PushScriptDiag>
+<Source>DM475-63530E-PIPS-Verif-Lab</Source>
+<FormalGrade>1/D</FormalGrade>
+<OverallGrade>D</OverallGrade>
+<OverallGradeNumeric>1</OverallGradeNumeric>
+<GradingStandard>ISO 15415:2011</GradingStandard>
+<ApplicationStandard>Custom</ApplicationStandard>
+<ApplicationPass>Fail (Quality)</ApplicationPass>
+<ApertureRef>17</ApertureRef>
+<Wavelength>660</Wavelength>
+<Lighting>45Q</Lighting>
+<Standard>ISO 15415:2011</Standard>
+<UECPercent>41.7</UECPercent>
+<UECGrade>C</UECGrade>
+<SCPercent>87.4</SCPercent>
+<SCRlRd>92/4</SCRlRd>
+<SCGrade>A</SCGrade>
+<MinReflectance></MinReflectance>
+<MODGrade>A</MODGrade>
+<RMGrade>C</RMGrade>
+<ANUPercent>11.5</ANUPercent>
+<ANUGrade>D</ANUGrade>
+<GNUPercent>6.7</GNUPercent>
+<GNUGrade>A</GNUGrade>
+<FPDValue>4</FPDValue>
+<FPDGrade>A</FPDGrade>
+<DecodeGrade>A</DecodeGrade>
+<AGValue>10.3</AGValue>
+<AGGrade>B</AGGrade>
+<MatrixSize>16x36</MatrixSize>
+<HorizontalBWG>11</HorizontalBWG>
+<VerticalBWG>11</VerticalBWG>
+<EncodedCharacters>33</EncodedCharacters>
+<TotalCodewords>56</TotalCodewords>
+<DataCodewords></DataCodewords>
+<ErrorCorrectionBudget></ErrorCorrectionBudget>
+<ErrorsCorrected>7</ErrorsCorrected>
+<ErrorCapacityUsed></ErrorCapacityUsed>
+<ErrorCorrectionType>ECC200</ErrorCorrectionType>
+<NominalXDim>21.4 mil</NominalXDim>
+<PixelsPerModule></PixelsPerModule>
+<ImagePolarity></ImagePolarity>
+<ContrastUniformity>65</ContrastUniformity>
+<MRD>68</MRD>
+<ContrastUniformityRow>12</ContrastUniformityRow>
+<ContrastUniformityCol>17</ContrastUniformityCol>
+<DDGrade>X</DDGrade>
+<AverageGrade>A</AverageGrade>
+<AverageGradeNumeric>4</AverageGradeNumeric>
+<CustomNote>Results from UPCE-44960 Cal. 23 JUN 2023</CustomNote>
+<LLSGrade>A</LLSGrade>
+<BLSGrade>A</BLSGrade>
+<LQZGrade>A</LQZGrade>
+<BQZGrade>A</BQZGrade>
+<TQZGrade>X</TQZGrade>
+<RQZGrade>X</RQZGrade>
+<TTRPercent></TTRPercent>
+<TTRGrade>X</TTRGrade>
+<RTRPercent></RTRPercent>
+<RTRGrade>X</RTRGrade>
+<TCTGrade>X</TCTGrade>
+<RCTGrade>X</RCTGrade>
+<ULQZGrade></ULQZGrade>
+<URQZGrade></URQZGrade>
+<RUQZGrade></RUQZGrade>
+<RLQZGrade></RLQZGrade>
+<LLQZGrade></LLQZGrade>
+<LRQZGrade></LRQZGrade>
+<HClockTrackGrade></HClockTrackGrade>
+<VClockTrackGrade></VClockTrackGrade>
+<ULQTTRPercent></ULQTTRPercent>
+<ULQTTRGrade></ULQTTRGrade>
+<URQTTRPercent></URQTTRPercent>
+<URQTTRGrade></URQTTRGrade>
+<LLQTTRPercent></LLQTTRPercent>
+<LLQTTRGrade></LLQTTRGrade>
+<LRQTTRPercent></LRQTTRPercent>
+<LRQTTRGrade></LRQTTRGrade>
+<ULQRTRPercent></ULQRTRPercent>
+<ULQRTRGrade></ULQRTRGrade>
+<URQRTRPercent></URQRTRPercent>
+<URQRTRGrade></URQRTRGrade>
+<LLQRTRPercent></LLQRTRPercent>
+<LLQRTRGrade></LLQRTRGrade>
+<LRQRTRPercent></LRQRTRPercent>
+<LRQRTRGrade></LRQRTRGrade>
+<ULQTCTGrade></ULQTCTGrade>
+<URQTCTGrade></URQTCTGrade>
+<LLQTCTGrade></LLQTCTGrade>
+<LRQTCTGrade></LRQTCTGrade>
+<ULQRCTGrade></ULQRCTGrade>
+<URQRCTGrade></URQRCTGrade>
+<LLQRCTGrade></LLQRCTGrade>
+<LRQRCTGrade></LRQRCTGrade>
+<SymbolAnsiGrade></SymbolAnsiGrade>
+<AvgEdge></AvgEdge>
+<AvgRlRd></AvgRlRd>
+<AvgSC></AvgSC>
+<AvgMinEC></AvgMinEC>
+<AvgMOD></AvgMOD>
+<AvgDefect></AvgDefect>
+<AvgDcod></AvgDcod>
+<AvgDEC></AvgDEC>
+<AvgLQZ></AvgLQZ>
+<AvgRQZ></AvgRQZ>
+<AvgHQZ></AvgHQZ>
+<AvgMinQZ></AvgMinQZ>
+<BWGPercent></BWGPercent>
+<Magnification></Magnification>
+<Ratio></Ratio>
+<NominalXDim1D></NominalXDim1D>
+<DebugModSize>len=684 sqrt=26.153393661244042 sqr=false</DebugModSize>
+<DebugECCount>total=56 corrected=7</DebugECCount>
+<DebugMetricsKeys>symbolContrast=[obj];cellContrast=[obj];axialNonUniformity=[obj];printGrowth=[obj];UEC=[obj];modulation=[obj];fixedPatternDamage=[obj];gridNonUniformity=[obj];extremeReflectance=[obj];reflectMin=[obj];edgeContrastMin=[obj];singleScanInt=[obj];multiScanInt=[obj];signalToNoiseRatio=[obj];horizontalMarkGrowth=[obj];verticalMarkGrowth=[obj];dataMatrixCellWidth=[obj];dataMatrixCellHeight=[obj];horizontalMarkMisplacement=[obj];verticalMarkMisplacement=[obj];cellDefects=[obj];finderPatternDefects=[obj];overallGrade=[obj];edgeDetermination=[obj];defects=[obj];referenceDecode=[obj];decodability=[obj];contrastUniformity=[obj];reflectanceMargin=[obj];minPassGrade=[obj];</DebugMetricsKeys>
+<DebugRSiblings>decoded=boolean=true;content=string=[)&gt;<0x1E>06<0x1D>18VD89536<0x1D>1P8902A<0x1D>S3122;decodeTime=number=221;triggerTime=number=257;timeout=number=2000;readSetup=number=0;symbology=[obj];image=[obj];validation=[obj];source=string=DM475-63530E-PIPS-Verif-Lab;annotation=string=;label=string=;custom_svg=string=;barcodeAssignment=[obj];</DebugRSiblings>
+<DebugSymbology>name=Data Matrix;id=]d1;quality=41;contrast=0.7803921568627451;moduleSize=16.183090209960938;corners=[arr.4];center=[obj];angle=1;size=[obj];failureCode=0;</DebugSymbology>
+<DebugCellDefects>raw=-1;grade=NA;</DebugCellDefects>
+<DebugFPDefects>raw=-1;grade=NA;</DebugFPDefects>
+<DebugDMCellDims>W=raw=-1;grade=NA; H=raw=-1;grade=NA;</DebugDMCellDims>
+<DebugValidation>state=0;method=0;failurePos=undefined;failureCode=undefined;failureMsg=undefined;gs1=[obj];dodUid=[obj];matchString=undefined;</DebugValidation>
+<DebugMetricShape>raw=0.7803921568627451;grade=A;</DebugMetricShape>
+</DMSymVerResponse>
+</DMCCResponse>	Read

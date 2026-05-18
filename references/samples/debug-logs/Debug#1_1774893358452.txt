@@ -1,0 +1,232 @@
+'VtccpApp.exe' (CoreCLR: DefaultDomain): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.CoreLib.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\VtccpApp.dll'. Symbols loaded.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationFramework.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\WindowsBase.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\System.Xaml.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'c:\program files\microsoft visual studio\18\community\common7\ide\extensions\microsoft\managedprojectsystem\HotReload\net6.0\Microsoft.Extensions.DotNetDeltaApplier.dll'. 
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Loader.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Console.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Collections.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.InteropServices.RuntimeInformation.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Collections.Concurrent.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Threading.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.IO.Pipes.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.InteropServices.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Threading.Overlapped.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Security.AccessControl.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Security.Principal.Windows.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Security.Claims.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\PrivateAssemblies\Runtime\Microsoft.VisualStudio.Debugger.Runtime.NetCoreApp.dll'. 
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Threading.ThreadPool.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.TraceSource.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\System.IO.Packaging.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Uri.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.RegularExpressions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationCore.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Memory.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\DirectWriteForwarder.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Extensions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.Debug.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\Microsoft.Win32.Registry.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.CompilerServices.VisualC.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Collections.Specialized.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\Microsoft.Win32.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Collections.NonGeneric.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.ComponentModel.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Threading.Thread.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\System.Configuration.ConfigurationManager.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.ReaderWriter.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Net.WebClient.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Encoding.Extensions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.ComponentModel.TypeConverter.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\System.Windows.Extensions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.ComponentModel.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.ObjectModel.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Net.Requests.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Net.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Net.WebHeaderCollection.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\EPPlus.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\ConfigEngine.dll'. Symbols loaded.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\ExcelEngine.dll'. Symbols loaded.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\DeviceInterface.dll'. Symbols loaded.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Json.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Encodings.Web.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Intrinsics.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Numerics.Vectors.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Reflection.Emit.Lightweight.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Reflection.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Reflection.Emit.ILGeneration.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\UIAutomationTypes.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.Process.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationFramework.Aero2.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationFramework-SystemXml.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\UIAutomationProvider.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\System.Windows.Controls.Ribbon.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\WindowsFormsIntegration.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'c:\program files\microsoft visual studio\18\community\common7\ide\commonextensions\microsoft\xamldiagnostics\Core\x64\Microsoft.VisualStudio.DesignTools.WpfTap.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.Tracing.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Threading.Tasks.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Serialization.Json.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.DataContractSerialization.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Serialization.Xml.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Serialization.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Resources.ResourceManager.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationUI.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Serialization.Formatters.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\Accessibility.dll'. Module was built without symbols.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.StackTrace.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'System.NotSupportedException' in System.ComponentModel.TypeConverter.dll
+Exception thrown: 'System.NotSupportedException' in PresentationCore.dll
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Reflection.Metadata.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Collections.Immutable.dll'. Symbol loading disabled by Include/Exclude setting.
+System.Windows.Data Error: 23 : Cannot convert '<null>' from type '<null>' to type 'System.Windows.Media.ImageSource' for 'en-US' culture with default conversions; consider using Converter property of Binding. NotSupportedException:'System.NotSupportedException: ImageSourceConverter cannot convert from (null).
+   at System.ComponentModel.TypeConverter.GetConvertFromException(Object value)
+   at System.Windows.Media.ImageSourceConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)
+   at MS.Internal.Data.DefaultValueConverter.ConvertHelper(Object o, Type destinationType, DependencyObject targetElement, CultureInfo culture, Boolean isForward)'
+The thread '.NET TP Worker' (58784) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (62540) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (42656) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (51952) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (61640) has exited with code 0 (0x0).
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Net.Sockets.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Encoding.CodePages.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.FileExtensions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Json.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Physical.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.Extensions.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Microsoft.IO.RecyclableMemoryStream.dll'. 
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Drawing.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+The thread '.NET TP Worker' (50220) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (40384) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (62288) has exited with code 0 (0x0).
+The thread 65088 has exited with code 0 (0x0).
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows\Cognex.DataMan.SDK.PC.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\mscorlib.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'Cognex.DataMan.SDK.InvalidCommandException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] Connected to 10.10.10.7.  FW=6.1.16_sr4  SetResultTypes(ReadXml) OK.
+Exception thrown: 'Cognex.DataMan.SDK.InvalidCommandException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] CMD 'SET DMCC.RESULT-FORMAT FULL' — InvalidCommandException: Exception of type 'Cognex.DataMan.SDK.InvalidCommandException' was thrown.
+Exception thrown: 'Cognex.DataMan.SDK.InvalidCommandException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] CMD 'GET SYMBOL.RESULT' — InvalidCommandException: Exception of type 'Cognex.DataMan.SDK.InvalidCommandException' was thrown.
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Writer Thread' (36316) has exited with code 0 (0x0).
+The thread 'DataMan SDK CallbackDispatcher Thread' (49008) has exited with code 0 (0x0).
+Exception thrown: 'System.IO.IOException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Reader Thread' (32996) has exited with code 0 (0x0).
+[VTCCP-SDK] Disconnected.
+The thread '.NET TP Worker' (40696) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (45316) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (43424) has exited with code 0 (0x0).
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationFramework-SystemXmlLinq.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+The thread '.NET TP Worker' (65336) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (53112) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (59072) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (59276) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (45932) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (47096) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (42008) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (53800) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (49252) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (56956) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (42700) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (63348) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (48784) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (60784) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (67568) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (67292) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (60632) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (65152) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (65608) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (40316) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (51204) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (58212) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (62148) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (47844) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (58164) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (56524) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (45544) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68660) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68664) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68672) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (60008) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (58012) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (28908) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (64176) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (60088) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (67304) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (45544) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (67392) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (43672) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (57080) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (69104) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (67988) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (50856) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (60752) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (45980) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (60192) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (41420) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (31036) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (64444) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (40820) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68676) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (41220) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (47824) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (58624) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (65476) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (60176) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (45160) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (30948) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (69324) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (50636) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (63404) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (57924) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (63784) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (34236) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (46588) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (67536) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (60124) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68228) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (66380) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (25344) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (64072) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (45520) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68372) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68212) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68584) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (42060) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (62460) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (61276) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (58476) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (65080) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (54316) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (3252) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (64684) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (65896) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (64764) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68388) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (69324) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (45768) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (61940) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (53992) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (66048) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (61292) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (42672) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68948) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (69536) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68672) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (68656) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (63560) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (43444) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (66448) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (65016) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (69188) has exited with code 0 (0x0).
