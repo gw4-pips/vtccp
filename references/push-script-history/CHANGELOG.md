@@ -136,7 +136,7 @@ Initial probe iteration. Smaller payload than v1.11.
 
 ## Pending versions
 
-- **v1.25** — scope now driven by v1.24 live confirmation findings:
+- **v1.25** — scope driven by v1.24 DM confirmation findings AND the QR/loaded-image capture (see below):
   - **Commit to full `<JpegImageBase64>`** emission. v1.24 confirmed `r.trucheck.jpegImage` is a base64 string of ~9.9 KB for a typical scan — comfortably within Network Client buffer. Just emit the value as-is (it's already a string).
   - **Drop `axialNonUniformity` (upper-U), keep `axialNonuniformity` (lower-u) first-class.** Upper returned null; lower returned `{grade:D,raw:11.368}`. Replace the v1.24 `DebugANUCase` probe with the resolved wire.
   - **Re-probe `r.metrics.printGrowth` shape** to fix the still-empty `<BWGPercent>`. v1.24's `mmPctAuto(printGrowth)` wire yielded empty — need to verify whether `printGrowth` is defined and what its actual shape is on this build.
@@ -144,6 +144,9 @@ Initial probe iteration. Smaller payload than v1.11.
   - **Deep-probe `r.barcodeAssignment.stats`** — top-level `result=-1` is "unassigned"; the `.stats` sub-object may carry useful diagnostics.
   - **Verify `<DebugImageShape>` emission** — it didn't appear in the v1.24 capture. Either `r.image` is undefined (probe should report that explicitly) or the probe code errored silently (needs try/catch guard).
   - Drop `r.decodeTime` / `r.triggerTime` wires (not in any v1.23 enumeration — were a misconception in the prior session-plan notes; the comms guide doesn't document them on `r` either).
+  - **Add `<OpticsSource>` field** — emit `LiveScan` vs `LoadedImage` based on `SymbolAngle===360` heuristic (confirmed from QR/image-load capture). This is the only reliable push-script-level discriminator found so far; `r.image` accessor didn't surface.
+  - **Strip ECI prefix from `<DecodedData>` for QR** — QR codes with ECI mode 26 (UTF-8) emit a `\000026` header before the payload; strip it for clean display. Add a helper function in v1.25.
+  - **QR-specific sentinel pattern confirmed**: ContrastUniformity=−1, MRD=−1, LLS/BLS/QZ grades=X on QR/loaded-image scans — these are "not applicable" sentinels, NOT errors. Parser must treat −1 as N/A, not as a grade failure.
   - The 21-unwired-metrics bulk extract concept is **deprecated**: v1.23 enumerated `r.metrics` and confirmed most "unwired" entries were either already wired (different name), DPM-only (NA on non-DPM scans), or `{raw:-1, grade:NA}` sentinels. Per-metric wire-up now happens case-by-case, not bulk.
 
 ---
