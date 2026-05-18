@@ -2,6 +2,32 @@
 
 **Source**: `release-notes-26.1.0.txt` (filed alongside, verbatim from Cognex)
 **Filed**: 2026-05-18, supplied while user was mid-install
+**Install outcome (2026-05-18, post-install)**: DMST 26.1.0 connects
+cleanly to the DM475V on 6.1.16_sr4. Device shown in network panel as
+**platform "DM470"** (DMST's family label for the verifier — explains
+why the release notes' "280/80, 380/580, 290/390, 8700" enumeration
+doesn't name us: we're the **DM470 family**, which appears nowhere
+in 26.1.0's enumerated updates). **No firmware update offered** —
+6.1.16_sr4 is the current top-of-tree for this verifier line.
+
+**Regression check (2026-05-18)**: Same physical Data Matrix symbol
+re-scanned on DMST 26.1.0 with the same v1.23 push script unchanged.
+Output captured at `references/samples/live-scans/v1.23-2026-05-18-DMST26.1-DataMatrix-GS1Format06.xml`.
+Diff vs. v25 baseline (`v1.23-2026-05-18-Probe-DataMatrix-GS1Format06.xml`,
+same symbol 90 min earlier):
+- **Schema: bit-identical** — 119/128 lines match exactly. All field
+  names, all empty fields, all DebugMetricsKeys / DebugRSiblings /
+  DebugSymbology structural lines unchanged.
+- **9 numeric drifts, all within measurement noise**: ANUPercent
+  11.5→11.4, GNUPercent 6.7→6.8, AGValue 10.3→10, VerticalBWG 11→10,
+  ContrastUniformity 65→71, MRD 68→71, moduleSize 16.183→16.186,
+  decodeTime 221→226 ms, triggerTime 257→261 ms. All are shot-to-shot
+  analog variance from re-imaging.
+- **One grade flip**: AGGrade B→A, crossing the 10.0 threshold from
+  10.3 to 10. Threshold artifact, not pipeline behavior.
+- **Verdict: pipeline is firmware-agnostic across the 25.4.1.1 →
+  26.1.0 DMST upgrade.** Push script v1.23, DmstResultParser, and
+  the full XML grammar all carry forward unchanged. Task B2 satisfied.
 
 ---
 
@@ -12,29 +38,27 @@
    backward compatibility at the protocol and script level — our v1.23
    push script and `DmccClient`/`DataManSdkClient` should keep working.
 
-2. **DM475V is NOT enumerated in any platform list in these notes.** This
-   is the single most important observation for our install:
+2. **DM475V is NOT enumerated in any platform list in these notes**,
+   and post-install evidence (2026-05-18) confirms why:
    - "General updates for fixed-mount platforms **280/80, 380/580, and
-     290/390**" — DM475V absent
+     290/390**" — DM470 family absent
    - "General updates for platforms **280/80, 380/580, 290/390, and 8700**"
-     — DM475V absent
-   - **Firmware updates listed**: 6.3.10 (DM80/280), 6.2.9 SR3 (DM8700).
-     **No update for our 6.1.x firmware family.**
+     — DM470 family absent
+   - **Firmware updates listed**: 6.3.10 (DM80/280, 3 majors ahead of
+     us), 6.2.9 SR3 (DM8700, 1 major ahead). DM470 family receives no
+     update; 6.1.16_sr4 remains current.
+   - **DMST 26.1.0 reports our device as platform "DM470"** in the
+     network discovery panel, confirming the family identifier.
 
-   This means one of:
-   - **(a) DM475V is in a separate verifier product line** not enumerated
-     in these notes (the "V" suffix = verifier; the platforms enumerated
-     are all readers/decoders, not verifiers). TruCheck-specific notes
-     (see #3 below) suggest verifier features are still being actively
-     maintained, which supports this reading.
-   - **(b) DM475V firmware is in maintenance-only mode** — no new
-     features, but compatibility with the new DMST tool is preserved.
-   - **(c) DM475V is end-of-life / out of support.** Less likely given
-     active TruCheck work.
-
-   **Most plausible reading**: (a). Verifier line is tracked in separate
-   notes. Watch for compatibility warnings during DMST 2026.1's first
-   connection to the device; if it connects cleanly, we're fine.
+   Confirmed reading: **DM470 verifier family is on a separate,
+   slower firmware track than the reader/decoder lines.** Compatibility
+   with the latest DMST tool is preserved (verified by clean connect
+   + clean push-pipeline regression), but feature additions come on
+   the verifier-line release cadence, not the main DataMan train.
+   Future verifier capability expansions (image-load DMCCs, new metric
+   exposure, etc.) should be tracked from verifier-line release notes
+   specifically — which we have not yet located in Cognex's published
+   set. Worth a targeted ask of the user / Cognex contact.
 
 3. **TruCheck (the verifier algorithm suite) is actively maintained in
    26.1.0**:
