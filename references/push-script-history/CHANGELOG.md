@@ -18,6 +18,54 @@ Install ritual (every version):
 
 ## Versions
 
+### v1.25 — 2026-05-18
+
+Filed: `v1.25.js` (also `dist/DmstPushScript_v1.25.txt`).
+Status: **authored, syntax-verified, awaiting device install**.
+Confirm by: `<PushScriptDiag>v1.25 q=r.trucheck m=found</PushScriptDiag>`.
+
+**Confirmed-wire release + QR foundation.** Six fields promoted from probe/deferred to first-class; one structural fix (MatrixSize QR branch); two new probe targets.
+
+#### v1.25 changes
+
+**New first-class elements:**
+- `<JpegImageBase64>` — full `r.trucheck.jpegImage` base64 JPEG string. v1.24 DebugJpegProbe confirmed safe: ~9,912 chars live DM / ~22,260 chars loaded QR. Unblocks B6 (ImagesSheetWriter).
+- `<OpticsSource>` — `LoadedImage` when `ContrastUniformity===-1 AND MRD===-1`; `LiveScan` otherwise. Confirmed across two loaded-image captures. SymbolAngle is NOT a reliable discriminator.
+- `<ApplicationPassReason>` — reason suffix parsed from `ApplicationPass` (split on ` (`). `"Pass"` → `""`. `"Fail (Quality)"` → `"Quality"`. `"Fail (X Dimension out of Range)"` → `"X Dimension out of Range"`. Format failures will add more tokens when Data Format Check ≠ None.
+
+**Fixes:**
+- `<DecodedData>` ECI prefix stripped for QR codes with AIM modifier 2/4/6 (`\x00\x00\x26` = ECI 26 = UTF-8). Modifier 1/3/5 → no strip.
+- `<MatrixSize>` QR branch: QZ offset = 8 (4 modules per side × 2). QR v3: sqrt(1369)=37, 37−8=29 ✓. v1.24 emitted 35 (wrong; used DM offset of 2).
+- `<ErrorCorrectionType>` symbology-aware: DM → `"ECC200"`; QR → `ovProp("ecLevel")` or `q.ecLevel` fallback → `"QR"` until DebugSymbols0 reveals exact path.
+- `<PixelsPerModule>` removed — always empty; `<ModuleSizePx>` (from `r.symbology.moduleSize`) is the sole confirmed source.
+
+**New probes:**
+- `<DebugSymbols0>` — full enum of `q.symbols[0]`. Targets: QR grade params (`ulpGrade`/`urpGrade`/`llpGrade`/`hctGrade`/`vctGrade`/`alpGrade`/`vibGrade`/`fibGrade`), `ecLevel`, `maskPattern`, `rows`, `cols`; DM per-region QZ grades (`ulqzGrade`/`urqzGrade`/`ruqzGrade`/`rlqzGrade`), `dataCodewords`, `ecCodewords`, `minLightReflectance`, `maxDarkReflectance`.
+- `<DebugPrintGrowth>` — `m.printGrowth` shape diagnostic. Expected `{raw, grade}`; if `raw===-1` → sentinel (empty is correct); if null → accessor wrong; if bare number → use directly.
+
+**Fixed probe:**
+- `<DebugImageShape>` — wrapped in try/catch; v1.24 emitted nothing (silent error). Will now report `(error: ...)` if `r.image` is inaccessible.
+
+**Dropped probes:**
+- `DebugANUCase` — resolved: lowercase `axialNonuniformity` confirmed correct.
+- `DebugJpegProbe` — superseded by `<JpegImageBase64>`.
+- `DebugReaderProps` — `status3D.{fieldCalibrated,factoryCalibrated}` confirmed accessible in v1.24.
+
+#### v1.25 expected install findings
+
+| Element | Expected result | Action on result |
+|---|---|---|
+| `<PushScriptDiag>` | `v1.25 q=r.trucheck m=found` | Confirms install |
+| `<JpegImageBase64>` | Long base64 string starting `/9j/` | Wire parser (B4), unblocks B6 |
+| `<OpticsSource>` | `LiveScan` on device scan | Confirmed; `LoadedImage` on next image-load scan |
+| `<ApplicationPassReason>` | `Quality` (or `""` if Pass) | Wire parser (B4) |
+| `<MatrixSize>` on QR | `29x29` for v3 (not 35x35) | Fix confirmed |
+| `<DebugSymbols0>` | Key list — look for `ulpGrade`, `ecLevel`, `maskPattern`, `dataCodewords` | Drive v1.26 scope |
+| `<DebugPrintGrowth>` | Object shape of `m.printGrowth` | Fix BWGPercent in v1.26 |
+| `<DebugImageShape>` | Key list or `(error: ...)` | Confirm r.image accessibility |
+
+---
+
 ### v1.24 — 2026-05-18
 
 Filed: `v1.24.js` (also `dist/DmstPushScript_v1.24.txt`).
