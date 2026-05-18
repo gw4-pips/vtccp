@@ -12,11 +12,11 @@ the unfiled-pile catalog at `attached_assets-archive/INDEX.md`.
 
 | Path | Contains | Status |
 |---|---|---|
-| `manuals/cognex/DM475V/` | Reference manual for the production device (DM475V, fw 6.1.16_sr4) | Filed (PDF + extracted .txt) |
-| `manuals/cognex/DMV-8072V/` | Reference manual for the Webscan-lineage 8072V verifier | Filed (PDF) |
-| `manuals/cognex/DMST/2025-release/` | DataMan Setup Tool reference manual (2025.4.1.1) | Filed (PDF) |
-| `manuals/cognex/DMST/2026-release/` | 2026 DMST manuals (when migrated) | Empty — pending |
-| `manuals/cognex/comms-and-programming-guide/` | DMCC command reference (2025.4.1.1) | Filed (PDF) |
+| `manuals/cognex/DM475V/` | Reference manual for the production device (DM475V, fw 6.1.16_sr4) | Filed (PDF + extracted .txt + README) |
+| `manuals/cognex/DMV-8072V/` | Reference manual for the Webscan-lineage 8072V verifier | Filed (PDF + digest) |
+| `manuals/cognex/DMST/2025-release/` | DataMan Setup Tool reference manual (2025.4.1.1) | Filed (PDF + digest) |
+| `manuals/cognex/DMST/2026-release/` | 2026 DMST manuals (when migrated) | Empty — pending (install in progress 2026-05-18) |
+| `manuals/cognex/comms-and-programming-guide/` | DMCC command reference (2025.4.1.1) | Filed (PDF + digest) |
 | `manuals/cognex/SDK-docs/` | DataMan SDK API docs (if acquired) | Empty — pending |
 | `manuals/cognex/reference-manual-DM390-25.4.1.2.pdf` | Bonus — non-V reader, useful for SBG context | Filed |
 | `manuals/webscan-legacy/` | Pre-acquisition Webscan TruCheck docs | Empty — to acquire |

@@ -1,0 +1,1738 @@
+DataMan® Setup Tool
+Reference Manual
+
+
+
+
+2025 December 17
+Revision: 25.4.1.1
+                                                                                                                 Legal Notices
+
+
+
+
+Legal Notices
+The software described in this document is furnished under license, and may be used or copied only in accordance with the
+terms of such license and with the inclusion of the copyright notice shown on this page. Neither the software, this document,
+nor any copies thereof may be provided to, or otherwise made available to, anyone other than the licensee. Title to, and
+ownership of, this software remains with Cognex Corporation or its licensor. Cognex Corporation assumes no responsibility
+for the use or reliability of its software on equipment that is not supplied by Cognex Corporation. Cognex Corporation makes
+no warranties, either express or implied, regarding the described software, its merchantability, non-infringement or its fitness
+for any particular purpose.
+The information in this document is subject to change without notice and should not be construed as a commitment by
+Cognex Corporation. Cognex Corporation is not responsible for any errors that may be present in either this document or the
+associated software.
+Companies, names, and data used in examples herein are fictitious unless otherwise noted. No part of this document may be
+reproduced or transmitted in any form or by any means, electronic or mechanical, for any purpose, nor transferred to any
+other media or language without the written permission of Cognex Corporation.
+Copyright © 2025. Cognex Corporation. All Rights Reserved.
+Portions of the hardware and software provided by Cognex may be covered by one or more U.S. and foreign patents, as well
+as pending U.S. and foreign patents listed on the Cognex web site at: cognex.com/patents.
+
+
+The following are registered trademarks of Cognex Corporation:
+2DMax, Advantage, AlignPlus, AssemblyPlus, Checker, Cognex, Cognex Vision For Industry, CVL, DataMan, DVT,
+EasyBuilder, Edge Intelligence, Hotbars, In-Sight, MX, OmniView, PatFind, PatFlex, PatInspect, PatMax, PatMax RedLine,
+PatQuick, PowerGrid, Smart View, SmartAdvisor, UltraLight, VisionPro, VisionView
+The following are trademarks of Cognex Corporation:
+The Cognex logo, 1DMax, 3D-Locate, 3DMax, BGAII, CheckPoint, Cognex VSoC, CVC-1000, FFD, iLearn, In-Sight (design
+insignia with cross-hairs), In-Sight 2000, InspectEdge, Inspection Designer, MVS, NotchMax, OCRMax, PatMax RedLine,
+ProofRead, SmartSync, ProfilePlus, SmartDisplay, SmartSystem, SMD4, VisiFlex, Xpand
+Portions copyright © Microsoft Corporation. All rights reserved.
+Portions copyright © MadCap Software, Inc. All rights reserved.
+
+Other product and company trademarks identified herein are the trademarks of their respective owners.
+
+
+
+
+                                                               2
+                                                                Table of Contents
+
+
+
+Table of Contents
+ Legal Notices                                                                2
+ Table of Contents                                                            3
+ Symbols                                                                      4
+ Getting Started                                                              5
+  About the DataMan Setup Tool                                                5
+  Overview                                                                    5
+ Installation and Layout                                                      6
+  Installing the DataMan Setup Tool and Connecting the Device                 6
+  Tabs                                                                        6
+  Layout                                                                      8
+    Layout Customization                                                      8
+ Setup Tool Home Pages                                                       10
+  Connect Page                                                               10
+    UI Elements                                                              10
+    Device Overlay Icons                                                     12
+    RTM Lean                                                                 13
+    Troubleshooting a Failed Connection                                      14
+    Maintenance                                                              15
+    Device Grouping                                                          18
+    Image Playback                                                           22
+  Options                                                                    24
+  About                                                                      25
+ Configuring the DataMan Device                                              26
+  Setting Up the DataMan Device                                              26
+    Application Steps Overview                                               26
+    Actions                                                                  51
+    Settings                                                                 52
+    System                                                                   56
+    View                                                                     57
+  Compare Configuration                                                      62
+  Process Monitor                                                            63
+
+
+
+
+                                                 3
+                                                                                                                   Symbols
+
+
+
+Symbols
+The following symbols indicate safety precautions and supplemental information:
+
+    WARNING: This symbol indicates a hazard that could cause death, serious personal injury or electrical shock.
+
+    CAUTION: This symbol indicates a hazard that could result in property damage.
+
+    Note: This symbol indicates additional information about a subject.
+
+    Tip: This symbol indicates suggestions and shortcuts that might not otherwise be apparent.
+
+
+
+
+                                                             4
+                                                                                                              Getting Started
+
+
+
+Getting Started
+About the DataMan Setup Tool
+Using the DataMan Setup Tool, you can access a wide range of options involving DataMan readers and base stations,
+including reviewing images of the codes being read live, or setting up the reader to transfer NoRead Images via FTP for later
+review. The DataMan Setup Tool is a common platform across all models. It simplifies deployment by putting the most
+common controls in a single page, allowing you to see how different options affect the reader or the base station in real time.
+
+
+Overview
+
+
+
+
+1            Q and A (context sensitive help)
+2            Home pane
+3            Documents (with the settings related to the devices you connect to)
+4            Application steps
+5            Tabs
+6            Image Panel
+7            Help (PDF, CHM and HTML help files)
+8            Result History
+
+The following sections provide more details about the installation of the software and the components of the GUI.
+
+
+
+
+                                                               5
+                                                                                                     Installation and Layout
+
+
+
+Installation and Layout
+This section explains the installation of the Setup Tool, the default layout of the Setup Tool GUI and the layout customization
+options.
+
+
+Installing the DataMan Setup Tool and Connecting the
+Device
+Perform the following steps to install the DataMan software on the PC you will use to configure the settings for each DataMan
+device:
+
+   1. Check the DataMan Release Notes for a full list of system requirements.
+   2. Download the DataMan Setup Tool from http://www.cognex.com/support/dataman and follow the on-screen steps.
+      If the installation utility does not start automatically, double-click the setup.exe file in the download folder.
+   3. Connect your DataMan device to your PC.
+   4. Choose Start->Cognex->DataMan Software vX.X.X->Setup Tool to launch the Setup Tool (where vX.X.X stands
+      for the relevant revision of the software).
+   5. If you connect DataMan devices through USB/serial, click Refresh to have the Setup Tool auto-detect them. For
+      network devices, the Setup Tool automatically refreshes the list.
+      Any DataMan device available over your network will appear in the Connect menu.
+   6. Select a COM port listing or Network device listing corresponding to your DataMan device and click Connect.
+
+
+
+Tabs
+The tabs of the DataMan Setup Tool are context sensitive. When you first open the Setup Tool, you will see a tab next to the
+Home page: View.
+
+
+
+
+After selecting and connecting to a device, more tabs will be available.
+
+
+
+
+Tabs also change based on the document you are actively using. For example, when using Compare Configurations, you
+will see the tabs below:
+
+
+
+
+                                                               6
+                                                                                                     Installation and Layout
+
+
+
+
+There are further tab options on specific panes, for example on the Format Data pane.
+
+
+
+
+For further information on the tabs and their functions, see the respective sections in this document.
+
+
+
+
+                                                               7
+                                                                                                 Installation and Layout
+
+
+Layout
+The DataMan Setup Tool makes it possible for you to customize the layout to fit the computer screen or to make the desired
+components larger and the less used components smaller.
+
+
+Layout Customization
+The customizable components of the Setup Tool are:
+    l   documents
+    l   groupings
+    l   Image Panel
+    l   Result History
+    l   Process Monitor
+
+
+
+
+                                                             8
+                                                                                          Installation and Layout
+
+
+You can drag and drop the grabbed documents wherever you wish, but the ribbon bar under
+View also offers buttons for tiling the windows horizontally or vertically:
+
+
+
+
+                                                         9
+                                                                                              Setup Tool Home Pages
+
+
+
+Setup Tool Home Pages
+Connect Page
+On the Connect page, you can connect to and get additional information about your DataMan device or devices.
+
+
+UI Elements
+
+
+
+
+               Number                              UI Element Name                            Description
+1                                       Refresh                                 Search the network and interfaces for
+                                                                                discoverable DataMan devices.
+2                                       Name                                    Name of the DataMan device.
+3                                       Grouping                                Device grouping helps you manage a
+                                                                                larger number of devices, as well as
+                                                                                define Multi-Reader Sync groups. For
+                                                                                more details, see Device Grouping.
+4                                       Type                                    Type of the DataMan.
+5                                       Filter                                  Filter for name, device type, software
+                                                                                version etc.
+6                                       Sort                                    Ascendin/descending order.
+7                                       IP Address                              IP Address of the DataMan device.
+
+
+
+
+                                                          10
+                                                         Setup Tool Home Pages
+
+
+
+
+     Number               UI Element Name                Description
+8             Firmware version              Firmware version of the DataMan
+                                            device.
+9             Expand all/Collapse all       Expanding/collapsing the device tree.
+10            View Hidden                   View hidden devices.
+11            Device Status                 Discovered: Device is visible on the
+                                            network but connection has not yet been
+                                            established.
+                                            Connected: The Setup Tool is
+                                            connected to the device.
+                                            Misconfigured: Connection cannot be
+                                            established because of a configuration
+                                            issue.
+12            Open in Documents             Click on Reader Configuration to open
+                                            the document tab. Only available for
+                                            connected devices.
+13            Interface                     Interface/Network.
+14            MAC Address                   MAC address of the DataMan device.
+15            Serial Number                 Serial number of the DataMan device.
+16            MRS Group                     Multi-Reader Sync grouping. The
+                                            Primary Reader Group the device
+                                            belongs to.
+
+
+
+
+                                 11
+                                                                                                    Setup Tool Home Pages
+
+
+
+
+                Number                               UI Element Name                                Description
+17                                        Connect                                   Connect to reader.
+18                                        Compare Configurations                    Set, copy, compare, or restore device
+                                                                                    configurations and settings. For more
+                                                                                    details, see Compare Configuration on
+                                                                                    page 62.
+
+To hide a device, bring the cursor over the device, right click and then click Hide From List. You can unhide a device by
+checking the View Hidden checkbox.
+
+A hidden device appears with the following icon on top:
+
+
+
+
+Each device you connect to has its own tab, which is called a document. When you close a document tab, connection to the
+device is closed. If the device reboots (for example, because of a firmware update), the document tab remains open, and the
+progress bar and messages inform you about the state of the device. If a connection is lost, the document tab does not get
+automatically closed, an overlay message informs you about this event. If the reader goes offline, the overlay message
+remains visible until the device is rediscovered or until you close the document tab.
+
+
+Device Overlay Icons
+Overlay icons appear on the upper right corner of a device picture. There are four overlay icons:
+
+
+
+
+                                                             12
+                                                                                                  Setup Tool Home Pages
+
+
+      Icon                                                        Description
+                 IP Conflict. Two devices have the same IP address.
+
+
+                 Manually added device.
+
+
+                 Virtual device.
+
+
+                 Master reader.
+
+
+
+
+RTM Lean
+Real Time Monitoring (RTM) Lean is a feature built into the DataMan Setup Tool that allows for the collection and analysis of
+different kinds of data. RTM Lean collects data of devices on the network and displays this data in graphs. Connect to
+RTM Lean as a regular device on the Connect page.
+
+
+
+
+   1. Connect to RTM Lean and select the device(s) you want to monitor.
+   2. Set your options in the Settings tab and/or the Diagnostics tab and click Apply.
+
+
+
+
+                                                             13
+                                                                                               Setup Tool Home Pages
+
+
+
+
+The target device for data acquisition, as well as the selection of the type of data collected, can be set up under
+Configuration in the upper toolbar. By default, RTM Lean collects statistical data: Read Rate, NoRead count, average
+decode time, trigger count, trigger overrun, buffer overflow, and process control metrics, if enabled on the device.
+For a more detailed description of RTM Lean capabilities and options, see the Q & A of the page that can be opened from the
+top right corner.
+
+
+Troubleshooting a Failed Connection
+If you cannot connect to your reader, there are a number of settings you can verify.
+    l   Click Refresh to determine which ports have readers connected to them. Clicking Refresh sends a query string on all
+        COM ports and across the Ethernet network subnet. A DataMan 8000 wireless reader must be awake to respond to
+        the query. Squeeze the trigger to wake up the reader.
+    l   Make sure that you are not using the keyboard, keyboard wedge, or HID connection: you must use USB Serial, RS-
+        232 Serial, Ethernet or Wireless network to connect the Setup Tool to the reader.
+
+Serial Connection
+    l   Make sure that you have scanned the configuration code (USB COM or RS-232 Serial) that matches the type of
+        physical connection you are using.
+
+
+
+
+                                                              14
+                                                                                                      Setup Tool Home Pages
+
+    l   Make sure that the COM ports list shows a port where your reader is connected.
+    l   You can use a terminal emulation program such as PuTTY to determine whether the reader is sending any data if the
+        reader is connected to a COM port on the PC.
+
+Ethernet Connection
+    l   Make sure that the firewall or antivirus application installed on your computer makes communication with Ethernet
+        devices possible by allowing the appropriate ports. These are: Cognamer:1069 and Setup Tool:44444.
+    l   Verify that your device appears in the list of Network devices.
+    l   Make sure that the IP address you provided in the Add Network Device option is correct.
+
+Wireless Connection
+    l   Make sure that the reader is not in sleep mode. Squeeze the trigger to wake it up.
+    l   Make sure that a connection is established between your reader and the base station connected to your PC. Unplug
+        both the power and communication cables from the base station, reconnect the cables, then replace the handset in
+        the base station. Wait until the handset indicates that it is linked (with an audible signal) before attempting to connect
+        again.
+    l   Make sure the base station is connected to power.
+
+
+Maintenance
+The Maintenance page can be used to set the network settings of a misconfigured network device or change the HID mode
+of a serial device to CDC, as well as for backing up and restoring device configurations, and updating firmware.
+
+Repair and Support
+
+
+
+
+1            Add Network Device         Click Add Network Device for the dialog window to pop up. You can provide here
+                                        the IP address of the device you want to add.
+
+
+
+
+                                                               15
+                                                                                       Setup Tool Home Pages
+
+
+2   Add Virtual Device   The Add Virtual Device function allows you to create a virtual device based on either
+                         a custom configuration file or a device with default configuration. This can be used to
+                         look at different panes in the Setup Tool without the need of a device to connect to.
+                         Pressing the button initiates a wizard that guides you through the steps of creating a
+                         virtual device. Initial options are to use a configuration/backup file for creation or use
+                         the factory default settings.
+                         After the wizard is finished, a new virtual device is added to the list of discovered
+                         devices, indicated by a V icon. The virtual device is not visible for others on the
+                         network. Even after closing the Setup Tool and opening it again, you only have to add
+                         the virtual device once.
+                         You can connect to the virtual device in the same way as a regular device. All
+                         configuration changes are rejected (everything is read-only) and no features,
+                         functions, and actions work on virtual devices.
+
+                             Note: When creating a virtual device based on a DataMan 8700 reader, the
+                             settings in the Communications application step reflect the settings of the
+                             device on which the virtual device is based. This means that the
+                             Communications application step might show different protocols than
+                             expected.
+
+3   Export icon          Clicking the Export Cognex Support File icon initiates Cognex Support File
+                         generation, which generates a .zip file containing a collection of preset data logs. This
+                         feature is only available if at least one device is selected. Clicking the button pops up a
+                         dialog box where you can specify the data types to be included in the support .zip file
+                         in a list of checkboxes.
+                         You can manually edit the User Comment field.
+                         The destination folder of the support file can be modified using the '...' icon. You can
+                         select to open the containing folder after the file generation or send it as an
+                         attachment with the default email client (.eml).
+                         The output of the process is a .zip file. The file name contains the device name and
+                         the date of creation. An additional descriptor.xml in the zip contains the following data:
+                              l   Date
+                              l   Discovery ID
+                              l   Device name
+                              l   Device type
+                              l   Serial number
+                              l   MAC address
+                              l   Feature Keys
+                              l   Communication interface
+                              l   Firmware version
+                              l   List of files present in the zip
+4   Network Settings     Use the Copy PC Network Settings button to fill in the subnet mask and gateway
+                         information for your device. Make sure you manually update the IP Address to your
+                         device's IP address, after your PC network settings have been copied.
+
+
+
+
+                                                   16
+                                                                                                        Setup Tool Home Pages
+
+
+Backup
+Generate a backup file containing the configuration and logs of one or more devices. To do so, highlight the device(s) you
+want to backup and click the Backup button in the bottom right corner, or press Alt+B. If multiple devices are selected, each
+device generates a backup file. Each backup file is put in a subfolder that matches the name of the device. The backup file
+name contains the device name and date of generation.
+The backup file is a .zip file with a .dmb extension. The file contains config.cdc, config.cfg, and descriptor.xml. The xml
+contains the following data:
+     l   Date
+     l   Discovery ID
+     l   Device name
+     l   Device type
+     l   Serial number
+     l   MAC address
+     l   Feature Keys
+     l   Communication interface
+     l   Firmware version
+     l   List of files present in the zip
+
+Click the Open Backup Folder button to find the backup files. To change where backup files are saved, go to the Options
+page and edit the Backup Location box.
+A Latest Backup Date column helps you keep track of the backup files. You can also sort devices based on the date of their
+backup by clicking Latest Backup Date.
+
+Restore
+The Restore page allows the restoration of backed up configuration files on one or more devices. Select a device you want to
+restore and specify a configuration source in the Configuration Source window on top.
+You have the following four options:
+     l   Configuration File: the Setup Tool uses the specified configuration file for restoration. Click the '...' icon to specify
+         the folder containing the backup file you want to use. Configure the folder in the Options page.
+     l   Device: the Setup Tool uses a specified single device to restore its configuration to all target devices.
+     l   Latest Backup: the Setup Tool searches for the latest backup for the selected devices. If multiple devices are
+         selected, all devices get their own latest backup.
+     l   Factory Defaults: the Setup Tool restores the device's configuration to factory defaults.
+
+After the source is selected, as well as a target device (or devices), click the Restore button in the bottom right corner.
+
+Update Firmware
+The Update Firmware page allows you to update the selected device or devices to the desired firmware version. In the
+Firmware File section on top, browse for firmware files by clicking the '...' icon. The right folder automatically opens. After
+selecting the firmware file, click the Update Firmware button to initiate the update. After a firmware update, the device
+reboots and automatically reconnects to the Setup Tool.
+Firmware files are supplied as compressed archives. You must upload the firmware in its compressed form; do not attempt to
+uncompress a firmware file before uploading it.
+
+
+
+
+                                                                 17
+                                                                                                  Setup Tool Home Pages
+
+
+Device Grouping
+Device grouping helps you manage a larger number of devices, as well as define Multi-Reader Sync groups. The DataMan
+Setup Tool offers built-in groups on the Connect page. You can also specify your own custom groups. Creating a new group
+or editing an existing group can be started from the Reader Groups page.
+
+Reader Groups
+The available readers can be grouped on a custom basis and you can organize your readers in a custom tree. The list of
+already created custom groupings is shown on the left. When you select a custom group, it gets displayed on the right as a
+"preview".
+
+
+
+
+1            Create a new group
+2            Delete an existing group
+3            Export an existing group
+4            Import saved groups to the Setup Tool
+5            Open an existing group
+
+Custom Grouping
+Custom groupings are displayed in a tree structure. You can select different nodes and start different operations in them. The
+group editor tree supports drag and drop functionality. Clicking the Edit Groups tab to hide the settings options.
+
+
+
+
+                                                             18
+                                                                                                     Setup Tool Home Pages
+
+
+
+
+The group editor has two device tree controls: the one on the left is the tree of the currently edited group, whereas the one on
+the right is the list of discovered devices. Filtering, grouping and sorting is available on this device tree.
+
+1            Save                      Save your changes for them to take effect. If you want to add a new group on the root
+                                       level, you have to first save your first group, then click the Reader Groups page and
+                                       click New. For more information, see Reader Groups on page 18.
+2            New Group                 If a new group is created, it automatically gets a root node. The name of the root node
+                                       is also the name of the custom group. For each group, there can be only one root
+                                       node. To create a new group node, select the desired target node and click the New
+                                       Group button.
+3            Remove Node               Select the target node(s) or a device on the left to remove it.
+4            Rename Group              Click into the node’s name, press F2 on the keyboard or click the Rename Group
+                                       button. In the case of a root node, the whole grouping gets renamed. After the
+                                       renaming is initiated by one of these methods, the group name becomes editable in
+                                       the tree.
+5            Toggle Group              Select a valid group node (the name of the group is fit to be a Multi-Reader Sync
+             Triggering                (MRS) group name) and press the Toggle Group Triggering button. The devices in
+                                       the group are set to be part of the MRS group with the name of the group node’s
+                                       name. This option is available only if all readers in the group support Multi-Reader
+                                       Sync triggering.
+6            Set Primary Device        Select the device you want to designate as Primary Device.
+7            Apply and Save            Click Apply and Save Grouping to Devices to save the grouping information to the
+             Grouping to Devices       devices in the selected group.
+
+
+
+
+                                                               19
+                                                                                                     Setup Tool Home Pages
+
+
+8            Refresh Grouping Info     Use this option to refresh the information belonging to the Edited Group (that is, the
+                                       tree on the left).
+9            Move Nodes                You can move a node in the edited tree. A node can be moved either up or down in its
+                                       current group, into the next group or out of the current one. After selecting the desired
+                                       node to move, the Move nodes option becomes available in the ribbon bar with the
+                                       following arrows becoming green:
+                                                    l   Down: Move the node down among its siblings.
+                                                    l   Up: Move the node up among its siblings.
+                                                    l   Out of Current Group: Move the node up one level (out of the current
+                                                        group).
+                                                    l   Into Next group: Move the node down one level (into the next group).
+10           Add Discovered Device Select one or more devices in the right-hand side device tree (Discovered Devices)
+             (s)                   and use the Add Discovered Device(s) button to add it to the currently selected
+                                   group node on the left side (Edited Group). Alternatively, you can drag and drop a
+                                   device from the right to the target grouping node on the left.
+10           Discovered Devices        Select an option from the Grouping drop-down menu to reorganize the discovered
+                                       devices list into groupings according to the picked option (for example, Device Type
+                                       organizes the devices into groups consisting of the same device type).
+                                       Typing in the Filter... box allows you to filter for devices with names containing what
+                                       you typed. Click Refresh to refresh the discovered devices list and to reapply the
+                                       chosen filter type on the list.
+11           Expand/Collapse           Expand or collapse the full tree, or you can expand or collapse specific nodes by
+                                       clicking the triangle left of the node.
+12           Connect                   Connect to a device either in or outside a group.
+
+
+     Note: The target node must not be a device node.
+
+Managing Multi-Reader Sync Groups
+In the DataMan Setup Tool, Multi-Reader Sync configuration is part of the grouping editor, but the ribbon bar also has tools to
+configure the Multi-Reader Sync trigger group. The following Multi-Reader Sync group management options are offered by
+the Setup Tool:
+• Making a group to be a Multi-Reader Sync trigger (MRS) group: By selecting a valid group node (the name of the
+group is fit to be an MRS group name) and pressing the Toggle Group Triggering button, the devices in the group are set to
+be part of the MRS group with the name of the group node’s name. This option is available only if all readers in the group
+support Multi-Reader Sync triggering.
+• Clearing a Multi-Reader Sync group triggering: Selecting an MRS group node and click the Toggle Group Triggering
+button, then click Apply and Save Grouping to Devices. The MRS group entries are removed from all devices in the group.
+• Setting the Primary device: Some trigger modes may require to explicitly specify the Primary device. This can be
+achieved by selecting a device in a Multi-Reader Sync group and clicking the Set Primary Device button. This function is
+also available in the case of trigger types that do not require a specified primary device, so it can be stored in the custom-
+edited grouping and be displayed at a later time.
+• Misconfigured MRS groups: It is possible that the data regarding Multi-Reader Sync group triggering becomes different in
+the device from what was stored in the SetupTool. Warnings appearing in such cases help you identify these issues. The
+warning messages are the following:
+
+
+
+
+                                                               20
+                                                                                                 Setup Tool Home Pages
+
+l   Incompatible trigger types: If the devices in the MRS group have incompatible trigger types, the node of the MRS
+    group has a warning sub-node that displays this information. This is an error.
+l   Primary device not specified: The MRS group may not require a Primary device, but some trigger modes do
+    require it, so this message is only shown as a warning.
+l   MRS group name mismatch: It is possible that the MRS group name stored in the device is different from what is
+    stored in your own grouping. Click Apply and Save Grouping to Devices to solve the issue.
+l   MRS info not available: Discovering exact information about Multi-Reader Sync trigger settings cannot be done
+    without at least a "minimalist" connection. Until the valid information is retrieved by pressing the Refresh button, this
+    information entry is shown for the device.
+
+
+
+
+                                                           21
+                                                                                              Setup Tool Home Pages
+
+
+Image Playback
+This page lets you view images that were transferred to the computer as set in Data Logging or the Buffering and Transfer
+pane's Image PC Transfer tab.
+
+Set Image Playback through Data Logging
+   1. Connect to the Setup Tool.
+   2. In the Image Panel on the right, click Logging.
+   3. From the drop-down list, select if you want to log NoRead images, decoded images, or both.
+   4. From the drop-down list, click Logging and reporting settings.
+
+   5. The DataMan Setup Tool Options window pops up. In the Data Logging tab, set the file path for your images.
+   6. In the Home page, click Image Playback.
+   7. Select the folder you set in Step 5 and in the bottom right corner click Open.
+
+Set Image Playback through Buffering and Transfer
+   1. Connect to the Setup Tool.
+   2. In the top, click Settings.
+   3. Click Buffering and Transfer.
+   4. Click the Image Buffering tab and set which images you want to buffer.
+   5. Click the Image PC Transfer tab. Here you can set the Transfer Folder and the Filename Format.
+   6. Start triggering.
+   7. As you trigger, you can see the number of buffered images increasing.
+   8. Click Transfer Now.
+   9. Click the Open in Image Playback button.
+
+The images are opened in the Image Playback tab.
+
+
+
+
+                                                             22
+     Setup Tool Home Pages
+
+
+
+
+23
+                                                                                                    Setup Tool Home Pages
+
+
+Options
+The Options page of the DataMan Setup Tool offers you to do settings in the application according to your preferences.
+On the General tab, you can set the language, the codepage for code display, and the color scheme of the Setup Tool itself.
+You can also select a category which you want to reset to defaults. In addition, you can set the backup folder, the support file
+folder, the image buffering folder and the beeper here.
+
+
+
+
+On the Data Logging tab, you can set the folders into which result codes, decoded images, NoRead images and reports are
+to be saved.
+
+
+
+
+                                                              24
+                                                                                                Setup Tool Home Pages
+
+
+
+
+About
+The About page's pop-up window gives information about the installed DataMan Setup Tool, its version, a link to the support
+page and the copyright information.
+
+
+
+
+                                                            25
+                                                                                           Configuring the DataMan Device
+
+
+
+Configuring the DataMan Device
+Setting Up the DataMan Device
+This section describes how to use the DataMan Setup Tool once you have connected to it. It contains information on the most
+essential functions that you can use when setting up your reader and reading codes.
+
+
+Application Steps Overview
+After you connect to a device, the following page opens:
+
+
+
+
+On the left hand side you can see a column displaying Application Steps, with which you can quickly configure and set up
+your device. Most of the steps have basic and advanced setting options on different panes.
+In the Advanced tab you have all basic and further configuration options. In a table-style view you can see the settings and
+the corresponding values. When you click a row in the table, you can either immediately set or change a value, choose a
+value from a drop-down list, or click the three dots at the end of the row line. In the last case a window pops up with further
+setting options.
+
+   1. Set the Application Type by selecting one of the options from the drop-down list.
+   2. Optimize Image is for light and imager settings, live display, tuning and testing.
+   3. Code Details is for symbology settings,
+   4. Application Details is for trigger settings, decode settings as well as displayed image settings.
+   5. Format Data provides setting options regarding data formatting including standard, perl style, and script-based.
+   6. Implement system settings in Inputs / Outputs.
+   7. Communications is for serial and Ethernet settings, network settings, custom commands and industrial protocol
+      settings.
+   8. Click Save Settings to save your configuration to the device.
+
+
+
+
+                                                               26
+                                                                                        Configuring the DataMan Device
+
+
+Optimize Image
+The first application step is Optimize Image, providing you a means for a quick setup in one step. Three buttons (Live, Tune,
+and Test) help you setup the reader in this pane.
+
+
+
+
+Each button contains additional options that appear by clicking the arrow on the side of each button.
+
+Live
+Click the Live button to enter Live mode. Live mode not only monitors what the device sees, but it decodes as well. In the
+drop-down window of the Live button, you can find further options to configure Live mode and reader settings.
+
+
+
+
+The following controls provide a subset of frequently used reader settings, which are duplicates of controls from other
+DataMan Setup Tool panes:
+    l   Decoding: the device decodes the images taken
+    l   Focus Feedback displays a color-coded meter on the right side of the image view. The meter indicates the focus of
+        the lens (lower is less focused).
+    l   Automatic Exposure: the reader automatically determines the best exposure settings.
+
+In the Image Panel, you can change the region of interest (ROI) of the reader by sliding/dragging the blue ROI box. This is
+the area the reader will attempt to perform reads on.
+
+Tune
+Click the Tune button to automatically find the best settings for your reading. The advanced window reveals the following
+features:
+
+
+
+
+                                                             27
+                                                                                          Configuring the DataMan Device
+
+
+
+
+    l   Click Optimize Brightness to set the recommended brightness for your device automatically (only available if
+        Manual Exposure is set), or, for advanced settings, click the link next to the button to navigate to the appropriate pane
+        under Application Details. Alternatively, click the brightness icon under the image, or use the slider for manual
+        brightness setup.
+    l   Enable AI Enhancer uses artificial intelligence to identify the region of the image that contains the code. It then
+        enhances that region to improve decoding performance. Only available on AI-enabled readers.
+    l   Choose between Automatic Exposure or Manual Exposure as desired for your application. Camera gain can be
+        controlled by a separate slider.
+    l   Use the Maximum Gain Factor to set the target's maximum pixel brightness.
+    l   Click Optimize Focus to set the recommended focus for your device automatically. For advanced settings, click the
+        Advanced Application Details link to navigate to the Advanced tab under Application Details or the appropriate
+        pane under Light and Imager Settings. Alternatively, click the focus icon under the image, or use the slider for
+        manual focus setup.
+
+            Note: Optimize Focus only appears when your device is equipped with a liquid lens.
+
+    l   Click Train Code to train codes, or click the link next to the button to navigate to advanced code training settings.
+    l   You can configure the reader with any of the following Trigger Types if Manual Exposure is set (some trigger types
+        are not available on all devices):
+            o   Single
+            o   Presentation
+            o   Manual
+            o   Burst
+            o   Self
+            o   Continuous
+        For more information on trigger types, see Application Details on page 32.
+
+The Tuning Results pane on the right shows a detailed tuning graph.
+
+
+
+
+                                                               28
+                                                                                             Configuring the DataMan Device
+
+
+
+
+You can select a result other than the recommended one by clicking on it and then clicking Apply selected in the bottom row:
+     l   If you set Tune Light Banks, the device tunes the light banks. If you know which light settings you want to use,
+         disable it, so the tuning doesn't overrule your preset.
+     l   Selecting Exhaustive Tuning will force tuning the light banks. When Exhaustive Tuning is disabled, and the reader
+         succeeds to read the code with the primary light setting, it will stop to try other light bank combinations. If Exhaustive
+         Tuning is on, the reader will continue to try all combinations to look for the best one, no matter whether or not the first
+         one succeeded.
+     l   If Enable Filter Tuning is selected, the DataMan Setup Tool applies filters to the read image. The filter that was used
+         to successfully read the code is then shown in the Tuning Results window under Image Filter.
+     l   If you want the focus to be automatically optimized during tuning, check the Optimize Focus During Tuning option.
+     l   Exclude Ambient Light Results if you want to exclude ambient light results for the tuning process. Ambient light
+         results are automatically selected otherwise, because they are the prevailing illumination type for fixed-mount
+         readers.
+
+Test
+Click the Test button to test your device with a configuration, without any disruption to production.
+
+
+
+
+                                                                 29
+                                                                                          Configuring the DataMan Device
+
+
+
+
+If you selected a trigger type that is external (that is, not Presentation or Self trigger mode) under the Tune button, you can
+trigger the reader automatically using Test mode to validate and test your application. You can set up an appropriate duty
+cycle for the reader using the Trigger On and Trigger Off times. The Trigger(s) per Second value shows the calculated
+trigger frequency.
+You can reduce either Trigger On or Trigger Off times to reduce the cycle time, and thus increase trigger frequency.
+
+    Note: Depending on the read setup, code to read, and connection interface, there might be speed limitations. At higher
+    speeds, it is recommended to disable image transfer. For more information, see the Q & A pane in the DataMan Setup
+    Tool.
+
+In the Advanced tab you have further configuration options. In a table-style view you can see the settings and the
+corresponding values for optimizing your image (Image Size, Image Filtering, Focus Settings and Displayed Image
+Settings) as well as setting light values (External Lights and High Frequency Lights).
+
+
+
+
+                                                               30
+                                                                                         Configuring the DataMan Device
+
+
+Read Performance
+With the graphs in the Read Performance pane on the right, you can monitor decode times and Read Rates in real time.
+Click the Clear button to reset the graph.
+
+Code Details
+In this application step you can select the different types of symbologies to be used. On the Basic tab you can disable all or
+untrained symbologies and enable all of them. You also have the option to select 2D, 1D, Stacked and Postal symbologies
+separately and set the number of codes you need to read for each trigger.
+
+
+
+
+In the Advanced tab you have further configuration options. In a table-style view you can see the settings and the
+corresponding values for general code details (1D or 2D) as well as setting Multicode values and configuring codes for
+Training.
+
+
+
+
+                                                              31
+                                                                                          Configuring the DataMan Device
+
+
+
+
+Application Details
+This step deals with light and imager settings. The Basic tab gives you the opportunity to set the trigger types, its delay,
+timeout, interval and burst length. Exposure options and data can also be given.
+
+
+
+
+                                                               32
+                                                                                           Configuring the DataMan Device
+
+You can configure the reader with any of the following Trigger Types if Manual Exposure is set (some trigger types are not
+available on all devices):
+    o   Single triggering acquires a single image and attempts to decode any symbol it might contain. This trigger mode
+        supports a read timeout.
+
+            Note: If there are multiple read setups, it is possible that multiple images are taken.
+
+    o   Presentation triggering continuously scans for a symbol and decodes it each time one is detected.
+    o   Manual triggering acquires images as long as the trigger signal remains active, and stops when a symbol is found
+        and decoded or the trigger signal ends.
+    o   Burst triggering acquires a set number of images and decodes the first symbol it detects within the group. You can
+        configure the number of images within each burst as well as the interval between each image acquisition. This trigger
+        mode supports a read timeout.
+    o   Self triggering is similar to presentation triggering in that the reader continuously scans for a symbol and decodes it
+        each time one is detected. Unlike presentation mode, however, a decode attempt occurs with every image and the
+        reader disables the Automatic Exposure settings that allow the reader to automatically determine the best exposure
+        settings for a desirable level of brightness in the image. You can specify several parameters in self triggering mode,
+        such as whether the reader will read the same code more than once or how long to wait before scanning for the next
+        code. In Self trigger mode, the trigger interval indirectly specifies a read timeout.
+    o   Continuous triggering acquires images as long as the trigger signal remains active. The reader acquires images at a
+        specific interval and attempts to scan any symbol each successive image contains.
+
+    Note: Several fixed-mount readers have variants (such as S models or L models), and many of these only support
+    certain trigger types. Please consult the appropriate Reference Manual to check what trigger types are supported by
+    your variant.
+
+Three different assistants (Trigger Assistant, Interval Assistant, and Exposure Assistant) help you in configuring these
+settings.
+Trigger Assistant
+   1. If you have not already done so, first select an Application Type.
+   2. Click the Trigger Assistant button. A window pops up.
+   3. Select the Trigger Source from the drop-down list: Undefined, Internal or External. You get a recommendation from
+      the assistant for the trigger modes. Graphical presentations of the trigger types help you decide. Select the trigger
+      type and click Save and Close.
+
+
+
+
+                                                               33
+                                                                                          Configuring the DataMan Device
+
+Interval Assistant
+In the case of Self and Continuous modes the Interval Assistant can help you make further settings. You can select three
+ways to calculate the necessary data. In the top right corner select the units (standard or metric) you wish to calculate in.
+With the help of Field of View you can calculate the longest possible interval time by measuring the physical field of view and
+giving the maximum line speed and the size of the longest code.
+Clicking Lens / Distance to Code is calculating with the distance of the code from the lens. Give the focal length from the
+drop-down and select the direction in which the code is traveling. Here you also need to give the maximum line speed and the
+size of the longest code.
+Code Element Size calculates with the size of the most narrow code element. Enable Test Mode to read your code. You
+also need to give the direction your code is traveling in, the maximum line speed and the size of the longest code.
+At the bottom of the Assistant you get the recommended maximum interval time.
+
+
+
+
+Exposure Assistant
+Exposure Assistant works in case of In-Motion and Hand Presentation application types.
+
+In-Motion Applications
+For In-Motion applications, you can select three ways for your calculations: Filed of View Size, Lens / Distance to Code,
+and Code Element Size. Clicking Field of View Size helps you calculate the recommended maximum exposure time by
+measuring the physical field of view and giving the maximum line speed.
+
+
+
+
+                                                               34
+                                                                                          Configuring the DataMan Device
+
+
+
+
+Clicking Lens / Distance to Code calculates with the distance of the code from the lens. In case your reader is not equipped
+with a liquid lens, give the focal length from the drop-down list, and select the direction in which the code is traveling. Enter
+the maximum line speed here. You can enable Test Mode to read your smallest code.
+
+
+
+
+                                                               35
+                                                                                   Configuring the DataMan Device
+
+
+
+
+Code Element Size calculates with the size of the most narrow code element. Enable Test Mode to read your code. Give
+the direction your code is traveling in and the maximum line speed.
+
+
+
+
+                                                          36
+                                                                                       Configuring the DataMan Device
+
+
+
+
+At the bottom of the Assistant you get the current and the recommended maximum exposure time.
+
+Hand Presentation Applications
+If you have a Hand Presentation type application, present your code(s) to the reader in the positions you want to read them.
+The assistant analyzes the code size and changes the Smallest element size to the actual value.
+
+
+
+
+Application Details Advanced Options
+In the Advanced tab you have further configuration options. In a table-style view you can see the settings and the
+corresponding values for triggering (Motion Detection and Trigger Delay), the imager (including Image Mirroring) as well
+as setting decode values.
+
+
+
+
+                                                             37
+                                                                                            Configuring the DataMan Device
+
+
+
+
+Format Data
+In addition to standard formatting possibilities, you have the option to write a script inside the Setup Tool. The script itself runs
+on the device for data formatting. Your device must be equipped with the Scripting feature key in order to use data formatting
+scripting.
+You can enable script-based formatting under the Format Data application step's Basic tab. Clicking Data Formatting in
+the Settings pane also navigates you to the Format Data application step:
+
+
+
+
+                                                                38
+                                                                                     Configuring the DataMan Device
+
+
+
+
+When script-based formatting is enabled, you can define a JavaScript module to format data according to your needs on the
+Scripting tab of the Format Data application step.
+
+
+
+
+                                                           39
+                                                                                       Configuring the DataMan Device
+
+
+
+
+Click the Scripting tab.
+If your DataMan device uploads its images to an FTP server, the images on the server get a certain file name. This file name
+can be customized with the help of the script that can be edited under the FTP Storage tab.
+
+
+
+
+On the Communication tab, you can edit your custom communication protocols.
+
+
+
+
+                                                             40
+                                                                                          Configuring the DataMan Device
+
+
+
+
+For more information on the custom communication protocols, see the DataMan Communications and Programming
+Guide.
+The script for data formatting not only allows you to have different data formatting combinations, but you can also perform
+operations on the output channel, for example, to pull output 1 up. You can configure read results flexibly and configure
+reader events before the result returns.
+For the details of how to write the script and for scripting examples, please see the DataMan Communications and
+Programming Guide. In the Setup Tool, you can find scripting samples by clicking the arrow of the Insert Snippet drop-
+down menu or right-clicking within the text field and selecting Insert Snippet from the pop-up list.
+You can open your own scripts through the DataMan Setup Tool’s Scripting -> Open Script... option.
+
+Inputs / Outputs
+This application step is the place to configure the device I/O.
+
+    Note:
+    Please take into consideration that if an action is assigned to an input, the action does not take effect immediately after
+    activating the input. The action takes effect only when the next trigger is performed.
+         l   "Allow Buffered NoRead Images" and "Clear Outputs" are exceptions. These actions occur immediately.
+         l   For actions "Encoder direction" and "Encoder", see Connecting the Encoder to a DataMan in DataMan Fixed-
+             Mount Readers Reference Manual.
+
+The Basic tab enables you to configure the behavior of the trigger and tune buttons, inputs, outputs and pulse encoder data.
+Height sensor data can also be set for devices for which it is relevant.
+
+
+
+
+                                                                  41
+                                                                           Configuring the DataMan Device
+
+
+
+
+1   Light Ring Pulse   For readers with a light ring, the duration of the light ring’s illuminated state can be
+    Duration           specified here in milliseconds.
+2   Enable Beeper on   Set the Beep Length for good reads to a value between 0 and 50 ms.
+    Good Read
+3   Error LED Pulse    You can move the slider to the desired millisecond that is used to determine how long
+    Duration           the Error LED pulses on fixed-mount devices. The Error LED is found on the top of the
+                       device. Setting the slider to '0' causes the red error LED to turn off if the device log is
+                       retrieved, while every value above '0' causes the red error LED to turn off
+                       automatically after the selected time is expired.
+4   Closed             The open or closed state means the state of the relay. If an Event happens from the
+                       list above, the output can be open or closed. For example, if a Read event happens, in
+                       the case of Closed, the output 0 will become output 1. Also, you can close an output
+5   Open               line indefinitely by specifying a pulse width of 0 milliseconds, but be aware that any
+                       event that triggers this output line will cause it to remain closed until you cycle the
+                       power to the reader or clear outputs with a discrete input setting.
+
+
+
+
+                                               42
+                                                                              Configuring the DataMan Device
+
+
+6    Buffer Overflow      Buffer Overflow means that it would be possible to acquire an image, but there is no
+                          space left to save it. In other words, images are acquired faster than they can be
+                          processed. One possible situation is when decoding takes longer than what the
+                          image/trigger interval is.
+7    Trigger Overrun      Trigger Overrun means that the image could not be acquired because the camera
+                          was busy (for example, due to an ongoing burst or a long exposure).
+8    Strobe               You can reserve an output for external illumination by checking Strobe on one of the
+                          output lines. You can also configure polarity by choosing Open or Closed in the
+                          appropriate Outputs column.
+9    Device name          You can give the device a more meaningful name for your production environment,
+                          such as the location or the inspection task.
+10   TRIG Button          You can choose trigger button press functionality only in Single, Burst, and Self trigger
+                          modes. The 3 second button press action possibilities are the following:
+                               l   Optimize Brightness
+                               l   Optimize Focus (if your device is equipped with a liquid lens)
+                               l   Read Configuration Code
+                               l   Train Code
+                               l   Set Match String
+                               l   Test Mode
+
+                          You can also check Disable Reader Button if you do not want the physical TRIG
+                          button on the reader to work.
+                          When a checkbox is selected, the action assigned to an input does not occur
+                          immediately after activating the input. It takes place only when the next trigger is
+                          performed.
+11   TUNE Button          Check the Disabled Reader Button if you do not want the physical TUNE button on
+                          the reader to work.
+12   Inputs               In addition to the different actions that you can use the input line for, here you can also
+                          set the change in signal that triggers an image acquisition (under Polarity).
+                          Use Debounce Delay to define how long the trigger signal must be detected to be
+                          recognized as valid. Use a shorter value to compensate for ESD line noise and higher
+                          values to compensate for noise in electromechanical relays. You might have to
+                          experiment with the setting to choose the most appropriate value for your production
+                          environment.
+13   Outputs              The Outputs tab lets you configure the behavior of all output lines available to the
+                          reader. For any line you can configure the event and action of the output line.
+14   Device Description   Device description is a freely editable text field where you can add notes to the device
+                          or important additional information.
+
+
+
+
+                                                  43
+                                                                                       Configuring the DataMan Device
+
+
+15           Output Delay             Set the output delay in Manual, Single, Burst, and Continuous trigger modes.
+                                      When using a pulse encoder, you can specify the distance to the output and map the
+                                      pulse to the distance. The distance to output value is corrected based on the value of
+                                      the resolution (it is adjusted to the closest multiple of resolution rounded to
+                                      millimeters).
+                                      Use the Distance to output (mm) control to set the distance from trigger to when the
+                                      result is output.
+16           Pulse Encoder            When using a pulse encoder, you can specify the distance to the output and map the
+                                      pulse to the distance. The distance to output value is corrected based on the value of
+                                      the resolution (it is adjusted to the closest multiple of resolution rounded to
+                                      millimeters).
+                                      Use the Resolution (mm) control to define the resolution.
+17           Buffering and Transfer For more information on Buffering and Transfer, see Buffering and Transfer on
+                                    page 55.
+
+The Advanced tab provides you with a table-style view of the settings you can configure on the Basic tab. In addition to
+setting the device name and description, you can configure the TRIG Button, the TUNE Button, Input and Output lines,
+Output Delay, and a Pulse Encoder.
+
+
+
+
+                                                             44
+                                                                                            Configuring the DataMan Device
+
+
+
+
+Under Decode Settings, you can set Never Read Same Code Twice. This suppresses the reporting of the same code
+string twice in a row and within a single trigger sequence when enabled. It is available for all trigger modes, but is only valid in
+Multicode Reading, since the only way to get more than one code in a single trigger sequence is in Multicode Readings. If
+Never Read the Same Code Twice is unchecked, the device re-reads and re-transmits the same code after the specified
+Code Re-Read Delay (in milliseconds).
+Under Wake-up Message, enable or disable Output Diagnostic String on Wake-up. When enabled, the reader transmits
+a diagnostic string whenever the reader starts up. For Telnet connections the readers transmits the diagnostic string with
+each new connection. For serial connections, the baud rate is automatically set to 38,400 when the message is sent,
+regardless of the settings made in the Setup Tool.
+
+Communications
+On the tabs of the Communications application step, change the Serial and Ethernet settings.
+
+Serial Settings
+On the Serial tab, you can configure serial port values (speed, parity, data bits, stop bits, or RS-232 Inter-character Delay
+(ms)) and USB connection settings.
+
+
+
+
+                                                                45
+                                                                                         Configuring the DataMan Device
+
+
+
+
+By default, the DataMan reader uses a USB driver that can help the reader recover from an electrostatic discharge (ESD)
+event. Use USB Driver Compatibility Mode if you require strict conformance to the USB specification.
+In the Used communication channel option, you can set the communication method to USB. Depending on the reader, the
+following options are available:
+    l   USB-COM only: Choose this option to reach the reader through a serial port.
+    l   USB-HID only: The reader behaves like a USB keyboard.
+    l   USB-COM + USB-HID: This is a combination of the above modes.
+
+    Note: In the case of USB-COM only, some readers may also be listed under HID devices, even if they lack HID
+    functionality.
+
+Ethernet Settings
+On the Ethernet tab, configure network settings for your wireless or tethered reader. If you are using a wireless reader,
+configure network settings on the base station. If the reader supports two Ethernet ports, the tabs are Ethernet 0 and
+Ethernet 1.
+
+
+
+
+                                                              46
+                                                                                     Configuring the DataMan Device
+
+
+
+
+                   Ethernet 0 Tab                                                  Ethernet 1 Tab
+
+1. Select the Use DHCP Server option to assign the reader to an IP address by a DHCP server (if one is available), or
+   enter the network settings manually.
+
+       Note: When using two Ethernet ports, you cannot assign both to a DHCP server. For more information, see the
+       Communication and Programming Manual.
+
+2. Contact your network administrator for the values or click Copy PC Network Settings. The network settings of your
+   PC are copied into the fields, including the IP address of your computer.
+3. Update the information on the IP address of your reader.
+4. Under Telnet, you can set the Telnet Port.
+
+       Note:
+            l   Disable the Enable Result Output to stop sending data from the reader through Telnet port. Disabling
+                Telnet push messages still supports DMCC communication through the Telnet port.
+            l   The reader allows TCP connections to port 23, which is the default TCP port for Telnet applications. If
+                you use a Telnet client, the only parameter you have to provide is the IP address of the reader. If you are
+                using another application or SDK to connect, make sure that it uses the same TCP port setting as your
+                reader does. The reader automatically sends code output over this connection. You can transmit
+                DataMan Control Commands (DMCC) over this connection as well.
+
+
+
+
+                                                          47
+                                                                                         Configuring the DataMan Device
+
+   5. Under Industrial Protocols, you can choose one of the following protocols:
+            l   EtherNet/IP
+            l   PROFINET
+            l   SLMP Protocol
+            l   Modbus TCP
+
+                    Note: For Modbus TCP, you have the option to set Idle Timeout. Idle Timeout is the amount of time that
+                    a port is held open with no outgoing traffic. Once the reader opens a connection to an FTP server, the
+                    reader keeps the connection open as long as traffic occurs. If no traffic occurs for the set Idle Timeout
+                    period, the connection is closed. Idle Timeout is useful if an FTP transfer happens infrequently and the
+                    network overhead for keeping the connection open is not desired.
+
+            l   EtherCAT
+
+                    Note: Only available on readers with EtherCat functionality.
+
+            l   When using two Ethernet Ports, select one to run industrial communications with the FFP Port dropdown.
+   6. Under Network Client, click Enabled if you want the reader to actively open an Ethernet connection to another
+      device on the network. The connection has the same basic operational behavior as the DataMan Telnet connection.
+      The connection produces read results (transmit results to the external device) and acts as a DMCC server (process
+      commands received from the external device).
+
+For more information, see the DataMan Industrial Protocols Manual.
+
+Advanced Settings
+In the Advanced tab, you have further configuration options. In a table-style view, you can see the settings and the
+corresponding values for serial and Ethernet connections.
+
+
+
+
+                                                              48
+                                                                                       Configuring the DataMan Device
+
+
+
+
+In addition, you can set Non-Printing Characters. Normally, the raw values for non-printing characters are transmitted when
+the reader is configured for COM communications. These values are not visible at all when the reader is configured in
+keyboard wedge configurations. You can configure the reader to convert non-printing characters into sequences of keyboard
+printable characters such as <CR> by enabling the Translate Unprintable Characters feature. Eight-bit ASCII character
+codes with values of 0x00 through 0x1F and 0x7F are converted when Translate Unprintable Characters is enabled.
+Under Serial Trigger, the Trigger ON and Trigger OFF commands support a character limit with a resulting sequence that
+may have, at most, 32 bytes. Depending on how many escape sequences you use this means that the valid length of the
+acceptable string can vary between 32 characters (no escape sequences) and 128 (32 * 4-char escape sequences [such as
+\002]) characters.
+Under Custom Commands, you can also set Echo Commands. When enabled, Echo Commands echo back the
+commands you send to the reader as soon as the command, delimited by the Command Header and Command Footer
+strings, is received. Custom commands are provided to be used by a PLC or similar device and not intended to be manually
+entered. The inter-character delay is set to a small value, roughly 50 ms, so that slow typing of a custom command is not
+recognized past the first character. A Trigger ON or Trigger OFF command greater than a single character must be sent as
+a string from another application.
+
+Save Settings
+When you are finished with the application steps, click the Save Settings step to save all your configuration at once. In a
+pop-up window, the Setup Tool informs you that your configuration changes will be saved. You can cancel at this point and
+make further changes. You also have the option to check the Don't show this dialog again box.
+
+
+
+
+                                                             49
+     Configuring the DataMan Device
+
+
+
+
+50
+                                                                                         Configuring the DataMan Device
+
+
+Actions
+After connecting to a device, several tabs appear next to Home.
+When you click the Actions tab, the following ribbon bar pops up.
+
+
+
+
+You also have the option to keep the bar visible while you are looking at other panes of the Setup Tool by clicking the
+downward arrow next to Help in the upper right corner.
+
+On the Actions tab, you can issue or simulate a trigger or input line action, enable live display, optimize brightness and
+focus, and tune the reader. You can also enable Test Mode here. For more information, see Test Mode on page 52. Click
+Switch to Process Monitor to start the Process Monitor. For more information, see Process Monitor on page 63. You can
+also upload and train images and codes on this tab.
+
+
+
+
+                                                              51
+                                                                                          Configuring the DataMan Device
+
+
+Settings
+After connecting to a device, several tabs appear next to Home.
+When you click the Settings tab, the following ribbon bar pops up.
+
+
+
+
+This section deals with the various configuration options available in the Settings ribbon bar.
+
+Test Mode
+Test Mode lets you configure and test a reader that is connected to a production line without needing to slow down or stop
+your line. While in Test Mode, the reader by default ignores all external trigger sources and disables all input and output lines.
+To enter Test Mode, perform one of the following actions:
+     l   Press the button (to which you previously assigned this function in the Setup Tool's Inputs / Outputs pane's
+         TRIG Button tab) on the device for 3 seconds
+     l   Send a DataMan Control Command (DMCC)
+     l   Click the Enable Test Mode button in the DataMan Setup Tool (Actions)
+
+In the ribbon bar under Settings in the Setup Tool, click Test Mode Settings. The Test Mode Settings pane appears.
+Check Automatic Triggering Enabled, and the reader will simulate external triggers at the interval that you specify.
+
+
+
+
+If Automatic Triggering is not enabled, click Accept Trigger Batch in the Input / Output State field, and the reader will
+accept and process a limited number of external triggers at production speed.
+
+
+
+
+                                                               52
+                                                                                        Configuring the DataMan Device
+
+In both cases, you can view images and decodes using production settings, but at a slower rate and without sending output
+signals to your line.
+
+Read Setups
+It is possible to configure a variety of acquisition parameters for your DataMan reader in a unified Read Setups pane.
+Under Settings click the Read Setups button. The Read Setups pane appears.
+
+
+
+
+Your reader can be configured for up to 16 different settings. In Single, Continuous, Self, and Burst trigger modes, you can
+enable multiple (or all) setups, and the DataMan reader goes through all of the configured imager combinations until there is
+a decoded image or there are no images left (that is, a NoRead Image).
+You can change the parameters for the setups in the Read Setup pane’s appropriate table cell.
+
+Choose to start the read setup process with either a specific setup, or the Last Successful Decode.
+The currently selected setup also gets represented in other panes. For example, you can check and change the active Read
+Setup in the Settings ribbon bar:
+
+
+
+
+Data Validation
+Data Validation is used to confirm that the data encoded by a symbol is in the correct format for a particular company,
+industry or international standard.
+
+
+
+
+                                                             53
+                                                                                      Configuring the DataMan Device
+
+
+
+
+Data Matrix, QR Code/MaxiCode/Aztec Code and 1D/Stacked/Postal code categories can be validated against
+standards/well formedness.
+
+
+
+Code Quality
+Under Code Quality you can set the desired code quality standard you want to use for quality assessment for your code
+type. Once you set this on the General tab, you can navigate to the appropriate code quality standard's sub-tab under the 1D
+Barcodes or 2D Codes tabs and customize for specific grades the grading thresholds, including specific grades in the
+overall grade and their display in the report.
+
+    Note: MicroQR is not supported for code quality grading.
+
+
+
+
+                                                               54
+                                                                                       Configuring the DataMan Device
+
+
+
+
+After you set up your device to compute ISO/IEC 15415, AIM-DPM/ISO/IEC TR29158, SEMI T10, or DotCode for 2D
+Codes under the General tab in the Code Quality pane, the 2D Codes, 1D Barcodes tabs allow you to manage aspects of
+those types of code grading.
+In the Result String tab, check Append Code Quality Data to Result String to enable token based data formatting and
+allow code quality result data to be appended to result strings. If checked, Output Overall Grade outputs the overall code
+quality grade (which is defined as the minimum grade of selected metrics) in the result string.
+The Report FTP Transfer tab allows you to set up code quality results to be sent via FTP in the form of an HTML report.
+
+
+
+Buffering and Transfer
+Buffering and Transfer lets you control what images are recorded and saved on the reader, it lets you view images that are
+saved on the reader, and it lets you transfer those images to your PC.
+    l   The Image Buffering tab lets you control what images to save to the reader.
+    l   The Image PC Transfer tab lets you control how images are transferred from the reader to your PC.
+    l   The Image FTP Transfer tab lets you set up automatic image transfers from the reader to your FTP, SFTP, or TCP
+        server.
+    l   The Result FTP Transfer tab lets you to configure the reader with the IP address and port number necessary to
+        send decode results to an FTP server.
+
+
+
+
+                                                             55
+                                                                                     Configuring the DataMan Device
+
+
+
+
+    Note: The Buffering and Transfer function does not perform any decoding.
+
+
+
+System
+The System tab enables you to save and open configuration settings related to the device your Setup Tool is connected to.
+In addition, you can export parameters or save configuration in human readable form (a .txt file).
+
+
+
+
+Click Configuration Backup Settings to define the way you save your configuration.
+
+
+
+
+                                                            56
+                                                                                        Configuring the DataMan Device
+
+
+
+
+Automatic Backup works with devices connected through Ethernet. When enabled, this function does a device
+configuration backup to an external storage (an FTP server) every time the configuration is saved to flash. Restore can be
+done manually by either the Setup Tool or DMCC commands. For devices equipped with an SD Card, check Use SD Card
+for Backup to save your configuration there.
+Configure the reader with the IP address and port number necessary to specify where you want to save the configuration.
+You can also set a username and password combination.
+
+
+View
+The View tab helps you to display different views related to the data you want to check. The following options are available:
+
+              Displays the Image Viewer window.
+
+
+
+
+              Displays the Image Panel toolview where you can view the images read by the device.
+
+
+
+
+              Displays the Result History toolview in which you can view and log read results.
+
+
+
+
+                                                              57
+                                                                                       Configuring the DataMan Device
+
+
+              Displays the Code Quality toolview where you can do and view the necessary code quality settings.
+
+
+
+
+              Displays the Q & A pane in which you can see questions and answers related to the options appearing on the
+              open document.
+
+
+              Clicking the downward arrow belonging to this option, you can select the layout in which you want to display
+              the panes you selected.
+
+
+
+
+              Clicking Syncronized Navigation makes the same navigation steps you made occur in all open device
+              documents.
+
+
+
+
+Image Viewer
+To open the Image viewer, connect to a reader and in the upper toolbar, click the View tab. There, click the Image Viewer
+button. The Image Viewer window pops up:
+
+
+
+
+In this window, you can view the image read by your reader. The image is zoomable, it can be copied to the clipboard or
+saved to a selected folder. You can also check the histogram of the read image and the brightness data of a selected point in
+the image. Use the buttons on the toolbar ribbon of this window to carry out these tasks.
+Because of multi-reader support, several device document tabs can be open at a time, which means that there can be
+multiple image sources at the same time. The Image Viewer receives image data only from the active device document. If
+
+
+
+
+                                                             58
+                                                                                         Configuring the DataMan Device
+
+the active document cannot provide image data (for example, it is a Reader Group Editor), the content of the Image Viewer
+window will be empty.
+
+Image Panel
+You can view the read image on the right hand side of the window: the Image Panel is always displayed by default. On the
+View tab you can switch on and off by clicking the icon. This window can also be docked in different places of the application.
+
+
+
+
+You have the option to zoom in and out of the image. In addition, log NoRead and decoded images to the file system from this
+pane using the Logging options. Click the More Buttons drop-down arrow on the far right side of the Image Panel:
+
+
+
+
+Clicking the last option here opens the Setup Tool Options window, in which you can set the default folder where logs of
+NoRead and decoded images are to be saved.
+
+Results Viewer
+Similarly to the Image Panel, the Result History window can be configured in different layouts. The Result History window
+is displayed by default, but in case you have closed it, you can have it displayed again by clicking View and then clicking the
+Result History icon.
+The result data comes from the active document.
+
+
+
+
+                                                              59
+                                                                                      Configuring the DataMan Device
+
+
+
+
+You can customize the layout of this pane using the available options, that is, you can choose what data should be shown in
+the columns of the table.
+
+
+
+
+Select what you want to log from the Logging drop-down list:
+
+
+
+
+                                                            60
+                                                                                        Configuring the DataMan Device
+
+
+
+
+Clicking the last option here opens Options, in which you can set the default folder where reports and the logs of result codes
+are to be saved.
+
+
+
+
+                                                             61
+                                                                                          Configuring the DataMan Device
+
+
+Compare Configuration
+Use the Compare Configuration page to set, copy, compare, or restore device configurations and settings. You can use
+multiple devices to quickly synchronize configurations or check for inconsistencies. Select multiple devices from the device
+list and click the Compare Configuration button to initiate the comparison in a new document.
+The table view lists all settings of the selected devices, while the menu on top allows you to take a number of actions relating
+to these settings.
+
+
+
+
+For more detailed information on Compare Configuration features, see the Q & A of the page that can be opened from the
+top right corner.
+
+
+
+
+                                                              62
+                                                                                       Configuring the DataMan Device
+
+
+Process Monitor
+As it operates, a DataMan device logs statistics such as the number of triggers received, the number of symbols read (and
+not read), and the number of trigger overruns.
+You can choose to have a separate Process Monitor document for each device, or you can have a single Process Monitor
+document for every device you want to monitor. If you want to have one Process Monitor document for each of your devices,
+select your device and then click the Process Monitor button and repeat this process for every device. If you want to monitor
+all of your devices on a single Process Monitor page, click the arrow on the Process Monitor button and click the Add to
+Process Monitor option that pops up.
+If the Process Monitor button is disabled, it is because the device you selected does not support process monitoring or the
+device is open in this or another Setup Tool connection. After you connected to the Setup Tool, a DataMan device stops
+generating statistics about decode attempts by default. To re-enable process statistics when connected to the Setup Tool,
+you must manually start the Process Monitor. In the upper toolbar, click Actions, then click Switch to Process Monitor.
+
+
+
+
+1            Statistical data of one of the monitored devices. Each device gets its own window (in this example).
+
+
+
+
+                                                             63
+                                                                                         Configuring the DataMan Device
+
+
+2           Process Monitor tab. Here only one tab is shown, but you can have multiple tabs.
+3           Show Read Statistics: you can turn displaying statistical data on and off.
+4           Cell Selection group: you can select multiple readers before doing mass actions.
+5           Layout: reset the cell layout.
+6           Clear Statistics: clear the read statistics in the selected panels any time during runtime.
+7           Switch to Config Mode: switches to configuration mode
+
+
+    Note: One device can be opened in only one Process Monitor document at a time. In the Connect page, the Open in
+    Documents column shows which devices use the Process Monitor.
+
+
+
+
+                                                              64
+                       Copyright © 2025
+Cognex Corporation. All Rights Reserved.
+
