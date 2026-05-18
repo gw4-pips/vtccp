@@ -18,6 +18,48 @@ Install ritual (every version):
 
 ## Versions
 
+### v1.24 — 2026-05-18
+
+Filed: `v1.24.js` (also `dist/DmstPushScript_v1.24.txt`).
+
+**Probe release.** Status: drafted, not yet device-confirmed (B1 pending).
+
+Foundation: comms-and-programming-guide 25.4.1.1 digest landed 2026-05-18,
+formally confirming several v1.23 empirical findings and unblocking the
+image-emission path. v1.23 baseline regression-passed across DMST 25.4.1.1
+→ 26.1.0 (schema bit-identical, see B2 in session plan).
+
+New first-class fields (promoted from v1.23 probes):
+- `<SymbologyId>` ← `r.symbology.id` (AIM ID, e.g. `]d1`)
+- `<SymbolQuality>` ← `r.symbology.quality` (0–100 decoder confidence)
+- `<SymbolAngle>` ← `r.symbology.angle` (degrees)
+- `<ModuleSizePx>` ← `r.symbology.moduleSize` (pixels/module)
+- `<CalibrationDate>` ← `r.trucheck.calibrationDate` (promoted out of `<CustomNote>` workaround)
+- `<FieldCalibrated>` ← `readerProperties.status3D.fieldCalibrated`
+- `<FactoryCalibrated>` ← `readerProperties.status3D.factoryCalibrated`
+- `<MinPassGrade>` / `<MinPassRaw>` ← `r.metrics.minPassGrade.{grade,raw}`
+- `<BWGPercent>` ← `r.metrics.printGrowth.raw` via `mmPctAuto` (was empty in v1.23 — comms guide confirms `printGrowth` IS the source)
+
+New probes:
+- `<DebugImageShape>` — full enum of `r.image` (metadata only per comms guide; unblocks D4 image-load)
+- `<DebugJpegProbe>` — `r.trucheck.jpegImage` LENGTH + 80-char preview. Full base64 payload **deferred to v1.25** pending size data — could be 50–300 KB which is 7–40× current XML size; need to verify Network Client + listener handle it before committing.
+- `<DebugGS1>` — deep enum of `r.validation.gs1` (v1.23 shallow probe saw only `[obj]`)
+- `<DebugDodUid>` — deep enum of `r.validation.dodUid`
+- `<DebugBarcodeAsgn>` — deep enum of `r.barcodeAssignment` (undocumented sibling)
+- `<DebugANUCase>` — case-mismatch resolver: `axialNonuniformity` (lower-u, empirically working) vs `axialNonUniformity` (upper-U, comms-guide spelling)
+- `<DebugReaderProps>` — top-level enum of `readerProperties`
+
+Retained (continuing baselines, bit-identical across DMST 25→26.1): `DebugModSize`, `DebugECCount`, `DebugMetricsKeys`, `DebugRSiblings`.
+
+Dropped from v1.23 (questions definitively answered by filed v1.23 XML, see `samples/live-scans/v1.23-2026-05-18-*`):
+`DebugSymbology` · `DebugCellDefects` · `DebugFPDefects` · `DebugDMCellDims` · `DebugValidation` · `DebugMetricShape`
+
+`DebugMetricShape` finding worth carrying forward: `r.metrics.symbolContrast = {raw, grade}` — monolithic single-symbol grade with no hidden per-region structure. **ISO 15415 metrics in JS scope are flat; per-region grading definitively requires a separate data path (DMCC report engine), not a JS-scope re-probe.**
+
+Diagnostic tag: `<PushScriptDiag>v1.24 q=r.trucheck m=found</PushScriptDiag>`.
+
+---
+
 ### v1.23 — 2026-05-17
 
 Filed: `v1.23.js` (also `dist/DmstPushScript_v1.23.txt`).
@@ -69,16 +111,12 @@ Initial probe iteration. Smaller payload than v1.11.
 
 ## Pending versions
 
-- **v1.24** — planned. Scope per last session:
-  - Wire `r.symbology.moduleSize` → `<PixelsPerModule>`
-  - Wire `r.symbology.id` → new `<AIMId>`
-  - Wire `r.symbology.angle` → new `<SkewAngle>`
-  - Wire `r.symbology.quality` → new `<DecoderQuality>`
-  - Wire `r.decodeTime` / `r.triggerTime`
-  - Bulk-extract all 21 unwired metrics as `<MetricName_Raw>` / `<MetricName_Grade>`
-  - Probe `r.image` accessor + format
-  - Probe `r.validation.gs1` and `.dodUid` shapes
-  - Probe `r.barcodeAssignment`
+- **v1.25** — planned, depends on v1.24 device confirmation (B1) returning JPEG size data:
+  - Commit to full `<JpegImageBase64>` payload emission once Network Client + listener confirmed to handle the size.
+  - Resolve `<DebugANUCase>` outcome — drop the loser, keep the winner first-class.
+  - Promote whichever of `<DebugGS1>` / `<DebugDodUid>` / `<DebugBarcodeAsgn>` returned structured payloads.
+  - Drop `r.decodeTime` / `r.triggerTime` wires (not in any v1.23 enumeration — were a misconception in the prior session-plan notes; the comms guide doesn't document them on `r` either).
+  - The 21-unwired-metrics bulk extract concept is **deprecated**: v1.23 enumerated `r.metrics` and confirmed most "unwired" entries were either already wired (different name), DPM-only (NA on non-DPM scans), or `{raw:-1, grade:NA}` sentinels. Per-metric wire-up now happens case-by-case, not bulk.
 
 ---
 
