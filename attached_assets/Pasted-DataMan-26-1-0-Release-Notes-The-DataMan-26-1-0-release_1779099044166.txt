@@ -1,0 +1,63 @@
+DataMan 26.1.0 Release Notes
+
+The DataMan 26.1.0 release further refines and supplements the functionality of DataMan 25.4.1 with general enhancements, bugfixes, and the latest documentation.
+General updates for DataMan fixed-mount platforms 280/80, 380/580, and 290/390
+
+    Added several new methods of generating or interpolating an encoder signal to ease integration with carrier-style conveyors. New methods include Encoder Upscaling, Fixed Speed, and Measured Speed Dual Input.
+
+    Added the DECODER.1D2D-USAGE DMCC for 1D/2D use cases to use Extended decode mode.
+
+    Added support for GS1 Composite codes.
+
+    Added the ability to read Pharmacode symbols with two bar elements.
+
+    Improved QR code reading performance on degraded or warped codes.
+
+    Enhanced DataMatrix robustness in handling code degradation.
+
+    Improved GS1 Digital Link validation for both readers and verifiers.
+
+General updates for DataMan platforms 280/80, 380/580, 290/390, and 8700
+
+    Fixed an issue where the reader crashes when a DMCC command is sent during bootup.
+
+    Fixed an issue where FTP usage caused a small memory leak.
+
+Firmware Version 6.3.10 (DataMan 80 and 280 Platforms)
+
+    Added support for UserData fragmentation when using EtherCAT. Large payloads, such as DMCC commands, set match strings, or scripts can be sent in fragments to be pieced together by the reader as Extended Data Fragments.
+
+    Improved bit initialization to ensure that all state-dependent bits are initialized to FALSE upon reboot.
+
+    Serial Number and Firmware Version are reflected in CANopen over EtherCAT (CoE) objects.
+
+Firmware Version 6.2.9 SR3 (DataMan 8700 Platform)
+
+    Improved firmware update and wireless reconnection stability.
+
+WebUI Updates
+
+    Added the Diagnostics page, a software-based diagnostic tool that allows you to view the input and output signals of your DataMan reader. By using Diagnostics, you can understand system loads to optimize performance, troubleshoot application issues, and identify corrective measures.
+
+    Added Services & Ports in the Settings menu for resource control. You can disable major configuration APIs and channels for security purposes. This allows easier onboarding in complex IT deployments and helps meeting regulatory requirements.
+
+    Added ability to toggle the TruCheck graphics overlay.
+
+    TruCheck-related data formatting tokens now output "N/A" when TruCheck is disabled.
+
+    Support for transferring SVG overlay graphics over FTP.
+
+General Notes for DataMan 26.1.0
+
+    Fixed an issue where Data Validation could not be turned on or off.
+
+    Added new encoder UI in the Inputs / Outputs application step to facilitate the use of the Encoder Upscaling, Fixed Speed, and Measured Speed Dual Input options.
+
+System Requirements
+
+The PC you use to install DataMan software must meet the minimum hardware and software requirements. At least 2 GB free disk space and .NET Framework 4.7.2 or higher is required for the installation to succeed.
+Supported Operating Systems
+
+    Microsoft Windows 10® 32-bit and 64-bit editions
+
+    Microsoft Windows 11® 64-bit editions

@@ -18,18 +18,31 @@ report copy, verify the exact wording against the source PDF.
    here are authoritative for our schema's Webscan-lineage columns.
 
 2. **Webscan column-name expansions** (we'd been treating these as opaque
-   acronyms):
-   - **LLS = Left Light Source** / **BLS = Bottom Light Source** —
-     illumination consistency on the L-shape finder pattern segments
-   - **LQZ/BQZ/TQZ/RQZ** = Left/Bottom/Top/Right Quiet Zone grades
-   - **HQZ** = Horizontal Quiet Zone (averaged Left+Right)
-   - **TTR/RTR** = Top/Right Transition Ratio
-   - **TCT/RCT** = Top/Right Clock Track
-   - **AG** = Average Grade (across scan lines)
-   - **MRD** = Module Reflectance Distribution
-   - **BWG** = Bar Width Growth (= ISO 15415 Print Growth)
+   acronyms). Pattern is `<Position><FixedPatternFeature>` for the
+   per-side grades:
+   - **LLS / BLS** = **Left L Side** / **Bottom L Side** — the two
+     solid segments of the Data Matrix L-finder pattern (the "L" shape
+     on left + bottom edges). NOT "Light Source" — that was a subagent
+     misread, corrected by user 2026-05-18.
+   - **TCT / RCT** = **Top Clock Track** / **Right Clock Track** — the
+     dashed alternating-module pattern forming the upper + right edges
+     of the Data Matrix symbol (the dual to the L).
+   - **LQZ / BQZ / TQZ / RQZ** = Left / Bottom / Top / Right **Quiet
+     Zone** grades — the clearance regions surrounding all four sides.
+   - **HQZ** = Horizontal Quiet Zone (averaged Left + Right).
+   - **TTR / RTR** = Top / Right Transition Ratio (transition-zone
+     width relative to module size, on the Clock Track edges).
+   - **ULQZ / URQZ / RUQZ / RLQZ** = per-quadrant Quiet Zone grades
+     for large matrices (≥32×32).
+   - **AG** = Average Grade (across scan lines).
+   - **MRD** = Module Reflectance Distribution.
+   - **BWG** = Bar Width Growth (= ISO 15415 Print Growth).
    - **SCRlRd** = Symbol Contrast formatted as `SC (Rl/Rd)` where
-     Rl=max reflectance, Rd=min reflectance
+     Rl=max reflectance, Rd=min reflectance.
+
+   Common thread: **every position-prefixed acronym names a region or
+   feature of the Data Matrix symbol itself** (L-side, Clock Track,
+   Quiet Zone). None refer to the verifier's illumination hardware.
 
 3. **Image-load capability CONFIRMED on 8072V** via DMST's "Image
    Playback" feature. Pre-captured `.jpg` / `.png` files can be fed
@@ -88,8 +101,8 @@ report copy, verify the exact wording against the source PDF.
 
 | Field | Meaning | Units | ISO equivalent |
 |---|---|---|---|
-| **LLS** | Left Light Source — finder-pattern illumination consistency | Grade A-F | Fixed Pattern Damage (segment) |
-| **BLS** | Bottom Light Source — same, bottom finder segment | Grade A-F | Fixed Pattern Damage (segment) |
+| **LLS** | Left L Side — grade of the left segment of the Data Matrix L-finder pattern (solid bar) | Grade A-F | Fixed Pattern Damage (segment) |
+| **BLS** | Bottom L Side — grade of the bottom segment of the L-finder pattern (solid bar) | Grade A-F | Fixed Pattern Damage (segment) |
 | **LQZ** | Left Quiet Zone grade | Grade A-F | Part of FPD |
 | **BQZ** | Bottom Quiet Zone grade | Grade A-F | Part of FPD |
 | **TQZ** | Top Quiet Zone grade | Grade A-F | Part of FPD |
@@ -99,10 +112,10 @@ report copy, verify the exact wording against the source PDF.
 | **URQZ** | Upper-Right Quiet Zone | Grade A-F | FPD region |
 | **RUQZ** | Right-Upper Quiet Zone | Grade A-F | FPD region |
 | **RLQZ** | Right-Lower Quiet Zone | Grade A-F | FPD region |
-| **TTR** | Top Transition Ratio — ratio of transition-zone width to module size | % + Grade | Part of FPD |
-| **RTR** | Right Transition Ratio | % + Grade | Part of FPD |
-| **TCT** | Top Clock Track — alternating-module integrity | Grade A-F | Part of FPD |
-| **RCT** | Right Clock Track | Grade A-F | Part of FPD |
+| **TTR** | Top Transition Ratio — transition-zone width relative to module size, on the top Clock Track edge | % + Grade | Part of FPD |
+| **RTR** | Right Transition Ratio — same, on the right Clock Track edge | % + Grade | Part of FPD |
+| **TCT** | Top Clock Track — grade of the dashed alternating-module pattern on the upper edge | Grade A-F | Part of FPD |
+| **RCT** | Right Clock Track — grade of the dashed alternating-module pattern on the right edge | Grade A-F | Part of FPD |
 | **AG** | Average Grade across scan lines | 0.0-4.0 | — |
 | **MRD** | Module Reflectance Distribution — spread of reflectance within modules | % | — (general char) |
 | **SCRlRd** | Symbol Contrast formatted `SC (Rl/Rd)`. Rl=Rmax, Rd=Rmin | % reflectance | Symbol Contrast (15415) |
