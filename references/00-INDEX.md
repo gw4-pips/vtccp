@@ -20,7 +20,7 @@ the unfiled-pile catalog at `attached_assets-archive/INDEX.md`.
 | `manuals/cognex/SDK-docs/` | DataMan SDK API docs (if acquired) | Empty — pending |
 | `manuals/cognex/reference-manual-DM390-25.4.1.2.pdf` | Bonus — non-V reader, useful for SBG context | Filed |
 | `manuals/webscan-legacy/` | Pre-acquisition Webscan TruCheck docs | Empty — to acquire |
-| `standards/` | ISO standard summaries + URLs (15415, 15416, 18004, 29158, 16022) | Empty — pending |
+| `standards/` | ISO standard PDFs/DOCX + per-standard markdown digests | Filed: 15415 (Ed.3 DRAFT), 15426-2 (3rd ed) + digests + INDEX. Pending: 15416, 29158, 16022, 18004 |
 | `samples/live-scans/` | Raw XML output from real verifier, by date + push-script version | Filed (12 from current sprint + 3 from March) |
 | `samples/live-scans/probe-history/` | Every probe-iteration XML | Filed |
 | `samples/reports/` | DMST + Webscan PDF reports, for trade-dress reference + parser regression | Filed (16 PDFs) |
@@ -39,6 +39,8 @@ the unfiled-pile catalog at `attached_assets-archive/INDEX.md`.
 
 | Topic | Primary source |
 |---|---|
+| 2D barcode print quality methodology (15415) | `standards/ISO-IEC-15415-ed3-2024-digest.md` + source PDF |
+| 2D verifier conformance + tolerances (15426-2) | `standards/ISO-IEC-15426-2-2023-digest.md` + source DOCX |
 | DM475V hardware behavior, calibration, SBG limits | `manuals/cognex/DM475V/reference-manual-25.4.1.1.pdf` |
 | DMCC command syntax | `manuals/cognex/comms-and-programming-guide/comms-and-programming-guide-25.4.1.1.pdf` |
 | DMST scripting environment + JS API | `manuals/cognex/DMST/2025-release/setup-tool-reference-manual-25.4.1.1.pdf` |
