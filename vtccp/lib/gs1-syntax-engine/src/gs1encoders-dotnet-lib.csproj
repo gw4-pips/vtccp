@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>gs1encoders_dotnet</RootNamespace>
+    <AssemblyName>gs1encoders-dotnet</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NativePlatformDir Condition="'$(PlatformTarget)' == 'x86'">Win32</NativePlatformDir>
+    <NativePlatformDir Condition="'$(NativePlatformDir)' == ''">x64</NativePlatformDir>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <None Include="..\c-lib\build\library\$(NativePlatformDir)\$(Configuration)\gs1encoders.dll"
+          CopyToOutputDirectory="PreserveNewest"
+          Link="gs1encoders.dll" />
+  </ItemGroup>
+
+  <!-- On Linux/macOS .NET P/Invoke prepends "lib" to the DLL name, so the
+       Linux ELF .so is staged under the name "libgs1encoders.dll" for the
+       runtime resolver to dlopen(). -->
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+    <None Include="..\c-lib\build\libgs1encoders.so"
+          CopyToOutputDirectory="PreserveNewest"
+          Link="libgs1encoders.dll" />
+  </ItemGroup>
+
+</Project>

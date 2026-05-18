@@ -1,6 +1,8 @@
 # GS1 Barcode Syntax Resource — Catalog Entry
 
 **Date cataloged**: 2026-05-18
+**Status**: DOWNLOADED AND INCLUDED — `vtccp/lib/gs1-syntax-engine/` (v1.4.0, 2026-05-18)
+**Next update check due**: 2026-06-18
 **Triggered by**: v1.24 probe — `DebugGS1` returned all-undefined, confirming
 DMST's `r.validation.gs1` is NOT an AI-property bag. Application-syntax
 validation for GS1 / MIL-STD / ISO 15434 must live in VTCCP itself, not
@@ -160,11 +162,33 @@ application-syntax validation in VTCCP is independent of the device.
 
 ---
 
+## What's physically in the repo (v1.4.0)
+
+```
+vtccp/lib/gs1-syntax-engine/
+  src/GS1Encoder.cs                           ← C# P/Invoke wrapper (1006 lines)
+  src/GS1EncoderTest.cs                       ← Official test suite (306 lines)
+  src/gs1encoders-dotnet-lib.csproj
+  src/README.md
+  dotnet-lib-release/gs1encoders-dotnet.dll   ← managed wrapper DLL
+  dotnet-lib-release/runtimes/win-x64/native/gs1encoders.dll
+  dotnet-lib-release/runtimes/win-x86/native/gs1encoders.dll
+  native/x64/gs1encoders.{dll,h,lib}          ← native x64 (C interop)
+  native/x86/gs1encoders.{dll,h,lib}          ← native x86
+  LICENSE  README.md
+  VERSION-PIN.md                              ← version pin + update-check procedure
+
+vtccp/lib/gs1-syntax-dictionary/
+  gs1-syntax-dictionary.txt                   ← 344-line AI rules dictionary
+  CHANGES
+```
+
+See `vtccp/lib/gs1-syntax-engine/VERSION-PIN.md` for the integration path
+into VTCCP and the monthly update check procedure.
+
 ## Action items (filed, not yet scheduled)
 
-- [ ] Download latest `gs1-syntax-engine` release DLL + C# wrapper
-- [ ] Read `src/dotnet/README.md` and `src/dotnet/GS1Encoder.cs` to
-      understand the exact C# API surface
+- [x] ~~Download latest `gs1-syntax-engine` release DLL + C# wrapper~~ — done (v1.4.0)
 - [ ] Write `Iso15434Parser.cs` (envelope framing only — ~50 lines)
 - [ ] Wire into a new `ApplicationSyntaxResult` model in `DeviceInterface`
       or a new `Validation` project
