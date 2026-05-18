@@ -21,7 +21,9 @@ Install ritual (every version):
 ### v1.28 — 2026-05-18
 
 Filed: `v1.28.js` (also `dist/DmstPushScript_v1.28.txt`).
-Status: **authored, syntax-verified, awaiting device install**.
+Status: **device-confirmed 2026-05-18** (DM live 11:24:40).
+XML filed: `samples/live-scans/v1.28-2026-05-18-DM-Live-GS1Format06.xml`.
+Catalog: `samples/live-scans/v1.28-2026-05-18-catalog.md`.
 Confirm by: `<PushScriptDiag>v1.28 q=r.trucheck m=found</PushScriptDiag>`.
 
 **Wire release.** Driven by v1.27 live scan findings
