@@ -38,27 +38,29 @@ same symbol 90 min earlier):
    backward compatibility at the protocol and script level — our v1.23
    push script and `DmccClient`/`DataManSdkClient` should keep working.
 
-2. **DM475V is NOT enumerated in any platform list in these notes**,
-   and post-install evidence (2026-05-18) confirms why:
+2. **DM475V is NOT enumerated in any platform list in these notes** —
+   simply because the verifier line had no changes in this release
+   cycle. Per user correction 2026-05-18: **Cognex publishes one
+   unified release notes document**; the V-line appears in it when
+   there are V-line changes, and is absent (as here) when there
+   aren't. There is no separate verifier-line release notes track to
+   chase. What's in the doc IS the whole story.
    - "General updates for fixed-mount platforms **280/80, 380/580, and
      290/390**" — DM470 family absent
    - "General updates for platforms **280/80, 380/580, 290/390, and 8700**"
      — DM470 family absent
-   - **Firmware updates listed**: 6.3.10 (DM80/280, 3 majors ahead of
-     us), 6.2.9 SR3 (DM8700, 1 major ahead). DM470 family receives no
-     update; 6.1.16_sr4 remains current.
+   - **Firmware updates listed**: 6.3.10 (DM80/280), 6.2.9 SR3 (DM8700).
+     DM470 family receives no update this cycle; 6.1.16_sr4 remains
+     current.
    - **DMST 26.1.0 reports our device as platform "DM470"** in the
      network discovery panel, confirming the family identifier.
 
-   Confirmed reading: **DM470 verifier family is on a separate,
-   slower firmware track than the reader/decoder lines.** Compatibility
-   with the latest DMST tool is preserved (verified by clean connect
-   + clean push-pipeline regression), but feature additions come on
-   the verifier-line release cadence, not the main DataMan train.
-   Future verifier capability expansions (image-load DMCCs, new metric
-   exposure, etc.) should be tracked from verifier-line release notes
-   specifically — which we have not yet located in Cognex's published
-   set. Worth a targeted ask of the user / Cognex contact.
+   Operational reading: **26.1.0 is a no-op release for our hardware.**
+   Compatibility with the latest DMST tool is preserved (verified by
+   clean connect + clean push-pipeline regression), and the verifier
+   line simply had nothing shipped this cycle. The next time V-line
+   changes ship, they will appear in the corresponding DataMan release
+   notes — this is the document to keep watching.
 
 3. **TruCheck (the verifier algorithm suite) is actively maintained in
    26.1.0**:
