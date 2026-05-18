@@ -256,13 +256,22 @@ public sealed record class VerificationRecord
     public GradingResult? LLQRCT_Grade { get; init; }
     public GradingResult? LRQRCT_Grade { get; init; }
 
-    // ─── Block 6: QR Code Parameters (stubs — data writing in later task) ──────
-    // QR Code uses ISO 15415 + QR-specific parameters; column positions reserved.
+    // ─── Block 6: QR Code Parameters ──────────────────────────────────────────
     // Populated when SymbologyFamily is QRCode or GS1QRCode.
-
+    // Symbol characteristics (from r.trucheck.symbols[0] — paths confirmed by v1.26 probe):
     public string? QR_Version { get; init; }        // e.g. "V3 (29×29)"
     public string? QR_ECLevel { get; init; }        // L / M / Q / H
-    public string? QR_MaskPattern { get; init; }
+    public string? QR_MaskPattern { get; init; }    // 0–7
+
+    // ISO 15415 QR-specific grade parameters (8 parameters; paths from v1.26 DebugSymbols0 probe):
+    public GradingResult? QR_ULP_Grade { get; init; }  // Upper-Left Finder Pattern
+    public GradingResult? QR_URP_Grade { get; init; }  // Upper-Right Finder Pattern
+    public GradingResult? QR_LLP_Grade { get; init; }  // Lower-Left Finder Pattern
+    public GradingResult? QR_HCT_Grade { get; init; }  // Horizontal Clock Track
+    public GradingResult? QR_VCT_Grade { get; init; }  // Vertical Clock Track
+    public GradingResult? QR_ALP_Grade { get; init; }  // Alignment Pattern
+    public GradingResult? QR_VIB_Grade { get; init; }  // Version Information Blocks
+    public GradingResult? QR_FIB_Grade { get; init; }  // Format Information Blocks
 
     // ─── Block 7: Military / Standards-Specific ────────────────────────────────
 

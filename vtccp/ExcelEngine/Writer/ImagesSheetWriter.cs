@@ -81,7 +81,21 @@ public sealed class ImagesSheetWriter
         // ── Image row ─────────────────────────────────────────────────────────
         _adapter.SetRowHeight(_nextRow, ImageRowHeightPt);
 
-        byte[] jpegBytes = Convert.FromBase64String(record.JpegImageBase64);
+        byte[] jpegBytes;
+        try
+        {
+            jpegBytes = Convert.FromBase64String(record.JpegImageBase64);
+        }
+        catch (FormatException ex)
+        {
+            // Malformed base64 payload (truncated push, encoding error, etc.).
+            // Write an error marker in the image cell and skip embedding so the
+            // rest of record append continues normally.
+            _adapter.WriteString(_nextRow, 1, $"[IMAGE DECODE ERROR: {ex.Message}]");
+            _nextRow += 3;   // image row + two blank separator rows
+            return;
+        }
+
         _adapter.WriteEmbeddedImage(_nextRow, 1, jpegBytes);
         _nextRow++;
 

@@ -16,8 +16,13 @@ public sealed class XlsAdapter : IExcelAdapter
     private ISheet? _ws;
     private string _filePath = string.Empty;
 
+    // Row-level style accumulator: maps 1-based row index → the shared ICellStyle for that row.
+    // SetRowBold / ClearRowFill / SetRowWrapText all modify the SAME style object for a given row
+    // and re-apply it, so the entire row shares one HSSF style entry instead of N (one per column).
+    // This is critical for HSSF: the XLS format caps a workbook at ~4,000 unique cell styles;
+    // applying a new style per cell per header rewrite exhausts that limit quickly.
+    private readonly Dictionary<int, ICellStyle> _rowStyleMap = [];
     private readonly Dictionary<string, ICellStyle> _styleCache = [];
-    private ICellStyle? _boldStyle;
     private IFont? _boldFont;
 
     public int MaxDataRows => 65_536;
@@ -35,6 +40,15 @@ public sealed class XlsAdapter : IExcelAdapter
         return false;
     }
 
+    // Initialises workbook-scoped font/style objects that are reused for the workbook lifetime.
+    // Called once after _wb is created or loaded. Safe to call multiple times (idempotent).
+    private void EnsureWorkbookStyles()
+    {
+        if (_boldFont is not null) return;
+        _boldFont = _wb!.CreateFont();
+        _boldFont.IsBold = true;
+    }
+
     public int EnsureSheet(string sheetName)
     {
         _ws = _wb!.GetSheet(sheetName) ?? _wb.CreateSheet(sheetName);
@@ -42,10 +56,7 @@ public sealed class XlsAdapter : IExcelAdapter
         if (rowCount == 1 && _ws.GetRow(0) == null)
             rowCount = 0;
 
-        _boldFont = _wb.CreateFont();
-        _boldFont.IsBold = true;
-        _boldStyle = _wb.CreateCellStyle();
-        _boldStyle.SetFont(_boldFont);
+        EnsureWorkbookStyles();
 
         if (rowCount > 60_000)
             Debug.WriteLine($"[VTCCP] XLS warning: {rowCount} rows in '{sheetName}'. Max is 65,536.");
@@ -85,15 +96,9 @@ public sealed class XlsAdapter : IExcelAdapter
 
     public void SetRowBold(int row, int colCount)
     {
-        var r = GetOrCreateRow(row - 1);
-        for (int c = 0; c < colCount; c++)
-        {
-            var cell = r.GetCell(c) ?? r.CreateCell(c);
-            var style = _wb!.CreateCellStyle();
-            style.CloneStyleFrom(cell.CellStyle ?? _wb.CreateCellStyle());
-            style.SetFont(_boldFont!);
-            cell.CellStyle = style;
-        }
+        var style = GetOrBuildRowStyle(row);
+        style.SetFont(_boldFont!);
+        ApplyStyleToRow(row, colCount, style);
     }
 
     public void SetColumnWidth(int col, double width)
@@ -104,14 +109,9 @@ public sealed class XlsAdapter : IExcelAdapter
 
     public void ClearRowFill(int row, int colCount)
     {
-        var r = GetOrCreateRow(row - 1);
-        for (int c = 0; c < colCount; c++)
-        {
-            var cell = r.GetCell(c) ?? r.CreateCell(c);
-            var style = _wb!.CreateCellStyle();
-            style.FillPattern = FillPattern.NoFill;
-            cell.CellStyle = style;
-        }
+        var style = GetOrBuildRowStyle(row);
+        style.FillPattern = FillPattern.NoFill;
+        ApplyStyleToRow(row, colCount, style);
     }
 
     public void SetRowBackground(int row, int colCount, uint argbColor)
@@ -152,25 +152,25 @@ public sealed class XlsAdapter : IExcelAdapter
 
     public void SetRowWrapText(int row, int colCount)
     {
-        var r = GetOrCreateRow(row - 1);
-        for (int c = 0; c < colCount; c++)
-        {
-            var cell = r.GetCell(c) ?? r.CreateCell(c);
-            var style = _wb!.CreateCellStyle();
-            style.CloneStyleFrom(cell.CellStyle ?? _wb.CreateCellStyle());
-            style.WrapText = true;
-            cell.CellStyle = style;
-        }
+        var style = GetOrBuildRowStyle(row);
+        style.WrapText = true;
+        ApplyStyleToRow(row, colCount, style);
     }
 
     public void SetCellBold(int row, int col)
     {
+        // Uses a shared workbook-scoped bold style (cached in _rowStyleMap at the sentinel key -1).
+        // Individual label cells (e.g. in ImagesSheetWriter) don't need per-cell cloning because
+        // WriteString leaves them with the default style; bold is applied first, then background.
+        if (!_rowStyleMap.TryGetValue(-1, out var boldStyle))
+        {
+            boldStyle = _wb!.CreateCellStyle();
+            boldStyle.SetFont(_boldFont!);
+            _rowStyleMap[-1] = boldStyle;
+        }
         var r = GetOrCreateRow(row - 1);
         var cell = r.GetCell(col - 1) ?? r.CreateCell(col - 1);
-        var style = _wb!.CreateCellStyle();
-        style.CloneStyleFrom(cell.CellStyle ?? _wb.CreateCellStyle());
-        style.SetFont(_boldFont!);
-        cell.CellStyle = style;
+        cell.CellStyle = boldStyle;
     }
 
     public void SetCellBackground(int row, int col, uint argbColor)
@@ -233,6 +233,29 @@ public sealed class XlsAdapter : IExcelAdapter
     public void Dispose()
     {
         _wb?.Close();
+    }
+
+    // Returns the shared ICellStyle for the given 1-based row, creating it on first access.
+    // All three row-level formatting operations (bold / wrap / clear-fill) mutate this same
+    // object so they accumulate rather than overwrite — and so the row shares one style entry
+    // across all its cells instead of N entries.
+    private ICellStyle GetOrBuildRowStyle(int row)
+    {
+        if (_rowStyleMap.TryGetValue(row, out var s)) return s;
+        s = _wb!.CreateCellStyle();
+        _rowStyleMap[row] = s;
+        return s;
+    }
+
+    // Assigns the given style to every cell in the 1-based row [col 0 .. colCount-1].
+    private void ApplyStyleToRow(int row, int colCount, ICellStyle style)
+    {
+        var r = GetOrCreateRow(row - 1);
+        for (int c = 0; c < colCount; c++)
+        {
+            var cell = r.GetCell(c) ?? r.CreateCell(c);
+            cell.CellStyle = style;
+        }
     }
 
     private IRow GetOrCreateRow(int zeroBasedRow)

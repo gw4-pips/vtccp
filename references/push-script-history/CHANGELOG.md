@@ -18,6 +18,59 @@ Install ritual (every version):
 
 ## Versions
 
+### v1.26 — 2026-05-18
+
+Filed: `v1.26.js` (also `dist/DmstPushScript_v1.26.txt`).
+Status: **authored, syntax-verified, awaiting device install**.
+Confirm by: `<PushScriptDiag>v1.26 q=r.trucheck m=found</PushScriptDiag>`.
+
+**Probe release.** Two new probes driven by v1.25 live DM scan findings
+(catalog: `samples/live-scans/v1.25-2026-05-18-DM-Live-GS1Format06-catalog.md`).
+
+#### v1.26 changes
+
+**New probes:**
+- `<DebugTrucheckKeys>` — ES3-safe `for-in` enumeration of all top-level keys
+  of `q` (= `r.trucheck`). Target: find where ULQZ/URQZ/RUQZ/RLQZ and TTR/CTR
+  sub-grades are accessible — X in push XML, A in DMST PDF. v1.25 confirmed
+  these grades are computed by the device; they must live in an unexplored
+  `q` sub-path. This probe reveals the full key set so v1.27 can target
+  the correct path. Also useful for QR: any QR-specific sub-objects will
+  appear here on a live QR scan.
+- `<DebugMinRef>` — Probes `r.metrics.extremeReflectance` and `r.metrics.reflectMin`
+  shapes. v1.25 `DebugMetricsKeys` confirmed both keys exist on `r.metrics`.
+  `<MinReflectance>` is currently empty in push XML. Per v1.19 history note,
+  some metrics objects are primitives (bare numbers), not `{raw,grade}` — probe
+  checks both cases and reports type + value so v1.27 can wire the correct path.
+
+**Retained probes:**
+- `DebugModSize`, `DebugECCount` (formula sanity checks, always useful)
+- `DebugMetricsKeys`, `DebugRSiblings` (regression baselines)
+- `DebugSymbols0` — confirmed null for DM live scans (v1.25); only useful on
+  a live QR scan. Retained for QR sessions.
+
+**Dropped probes (answered by v1.25 live DM scan):**
+- `DebugPrintGrowth` — answered: `raw=-1` sentinel; BWG comes from `q.general`
+  (`HorizontalBWG`/`VerticalBWG`), not `r.metrics.printGrowth`. Field
+  `BWGPercent` (singular, legacy) may be declared dead.
+- `DebugImageShape` — answered: `id=0;index=0;FoV=[obj];RoI=[obj];
+  exposureTime=32;gain=1.00;autoExposure=true;illEnabled=true;...`
+- `DebugGS1` — needs `Data Format Check = GS1` device setting to populate.
+  Defer until user sets up GS1 application standard and scans a GS1 symbol.
+- `DebugDodUid` — needs DoD UID symbol + matching application standard setting.
+- `DebugBarcodeAsgn` — answered: `result=-1` (barcode assignment not configured).
+
+#### v1.26 expected install findings
+
+| Element | Expected result | Action on result |
+|---|---|---|
+| `<PushScriptDiag>` | `v1.26 q=r.trucheck m=found` | Confirms install |
+| `<DebugTrucheckKeys>` | Key list of q properties | Look for ULQZ/URQZ/TTR/CTR sub-object keys; drive v1.27 wires |
+| `<DebugMinRef>` | `extR:number=... reflMin:number=...` or object shape | Determines MinReflectance wire path for v1.27 |
+| `<DebugSymbols0>` | `(q.symbols[0] null)` on DM; actual data on QR | Run live QR scan for QR grade param discovery |
+
+---
+
 ### v1.25 — 2026-05-18
 
 Filed: `v1.25.js` (also `dist/DmstPushScript_v1.25.txt`).
