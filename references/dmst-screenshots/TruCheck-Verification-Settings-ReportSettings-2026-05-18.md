@@ -70,25 +70,35 @@ uncheck "Quality Detail"), trigger a scan, confirm whether the corresponding
 push-XML fields (UECPercent, MODGrade, etc.) still appear. One scan to
 confirm or refute the hypothesis.
 
-### 3. Cognex's planned GS1/application-standard integration
+### 3. Application-standard checks — already in place in DMST
 
-The user notes Cognex was planning to incorporate something in this
-framework — most likely the **Application Settings** panel (visible in the
-left nav but not captured) is where GS1 / MIL-STD / ISO 15434 syntax
-validation checkboxes would appear. This aligns with:
+**Correction to original note**: these are NOT a future roadmap item —
+they are already implemented and shipping in the current DMST/TruCheck
+firmware. Evidence already present in the v1.24 push-XML captures:
 
-- The v1.24 probe finding that `r.validation.gs1` exists as an object in
-  JS scope (even though its AIs are not directly accessible as properties)
-- The fact that DMST already shows Application Standard = "Custom" and
-  Application Pass = "Fail (Quality)" in our push output
-- The known Cognex roadmap item to surface application-standard syntax
-  checking as a user-configurable verification step
+- `<ApplicationStandard>Custom</ApplicationStandard>` — the selected standard
+- `<ApplicationPass>Fail (Quality)</ApplicationPass>` — result of the check
+  (DM cal card scan)
+- `<ApplicationPass>Pass</ApplicationPass>` — result on the QR loaded-image scan
 
-If/when Cognex adds a GS1 syntax checkbox to TruCheck Verification Settings,
-it would appear in Application Settings or as a new panel. The
-`gs1/gs1-syntax-engine` we've already incorporated (`vtccp/lib/`) is
-the same library Cognex would be using — so VTCCP's implementation will
-be interoperable.
+The **Application Settings** panel (visible in the left nav of the
+TruCheck Verification Settings dialog, not yet captured in detail) is
+where the user configures which application standard to check against
+(GS1, MIL-STD-129/130, ISO 15434, Custom, etc.). A follow-up screenshot
+of that panel is pending.
+
+**Implication for VTCCP**:
+- `<ApplicationStandard>` and `<ApplicationPass>` are already first-class
+  push fields — the parser should wire them (B4 scope).
+- The `r.validation.gs1` JS object exists (v1.24 confirmed) and is
+  populated when the device runs a GS1 check. The all-undefined AI probe
+  result means the API surface is not property-bag style, not that GS1
+  checking is absent — a different access pattern may expose the check
+  result.
+- VTCCP's own GS1 syntax check (using `gs1-syntax-engine`) is an
+  **independent, additional** check — the device's check is a pass/fail
+  flag against the configured standard; VTCCP's check gives per-AI
+  detail that DMST doesn't surface in the push channel.
 
 ---
 
