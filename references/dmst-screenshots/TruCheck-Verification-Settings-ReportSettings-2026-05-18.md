@@ -24,10 +24,10 @@ Controls visible:
 | **ASCII Values** | ☑ checked | Decoded payload as ASCII character table |
 | **Codeword Values** | ☑ checked | Raw codeword byte table |
 
-Other settings panels visible in the left nav (not captured in detail):
-- Application Settings
-- Calibration Settings
-- Trending Settings
+Other settings panels visible in the left nav:
+- **Application Settings** — **now cataloged**: `TruCheck-Verification-Settings-ApplicationSettings-2026-05-18.md`
+- Calibration Settings — not yet captured
+- Trending Settings — not yet captured
 - User Information
 - Report Settings ← (active)
 - Navigation
