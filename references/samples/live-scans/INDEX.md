@@ -19,6 +19,7 @@ push-script version and date.
 | File | Scan | What it demonstrates |
 |---|---|---|
 | `v1.24-2026-05-18-QR-LoadedImage-Email-DMSTReport.pdf` | Email QR loaded-image | **First DMST PDF cross-reference.** Confirms QR v3=29×29 (push XML 35×35 is wrong). Shows Unit Serial, 15 QR grade params (ULP/URP/LLP/HCT/VCT/ALP/VIB/FIB absent from push). DMST epoch timestamp bug (31-Dec-1970) for loaded images. Full modulation grid (37×37 incl. quiet zone), codeword table, encodation analysis. See `v1.24-2026-05-18-QR-Email-DMSTReport-catalog.md` for full analysis. |
+| `v1.24-2026-05-18-DM-Live-15434-DMSTReport.pdf` | Live DM, ISO 15434 enabled | **First live-scan DMST PDF + push XML pair.** ISO 15434 Format 06 parse table (DIs: 18V/1P/S). DataCodewords/ECBudget/ECCapacity empty for live DM too (not QR-specific). ULQZ/URQZ/RUQZ/RLQZ empty in push; TTR/CTR sub-grades = X in push but individual in DMST. AG discrepancy (push B / DMST A — push is correct). DebugModSize=684=18×38 confirms 1-module DM quiet zone. See `v1.24-2026-05-18-DM-Live-15434-catalog.md`. |
 
 ## Probe history
 
