@@ -152,6 +152,15 @@ Initial probe iteration. Smaller payload than v1.11.
   - **`AGValue` can be negative on loaded images**: email QR capture showed AGValue=−0.5 with AGGrade=A. Parser must accept negative AG as valid (not an error sentinel); display as-is. Loaded-image scoring artifact.
   - **`ApplicationPass` reason tokens** — three confirmed so far: `Pass` / `Fail (Quality)` / `Fail (X Dimension out of Range)`. Parser should split on ` (` to extract the reason: `Quality` = grade below threshold; `X Dimension out of Range` = NominalXDim outside [Min, Max] X Dimension setting; format failures (GS1/HiBCC/ISO 15434) will add more when Data Format Check is set. Store as separate `ApplicationPassReason` field.
   - **Image upload accepts JPEG, not PRN**. D4 (WPF image-load flow) must write/convert to JPEG before pushing to device via DMCC.
+  - **DMST PDF report cross-reference** (from `v1.24-2026-05-18-QR-Email-DMSTReport-catalog.md`) reveals additional v1.25 QR probe targets missing from push XML:
+    - **Unit Serial** (`1A1903PP010754`) — not in any push output; probe `r.readerProperties.serialNumber` or `status3D` sub-path
+    - **DataCodewords / ErrorCorrectionBudget / ErrorCapacityUsed** — all empty in push XML, populated in DMST report (44/26/0); probe `r.trucheck.symbols[0].{dataCodewords,ecCodewords,...}`
+    - **ErrorCorrectionType wrong for QR**: push emits `ECC200` (Data Matrix label). QR uses L/M/Q/H. Probe `r.trucheck.symbols[0].ecLevel` or equivalent
+    - **Data Mask Pattern** (value=2 for email QR) — absent from push; probe `r.trucheck.symbols[0].maskPattern` or similar
+    - **QR-specific grade params** absent from push: ULP, URP, LLP (finder patterns), HCT, VCT (clock tracks), ALP (alignment), VIB, FIB — probe `r.trucheck.symbols[0].{ulp,urp,llp,hct,vct,alp,vib,fib}Grade` or equivalent
+    - **SCPercent = NaN for loaded images** — push emits empty; parser must treat as N/A (not zero/error)
+    - **MatrixSize=35×35 is wrong for QR v3** — DMST report confirms 29×29 (QR v3). DebugModSize sqrt=37 = 29 + 4 quiet-zone rows each side. For v1.25: probe `r.trucheck.symbols[0].{rows,cols}` for true module count
+    - **DMST epoch timestamp bug**: DMST PDF shows `31-Dec-1970` for loaded images; push XML `<DateTime>` is correct. VTCCP must use push timestamp, not DMST report metadata
   - The 21-unwired-metrics bulk extract concept is **deprecated**: v1.23 enumerated `r.metrics` and confirmed most "unwired" entries were either already wired (different name), DPM-only (NA on non-DPM scans), or `{raw:-1, grade:NA}` sentinels. Per-metric wire-up now happens case-by-case, not bulk.
 
 ---

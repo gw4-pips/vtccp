@@ -14,6 +14,12 @@ push-script version and date.
 | `v1.23-2026-05-18-DMST26.1-DataMatrix-GS1Format06.xml` | v1.23 | Data Matrix 16x36 ECC200 | DMST 26.1.0 regression-diff baseline. Schema bit-identical to v25-baseline (above); 9 numeric drifts are measurement-level shot-to-shot variance. |
 | `production-full-XML-2026-03-28.txt` | (pre-v1) production format | (various) | Full DMST live XML (149 KB) including `<image>` element — valuable for understanding what `r.image` ultimately becomes in output XML |
 
+## DMST PDF Reports
+
+| File | Scan | What it demonstrates |
+|---|---|---|
+| `v1.24-2026-05-18-QR-LoadedImage-Email-DMSTReport.pdf` | Email QR loaded-image | **First DMST PDF cross-reference.** Confirms QR v3=29×29 (push XML 35×35 is wrong). Shows Unit Serial, 15 QR grade params (ULP/URP/LLP/HCT/VCT/ALP/VIB/FIB absent from push). DMST epoch timestamp bug (31-Dec-1970) for loaded images. Full modulation grid (37×37 incl. quiet zone), codeword table, encodation analysis. See `v1.24-2026-05-18-QR-Email-DMSTReport-catalog.md` for full analysis. |
+
 ## Probe history
 
 `probe-history/` contains every probe-iteration XML, named by cryptic Replit
