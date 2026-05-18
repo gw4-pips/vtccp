@@ -27,9 +27,11 @@ public sealed class ExcelWriter : IDisposable
     private readonly ColumnSchema _schema;
     private readonly SessionState _session;
     private readonly string _sheetName;
-    private readonly ElementWidthsWriter _ewWriter;
-    private readonly ImagesSheetWriter _imagesWriter;
-    private readonly PerScanTableWriter _perScanWriter;
+    private readonly ElementWidthsWriter  _ewWriter;
+    private readonly ImagesSheetWriter   _imagesWriter;
+    private readonly PerScanTableWriter  _perScanWriter;
+    private readonly ModValuesSheetWriter _modValWriter;
+    private readonly CwValuesSheetWriter  _cwValWriter;
 
     private int _nextDataRow;
     private int _dataRowCount;
@@ -47,6 +49,8 @@ public sealed class ExcelWriter : IDisposable
         _ewWriter      = new ElementWidthsWriter(adapter);
         _imagesWriter  = new ImagesSheetWriter(adapter);
         _perScanWriter = new PerScanTableWriter(adapter, schema);
+        _modValWriter  = new ModValuesSheetWriter(adapter);
+        _cwValWriter   = new CwValuesSheetWriter(adapter);
     }
 
     /// <summary>
@@ -148,6 +152,19 @@ public sealed class ExcelWriter : IDisposable
         {
             _imagesWriter.WriteRecord(record);
             _adapter.EnsureSheet(_sheetName);  // restore Main as active sheet
+        }
+
+        // For 2D records with B7 modulation/codeword array data, write to the
+        // respective sub-sheets then restore Main as the active write target.
+        if (record.ModulationValues is not null)
+        {
+            _modValWriter.WriteRecord(record);
+            _adapter.EnsureSheet(_sheetName);
+        }
+        if (record.CodewordValues is not null)
+        {
+            _cwValWriter.WriteRecord(record);
+            _adapter.EnsureSheet(_sheetName);
         }
     }
 

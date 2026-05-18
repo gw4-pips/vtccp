@@ -300,6 +300,24 @@ public sealed record class VerificationRecord
 
     public DataFormatCheckResult? DataFormatCheck { get; init; }
 
+    // ─── Block B7: Modulation Values + Codeword Values ─────────────────────────
+
+    /// <summary>
+    /// Raw modulation grid for the "Modulation Values" worksheet.
+    /// Populated from q.modulationArray by the push parser.
+    /// Null for 1D records and for scans where the array was absent in the push payload.
+    /// Grid dimensions: (SymbolRows+2) × (SymbolCols+2) — includes the 1-module QZ border.
+    /// </summary>
+    public ModulationValuesData? ModulationValues { get; init; }
+
+    /// <summary>
+    /// Codeword and encodation data for the "Codeword Values" worksheet.
+    /// Populated from q.codewordArray + q.encodationAnalysisArray by the push parser.
+    /// codewordArray length = total codewords (data + ECC combined) — confirmed v1.28.
+    /// Null for 1D records and for scans where the arrays were absent.
+    /// </summary>
+    public CodewordValuesData? CodewordValues { get; init; }
+
     // ─── Helper Properties ────────────────────────────────────────────────────
 
     /// <summary>

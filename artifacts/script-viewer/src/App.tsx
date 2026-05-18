@@ -1,5 +1,5 @@
 import { useState } from "react";
-import scriptText from "./v128.txt?raw";
+import scriptText from "./v129.txt?raw";
 
 const LINE_COUNT = scriptText.split("\n").length;
 const BYTE_COUNT = new Blob([scriptText]).size;
@@ -56,10 +56,10 @@ function App() {
         zIndex: 10,
       }}>
         <div style={{ fontWeight: 600, fontSize: 14, color: "#7ee787" }}>
-          DmstPushScript v1.28
+          DmstPushScript v1.29
         </div>
         <div style={{ fontSize: 12, color: "#8b949e" }}>
-          {LINE_COUNT.toLocaleString()} lines · {(BYTE_COUNT / 1024).toFixed(1)} KB · wire release (MinReflectance + ErrorCapacityUsed) · 2026-05-18
+          {LINE_COUNT.toLocaleString()} lines · {(BYTE_COUNT / 1024).toFixed(1)} KB · wire attempt (symbols[0] DataCW/ECBudget/ECLevel) + 3 new probes · 2026-05-18
         </div>
         <div style={{ flex: 1 }} />
         <button
