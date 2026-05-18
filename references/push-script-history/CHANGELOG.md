@@ -18,10 +18,80 @@ Install ritual (every version):
 
 ## Versions
 
+### v1.28 — 2026-05-18
+
+Filed: `v1.28.js` (also `dist/DmstPushScript_v1.28.txt`).
+Status: **authored, syntax-verified, awaiting device install**.
+Confirm by: `<PushScriptDiag>v1.28 q=r.trucheck m=found</PushScriptDiag>`.
+
+**Wire release.** Driven by v1.27 live scan findings
+(catalog: `samples/live-scans/v1.27-2026-05-18-catalog.md`). Two scans:
+DM 16×36 live (10:16:21), QR v3 loaded-image (10:17:22).
+
+#### v1.28 changes
+
+**Wire fix: `MinReflectance`**
+
+`q.minimumReflectance` is a firmware sentinel (`raw=0/grade=F/numericGrade=0`) on
+ALL scans — confirmed by `DebugMinRef2` on DM live (`reflDark=5`) and QR loaded
+image (`reflDark=0`). The actual dark reflectance is `q.reflectanceDark` (primitive
+number), which is already captured as `_rdRaw` for the `SCRlRd` wire. Wired
+directly: DM emits `5` (= Rd=5% from SC), QR loaded emits `0` (= pristine digital).
+
+**Wire fix: `ErrorCapacityUsed`**
+
+Confirmed formula: `corrected × 2` (ECC200 and QR both consume 2 ECC codewords per
+corrected error). v1.27 DM: 7×2=14 ✓  QR: 0×2=0 ✓. Now computed from the existing
+`_ecCount` loop (unchanged); was previously hardcoded to `""`.
+
+**Structural limits confirmed (no code change, comment updates only)**
+
+| Parameter group | Object path | Finding |
+|---|---|---|
+| ULQZ/URQZ/RUQZ/RLQZ | `q.topQuietZone`, `q.rightQuietZone` | `{grade:"X", numericGrade:8.8}` — firmware-internal 0–10 scale; NOT ISO letter grades; individual per-quadrant grades NOT accessible |
+| TTR/CTR per-quadrant | `q.topTransitionRatio`, `q.rightTransitionRatio`, `q.topClockTrack`, `q.rightClockTrack` | `{raw:-1, grade:"X", numericGrade:8.8}` — same structural limit |
+| `q.general` key set | all sub-keys | Exactly 7 keys; NO `errorCorrectionLevel`, `dataCodewords`, `ecBudget`, `maskPattern` |
+| `ErrorCorrectionType` QR | `gnProp("errorCorrectionLevel")` | Returns "" (key absent from q.general); fallback "QR" remains until A1 |
+| `DataCodewords`, `ECBudget` | `q.general.*` | NOT in push channel on this firmware |
+
+**B7 array element shapes confirmed (DebugArrayElem0, v1.27)**
+
+```
+modulationArray[i]        = {raw: number, grade: "(", isBlack: 0|1}
+codewordArray[i]          = {codeword: number, isCorrected: 0|1}
+encodationAnalysisArray[i] = {name: string, mode: string, result: string}
+```
+
+B7 writers (`ModValuesSheetWriter`, `CwValuesSheetWriter`) are now structurally
+unblocked. Pending `DebugArrayLens` (v1.28) for total vs. data codeword count
+confirmation.
+
+**New probes (2)**
+
+| Probe | Target | Purpose |
+|---|---|---|
+| `DebugArrayLens` | `modulationArray`, `codewordArray`, `encodationAnalysisArray` lengths | Confirms whether `codewordArray` length = total (data+ECC) or data only; same for ea array. DM expected: cw=56 or 32? ea=38 or 32? |
+| `DebugModGradeN` | `modulationArray[100].grade` full string + length | Confirms grade `"("` is the complete value (not truncation); also reports `raw` and `isBlack` of element 100 |
+
+**Dropped probes (5 — all answered by v1.27 scans)**
+
+| Probe | Answer |
+|---|---|
+| `DebugMinRef2` | `q.minimumReflectance` always `{raw:0,grade:F,numericGrade:0}` sentinel; `q.reflectanceDark` is correct source |
+| `DebugQZObjs` | `{grade:X, numericGrade:8.8}` flat objects; ULQZ/URQZ/RUQZ/RLQZ push-channel structural limit confirmed |
+| `DebugTTRCTObjs` | Same pattern; per-quadrant TTR/CTR NOT accessible via push |
+| `DebugGeneral` | 7 keys only; no `errorCorrectionLevel`, `dataCodewords`, or `ecBudget` |
+| `DebugArrayElem0` | Element shapes confirmed for all 3 B7 arrays |
+
+---
+
 ### v1.27 — 2026-05-18
 
 Filed: `v1.27.js` (also `dist/DmstPushScript_v1.27.txt`).
-Status: **authored, syntax-verified, awaiting device install**.
+Status: **device-confirmed 2026-05-18** (DM live 10:16:21 + QR loaded-image 10:17:22).
+XMLs filed: `samples/live-scans/v1.27-2026-05-18-DM-Live-GS1Format06.xml`,
+`samples/live-scans/v1.27-2026-05-18-QR-LoadedImage-URL.xml`.
+Catalog: `samples/live-scans/v1.27-2026-05-18-catalog.md`.
 Confirm by: `<PushScriptDiag>v1.27 q=r.trucheck m=found</PushScriptDiag>`.
 
 **Wire + probe release.** Driven by v1.26 live scan findings
