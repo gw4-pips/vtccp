@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "v1.24 Push Script Viewer"
+version = "1.0.0"
+id = "artifacts/script-viewer"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24071
+
+[services.development]
+run = "pnpm --filter @workspace/script-viewer run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/script-viewer", "run", "build" ]
+publicDir = "artifacts/script-viewer/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24071"
+BASE_PATH = "/"
