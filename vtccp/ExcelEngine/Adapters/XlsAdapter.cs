@@ -199,6 +199,25 @@ public sealed class XlsAdapter : IExcelAdapter
         cell.CellStyle = style;
     }
 
+    public void WriteEmbeddedImage(int row, int col, byte[] jpegBytes)
+    {
+        if (_wb is null || _ws is null) return;
+
+        int picIdx = _wb.AddPicture(jpegBytes, PictureType.JPEG);
+
+        // Get the existing drawing patriarch for this sheet, or create one.
+        // NPOI throws if CreateDrawingPatriarch() is called when one already exists.
+        var patriarch = (_ws.DrawingPatriarch as HSSFPatriarch)
+                        ?? (HSSFPatriarch)_ws.CreateDrawingPatriarch();
+
+        // Anchor: (dx1, dy1, dx2, dy2, col1, row1, col2, row2) — col/row are 0-based.
+        // Span approximately 3 columns × 6 rows to hold a ~220×220px image.
+        var anchor = new HSSFClientAnchor(0, 0, 1023, 255,
+            col - 1, row - 1, col + 2, row + 5);
+        anchor.AnchorType = AnchorType.MoveAndResize;
+        patriarch.CreatePicture(anchor, picIdx);
+    }
+
     public void Save()
     {
         using var fs = new FileStream(_filePath, FileMode.Create, FileAccess.Write);

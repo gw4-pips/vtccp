@@ -1,6 +1,7 @@
 namespace ExcelEngine.Adapters;
 
 using OfficeOpenXml;
+using OfficeOpenXml.Drawing;
 using OfficeOpenXml.Style;
 using System.Drawing;
 
@@ -12,6 +13,7 @@ public sealed class XlsxAdapter : IExcelAdapter
     private ExcelPackage? _pkg;
     private ExcelWorksheet? _ws;
     private string _filePath = string.Empty;
+    private int _imgSeq = 0;
 
     public int MaxDataRows => 1_000_000;
 
@@ -106,6 +108,18 @@ public sealed class XlsxAdapter : IExcelAdapter
         var g = (byte)((argbColor >> 8) & 0xFF);
         var b = (byte)(argbColor & 0xFF);
         cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(255, r, g, b));
+    }
+
+    public void WriteEmbeddedImage(int row, int col, byte[] jpegBytes)
+    {
+        using var ms = new MemoryStream(jpegBytes);
+        // Name must be unique within the workbook across all sheets.
+        string name = $"img_r{row}_c{col}_{++_imgSeq}";
+        var pic = _ws!.Drawings.AddPicture(name, ms, ePictureType.Jpg);
+        // SetPosition takes 0-based row/col + pixel offsets from the cell edge.
+        pic.SetPosition(row - 1, 2, col - 1, 2);
+        // SetSize: width × height in pixels. Square to accommodate both QR and DM aspect ratios.
+        pic.SetSize(220, 220);
     }
 
     public void Save()

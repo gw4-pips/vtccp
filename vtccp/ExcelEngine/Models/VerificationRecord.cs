@@ -40,6 +40,35 @@ public sealed record class VerificationRecord
     public string? FirmwareVersion { get; init; }
     public DateTime? CalibrationDate { get; init; }
 
+    // Device scan properties (r.symbology.* — confirmed v1.24)
+    /// <summary>AIM symbology identifier e.g. ]d1 (Data Matrix), ]Q2 (QR Code Model 2)</summary>
+    public string? SymbologyId { get; init; }
+    /// <summary>Decoder confidence score 0–100</summary>
+    public int? SymbolQuality { get; init; }
+    public decimal? SymbolAngle { get; init; }    // rotation in degrees
+    public decimal? ModuleSizePx { get; init; }   // pixels per module (r.symbology.moduleSize)
+
+    // Calibration status (rp.status3D.* — confirmed v1.24)
+    public bool? FieldCalibrated { get; init; }
+    public bool? FactoryCalibrated { get; init; }
+
+    // Acceptance threshold (r.metrics.minPassGrade — confirmed v1.24; "NA" when none set)
+    public string? MinPassGrade { get; init; }
+    public decimal? MinPassRaw { get; init; }
+
+    // Application-syntax check (q.overall.applicationStandard* — confirmed v1.24)
+    public string? ApplicationStandard { get; init; }   // e.g. "GS1", "ISO 15434"
+    /// <summary>Full device string e.g. "Pass" / "Fail (Quality)" / "Fail (X Dimension out of Range)"</summary>
+    public string? ApplicationPass { get; init; }
+    /// <summary>v1.25: reason suffix parsed from ApplicationPass, empty on pass</summary>
+    public string? ApplicationPassReason { get; init; }
+
+    // Optics discriminator (v1.25: ContrastUniformity == -1 AND MRD == -1 → LoadedImage)
+    public string? OpticsSource { get; init; }    // "LiveScan" | "LoadedImage"
+
+    // JPEG image payload (v1.25: r.trucheck.jpegImage base64 string)
+    public string? JpegImageBase64 { get; init; }
+
     // Overall grade outcome
     /// <summary>e.g. "4.0/16/660/45Q" or "4.0/06/660"</summary>
     public string? FormalGrade { get; init; }
@@ -117,11 +146,19 @@ public sealed record class VerificationRecord
     public GradingResult? GNU_Grade { get; init; }
 
     public GradingResult? FPD_Grade { get; init; }
+    public decimal? FPD_Value { get; init; }        // q.fixedPatternDamage.raw
     public GradingResult? DECODE_Grade { get; init; }
 
     /// <summary>Average Grade (AG) — parameter 17, ISO 15415</summary>
     public decimal? AG_Value { get; init; }
     public GradingResult? AG_Grade { get; init; }
+
+    /// <summary>Distributed Damage grade (q.distributedDamageGrade)</summary>
+    public GradingResult? DD_Grade { get; init; }
+
+    /// <summary>ISO 15415 average grade across all parameters (q.averageGrade) — distinct from AG/Print Growth</summary>
+    public GradingResult? AverageGrade { get; init; }
+    public decimal? AverageGradeNumeric { get; init; }
 
     // 2D General Characteristics (shared across DM, GS1-DM, QR)
     public string? MatrixSize { get; init; }       // e.g. "22x22 (Data: 20x20)"
@@ -137,8 +174,11 @@ public sealed record class VerificationRecord
     public ImagePolarity ImagePolarity { get; init; } = ImagePolarity.Unknown;
     public decimal? NominalXDim_2D { get; init; }
     public decimal? PixelsPerModule { get; init; }
-    public string? ContrastUniformity { get; init; }   // e.g. "72 at module(10,5)"
-    public string? MRD { get; init; }                  // e.g. "71% (77% - 6%)"
+    public string? ContrastUniformity { get; init; }    // e.g. "72 at module(10,5)"
+    public string? MRD { get; init; }                   // e.g. "71% (77% - 6%)"
+    public string? ContrastUniformityRow { get; init; } // row index of worst module
+    public string? ContrastUniformityCol { get; init; } // col index of worst module
+    public decimal? MinReflectance { get; init; }       // q.minimumReflectance.raw (suppressed when F+0)
 
     // ─── Block 4: 2D Data Matrix Standard Parameters (≤26×26) ─────────────────
 

@@ -30,9 +30,19 @@ public sealed class VerificationXmlMap
     public string DateTime        { get; set; } = "DateTime";
     public string DecodedData     { get; set; } = "DecodedData";
 
+    // ── Device scan properties (r.symbology.* + r.source — v1.24) ────────────
+    public string SymbologyId     { get; set; } = "SymbologyId";   // AIM ID e.g. ]d1
+    public string SymbolQuality   { get; set; } = "SymbolQuality"; // decoder confidence 0-100
+    public string SymbolAngle     { get; set; } = "SymbolAngle";   // rotation degrees
+    public string ModuleSizePx    { get; set; } = "ModuleSizePx";  // pixels/module
+    public string Source          { get; set; } = "Source";        // device name (r.source)
+
     // ── Grading summary ───────────────────────────────────────────────────────
 
-    public string FormalGrade         { get; set; } = "FormalGrade";
+    public string FormalGrade            { get; set; } = "FormalGrade";
+    public string ApplicationStandard   { get; set; } = "ApplicationStandard";
+    public string ApplicationPass        { get; set; } = "ApplicationPass";
+    public string ApplicationPassReason  { get; set; } = "ApplicationPassReason";
 
     /// <summary>Letter-grade element: firmware 6.x &lt;ValueGrade&gt; (B); legacy &lt;OverallGrade&gt;.</summary>
     public string OverallGrade        { get; set; } = "ValueGrade";
@@ -47,6 +57,14 @@ public sealed class VerificationXmlMap
     public string Wavelength  { get; set; } = "Wavelength";
     public string Lighting    { get; set; } = "Lighting";
     public string Standard    { get; set; } = "Standard";
+
+    // ── Calibration / optics (v1.24/v1.25) ───────────────────────────────────
+    public string FieldCalibrated    { get; set; } = "FieldCalibrated";
+    public string FactoryCalibrated  { get; set; } = "FactoryCalibrated";
+    public string MinPassGrade       { get; set; } = "MinPassGrade";
+    public string MinPassRaw         { get; set; } = "MinPassRaw";
+    public string OpticsSource       { get; set; } = "OpticsSource";
+    public string JpegImageBase64    { get; set; } = "JpegImageBase64";
 
     // ── 2D quality parameters ─────────────────────────────────────────────────
     // Firmware 6.x: these are extracted by <Parameter><Number> from the ISO15415
@@ -66,8 +84,13 @@ public sealed class VerificationXmlMap
     public string GNUGrade      { get; set; } = "GNUGrade";
     public string FPDGrade      { get; set; } = "FPDGrade";
     public string DecodeGrade   { get; set; } = "DecodeGrade";
-    public string AGValue       { get; set; } = "AGValue";
-    public string AGGrade       { get; set; } = "AGGrade";
+    public string AGValue             { get; set; } = "AGValue";
+    public string AGGrade             { get; set; } = "AGGrade";
+    public string FPDValue            { get; set; } = "FPDValue";
+    public string DDGrade             { get; set; } = "DDGrade";
+    public string AverageGrade        { get; set; } = "AverageGrade";
+    public string AverageGradeNumeric { get; set; } = "AverageGradeNumeric";
+    public string MinReflectance      { get; set; } = "MinReflectance";
 
     // ── 2D matrix characteristics ─────────────────────────────────────────────
 
@@ -86,6 +109,8 @@ public sealed class VerificationXmlMap
     public string ImagePolarity         { get; set; } = "ImagePolarity";
     public string ContrastUniformity    { get; set; } = "ContrastUniformity";
     public string MRD                   { get; set; } = "MRD";
+    public string ContrastUniformityRow { get; set; } = "ContrastUniformityRow";
+    public string ContrastUniformityCol { get; set; } = "ContrastUniformityCol";
 
     // ── 2D quiet zones / borders (single-region ≤26×26) ──────────────────────
 

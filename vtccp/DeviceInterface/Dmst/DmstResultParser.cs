@@ -80,6 +80,11 @@ public static class DmstResultParser
         int? Int(string elem) =>
             int.TryParse(Str(elem), out var i) ? i : null;
 
+        bool? Bool(string elem) =>
+            Str(elem) is { } raw
+                ? raw.Equals("true", StringComparison.OrdinalIgnoreCase)
+                : (bool?)null;
+
         // Legacy grade helper: looks for a named element whose text is the
         // letter grade and optionally a "numeric" attribute.
         GradingResult? GradeLegacy(string elem)
@@ -442,6 +447,28 @@ public static class DmstResultParser
             }
         }
 
+        // ── v1.24/v1.25 push-script fields ───────────────────────────────────────
+        string? symbId               = Str(map.SymbologyId);
+        int?    symbolQuality        = Int(map.SymbolQuality);
+        decimal? symbolAngle         = Dec(map.SymbolAngle);
+        decimal? moduleSizePx        = Dec(map.ModuleSizePx);
+        bool?   fieldCalibrated      = Bool(map.FieldCalibrated);
+        bool?   factoryCalibrated    = Bool(map.FactoryCalibrated);
+        string? minPassGrade         = Str(map.MinPassGrade);
+        decimal? minPassRaw          = Dec(map.MinPassRaw);
+        string? applicationStandard  = Str(map.ApplicationStandard);
+        string? applicationPass      = Str(map.ApplicationPass);
+        string? applicationPassReason = Str(map.ApplicationPassReason);
+        string? opticsSource         = Str(map.OpticsSource);
+        string? jpegImageBase64      = Str(map.JpegImageBase64);
+        decimal? minReflectance      = Dec(map.MinReflectance);
+        decimal? fpdValue            = Dec(map.FPDValue);
+        GradingResult? ddGrade       = GradeLegacy(map.DDGrade);
+        GradingResult? avgGrade      = GradeLegacy(map.AverageGrade);
+        decimal? avgGradeNumeric     = Dec(map.AverageGradeNumeric);
+        string? cuRow                = Str(map.ContrastUniformityRow);
+        string? cuCol                = Str(map.ContrastUniformityCol);
+
         // ── Assemble record ───────────────────────────────────────────────────
         return new VerificationRecord
         {
@@ -466,13 +493,27 @@ public static class DmstResultParser
             RollNumber      = deviceContext?.RollNumber,
             CompanyName     = deviceContext?.CompanyName,
             ProductName     = deviceContext?.ProductName,
-            CustomNote      = deviceContext?.CustomNote,
+            CustomNote      = deviceContext?.CustomNote ?? Str("CustomNote"),
             User1           = deviceContext?.User1,
             User2           = deviceContext?.User2,
             DeviceSerial    = deviceContext?.DeviceSerial,
-            DeviceName      = deviceContext?.DeviceName,
+            DeviceName      = deviceContext?.DeviceName ?? Str(map.Source),
             FirmwareVersion = deviceContext?.FirmwareVersion,
             CalibrationDate = calibDate,          // now extracted from XML when present
+
+            SymbologyId           = symbId,
+            SymbolQuality         = symbolQuality,
+            SymbolAngle           = symbolAngle,
+            ModuleSizePx          = moduleSizePx,
+            FieldCalibrated       = fieldCalibrated,
+            FactoryCalibrated     = factoryCalibrated,
+            MinPassGrade          = minPassGrade,
+            MinPassRaw            = minPassRaw,
+            ApplicationStandard   = applicationStandard,
+            ApplicationPass       = applicationPass,
+            ApplicationPassReason = applicationPassReason,
+            OpticsSource          = opticsSource,
+            JpegImageBase64       = jpegImageBase64,
 
             // 2D quality
             UEC_Percent = uecPct,
@@ -487,9 +528,13 @@ public static class DmstResultParser
             GNU_Percent = gnuPct,
             GNU_Grade   = gnuGrade,
             FPD_Grade   = fpdGrade,
+            FPD_Value   = fpdValue,
             DECODE_Grade = decGrade,
             AG_Value    = agVal,
             AG_Grade    = agGrade,
+            DD_Grade    = ddGrade,
+            AverageGrade        = avgGrade,
+            AverageGradeNumeric = avgGradeNumeric,
 
             // 2D matrix
             MatrixSize            = matrixSize,
@@ -507,6 +552,9 @@ public static class DmstResultParser
             ImagePolarity         = polarity,
             ContrastUniformity    = contrastUniformity,
             MRD                   = mrd,
+            ContrastUniformityRow = cuRow,
+            ContrastUniformityCol = cuCol,
+            MinReflectance        = minReflectance,
 
             // 2D quiet zones / borders
             LLS_Grade = llsGrade,

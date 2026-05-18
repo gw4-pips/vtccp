@@ -57,6 +57,13 @@ public interface IExcelAdapter : IDisposable
     /// <summary>Save the workbook to an explicit path (used for rescue copies when the primary path is locked).</summary>
     void SaveToPath(string path);
 
+    /// <summary>
+    /// Embed a JPEG image anchored at the top-left corner of the given 1-based row/col.
+    /// The image is sized to fit within a ~220×160px bounding box.
+    /// Callers should pre-set the target row height to ~160pt via SetRowHeight before calling.
+    /// </summary>
+    void WriteEmbeddedImage(int row, int col, byte[] jpegBytes);
+
     /// <summary>Maximum data rows this format supports before the file must be rotated.</summary>
     int MaxDataRows { get; }
 }

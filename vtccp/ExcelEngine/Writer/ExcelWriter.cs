@@ -28,6 +28,7 @@ public sealed class ExcelWriter : IDisposable
     private readonly SessionState _session;
     private readonly string _sheetName;
     private readonly ElementWidthsWriter _ewWriter;
+    private readonly ImagesSheetWriter _imagesWriter;
     private readonly PerScanTableWriter _perScanWriter;
 
     private int _nextDataRow;
@@ -43,7 +44,8 @@ public sealed class ExcelWriter : IDisposable
         _schema = schema;
         _session = session;
         _sheetName = sheetName;
-        _ewWriter = new ElementWidthsWriter(adapter);
+        _ewWriter      = new ElementWidthsWriter(adapter);
+        _imagesWriter  = new ImagesSheetWriter(adapter);
         _perScanWriter = new PerScanTableWriter(adapter, schema);
     }
 
@@ -137,6 +139,14 @@ public sealed class ExcelWriter : IDisposable
         if (record.SymbologyFamily == SymbologyFamily.Linear1D && record.ElementWidths is not null)
         {
             _ewWriter.WriteRecord(record.ElementWidths);
+            _adapter.EnsureSheet(_sheetName);  // restore Main as active sheet
+        }
+
+        // For any record carrying a JPEG image payload, write to the "Images" sheet
+        // then restore the Main sheet as the active adapter target.
+        if (record.JpegImageBase64 is not null)
+        {
+            _imagesWriter.WriteRecord(record);
             _adapter.EnsureSheet(_sheetName);  // restore Main as active sheet
         }
     }
