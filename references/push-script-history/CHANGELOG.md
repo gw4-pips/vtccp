@@ -21,8 +21,33 @@ Install ritual (every version):
 ### v1.24 — 2026-05-18
 
 Filed: `v1.24.js` (also `dist/DmstPushScript_v1.24.txt`).
+Live-confirmed: `samples/live-scans/v1.24-2026-05-18-Probe-DataMatrix-GS1Format06.xml`.
 
-**Probe release.** Status: drafted, not yet device-confirmed (B1 pending).
+**Probe release.** Status: **device-confirmed 2026-05-18** via `<PushScriptDiag>v1.24 q=r.trucheck m=found</PushScriptDiag>`. B1 closed.
+
+#### v1.24 live findings (from confirmation scan)
+
+Promotions that **worked** (populated correctly):
+- `<SymbologyId>` = `]d1` ✓
+- `<SymbolQuality>` = `41` ✓
+- `<SymbolAngle>` = `1` ✓
+- `<ModuleSizePx>` = `16.196012496948242` ✓
+- `<CalibrationDate>` = `1/15/2026 3:04:14 PM` ✓
+- `<FieldCalibrated>` = `false` ✓
+- `<FactoryCalibrated>` = `false` ✓
+- `<MinPassGrade>` = `NA` ✓ (`<MinPassRaw>` empty — sentinel for "no min-pass configured", expected)
+
+Promotions that **failed** (still empty, need v1.25 fix):
+- `<BWGPercent>` — still empty despite `mmPctAuto(printGrowth)` wire. The `r.metrics.printGrowth` accessor is either undefined on this build, or returns `{raw:-1}` which `mmPctAuto` collapses to empty. v1.25 must probe `r.metrics.printGrowth` shape explicitly.
+
+Probe results (drive v1.25 scope):
+- `<DebugJpegProbe>` = `type=string len=9912 preview=/9j/4AAQSkZJRgABAQ...` — **JPEG is a base64 string, 9912 chars ≈ 7.4 KB raw**. Well within Network Client buffer. **Full payload safe to emit in v1.25.**
+- `<DebugANUCase>` = `lower=present(grade=D,raw=11.368...) upper=null` — **case mismatch resolved**: lowercase `axialNonuniformity` is correct; uppercase from comms guide doesn't exist on this build. Drop upper, keep lower first-class in v1.25.
+- `<DebugBarcodeAsgn>` = `result=-1;stats=[obj]` — `r.barcodeAssignment` exists, returns -1 (unassigned), exposes `.stats` sub-object. Worth deep-probe in v1.25.
+- `<DebugReaderProps>` = `name=...;trigger=[obj];stats=[obj];inputstr=;status3D=[obj]` — confirms `readerProperties` shape; `.status3D` is the path that yielded `FieldCalibrated`/`FactoryCalibrated`.
+- `<DebugGS1>` = all 187 AIs `undefined` — `r.validation.gs1` does NOT expose AIs as direct properties. Need different access pattern (likely a method like `.getAI(n)` or a `.parsed` sub-object). v1.25 probe.
+- `<DebugDodUid>` = all 5 fields `undefined` — same conclusion as GS1; need different access pattern.
+- `<DebugImageShape>` not present in this capture — check whether v1.24 actually emitted it (probe code may have errored silently) or whether `r.image` is `undefined` on this firmware. v1.25 must guard + report.
 
 Foundation: comms-and-programming-guide 25.4.1.1 digest landed 2026-05-18,
 formally confirming several v1.23 empirical findings and unblocking the
@@ -111,10 +136,13 @@ Initial probe iteration. Smaller payload than v1.11.
 
 ## Pending versions
 
-- **v1.25** — planned, depends on v1.24 device confirmation (B1) returning JPEG size data:
-  - Commit to full `<JpegImageBase64>` payload emission once Network Client + listener confirmed to handle the size.
-  - Resolve `<DebugANUCase>` outcome — drop the loser, keep the winner first-class.
-  - Promote whichever of `<DebugGS1>` / `<DebugDodUid>` / `<DebugBarcodeAsgn>` returned structured payloads.
+- **v1.25** — scope now driven by v1.24 live confirmation findings:
+  - **Commit to full `<JpegImageBase64>`** emission. v1.24 confirmed `r.trucheck.jpegImage` is a base64 string of ~9.9 KB for a typical scan — comfortably within Network Client buffer. Just emit the value as-is (it's already a string).
+  - **Drop `axialNonUniformity` (upper-U), keep `axialNonuniformity` (lower-u) first-class.** Upper returned null; lower returned `{grade:D,raw:11.368}`. Replace the v1.24 `DebugANUCase` probe with the resolved wire.
+  - **Re-probe `r.metrics.printGrowth` shape** to fix the still-empty `<BWGPercent>`. v1.24's `mmPctAuto(printGrowth)` wire yielded empty — need to verify whether `printGrowth` is defined and what its actual shape is on this build.
+  - **Re-probe `r.validation.gs1` and `r.validation.dodUid` access patterns.** Direct property access yielded all-undefined; try method-style access (`.getAI(n)`, `.parsed`, `.fields`, etc.) and key-enumeration.
+  - **Deep-probe `r.barcodeAssignment.stats`** — top-level `result=-1` is "unassigned"; the `.stats` sub-object may carry useful diagnostics.
+  - **Verify `<DebugImageShape>` emission** — it didn't appear in the v1.24 capture. Either `r.image` is undefined (probe should report that explicitly) or the probe code errored silently (needs try/catch guard).
   - Drop `r.decodeTime` / `r.triggerTime` wires (not in any v1.23 enumeration — were a misconception in the prior session-plan notes; the comms guide doesn't document them on `r` either).
   - The 21-unwired-metrics bulk extract concept is **deprecated**: v1.23 enumerated `r.metrics` and confirmed most "unwired" entries were either already wired (different name), DPM-only (NA on non-DPM scans), or `{raw:-1, grade:NA}` sentinels. Per-metric wire-up now happens case-by-case, not bulk.
 
