@@ -13,10 +13,11 @@ the unfiled-pile catalog at `attached_assets-archive/INDEX.md`.
 | Path | Contains | Status |
 |---|---|---|
 | `manuals/cognex/DM475V/` | Reference manual for the production device (DM475V, fw 6.1.16_sr4) | Filed (PDF + extracted .txt + README) |
-| `manuals/cognex/DMV-8072V/` | Reference manual for the Webscan-lineage 8072V verifier | Filed (PDF + digest) |
-| `manuals/cognex/DMST/2025-release/` | DataMan Setup Tool reference manual (2025.4.1.1) | Filed (PDF + digest) |
+| `manuals/cognex/DMV-8072V/` | Reference manual for the Webscan-lineage 8072V verifier | Filed (PDF + digest 2026-05-18) |
+| `manuals/cognex/DMST/2025-release/` | DataMan Setup Tool reference manual (2025.4.1.1) | Filed (PDF + digest 2026-05-18) |
 | `manuals/cognex/DMST/2026-release/` | 2026 DMST manuals (when migrated) | Release notes 26.1.0 filed + digested (install in progress 2026-05-18); full reference manual pending |
-| `manuals/cognex/comms-and-programming-guide/` | DMCC command reference (2025.4.1.1) | Filed (PDF + digest) |
+| `manuals/cognex/comms-and-programming-guide/` | DMCC command reference (2025.4.1.1) | Filed (PDF + digest 2026-05-18) |
+| `manuals/cognex/cross-manual-synthesis.md` | Synthesis of all three Cognex manuals — open questions resolved, v1.29 probes, IMAGE.LOAD sequence, DPM impact | Filed 2026-05-18 |
 | `manuals/cognex/SDK-docs/` | DataMan SDK API docs (if acquired) | Empty — pending |
 | `manuals/cognex/reference-manual-DM390-25.4.1.2.pdf` | Bonus — non-V reader, useful for SBG context | Filed |
 | `manuals/webscan-legacy/` | Pre-acquisition Webscan TruCheck docs | Empty — to acquire |
@@ -42,10 +43,11 @@ the unfiled-pile catalog at `attached_assets-archive/INDEX.md`.
 | 2D barcode print quality methodology (15415) | `standards/ISO-IEC-15415-ed3-2024-digest.md` + source PDF |
 | 2D verifier conformance + tolerances (15426-2) | `standards/ISO-IEC-15426-2-2023-digest.md` + source DOCX |
 | DM475V hardware behavior, calibration, SBG limits | `manuals/cognex/DM475V/reference-manual-25.4.1.1.pdf` |
-| DMCC command syntax | `manuals/cognex/comms-and-programming-guide/comms-and-programming-guide-25.4.1.1.pdf` |
-| DMST scripting environment + JS API | `manuals/cognex/DMST/2025-release/setup-tool-reference-manual-25.4.1.1.pdf` |
-| Webscan-lineage column semantics (LLS/BLS/LQZ/etc) | `manuals/cognex/DMV-8072V/reference-manual-25.4.1.1.pdf` |
-| Current shipped push script | `push-script-history/v1.23.js` (also live in `vtccp/DeviceInterface/Dmst/DmstPushScript_v1.js`) |
+| DMCC command syntax | `manuals/cognex/comms-and-programming-guide/comms-and-programming-guide-digest.md` (PDF also filed) |
+| DMST scripting environment + JS API | `manuals/cognex/DMST/2025-release/setup-tool-reference-manual-digest.md` (PDF also filed) |
+| Webscan-lineage column semantics (LLS/BLS/LQZ/etc) | `manuals/cognex/DMV-8072V/reference-manual-digest.md` (PDF also filed) |
+| Cross-manual synthesis (open questions, IMAGE.LOAD, v1.29 probes) | `manuals/cognex/cross-manual-synthesis.md` |
+| Current shipped push script | `push-script-history/v1.28.js` (also live in `vtccp/DeviceInterface/Dmst/DmstPushScript_v1.js`) |
 | Current 30-metric / 12-sibling enumeration | `samples/live-scans/v1.23-2026-05-18-Probe-DataMatrix-GS1Format06.xml` (raw); writeup pending |
 | Real-device 167-column schema | `samples/excel/CalCardProd-2026-03-17.xls` + `samples/scripts/cognex-trucheck-csv-reference.js` |
 | Webscan-format report (trade-dress reference) | `samples/reports/Webscan-format-2025-09-26.pdf` |
@@ -57,7 +59,7 @@ the unfiled-pile catalog at `attached_assets-archive/INDEX.md`.
 
 - **Originals preserved.** Files in `attached_assets/` are not deleted; only copied. The Replit asset pile is the audit trail.
 - **`/tmp/` originals not preserved** — those are ephemeral. Files moved out of `/tmp/` to `references/` are now canonical here.
-- **`vtccp/DeviceInterface/Dmst/DmstPushScript_v1.js`** is the live source of truth for the build. `push-script-history/v1.23.js` is the archived copy. They are identical at v1.23. When v1.24 ships, update both.
+- **`vtccp/DeviceInterface/Dmst/DmstPushScript_v1.js`** is the live source of truth for the build. `push-script-history/v1.28.js` is the archived copy. They are identical at v1.28. When v1.29 ships, update both.
 
 ---
 
