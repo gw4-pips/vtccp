@@ -126,3 +126,7 @@ dotnet run --project TestHarness/TestHarness.csproj -c Release
 - `MockDmccServer` binds to `IPAddress.Loopback, 0` (OS-assigned port) exposed via `Port` property.
 - Phase 3 is complete: ConfigEngine (JSON persistence) + VtccpApp WPF shell (MainWindow navigation, DevicesView, TemplatesView, SessionView).
 - Phase 4 is complete: HistoryView DataGrid (live-updating, grade/pass-fail/symbology filters, copy-TSV); ScanResultRow + HistoryFilter models; HistoryViewModel wired into SessionViewModel on every trigger.
+
+## User preferences
+
+- **Push-script viewer artifact lifecycle**: when the user explicitly asks to see a push-script version in the preview pane (e.g. v1.24), create/keep the `script-viewer` artifact showing that version. Remove it (or replace its contents) only when the *next* iteration is generated (e.g. when v1.25 ships, retire the v1.24 viewer). **Do not** auto-create a viewer artifact unprompted — only when the user asks.
