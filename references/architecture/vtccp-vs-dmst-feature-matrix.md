@@ -176,7 +176,7 @@ live optical QR scan is still needed to observe non-sentinel measurement values.
 | Job / Roll / Operator / Batch tracking | Shipped | SessionState; SessionSidecar |
 | Modulation Values sheet (B7) | In progress | ModValuesSheetWriter — variable-size grid |
 | Codeword Values sheet (B7) | In progress | CwValuesSheetWriter — data/ECC boundary marker |
-| OpticsSource flag (LiveScan / LoadedImage) | Shipped v1.25 | CU==−1 AND MRD==−1 discriminator |
+| OpticsSource flag (LiveScan / LoadedImage) | Shipped v1.25 | DM live=`LiveScan`; QR live=`LoadedImage` always on fw 6.1.16_sr4 — CU/MRD=-1 are QR-symbology sentinels, not stored-image indicators. D4 discriminator for QR stored-image replay unknown; needs IMAGE.LOAD QR scan. |
 | CalibrationWarning flag (FieldCalibrated=false) | Architecture (D1) | All observed scans: FieldCalibrated=false |
 | Reverse-report from Excel (Excel→VTCCP round-trip) | Pending D2 | Blocked on D1 |
 | GS1/MIL-STD application-syntax validation | Shipped | GS1 syntax engine v1.4.0 at vtccp/lib/gs1-syntax-engine/ |
