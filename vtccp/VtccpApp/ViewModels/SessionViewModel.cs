@@ -41,6 +41,11 @@ public sealed class SessionViewModel : ViewModelBase
     private string                              _statusMessage = "Ready.";
     private int                                 _recordCount;
 
+    // ── UPC/EAN Supplemental state ────────────────────────────────────────────
+    private int    _upcEanSupplementalMode = 0;
+    private string _supplementalStatus     = "Not yet read from device.";
+    private bool   _isApplyingSupplemental;
+
     /// <summary>
     /// Count of AcceptRecordAsync calls currently in flight.
     /// Incremented before AddRecord; decremented in finally.
@@ -64,6 +69,8 @@ public sealed class SessionViewModel : ViewModelBase
 
     // ── Bindable properties ───────────────────────────────────────────────────
 
+    public bool HasSelectedDevice => _selectedDevice is not null;
+
     public DeviceProfile? SelectedDevice
     {
         get => _selectedDevice;
@@ -71,6 +78,7 @@ public sealed class SessionViewModel : ViewModelBase
         {
             Set(ref _selectedDevice, value);
             OnPropertyChanged(nameof(IsPushAvailable));
+            OnPropertyChanged(nameof(HasSelectedDevice));
             RelayCommand.Refresh();
 
             // Auto-select the best mode for the newly chosen device:
@@ -137,14 +145,77 @@ public sealed class SessionViewModel : ViewModelBase
 
     public int RecordCount => _recordCount;
 
+    // ── UPC/EAN Supplemental properties ──────────────────────────────────────
+
+    /// <summary>
+    /// Current UPC/EAN supplemental mode selection (0–5).
+    /// 0=Ignore, 1=Parse, 2=Required, 3=Required 2-digit, 4=Required 5-digit, 5=Not Required.
+    /// Change the value via the IsSupplemental* radio-button helpers.
+    /// </summary>
+    public int UpcEanSupplementalMode
+    {
+        get => _upcEanSupplementalMode;
+        set
+        {
+            if (Set(ref _upcEanSupplementalMode, value))
+            {
+                OnPropertyChanged(nameof(IsSupplementalIgnore));
+                OnPropertyChanged(nameof(IsSupplementalParse));
+                OnPropertyChanged(nameof(IsSupplementalRequired));
+                OnPropertyChanged(nameof(IsSupplementalRequired2));
+                OnPropertyChanged(nameof(IsSupplementalRequired5));
+                OnPropertyChanged(nameof(IsSupplementalNotRequired));
+            }
+        }
+    }
+
+    public bool IsSupplementalIgnore
+    {
+        get => _upcEanSupplementalMode == 0;
+        set { if (value) UpcEanSupplementalMode = 0; }
+    }
+    public bool IsSupplementalParse
+    {
+        get => _upcEanSupplementalMode == 1;
+        set { if (value) UpcEanSupplementalMode = 1; }
+    }
+    public bool IsSupplementalRequired
+    {
+        get => _upcEanSupplementalMode == 2;
+        set { if (value) UpcEanSupplementalMode = 2; }
+    }
+    public bool IsSupplementalRequired2
+    {
+        get => _upcEanSupplementalMode == 3;
+        set { if (value) UpcEanSupplementalMode = 3; }
+    }
+    public bool IsSupplementalRequired5
+    {
+        get => _upcEanSupplementalMode == 4;
+        set { if (value) UpcEanSupplementalMode = 4; }
+    }
+    public bool IsSupplementalNotRequired
+    {
+        get => _upcEanSupplementalMode == 5;
+        set { if (value) UpcEanSupplementalMode = 5; }
+    }
+
+    public string SupplementalStatus
+    {
+        get => _supplementalStatus;
+        private set => Set(ref _supplementalStatus, value);
+    }
+
     // ── Commands ──────────────────────────────────────────────────────────────
 
-    public RelayCommand StartCommand        { get; }
-    public RelayCommand StopCommand         { get; }
-    public RelayCommand TriggerCommand      { get; }
-    public RelayCommand SetManualCommand    { get; }
-    public RelayCommand SetAutoPollCommand  { get; }
-    public RelayCommand SetPushCommand      { get; }
+    public RelayCommand StartCommand            { get; }
+    public RelayCommand StopCommand             { get; }
+    public RelayCommand TriggerCommand          { get; }
+    public RelayCommand SetManualCommand        { get; }
+    public RelayCommand SetAutoPollCommand      { get; }
+    public RelayCommand SetPushCommand          { get; }
+    public RelayCommand ReadSupplementalCommand  { get; }
+    public RelayCommand WriteSupplementalCommand { get; }
 
     public SessionViewModel(ConfigRepository repo, HistoryViewModel history)
     {
@@ -161,6 +232,14 @@ public sealed class SessionViewModel : ViewModelBase
         SetManualCommand   = new RelayCommand(() => ActiveScanMode = ScanMode.Manual,   () => !IsRunning);
         SetAutoPollCommand = new RelayCommand(() => ActiveScanMode = ScanMode.AutoPoll, () => !IsRunning);
         SetPushCommand     = new RelayCommand(() => ActiveScanMode = ScanMode.Push,     () => !IsRunning && IsPushAvailable);
+
+        ReadSupplementalCommand  = new RelayCommand(
+            async () => await OnReadSupplementalAsync(),
+            () => SelectedDevice is not null && !_isApplyingSupplemental);
+
+        WriteSupplementalCommand = new RelayCommand(
+            async () => await OnWriteSupplementalAsync(),
+            () => SelectedDevice is not null && !_isApplyingSupplemental);
 
         Reload();
     }
@@ -485,6 +564,103 @@ public sealed class SessionViewModel : ViewModelBase
         else
             StatusMessage = $"⚠ Record {RecordCount}: {record.Symbology} — {grade}{num}  [file open in Excel — close Excel before ending session]";
     }
+
+    // ── UPC/EAN Supplemental read / write ─────────────────────────────────────
+
+    /// <summary>
+    /// Opens a short-lived DMCC connection to read the current supplemental mode
+    /// from firmware and update the radio button selection to match.
+    /// Works independently of whether a session is running.
+    /// </summary>
+    private async Task OnReadSupplementalAsync()
+    {
+        if (SelectedDevice is null) return;
+        _isApplyingSupplemental = true;
+        RelayCommand.Refresh();
+        SupplementalStatus = "Reading from device…";
+        try
+        {
+            var cfg = SelectedDevice.ToDeviceConfig();
+            cfg.ConnectTimeoutMs  = 3_000;
+            cfg.ResponseTimeoutMs = 3_000;
+
+            await using var client = new DeviceInterface.Dmcc.DataManSdkClient(cfg);
+            await client.ConnectAsync();
+            var resp = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.GetUpcEanSupplemental);
+
+            if (resp.StatusCode == DeviceInterface.Dmcc.DmccStatus.Ok
+                && int.TryParse(resp.Body.Trim(), out int mode)
+                && mode is >= 0 and <= 5)
+            {
+                UpcEanSupplementalMode = mode;
+                SupplementalStatus = $"Read OK — firmware: {SupplementalModeLabel(mode)}";
+            }
+            else
+            {
+                SupplementalStatus =
+                    $"Read failed (code {resp.StatusCode}). " +
+                    "DMCC key may differ on this firmware — see DmccCommand.cs note.";
+            }
+        }
+        catch (Exception ex)
+        {
+            SupplementalStatus = $"Read error: {ex.Message}";
+        }
+        finally
+        {
+            _isApplyingSupplemental = false;
+            RelayCommand.Refresh();
+        }
+    }
+
+    /// <summary>
+    /// Opens a short-lived DMCC connection and writes the selected supplemental
+    /// mode to firmware (persistent — survives power cycle).
+    /// Works independently of whether a session is running.
+    /// </summary>
+    private async Task OnWriteSupplementalAsync()
+    {
+        if (SelectedDevice is null) return;
+        _isApplyingSupplemental = true;
+        RelayCommand.Refresh();
+        int mode = _upcEanSupplementalMode;
+        SupplementalStatus = $"Writing \"{SupplementalModeLabel(mode)}\" to firmware…";
+        try
+        {
+            var cfg = SelectedDevice.ToDeviceConfig();
+            cfg.ConnectTimeoutMs  = 3_000;
+            cfg.ResponseTimeoutMs = 3_000;
+
+            await using var client = new DeviceInterface.Dmcc.DataManSdkClient(cfg);
+            await client.ConnectAsync();
+            var resp = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.SetUpcEanSupplemental(mode));
+
+            SupplementalStatus = resp.StatusCode == DeviceInterface.Dmcc.DmccStatus.Ok
+                ? $"Written — firmware now: {SupplementalModeLabel(mode)} (persistent)"
+                : $"Write failed (code {resp.StatusCode}). " +
+                  "DMCC key may differ on this firmware — see DmccCommand.cs note.";
+        }
+        catch (Exception ex)
+        {
+            SupplementalStatus = $"Write error: {ex.Message}";
+        }
+        finally
+        {
+            _isApplyingSupplemental = false;
+            RelayCommand.Refresh();
+        }
+    }
+
+    private static string SupplementalModeLabel(int mode) => mode switch
+    {
+        0 => "Ignore",
+        1 => "Parse",
+        2 => "Required",
+        3 => "Required 2-digit",
+        4 => "Required 5-digit",
+        5 => "Not Required",
+        _ => $"Unknown ({mode})",
+    };
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 

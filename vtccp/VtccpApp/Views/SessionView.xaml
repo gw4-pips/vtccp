@@ -8,6 +8,7 @@
             <RowDefinition Height="Auto" />  <!-- header -->
             <RowDefinition Height="Auto" />  <!-- setup card -->
             <RowDefinition Height="Auto" />  <!-- scan mode bar -->
+            <RowDefinition Height="Auto" />  <!-- device config -->
             <RowDefinition Height="*"    />  <!-- live area -->
             <RowDefinition Height="Auto" />  <!-- status bar -->
         </Grid.RowDefinitions>
@@ -141,8 +142,69 @@
             </StackPanel>
         </Border>
 
+        <!-- ── Device Configuration card ──────────────────────────── -->
+        <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,10" Padding="14,10"
+                Visibility="{Binding HasSelectedDevice,
+                    Converter={StaticResource BoolToVisibility}}">
+            <StackPanel>
+                <!-- Header row -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <TextBlock Text="DEVICE CONFIGURATION"
+                               Style="{StaticResource FieldLabel}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,20,0" />
+                    <Button Content="Read from Device"
+                            Style="{StaticResource SecondaryButton}"
+                            Command="{Binding ReadSupplementalCommand}"
+                            Padding="10,4"
+                            Margin="0,0,8,0" />
+                    <Button Content="Apply to Device"
+                            Style="{StaticResource PrimaryButton}"
+                            Command="{Binding WriteSupplementalCommand}"
+                            Padding="10,4" />
+                </StackPanel>
+
+                <!-- UPC/EAN Supplementals row -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <TextBlock Text="UPC/EAN SUPPLEMENTALS:"
+                               Style="{StaticResource FieldLabel}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,14,0" />
+
+                    <RadioButton Content="Ignore"
+                                 IsChecked="{Binding IsSupplementalIgnore, Mode=TwoWay}"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,14,0" />
+                    <RadioButton Content="Parse"
+                                 IsChecked="{Binding IsSupplementalParse, Mode=TwoWay}"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,14,0" />
+                    <RadioButton Content="Required"
+                                 IsChecked="{Binding IsSupplementalRequired, Mode=TwoWay}"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,14,0" />
+                    <RadioButton Content="Required 2-digit"
+                                 IsChecked="{Binding IsSupplementalRequired2, Mode=TwoWay}"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,14,0" />
+                    <RadioButton Content="Required 5-digit"
+                                 IsChecked="{Binding IsSupplementalRequired5, Mode=TwoWay}"
+                                 VerticalAlignment="Center"
+                                 Margin="0,0,14,0" />
+                    <RadioButton Content="Not Required"
+                                 IsChecked="{Binding IsSupplementalNotRequired, Mode=TwoWay}"
+                                 VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Status line -->
+                <TextBlock Text="{Binding SupplementalStatus}"
+                           FontSize="11" FontStyle="Italic"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+            </StackPanel>
+        </Border>
+
         <!-- ── Live session area ────────────────────────────────────── -->
-        <Border Grid.Row="3" Style="{StaticResource Card}">
+        <Border Grid.Row="4" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -216,7 +278,7 @@
         </Border>
 
         <!-- ── Status bar ──────────────────────────────────────────── -->
-        <Border Grid.Row="4" Margin="0,8,0,0" Padding="8,4"
+        <Border Grid.Row="5" Margin="0,8,0,0" Padding="8,4"
                 Background="{StaticResource CardBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,1,0,0">

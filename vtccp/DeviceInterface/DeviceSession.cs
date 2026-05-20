@@ -143,6 +143,37 @@ public sealed class DeviceSession : IAsyncDisposable
         await _client.DisconnectAsync();
     }
 
+    // ── Device configuration (Code Properties) ───────────────────────────────
+
+    /// <summary>
+    /// Reads the current UPC/EAN supplemental (add-on) mode from the device.
+    /// Returns 0–5 matching the DMST Code Details dropdown, or -1 if the command
+    /// is not supported / key name differs on this firmware.
+    /// Integer mapping: 0=Ignore, 1=Parse, 2=Required, 3=Required 2-digit,
+    ///                  4=Required 5-digit, 5=Not Required.
+    /// </summary>
+    public async Task<int> GetUpcEanSupplementalAsync(CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        var resp = await _client.SendAsync(DmccCommand.GetUpcEanSupplemental, ct);
+        return resp.StatusCode == DmccStatus.Ok
+               && int.TryParse(resp.Body.Trim(), out int mode)
+               && mode is >= 0 and <= 5
+            ? mode
+            : -1;
+    }
+
+    /// <summary>
+    /// Writes the UPC/EAN supplemental mode to firmware (persistent — no explicit SAVE needed).
+    /// Returns true on success.
+    /// </summary>
+    public async Task<bool> SetUpcEanSupplementalAsync(int mode, CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        var resp = await _client.SendAsync(DmccCommand.SetUpcEanSupplemental(mode), ct);
+        return resp.StatusCode == DmccStatus.Ok;
+    }
+
     // ── Poll mode ─────────────────────────────────────────────────────────────
 
     /// <summary>

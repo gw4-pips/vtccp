@@ -63,6 +63,29 @@ public static class DmccCommand
     /// </summary>
     public const string SetTriggerTypeSingle = "SET TRIGGER.TYPE 1";
 
+    // ── UPC/EAN Code Properties ───────────────────────────────────────────────
+
+    /// <summary>
+    /// Reads the current UPC/EAN supplemental (add-on) mode from firmware.
+    /// Returns an integer string: 0=Ignore, 1=Parse, 2=Required,
+    /// 3=Required 2-digit, 4=Required 5-digit, 5=Not Required.
+    ///
+    /// DMCC key: CODE.UPCEAN-SUPPLEMENT-DIGIT
+    /// Matches DMST Code Details → UPC/EAN Properties → Supplementals dropdown.
+    /// NOTE: Verify exact key name via a probe scan if firmware rejects it —
+    ///       alternative candidates: CODE.UPCEAN.SUPPLEMENTAL, CODE.UPCEAN-ADDON.
+    /// </summary>
+    public const string GetUpcEanSupplemental = "GET CODE.UPCEAN-SUPPLEMENT-DIGIT";
+
+    /// <summary>
+    /// Writes the UPC/EAN supplemental mode to firmware (persistent — no explicit SAVE needed).
+    /// <paramref name="mode"/> must be 0–5:
+    ///   0 = Ignore, 1 = Parse, 2 = Required (any),
+    ///   3 = Required 2-digit, 4 = Required 5-digit, 5 = Not Required.
+    /// </summary>
+    public static string SetUpcEanSupplemental(int mode) =>
+        $"SET CODE.UPCEAN-SUPPLEMENT-DIGIT {mode}";
+
     // ── Device control ────────────────────────────────────────────────────────
 
     /// <summary>Reboot the device. Use with caution in production.</summary>
