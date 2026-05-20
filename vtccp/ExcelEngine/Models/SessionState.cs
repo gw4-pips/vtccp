@@ -23,10 +23,10 @@ public sealed class SessionState
     public BatchMode BatchMode { get; set; } = BatchMode.Manual;
 
     /// <summary>
-    /// Optional path to a company logo image file.
-    /// Stored here so Phase 3 (WPF UI) can embed the logo in the Excel header row
-    /// and PDF report title area.  Null = no logo (silently skipped by the writer).
-    /// TODO Phase 3: implement logo embedding in ExcelWriter and report renderer.
+    /// Optional path to a company logo image file (PNG, JPG, BMP or GIF).
+    /// When set, the logo is embedded as a floating banner image in the Excel title row
+    /// and will be included in the VCCS HTML/PDF report header.
+    /// Null or missing file = silently skipped by the writer.
     /// </summary>
     public string? LogoPath { get; set; }
 

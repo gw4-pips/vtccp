@@ -1,5 +1,6 @@
 namespace ExcelEngine.Writer;
 
+using System.IO;
 using ExcelEngine.Adapters;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
@@ -180,6 +181,17 @@ public sealed class ExcelWriter : IDisposable
 
     private void WriteTitleRow()
     {
+        // ── Logo ─────────────────────────────────────────────────────────────
+        // When a logo is configured, make the title row taller so the image fits
+        // without clipping, then embed it as a floating overlay at the right of
+        // the header band.  Missing or unreadable logo files are silently skipped
+        // so a bad path never prevents the file from being written.
+        bool hasLogo = !string.IsNullOrWhiteSpace(_session.LogoPath)
+                       && File.Exists(_session.LogoPath);
+        if (hasLogo)
+            _adapter.SetRowHeight(TitleRow, 54.0); // ≈ 72 px — fits 54 px logo + breathing room
+
+        // ── Title text ───────────────────────────────────────────────────────
         var title = $"VCCS DMV TruCheck Command Pilot" +
                     $" | Job: {_session.JobName ?? "(no job)"}" +
                     $" | Operator: {_session.OperatorId ?? "-"}" +
@@ -190,6 +202,22 @@ public sealed class ExcelWriter : IDisposable
         // Write schema version metadata past the last data column so downstream
         // tooling can identify VTCCP-generated files.
         SchemaVersionWriter.Write(_adapter, _schema, TitleRow);
+
+        // ── Embed logo ───────────────────────────────────────────────────────
+        if (hasLogo)
+        {
+            try
+            {
+                var bytes = File.ReadAllBytes(_session.LogoPath!);
+                var ext   = Path.GetExtension(_session.LogoPath!);
+                _adapter.WriteLogoImage(TitleRow, bytes, ext);
+            }
+            catch (IOException)
+            {
+                // Logo file became inaccessible between the exists-check and the read.
+                // Title text is still written — silently continue.
+            }
+        }
     }
 
     private void WriteHeaderRow()

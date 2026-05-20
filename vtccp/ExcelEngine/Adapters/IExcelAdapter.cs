@@ -59,10 +59,19 @@ public interface IExcelAdapter : IDisposable
 
     /// <summary>
     /// Embed a JPEG image anchored at the top-left corner of the given 1-based row/col.
-    /// The image is sized to fit within a ~220×160px bounding box.
+    /// The image is sized to fit within a ~220×220px bounding box (scan / barcode images).
     /// Callers should pre-set the target row height to ~160pt via SetRowHeight before calling.
     /// </summary>
     void WriteEmbeddedImage(int row, int col, byte[] jpegBytes);
+
+    /// <summary>
+    /// Embed a company logo in the title row.
+    /// The image is placed as a floating overlay anchored to the top-right area of
+    /// <paramref name="row"/> and sized to ~160 × 54 px (landscape banner).
+    /// Supports PNG, JPG/JPEG, BMP and GIF — detected from <paramref name="fileExtension"/>.
+    /// No-op if <paramref name="imageBytes"/> is null or empty.
+    /// </summary>
+    void WriteLogoImage(int row, byte[] imageBytes, string fileExtension);
 
     /// <summary>Maximum data rows this format supports before the file must be rotated.</summary>
     int MaxDataRows { get; }

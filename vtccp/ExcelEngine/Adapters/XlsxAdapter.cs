@@ -113,13 +113,29 @@ public sealed class XlsxAdapter : IExcelAdapter
     public void WriteEmbeddedImage(int row, int col, byte[] jpegBytes)
     {
         using var ms = new MemoryStream(jpegBytes);
-        // Name must be unique within the workbook across all sheets.
         string name = $"img_r{row}_c{col}_{++_imgSeq}";
-        var pic = _ws!.Drawings.AddPicture(name, ms, ePictureType.Jpg);
-        // SetPosition takes 0-based row/col + pixel offsets from the cell edge.
+        // EPPlus 7.x: AddPicture(name, stream) auto-detects format from stream header.
+        var pic = _ws!.Drawings.AddPicture(name, ms);
         pic.SetPosition(row - 1, 2, col - 1, 2);
-        // SetSize: width × height in pixels. Square to accommodate both QR and DM aspect ratios.
         pic.SetSize(220, 220);
+    }
+
+    public void WriteLogoImage(int row, byte[] imageBytes, string fileExtension)
+    {
+        if (imageBytes is null || imageBytes.Length == 0 || _ws is null) return;
+
+        using var ms = new MemoryStream(imageBytes);
+        string name = $"logo_r{row}_{++_imgSeq}";
+        // EPPlus 7.x: format auto-detected from stream header (PNG magic, JFIF SOI, etc.).
+        var pic = _ws.Drawings.AddPicture(name, ms);
+
+        // Anchor at column 8 (0-based index 8 = column I), 4 px from the cell edge.
+        // Column I is visible without horizontal scrolling on typical monitors and
+        // clears the title-text cells without overlapping them.
+        pic.SetPosition(row - 1, 4, 8, 4);
+
+        // 160 × 54 px: fits a landscape banner logo inside the tall title row (54pt ≈ 72px).
+        pic.SetSize(160, 54);
     }
 
     public void Save()

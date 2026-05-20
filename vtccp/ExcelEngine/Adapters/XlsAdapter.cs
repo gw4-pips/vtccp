@@ -205,15 +205,38 @@ public sealed class XlsAdapter : IExcelAdapter
 
         int picIdx = _wb.AddPicture(jpegBytes, PictureType.JPEG);
 
-        // Get the existing drawing patriarch for this sheet, or create one.
-        // NPOI throws if CreateDrawingPatriarch() is called when one already exists.
         var patriarch = (_ws.DrawingPatriarch as HSSFPatriarch)
                         ?? (HSSFPatriarch)_ws.CreateDrawingPatriarch();
 
-        // Anchor: (dx1, dy1, dx2, dy2, col1, row1, col2, row2) — col/row are 0-based.
-        // Span approximately 3 columns × 6 rows to hold a ~220×220px image.
+        // Span approximately 3 columns × 6 rows to hold a ~220×220px scan image.
         var anchor = new HSSFClientAnchor(0, 0, 1023, 255,
             col - 1, row - 1, col + 2, row + 5);
+        anchor.AnchorType = AnchorType.MoveAndResize;
+        patriarch.CreatePicture(anchor, picIdx);
+    }
+
+    public void WriteLogoImage(int row, byte[] imageBytes, string fileExtension)
+    {
+        if (imageBytes is null || imageBytes.Length == 0 || _wb is null || _ws is null) return;
+
+        var picType = fileExtension.ToLowerInvariant() switch
+        {
+            ".png" => PictureType.PNG,
+            ".gif" => PictureType.GIF,
+            ".dib" => PictureType.DIB,
+            _      => PictureType.JPEG,
+        };
+
+        int picIdx = _wb.AddPicture(imageBytes, picType);
+
+        var patriarch = (_ws.DrawingPatriarch as HSSFPatriarch)
+                        ?? (HSSFPatriarch)_ws.CreateDrawingPatriarch();
+
+        // Anchor the logo at col 8 (0-based), spanning ~2 columns × ~3 rows
+        // (160 × 54 px equivalent in HSSF units).
+        // dx1/dy1 = 4, dx2/dy2 = 512 (half-EMU offsets within the anchor cell).
+        var anchor = new HSSFClientAnchor(4, 4, 512, 127,
+            8, row - 1, 10, row + 1);
         anchor.AnchorType = AnchorType.MoveAndResize;
         patriarch.CreatePicture(anchor, picIdx);
     }

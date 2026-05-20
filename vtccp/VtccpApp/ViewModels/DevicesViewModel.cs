@@ -169,13 +169,9 @@ public sealed class DevicesViewModel : ViewModelBase
 
     private void OnBrowseLogo()
     {
-        if (Editing is null) return;
-        var dlg = new Microsoft.Win32.OpenFileDialog
-        {
-            Title  = "Select Logo Image",
-            Filter = "Image files|*.png;*.jpg;*.jpeg;*.bmp;*.gif|All files|*.*",
-        };
-        if (dlg.ShowDialog() == true) Editing.Notes = Editing.Notes;
+        // Logo is configured on the Job Template (JobTemplate.LogoPath), not on a
+        // device profile.  This command stub is retained so the binding does not
+        // throw; the button is not exposed in DevicesView.xaml.
     }
 
     /// <summary>
