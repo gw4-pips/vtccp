@@ -175,10 +175,6 @@
                                  IsChecked="{Binding IsSupplementalIgnore, Mode=TwoWay}"
                                  VerticalAlignment="Center"
                                  Margin="0,0,14,0" />
-                    <RadioButton Content="Parse"
-                                 IsChecked="{Binding IsSupplementalParse, Mode=TwoWay}"
-                                 VerticalAlignment="Center"
-                                 Margin="0,0,14,0" />
                     <RadioButton Content="Required"
                                  IsChecked="{Binding IsSupplementalRequired, Mode=TwoWay}"
                                  VerticalAlignment="Center"

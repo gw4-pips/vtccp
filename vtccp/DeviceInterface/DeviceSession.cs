@@ -82,15 +82,16 @@ public sealed class DeviceSession : IAsyncDisposable
         // Result format is set via SDK's SetResultTypes() in DataManSdkClient.ConnectAsync.
 
         // Query device identity info.
-        // FirmwareVersion is read from the SDK's native property (avoids InvalidCommandException
-        // thrown by SendCommand("GET FIRMWARE.VER") on this firmware).
+        // FirmwareVersion is read from the SDK's native property first (avoids
+        // latency on the hot path); DMCC fallback uses the confirmed key
+        // DEVICE.FIRMWARE-VER (verified against DMCC Reference 6.1.16_sr4).
         DeviceInfo = new DeviceInfo
         {
-            Type            = (await _client.SendAsync(DmccCommand.GetDeviceType, ct)).Body,
+            Type            = (await _client.SendAsync(DmccCommand.GetDeviceType,          ct)).Body,
             FirmwareVersion = _client.FirmwareVersion
-                           ?? (await _client.SendAsync(DmccCommand.GetFirmwareVer, ct)).Body,
-            Name            = (await _client.SendAsync(DmccCommand.GetDeviceName, ct)).Body,
-            Serial          = (await _client.SendAsync(DmccCommand.GetDeviceId,   ct)).Body,
+                           ?? (await _client.SendAsync(DmccCommand.GetFirmwareVer,          ct)).Body,
+            Name            = (await _client.SendAsync(DmccCommand.GetDeviceName,           ct)).Body,
+            Serial          = (await _client.SendAsync(DmccCommand.GetDeviceSerialNumber,   ct)).Body,
         };
 
         // ── Trigger mode ─────────────────────────────────────────────────────

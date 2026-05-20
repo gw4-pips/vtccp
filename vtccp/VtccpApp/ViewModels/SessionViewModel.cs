@@ -148,8 +148,10 @@ public sealed class SessionViewModel : ViewModelBase
     // ── UPC/EAN Supplemental properties ──────────────────────────────────────
 
     /// <summary>
-    /// Current UPC/EAN supplemental mode selection (0–5).
-    /// 0=Ignore, 1=Parse, 2=Required, 3=Required 2-digit, 4=Required 5-digit, 5=Not Required.
+    /// Current UPC/EAN supplemental mode selection (0–4).
+    /// Confirmed against DMCC Reference 6.1.16_sr4 (UPC-EAN.SUPPLEMENT):
+    ///   0=Ignore, 1=Required (any), 2=Required 2-digit,
+    ///   3=Required 5-digit, 4=Not Required (optional).
     /// Change the value via the IsSupplemental* radio-button helpers.
     /// </summary>
     public int UpcEanSupplementalMode
@@ -160,7 +162,6 @@ public sealed class SessionViewModel : ViewModelBase
             if (Set(ref _upcEanSupplementalMode, value))
             {
                 OnPropertyChanged(nameof(IsSupplementalIgnore));
-                OnPropertyChanged(nameof(IsSupplementalParse));
                 OnPropertyChanged(nameof(IsSupplementalRequired));
                 OnPropertyChanged(nameof(IsSupplementalRequired2));
                 OnPropertyChanged(nameof(IsSupplementalRequired5));
@@ -174,30 +175,25 @@ public sealed class SessionViewModel : ViewModelBase
         get => _upcEanSupplementalMode == 0;
         set { if (value) UpcEanSupplementalMode = 0; }
     }
-    public bool IsSupplementalParse
+    public bool IsSupplementalRequired
     {
         get => _upcEanSupplementalMode == 1;
         set { if (value) UpcEanSupplementalMode = 1; }
     }
-    public bool IsSupplementalRequired
+    public bool IsSupplementalRequired2
     {
         get => _upcEanSupplementalMode == 2;
         set { if (value) UpcEanSupplementalMode = 2; }
     }
-    public bool IsSupplementalRequired2
+    public bool IsSupplementalRequired5
     {
         get => _upcEanSupplementalMode == 3;
         set { if (value) UpcEanSupplementalMode = 3; }
     }
-    public bool IsSupplementalRequired5
+    public bool IsSupplementalNotRequired
     {
         get => _upcEanSupplementalMode == 4;
         set { if (value) UpcEanSupplementalMode = 4; }
-    }
-    public bool IsSupplementalNotRequired
-    {
-        get => _upcEanSupplementalMode == 5;
-        set { if (value) UpcEanSupplementalMode = 5; }
     }
 
     public string SupplementalStatus
@@ -654,11 +650,10 @@ public sealed class SessionViewModel : ViewModelBase
     private static string SupplementalModeLabel(int mode) => mode switch
     {
         0 => "Ignore",
-        1 => "Parse",
-        2 => "Required",
-        3 => "Required 2-digit",
-        4 => "Required 5-digit",
-        5 => "Not Required",
+        1 => "Required",
+        2 => "Required 2-digit",
+        3 => "Required 5-digit",
+        4 => "Not Required",
         _ => $"Unknown ({mode})",
     };
 
