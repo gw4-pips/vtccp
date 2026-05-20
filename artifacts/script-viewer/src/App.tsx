@@ -29,7 +29,7 @@ function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "DmstPushScript_v1.28.txt";
+    a.download = "DmstPushScript_v1.29.txt";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -104,7 +104,7 @@ function App() {
         color: "#8b949e",
         lineHeight: 1.5,
       }}>
-        <strong style={{ color: "#e6edf3" }}>Install:</strong> DMST → Format Data → Scripting tab → Open Script → paste → Save → Write Settings to verifier. Confirm <code style={{ color: "#7ee787" }}>&lt;PushScriptDiag&gt;v1.28 q=r.trucheck m=found&lt;/PushScriptDiag&gt;</code> appears in the next scan output.
+        <strong style={{ color: "#e6edf3" }}>Install:</strong> DMST → Format Data → Scripting tab → Open Script → paste → Save → Write Settings to verifier. Confirm <code style={{ color: "#7ee787" }}>&lt;PushScriptDiag&gt;v1.29 q=r.trucheck m=found&lt;/PushScriptDiag&gt;</code> appears in the next scan output.
       </div>
 
       <pre style={{
