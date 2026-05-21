@@ -234,14 +234,22 @@ public sealed class DeviceSession : IAsyncDisposable
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /// <summary>Builds a thin context record from device info for pre-seeding result records.</summary>
+    /// <summary>
+    /// Builds a thin context record from device info and connection config for
+    /// pre-seeding result records.  All fields here are static for the lifetime
+    /// of the session — they are captured once at ConnectAsync and stamped on
+    /// every scan record at zero marginal cost.
+    /// </summary>
     private VerificationRecord ContextFromDeviceInfo() => new()
     {
-        Symbology       = "Unknown",  // filled in by parser
-        DeviceSerial    = DeviceInfo.Serial,
-        DeviceName      = DeviceInfo.Name,
-        FirmwareVersion = DeviceInfo.FirmwareVersion,
-        CalibrationDate = DeviceInfo.CalibrationDate,
+        Symbology         = "Unknown",  // filled in by parser
+        DeviceSerial      = DeviceInfo.Serial,
+        DeviceName        = DeviceInfo.Name,
+        DeviceModel       = DeviceInfo.Type,
+        FirmwareVersion   = DeviceInfo.FirmwareVersion,
+        CalibrationDate   = DeviceInfo.CalibrationDate,
+        ConnectionAddress = $"{_cfg.Host}:{_cfg.Port}",
+        ConnectionMedium  = _cfg.ResolvedConnectionMedium(),
     };
 
     private static DateTime? ParseCalibrationDate(string? raw)

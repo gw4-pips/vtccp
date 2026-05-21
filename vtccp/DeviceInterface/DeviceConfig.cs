@@ -39,6 +39,37 @@ public sealed class DeviceConfig
     /// </summary>
     public int BannerTimeoutMs { get; set; } = 500;
 
+    // ── Physical medium ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Physical / logical connection medium.  Default is <c>Auto</c>, which infers GigE vs
+    /// USB-Ethernet from the configured <see cref="Host"/> IP address at session start.
+    /// Set explicitly for non-standard IP assignments or USB-COM connections.
+    /// </summary>
+    public ConnectionMedium ConnectionMedium { get; set; } = ConnectionMedium.Auto;
+
+    /// <summary>
+    /// Resolves the <see cref="ConnectionMedium"/> for this config to a display string,
+    /// inferring from <see cref="Host"/> when the value is <c>Auto</c>.
+    /// Returns one of: "GigE", "USB-Ethernet", "USB-COM".
+    /// </summary>
+    public string ResolvedConnectionMedium() => ResolveConnectionMedium(Host, ConnectionMedium);
+
+    /// <summary>
+    /// Static resolver used by both <see cref="ResolvedConnectionMedium"/> and unit tests.
+    /// </summary>
+    public static string ResolveConnectionMedium(string host, ConnectionMedium medium) =>
+        medium switch
+        {
+            ConnectionMedium.GigE        => "GigE",
+            ConnectionMedium.USBEthernet => "USB-Ethernet",
+            ConnectionMedium.USBCOM      => "USB-COM",
+            // Auto — infer from IP prefix
+            _ => (host.StartsWith("192.168.111.") || host.StartsWith("169.254."))
+                 ? "USB-Ethernet"
+                 : "GigE",
+        };
+
     // ── Result delivery ───────────────────────────────────────────────────────
 
     /// <summary>
@@ -74,6 +105,28 @@ public sealed class DeviceConfig
     public string ToJson()             => JsonSerializer.Serialize(this, _json);
     public static DeviceConfig FromJson(string json) =>
         JsonSerializer.Deserialize<DeviceConfig>(json, _json) ?? new DeviceConfig();
+}
+
+/// <summary>
+/// Physical / logical medium over which VTCCP connects to the reader.
+/// <c>Auto</c> (default) infers the medium from the configured IP address:
+///   192.168.111.x or 169.254.x.x → <c>USBEthernet</c> (Coglink); anything else → <c>GigE</c>.
+/// Set an explicit value when the IP does not follow the default conventions,
+/// or for future USB-COM connections.
+///
+/// Context:  DM475V = GigE only.
+///           DM390 / DM395V = GigE  OR  Coglink USB-C emulated Ethernet (192.168.111.2).
+/// </summary>
+public enum ConnectionMedium
+{
+    /// <summary>Infer from IP address at session start.</summary>
+    Auto,
+    /// <summary>Standard Ethernet / GigE (any non-USB IP).</summary>
+    GigE,
+    /// <summary>USB-C Coglink emulated Ethernet (DM390 / DM395V; typically 192.168.111.2).</summary>
+    USBEthernet,
+    /// <summary>USB-C emulated serial COM port (DTR required).</summary>
+    USBCOM,
 }
 
 /// <summary>How verification results are delivered to the VTCCP client.</summary>

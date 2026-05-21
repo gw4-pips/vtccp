@@ -40,10 +40,13 @@ public static class ISO15416Mapper
         };
         d["User1"]           = r.User1;
         d["User2"]           = r.User2;
-        d["DeviceSerial"]    = r.DeviceSerial;
-        d["DeviceName"]      = r.DeviceName;
-        d["FirmwareVersion"] = r.FirmwareVersion;
-        d["CalibrationDate"] = r.CalibrationDate.HasValue ? (object)r.CalibrationDate.Value : null;
+        d["DeviceSerial"]      = r.DeviceSerial;
+        d["DeviceName"]        = r.DeviceName;
+        d["DeviceModel"]       = r.DeviceModel;
+        d["FirmwareVersion"]   = r.FirmwareVersion;
+        d["ConnectionAddress"] = r.ConnectionAddress;
+        d["ConnectionMedium"]  = r.ConnectionMedium;
+        d["CalibrationDate"]   = r.CalibrationDate.HasValue ? (object)r.CalibrationDate.Value : null;
         d["Aperture"]        = r.Aperture.HasValue ? (object)r.Aperture.Value : null;
         d["Wavelength"]      = r.Wavelength.HasValue ? (object)r.Wavelength.Value : null;
         d["Lighting"]        = r.Lighting;

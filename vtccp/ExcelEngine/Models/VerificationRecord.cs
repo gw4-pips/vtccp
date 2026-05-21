@@ -34,10 +34,26 @@ public sealed record class VerificationRecord
     public string? User1 { get; init; }
     public string? User2 { get; init; }
 
-    // Device-supplied
+    // Device-supplied identity + connection metadata
     public string? DeviceSerial { get; init; }
     public string? DeviceName { get; init; }
+    /// <summary>
+    /// DEVICE.TYPE string returned by the reader, e.g. "DM475V", "DM390", "DM395V".
+    /// Populated at ConnectAsync; never null on a real device scan.
+    /// </summary>
+    public string? DeviceModel { get; init; }
     public string? FirmwareVersion { get; init; }
+    /// <summary>
+    /// "host:port" as configured in DeviceConfig, e.g. "10.10.10.7:44444".
+    /// Captured once at session start; zero cost to store per record.
+    /// </summary>
+    public string? ConnectionAddress { get; init; }
+    /// <summary>
+    /// Resolved physical / logical medium: "GigE", "USB-Ethernet", or "USB-COM".
+    /// Inferred from the IP address unless overridden in DeviceConfig.ConnectionMedium.
+    /// DM475V = always "GigE".  DM390/DM395V Coglink = "USB-Ethernet".
+    /// </summary>
+    public string? ConnectionMedium { get; init; }
     public DateTime? CalibrationDate { get; init; }
 
     // Device scan properties (r.symbology.* — confirmed v1.24)

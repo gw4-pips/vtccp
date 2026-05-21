@@ -56,10 +56,13 @@ public static class TruCheckCompatibleSchema
         cols.Add(Col("CustomPassFail", "Custom",           6, SymbologyGroup.Universal));
         cols.Add(Col("User1",          "User 1",           8, SymbologyGroup.Universal));
         cols.Add(Col("User2",          "User 2",           8, SymbologyGroup.Universal));
-        cols.Add(Col("DeviceSerial",   "Unit Serial",     10, SymbologyGroup.Universal));
-        cols.Add(Col("DeviceName",     "Device Name",     10, SymbologyGroup.Universal));
-        cols.Add(Col("FirmwareVersion","Firmware",        10, SymbologyGroup.Universal));
-        cols.Add(Col("CalibrationDate","Last Calibrated", 14, SymbologyGroup.Universal, numberFormat: "yyyy-mm-dd hh:mm"));
+        cols.Add(Col("DeviceSerial",      "Unit Serial",     10, SymbologyGroup.Universal));
+        cols.Add(Col("DeviceName",        "Device Name",     10, SymbologyGroup.Universal));
+        cols.Add(Col("DeviceModel",       "Reader Model",    10, SymbologyGroup.Universal));
+        cols.Add(Col("FirmwareVersion",   "Firmware",        10, SymbologyGroup.Universal));
+        cols.Add(Col("ConnectionAddress", "Connection",      16, SymbologyGroup.Universal));
+        cols.Add(Col("ConnectionMedium",  "Link Medium",      9, SymbologyGroup.Universal));
+        cols.Add(Col("CalibrationDate",   "Last Calibrated", 14, SymbologyGroup.Universal, numberFormat: "yyyy-mm-dd hh:mm"));
         cols.Add(Col("Aperture",       "Aperture (mil)",   6, SymbologyGroup.Universal));
         cols.Add(Col("Wavelength",     "Wavelength (nm)",  6, SymbologyGroup.Universal));
         cols.Add(Col("Lighting",       "Lighting",         7, SymbologyGroup.Universal));
