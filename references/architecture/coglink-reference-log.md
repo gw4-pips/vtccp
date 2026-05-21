@@ -23,6 +23,55 @@ confirm Coglink presence and pinning on that model.
 
 ---
 
+### 2 — Coglink purpose description (2026-05-21)
+**Source**: user-supplied (secondary/summary — not a primary Cognex document)  
+**Logged**: 2026-05-21
+
+**Content** (verbatim):
+
+> **Purpose of the COGLINK Port — Enhanced Communication**  
+> The COGLINK port on newer Cognex DataMan readers is designed to facilitate the connection
+> of multiple readers within a network. This capability allows for improved communication
+> between devices, enabling them to work together more effectively.
+>
+> **Scalability and Flexibility**  
+> The COGLINK port supports scalability in automation setups. By connecting multiple readers,
+> users can expand their systems as needed, adapting to various operational requirements
+> without significant redesign.
+>
+> **Data Sharing**  
+> This feature also enhances data sharing among connected devices. It allows for the
+> aggregation and analysis of data from multiple readers, which can lead to better insights
+> and performance optimization in logistics and manufacturing environments.
+
+**Assessment**: This description frames Coglink as a **multi-reader network interconnect**,
+emphasising reader-to-reader communication and cluster-level data aggregation. This is a
+higher-level view than the DM390 manual's three USB-C modes (USB-COM / Emulated Ethernet /
+HID), which describe how a *single* reader connects to a *single* host PC.
+
+The two descriptions are not contradictory — they describe different layers:
+
+| Layer | Description | Source |
+|---|---|---|
+| Physical / host connectivity | USB-C port with 3 modes (USB-COM, Emulated Ethernet, HID) | DM390 ref manual |
+| System / network role | Multi-reader interconnect for scalable cluster communication | User-supplied summary |
+
+**Reconciliation**: The most likely architecture is that Coglink's Emulated Ethernet mode
+(192.168.111.2) is the *mechanism*, and multi-reader networking (tunnel clusters,
+data aggregation via Edge Intelligence Tunnel Manager) is the *purpose* at the system level.
+In a tunnel with 4–6 DM380/DM395 readers, each connects to a hub/switch or directly to
+a host, and Coglink provides the cabling path for that connection alongside providing
+DMCC + push data transport. Reader-to-reader direct communication (peer-to-peer Coglink)
+has not been confirmed in primary documentation.
+
+**VTCCP implication — no code change needed now**:  
+The `ConnectionMedium = "USB-Ethernet"` field already correctly identifies the physical
+medium for any Coglink-connected reader. For future multi-reader tunnel scenarios, a
+`ClusterName` or `TunnelGroup` field on `DeviceConfig` / `VerificationRecord` would be the
+natural addition — but that is a D5+ concern, not in scope for the current DM475V target.
+
+---
+
 ## Coglink — what is known from existing reference materials
 
 Source: `references/manuals/cognex/reference-manual-DM390-25.4.1.2.pdf` (extracted to `/tmp/dm390.txt`)
