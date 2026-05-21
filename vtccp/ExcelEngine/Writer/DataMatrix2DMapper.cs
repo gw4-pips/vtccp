@@ -44,8 +44,12 @@ public static class DataMatrix2DMapper
         d["DeviceModel"]       = r.DeviceModel;
         d["FirmwareVersion"]   = r.FirmwareVersion;
         d["ConnectionAddress"] = r.ConnectionAddress;
-        d["ConnectionMedium"]  = r.ConnectionMedium;
-        d["CalibrationDate"]   = r.CalibrationDate.HasValue ? (object)r.CalibrationDate.Value : null;
+        d["ConnectionMedium"]    = r.ConnectionMedium;
+        d["SensorWidthPx"]       = r.SensorWidthPx.HasValue      ? (object)r.SensorWidthPx.Value      : null;
+        d["SensorHeightPx"]      = r.SensorHeightPx.HasValue     ? (object)r.SensorHeightPx.Value     : null;
+        d["SensorPixelPitchUm"]  = r.SensorPixelPitchUm.HasValue ? (object)r.SensorPixelPitchUm.Value : null;
+        d["ImageSizeSetting"]    = r.ImageSizeSetting;
+        d["CalibrationDate"]     = r.CalibrationDate.HasValue ? (object)r.CalibrationDate.Value : null;
         d["Aperture"]       = r.Aperture.HasValue ? (object)r.Aperture.Value : null;
         d["Wavelength"]     = r.Wavelength.HasValue ? (object)r.Wavelength.Value : null;
         d["Lighting"]       = r.Lighting;

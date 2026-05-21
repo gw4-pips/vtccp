@@ -85,13 +85,26 @@ public sealed class DeviceSession : IAsyncDisposable
         // FirmwareVersion is read from the SDK's native property first (avoids
         // latency on the hot path); DMCC fallback uses the confirmed key
         // DEVICE.FIRMWARE-VER (verified against DMCC Reference 6.1.16_sr4).
+        // Pre-fetch device type first so we can drive the sensor lookup table
+        // without a second DMCC round-trip inside the DeviceInfo initializer.
+        var devType      = (await _client.SendAsync(DmccCommand.GetDeviceType,  ct)).Body;
+        var imageSizeRaw = (await _client.SendAsync(DmccCommand.GetImageSize,   ct)).Body;
+        var sensorSpec   = DeviceSensorSpecs.TryGet(devType);
+
         DeviceInfo = new DeviceInfo
         {
-            Type            = (await _client.SendAsync(DmccCommand.GetDeviceType,          ct)).Body,
-            FirmwareVersion = _client.FirmwareVersion
-                           ?? (await _client.SendAsync(DmccCommand.GetFirmwareVer,          ct)).Body,
-            Name            = (await _client.SendAsync(DmccCommand.GetDeviceName,           ct)).Body,
-            Serial          = (await _client.SendAsync(DmccCommand.GetDeviceSerialNumber,   ct)).Body,
+            Type               = devType,
+            FirmwareVersion    = _client.FirmwareVersion
+                              ?? (await _client.SendAsync(DmccCommand.GetFirmwareVer,        ct)).Body,
+            Name               = (await _client.SendAsync(DmccCommand.GetDeviceName,         ct)).Body,
+            Serial             = (await _client.SendAsync(DmccCommand.GetDeviceSerialNumber, ct)).Body,
+            SensorWidthPx      = sensorSpec?.WidthPx,
+            SensorHeightPx     = sensorSpec?.HeightPx,
+            SensorPixelPitchUm = sensorSpec?.PixelPitchUm,
+            ImageSizeSetting   = imageSizeRaw switch {
+                "0" => "Full", "1" => "1/4", "2" => "1/16", "3" => "1/64",
+                _   => imageSizeRaw,   // preserve raw value for unknown / future firmware
+            },
         };
 
         // ── Trigger mode ─────────────────────────────────────────────────────
@@ -242,14 +255,18 @@ public sealed class DeviceSession : IAsyncDisposable
     /// </summary>
     private VerificationRecord ContextFromDeviceInfo() => new()
     {
-        Symbology         = "Unknown",  // filled in by parser
-        DeviceSerial      = DeviceInfo.Serial,
-        DeviceName        = DeviceInfo.Name,
-        DeviceModel       = DeviceInfo.Type,
-        FirmwareVersion   = DeviceInfo.FirmwareVersion,
-        CalibrationDate   = DeviceInfo.CalibrationDate,
-        ConnectionAddress = $"{_cfg.Host}:{_cfg.Port}",
-        ConnectionMedium  = _cfg.ResolvedConnectionMedium(),
+        Symbology          = "Unknown",  // filled in by parser
+        DeviceSerial       = DeviceInfo.Serial,
+        DeviceName         = DeviceInfo.Name,
+        DeviceModel        = DeviceInfo.Type,
+        FirmwareVersion    = DeviceInfo.FirmwareVersion,
+        CalibrationDate    = DeviceInfo.CalibrationDate,
+        ConnectionAddress  = $"{_cfg.Host}:{_cfg.Port}",
+        ConnectionMedium   = _cfg.ResolvedConnectionMedium(),
+        SensorWidthPx      = DeviceInfo.SensorWidthPx,
+        SensorHeightPx     = DeviceInfo.SensorHeightPx,
+        SensorPixelPitchUm = DeviceInfo.SensorPixelPitchUm,
+        ImageSizeSetting   = DeviceInfo.ImageSizeSetting,
     };
 
     private static DateTime? ParseCalibrationDate(string? raw)
@@ -280,6 +297,22 @@ public sealed class DeviceInfo
     public string?   Name            { get; init; }
     public string?   FirmwareVersion { get; init; }
     public DateTime? CalibrationDate { get; init; }
+
+    // ── Sensor / imaging metadata ──────────────────────────────────────────
+    // Populated at ConnectAsync from DeviceSensorSpecs lookup (static per model)
+    // and from GET IMAGE.SIZE (device-stored setting).
+
+    /// <summary>Native sensor width in pixels. Null if model not in lookup table.</summary>
+    public int?    SensorWidthPx      { get; init; }
+    /// <summary>Native sensor height in pixels. Null if model not in lookup table.</summary>
+    public int?    SensorHeightPx     { get; init; }
+    /// <summary>Pixel pitch in µm, e.g. 3.45. Null if model not in lookup table.</summary>
+    public double? SensorPixelPitchUm { get; init; }
+    /// <summary>
+    /// Device's current IMAGE.SIZE setting: "Full", "1/4", "1/16", "1/64".
+    /// Controls IMAGE.SEND output resolution only; does NOT affect push XML JPEG crop.
+    /// </summary>
+    public string? ImageSizeSetting   { get; init; }
 }
 
 /// <summary>Thrown when a device connection cannot be established or is lost.</summary>

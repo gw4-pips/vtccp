@@ -54,6 +54,20 @@ public sealed record class VerificationRecord
     /// DM475V = always "GigE".  DM390/DM395V Coglink = "USB-Ethernet".
     /// </summary>
     public string? ConnectionMedium { get; init; }
+
+    // Sensor / imaging metadata — static per device model, captured at ConnectAsync
+    /// <summary>Native sensor width in pixels, e.g. 2448. From per-model lookup table.</summary>
+    public int?    SensorWidthPx      { get; init; }
+    /// <summary>Native sensor height in pixels, e.g. 2048. From per-model lookup table.</summary>
+    public int?    SensorHeightPx     { get; init; }
+    /// <summary>Square pixel pitch in µm, e.g. 3.45. From per-model lookup table.</summary>
+    public double? SensorPixelPitchUm { get; init; }
+    /// <summary>
+    /// Device IMAGE.SIZE setting at connect: "Full", "1/4", "1/16", "1/64".
+    /// Controls IMAGE.SEND output; does NOT affect push XML JPEG crop dimensions.
+    /// </summary>
+    public string? ImageSizeSetting   { get; init; }
+
     public DateTime? CalibrationDate { get; init; }
 
     // Device scan properties (r.symbology.* — confirmed v1.24)

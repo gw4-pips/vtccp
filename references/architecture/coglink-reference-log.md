@@ -44,6 +44,9 @@ confirm Coglink presence and pinning on that model.
 > aggregation and analysis of data from multiple readers, which can lead to better insights
 > and performance optimization in logistics and manufacturing environments.
 
+**Sourcing correction (2026-05-21)**: PR Newswire carries this as an official Cognex
+press release — it is authoritative marketing material, not a secondary summary.
+
 **Assessment**: This description frames Coglink as a **multi-reader network interconnect**,
 emphasising reader-to-reader communication and cluster-level data aggregation. This is a
 higher-level view than the DM390 manual's three USB-C modes (USB-COM / Emulated Ethernet /
@@ -53,8 +56,8 @@ The two descriptions are not contradictory — they describe different layers:
 
 | Layer | Description | Source |
 |---|---|---|
-| Physical / host connectivity | USB-C port with 3 modes (USB-COM, Emulated Ethernet, HID) | DM390 ref manual |
-| System / network role | Multi-reader interconnect for scalable cluster communication | User-supplied summary |
+| Physical / host connectivity | USB-C port with 3 modes (USB-COM, Emulated Ethernet, HID) | DM390 ref manual (primary) |
+| System / network role | Multi-reader interconnect for scalable cluster communication | Cognex marketing (PR Newswire) |
 
 **Reconciliation**: The most likely architecture is that Coglink's Emulated Ethernet mode
 (192.168.111.2) is the *mechanism*, and multi-reader networking (tunnel clusters,

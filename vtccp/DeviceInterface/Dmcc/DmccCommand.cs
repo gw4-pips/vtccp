@@ -30,6 +30,16 @@ public static class DmccCommand
     /// </summary>
     public const string GetFeatureKeys    = "GET DEVICE.FEATURE-KEYS";
 
+    // ── Camera / image ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns (or sets) the output downscale factor used by IMAGE.SEND.
+    /// Values: 0 = Full, 1 = 1/4, 2 = 1/16, 3 = 1/64. ALL platforms. Version 4.4.0+.
+    /// Note: this controls IMAGE.SEND output only — it does NOT affect the
+    /// firmware ROI crop carried in push XML JpegImageBase64.
+    /// </summary>
+    public const string GetImageSize = "GET IMAGE.SIZE";
+
     // ── Trigger / result ──────────────────────────────────────────────────────
 
     /// <summary>
