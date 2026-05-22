@@ -54,3 +54,9 @@ id = "LpQgylMaDlji6XspC_yQI"
 uri = "file://vccs-report-samples.zip"
 type = "unspecified"
 title = "VCCS Report Samples — 4 HTML layouts + metadata inventory"
+
+[[outputs]]
+id = "KocJHLT3h0_zH8pXX4AfW"
+uri = "file://VTCCP_Description.docx"
+type = "word_document"
+title = "VTCCP — Command Pilot Description"
