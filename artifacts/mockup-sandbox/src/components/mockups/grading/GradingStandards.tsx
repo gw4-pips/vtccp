@@ -45,7 +45,7 @@ export function GradingStandards() {
     } else if (mode === "multi-version") {
       const fam = familyOf(k)!;
       if (next.has(k)) {
-        if (next.size > 1) next.delete(k);
+        next.delete(k);
       } else {
         // remove any from OTHER families
         for (const s of Array.from(next)) {
