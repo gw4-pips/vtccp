@@ -77,18 +77,8 @@ export function GradingStandards() {
       }
       // if nothing selected, leave empty
     } else {
-      // Multi-Version: keep only standards in same family as primary; if empty, stay empty
-      if (selected.size > 0) {
-        const fam = familyOf(primary)!;
-        const keep = new Set(Array.from(selected).filter(s => familyOf(s) === fam));
-        if (keep.size === 0) {
-          const first = Array.from(selected)[0];
-          setPrimary(first);
-          setSelected(new Set([first]));
-        } else {
-          setSelected(keep);
-        }
-      }
+      // Multi-Version: clear all — switching between multi modes requires deliberate re-selection
+      setSelected(new Set());
     }
   };
 
