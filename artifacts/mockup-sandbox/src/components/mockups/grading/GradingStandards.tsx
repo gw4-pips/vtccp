@@ -53,14 +53,14 @@ export function GradingStandards() {
         }
         next.add(k);
       }
-      if (!next.has(primary)) setPrimary(Array.from(next)[0]);
+      if (!next.has(primary) && next.size > 0) setPrimary(Array.from(next)[0]);
     } else {
       if (next.has(k)) {
-        if (next.size > 1) next.delete(k);
+        next.delete(k);
       } else {
         next.add(k);
       }
-      if (!next.has(primary)) setPrimary(Array.from(next)[0]);
+      if (!next.has(primary) && next.size > 0) setPrimary(Array.from(next)[0]);
     }
     setSelected(next);
   };
