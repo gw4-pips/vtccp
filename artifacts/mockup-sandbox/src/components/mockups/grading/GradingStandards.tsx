@@ -166,45 +166,42 @@ export function GradingStandards() {
                 {keys.map(k => {
                   const dis = isDisabled(k) && !selected.has(k);
                   const isPrim = primary === k && selected.size > 1;
+                  const showPrim = mode !== "single" && selected.has(k) && selected.size > 1;
                   return (
-                    <label
-                      key={k}
-                      className={`flex items-center gap-2 cursor-pointer select-none ${dis ? "opacity-40 cursor-not-allowed" : ""}`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selected.has(k)}
-                        disabled={dis}
-                        onChange={() => !dis && toggle(k)}
-                        className="accent-[#1a5fa8] w-4 h-4"
-                      />
-                      <span className="text-sm text-[#222]">{LABEL[k]}</span>
-                      {isPrim && (
-                        <span className="text-[10px] bg-[#1a5fa8] text-white px-1.5 py-0.5 rounded font-medium">
-                          PRIMARY
-                        </span>
+                    <div key={k} className="flex flex-col gap-1">
+                      <label
+                        className={`flex items-center gap-2 cursor-pointer select-none ${dis ? "opacity-40 cursor-not-allowed" : ""}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected.has(k)}
+                          disabled={dis}
+                          onChange={() => !dis && toggle(k)}
+                          className="accent-[#1a5fa8] w-4 h-4"
+                        />
+                        <span className="text-sm text-[#222]">{LABEL[k]}</span>
+                        {isPrim && (
+                          <span className="text-[10px] bg-[#1a5fa8] text-white px-1.5 py-0.5 rounded font-medium">
+                            PRIMARY
+                          </span>
+                        )}
+                      </label>
+                      {showPrim && (
+                        <label className="flex items-center gap-1.5 cursor-pointer ml-6">
+                          <input
+                            type="radio"
+                            name="primary"
+                            checked={primary === k}
+                            onChange={() => setPrimary(k)}
+                            className="accent-[#888]"
+                          />
+                          <span className="text-[11px] text-[#666]">Set as primary</span>
+                        </label>
                       )}
-                    </label>
+                    </div>
                   );
                 })}
               </div>
-              {/* Primary selector row — only shown in multi modes */}
-              {mode !== "single" && keys.some(k => selected.has(k)) && selected.size > 1 && (
-                <div className="px-4 pb-3 flex gap-10">
-                  {keys.filter(k => selected.has(k)).map(k => (
-                    <label key={k} className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="primary"
-                        checked={primary === k}
-                        onChange={() => setPrimary(k)}
-                        className="accent-[#888]"
-                      />
-                      <span className="text-[11px] text-[#666]">Set as primary</span>
-                    </label>
-                  ))}
-                </div>
-              )}
             </div>
           ))}
 
