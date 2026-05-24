@@ -121,6 +121,17 @@ public sealed class VerificationXmlMap
     public string TQZGrade { get; set; } = "TQZGrade";
     public string RQZGrade { get; set; } = "RQZGrade";
 
+    // ── QR Code finder / clock pattern grades (ISO 15415 QR parameters 7–14) ─
+
+    public string QrULPGrade { get; set; } = "ULPGrade";  // Upper-Left Finder Pattern
+    public string QrURPGrade { get; set; } = "URPGrade";  // Upper-Right Finder Pattern
+    public string QrLLPGrade { get; set; } = "LLPGrade";  // Lower-Left Finder Pattern
+    public string QrHCTGrade { get; set; } = "HCTGrade";  // Horizontal Clock Track
+    public string QrVCTGrade { get; set; } = "VCTGrade";  // Vertical Clock Track
+    public string QrALPGrade { get; set; } = "ALPGrade";  // Alignment Pattern (v2+)
+    public string QrVIBGrade { get; set; } = "VIBGrade";  // Version Information Blocks ('-' on v1/v3)
+    public string QrFIBGrade { get; set; } = "FIBGrade";  // Format Information Blocks
+
     // ── 2D transition ratios / clock tracks ───────────────────────────────────
 
     public string TTRPercent { get; set; } = "TTRPercent";
@@ -216,6 +227,7 @@ public sealed class VerificationXmlMap
         ("Dot Code",          SymbologyFamily.DotCode),
         ("QR Code",           SymbologyFamily.QRCode),
         ("QRCode",            SymbologyFamily.QRCode),
+        ("QR",                SymbologyFamily.QRCode),   // v1.32 push XML SymbologyName="QR"
         ("UPC",               SymbologyFamily.Linear1D),
         ("EAN",               SymbologyFamily.Linear1D),
         ("Code 128",          SymbologyFamily.Linear1D),

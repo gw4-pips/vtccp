@@ -323,6 +323,18 @@ public static class DmstResultParser
         GradingResult? tctGrade  = GradeLegacy(map.TCTGrade)   ?? ParamGrade("15");
         GradingResult? rctGrade  = GradeLegacy(map.RCTGrade)   ?? ParamGrade("16");
 
+        // ── QR Code pattern grades (ISO 15415 QR, params 7–14) ────────────────
+        // Present only in push XML when SymbologyName="QR"; absent (null) on DM/1D scans.
+        // VIBGrade emits '-' (not a letter grade) on version 1/3 QR; parsed as-is.
+        GradingResult? qrUlpGrade = GradeLegacy(map.QrULPGrade);
+        GradingResult? qrUrpGrade = GradeLegacy(map.QrURPGrade);
+        GradingResult? qrLlpGrade = GradeLegacy(map.QrLLPGrade);
+        GradingResult? qrHctGrade = GradeLegacy(map.QrHCTGrade);
+        GradingResult? qrVctGrade = GradeLegacy(map.QrVCTGrade);
+        GradingResult? qrAlpGrade = GradeLegacy(map.QrALPGrade);
+        GradingResult? qrVibGrade = GradeLegacy(map.QrVIBGrade);
+        GradingResult? qrFibGrade = GradeLegacy(map.QrFIBGrade);
+
         decimal?       agVal    = Dec(map.AGValue)     ?? ParamValuePct("17");
         GradingResult? agGrade  = GradeLegacy(map.AGGrade)    ?? ParamGrade("17");
 
@@ -370,10 +382,13 @@ public static class DmstResultParser
         string? ecType    = Str(map.ErrorCorrectionType) ?? CharData("Error Correction Type");
 
         // Nominal X Dim — strip units ("13.1 mil" → 13.1)
+        // Push XML may emit "12.6 mil"; CharData may emit "13.1 mil"; both need unit strip.
         decimal? nomXDim2D = Dec(map.NominalXDim);
         if (!nomXDim2D.HasValue)
         {
-            string? ndRaw = CharData("Nominal X Dim")?.Split(' ').FirstOrDefault();
+            string? ndRaw = (Str(map.NominalXDim) ?? CharData("Nominal X Dim"))
+                            ?.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .FirstOrDefault();
             if (decimal.TryParse(ndRaw, NumberStyles.Any,
                     CultureInfo.InvariantCulture, out decimal nd))
                 nomXDim2D = nd;
@@ -563,6 +578,16 @@ public static class DmstResultParser
             BQZ_Grade = bqzGrade,
             TQZ_Grade = tqzGrade,
             RQZ_Grade = rqzGrade,
+
+            // QR Code pattern grades
+            QR_ULP_Grade = qrUlpGrade,
+            QR_URP_Grade = qrUrpGrade,
+            QR_LLP_Grade = qrLlpGrade,
+            QR_HCT_Grade = qrHctGrade,
+            QR_VCT_Grade = qrVctGrade,
+            QR_ALP_Grade = qrAlpGrade,
+            QR_VIB_Grade = qrVibGrade,
+            QR_FIB_Grade = qrFibGrade,
 
             // 2D transition ratios / clock tracks
             TTR_Percent = ttrPct, TTR_Grade = ttrGrade,

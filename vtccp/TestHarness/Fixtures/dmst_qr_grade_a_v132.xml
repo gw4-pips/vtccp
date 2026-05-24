@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fixture: v1.32 QR Code Grade A — device-confirmed 2026-05-24T17:33:25
+  Source:  DM475-63530E-PIPS-Verif-Lab (fw 6.1.16_sr4)
+  Barcode: GUID f0cffb39-a940-eb11-a813-001dd80187c1, 29×29 QR v3
+  Push script: v1.32 q=r.trucheck m=found
+  Key regression:
+    • ANUPercent = 0.8392218351364136 (raw value; NOT ×100 — confirms v1.32 Bug #9 fix)
+    • SymbologyName = "QR"            (push XML name; ClassifySymbology → QRCode)
+    • NominalXDim = "12.6 mil"        (unit-strip regression for push format)
+    • VIBGrade = "-"                  (firmware literal for v3 QR; no VIB block)
+    • LLSGrade/etc = "X"              (DM-only params; push emits X on QR scan)
+    • FieldCalibrated = false         (all observed scans on this device)
+    JPEG and modulation/codeword arrays omitted — not parsed by DmstResultParser.
+-->
+<DMCCResponse>
+<DMSymVerResponse>
+  <DateTime>2026-05-24T17:33:25</DateTime>
+  <SymbologyName>QR</SymbologyName>
+  <DecodedData>f0cffb39-a940-eb11-a813-001dd80187c1</DecodedData>
+  <SymbologyId>]Q1</SymbologyId>
+  <SymbolQuality>100</SymbolQuality>
+  <SymbolAngle>359</SymbolAngle>
+  <ModuleSizePx>9.748344421386719</ModuleSizePx>
+  <PushScriptDiag>v1.32 q=r.trucheck m=found</PushScriptDiag>
+  <Source>DM475-63530E-PIPS-Verif-Lab</Source>
+  <FormalGrade>4/A</FormalGrade>
+  <OverallGrade>A</OverallGrade>
+  <OverallGradeNumeric>4</OverallGradeNumeric>
+  <GradingStandard>ISO 15415:2011</GradingStandard>
+  <ApplicationStandard>Custom</ApplicationStandard>
+  <ApplicationPass>Fail (Data Format)</ApplicationPass>
+  <ApplicationPassReason>Data Format</ApplicationPassReason>
+  <ApertureRef>08</ApertureRef>
+  <Wavelength>660</Wavelength>
+  <Lighting>45Q</Lighting>
+  <Standard>ISO 15415:2011</Standard>
+  <UECPercent>100</UECPercent>
+  <UECGrade>A</UECGrade>
+  <SCPercent></SCPercent>
+  <SCRlRd>87/6</SCRlRd>
+  <SCGrade>A</SCGrade>
+  <MinReflectance>6</MinReflectance>
+  <MODGrade>A</MODGrade>
+  <RMGrade>A</RMGrade>
+  <ANUPercent>0.8392218351364136</ANUPercent>
+  <ANUGrade>A</ANUGrade>
+  <GNUPercent>0</GNUPercent>
+  <GNUGrade>A</GNUGrade>
+  <FPDValue>4</FPDValue>
+  <FPDGrade>A</FPDGrade>
+  <DecodeGrade>A</DecodeGrade>
+  <MatrixSize>29x29</MatrixSize>
+  <HorizontalBWG>-3</HorizontalBWG>
+  <VerticalBWG>-4</VerticalBWG>
+  <EncodedCharacters>39</EncodedCharacters>
+  <TotalCodewords>70</TotalCodewords>
+  <DataCodewords></DataCodewords>
+  <ErrorCorrectionBudget></ErrorCorrectionBudget>
+  <ErrorsCorrected>0</ErrorsCorrected>
+  <ErrorCapacityUsed>0</ErrorCapacityUsed>
+  <ErrorCorrectionType></ErrorCorrectionType>
+  <NominalXDim>12.6 mil</NominalXDim>
+  <ImagePolarity></ImagePolarity>
+  <ContrastUniformity>-1</ContrastUniformity>
+  <MRD>-1</MRD>
+  <ContrastUniformityRow>-1</ContrastUniformityRow>
+  <ContrastUniformityCol>-1</ContrastUniformityCol>
+  <OpticsSource>LoadedImage</OpticsSource>
+  <DDGrade>X</DDGrade>
+  <AverageGrade>X</AverageGrade>
+  <AverageGradeNumeric></AverageGradeNumeric>
+  <CustomNote></CustomNote>
+  <LLSGrade>X</LLSGrade>
+  <BLSGrade>X</BLSGrade>
+  <LQZGrade>X</LQZGrade>
+  <BQZGrade>X</BQZGrade>
+  <TQZGrade>X</TQZGrade>
+  <RQZGrade>X</RQZGrade>
+  <TTRPercent></TTRPercent>
+  <TTRGrade>X</TTRGrade>
+  <RTRPercent></RTRPercent>
+  <RTRGrade>X</RTRGrade>
+  <TCTGrade>X</TCTGrade>
+  <RCTGrade>X</RCTGrade>
+  <ULPGrade>A</ULPGrade>
+  <URPGrade>A</URPGrade>
+  <LLPGrade>A</LLPGrade>
+  <HCTGrade>A</HCTGrade>
+  <VCTGrade>A</VCTGrade>
+  <ALPGrade>A</ALPGrade>
+  <VIBGrade>-</VIBGrade>
+  <FIBGrade>A</FIBGrade>
+  <CalibrationDate>5/20/2026 1:14:58 AM</CalibrationDate>
+  <FieldCalibrated>false</FieldCalibrated>
+  <FactoryCalibrated>false</FactoryCalibrated>
+  <MinPassGrade>NA</MinPassGrade>
+  <MinPassRaw></MinPassRaw>
+</DMSymVerResponse>
+</DMCCResponse>

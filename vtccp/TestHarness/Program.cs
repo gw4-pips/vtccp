@@ -2738,8 +2738,143 @@ bool p5aPass = false, p5bPass = false, p5cPass = false;
     catch (Exception ex) { Console.WriteLine($"  5-C EXCEPTION: {ex.Message}"); }
 }
 
+// ── 5-D: QR Code Grade A — v1.32 device-confirmed 2026-05-24 ─────────────────
+// Regression tests for:
+//   • ANUPercent raw-value fix (Bug #9): must be ~0.839, NOT ~83.9
+//   • SymbologyName="QR" → ClassifySymbology → QRCode family
+//   • QR pattern grades wired: ULP/URP/LLP/HCT/VCT/ALP/FIB all = A
+//   • VIBGrade = '-' (firmware literal for v3 QR — no VIB block)
+//   • NominalXDim unit-strip: "12.6 mil" → 12.6m
+//   • FieldCalibrated = false, CalibrationDate parsed from push XML
+//   • DM-only grades (LLS/BLS/LQZ etc.) emit 'X' on QR scan — null-guarded
+bool p5dPass = false;
+{
+    Console.WriteLine("5-D: QR Code Grade A (v1.32 device-confirmed 2026-05-24)");
+    try
+    {
+        string xml    = await File.ReadAllTextAsync(Path.Combine(fixtureDir, "dmst_qr_grade_a_v132.xml"));
+        var    record = DeviceInterface.Dmst.DmstResultParser.Parse(xml, p5XmlMap);
+
+        // ── Identity ────────────────────────────────────────────────────────
+        bool sym1 = record.Symbology       == "QR";
+        bool sym2 = record.SymbologyFamily == ExcelEngine.Models.SymbologyFamily.QRCode;
+        bool sym3 = record.SymbologyId     == "]Q1";
+        bool dec1 = record.DecodedData     == "f0cffb39-a940-eb11-a813-001dd80187c1";
+
+        // ── Overall grade ────────────────────────────────────────────────────
+        bool grd1 = record.OverallGrade?.LetterGradeString == "A";
+        bool grd2 = record.OverallGrade?.NumericGrade      == 4.0m;
+        bool grd3 = record.OverallGrade?.PassFail          == ExcelEngine.Models.OverallPassFail.Pass;
+
+        // ── Aperture / scan settings ─────────────────────────────────────────
+        bool apt1 = record.Aperture    == 8;         // "08" → 8
+        bool apt2 = record.Wavelength  == 660;
+        bool apt3 = record.Lighting    == "45Q";
+        bool apt4 = record.Standard    == "ISO 15415:2011";
+
+        // ── ANUPercent Bug #9 regression — MUST be raw value, NOT ×100 ─────
+        bool anu1 = record.ANU_Percent.HasValue;
+        bool anu2 = record.ANU_Percent < 1.0m;       // would be ~83.9 if broken
+        bool anu3 = record.ANU_Percent > 0.8m;       // lower-bound sanity
+        bool anu4 = record.ANU_Percent == 0.8392218351364136m;  // exact value
+        bool anu5 = record.ANU_Grade?.LetterGradeString == "A";
+
+        // ── Other 2D quality parameters ──────────────────────────────────────
+        bool q1 = record.UEC_Percent   == 100m;
+        bool q2 = record.SC_Percent    == null;       // empty in push XML → null
+        bool q3 = record.SC_RlRd       == "87/6";
+        bool q4 = record.GNU_Percent   == 0m;
+        bool q5 = record.FPD_Value     == 4m;
+        bool q6 = record.MinReflectance == 6m;
+
+        // ── Matrix characteristics ────────────────────────────────────────────
+        bool mx1 = record.MatrixSize       == "29x29";
+        bool mx2 = record.HorizontalBWG    == -3m;
+        bool mx3 = record.VerticalBWG      == -4m;
+        bool mx4 = record.TotalCodewords   == 70;
+        bool mx5 = record.ErrorsCorrected  == 0;
+        bool mx6 = record.ErrorCapacityUsed == 0;
+        bool mx7 = record.DataCodewords    == null;  // empty in push XML
+        bool mx8 = record.ErrorCorrectionBudget == null;
+
+        // ── NominalXDim unit-strip regression: "12.6 mil" → 12.6 ────────────
+        bool xd1 = record.NominalXDim_2D == 12.6m;
+
+        // ── Push-script metadata ─────────────────────────────────────────────
+        bool ps1 = record.OpticsSource     == "LoadedImage";
+        bool ps2 = record.FieldCalibrated  == false;
+        bool ps3 = record.CalibrationDate?.Year  == 2026;
+        bool ps4 = record.CalibrationDate?.Month == 5;   // May 2026
+        bool ps5 = record.CalibrationDate?.Day   == 20;
+        bool ps6 = record.ApplicationPass  == "Fail (Data Format)";
+        bool ps7 = record.ApplicationStandard == "Custom";
+
+        // ── QR pattern grades (ISO 15415 QR params 7–14) ─────────────────────
+        bool qr1 = record.QR_ULP_Grade?.LetterGradeString == "A";
+        bool qr2 = record.QR_URP_Grade?.LetterGradeString == "A";
+        bool qr3 = record.QR_LLP_Grade?.LetterGradeString == "A";
+        bool qr4 = record.QR_HCT_Grade?.LetterGradeString == "A";
+        bool qr5 = record.QR_VCT_Grade?.LetterGradeString == "A";
+        bool qr6 = record.QR_ALP_Grade?.LetterGradeString == "A";
+        bool qr7 = record.QR_VIB_Grade?.LetterGradeString == "-";  // v3 QR — no VIB block
+        bool qr8 = record.QR_FIB_Grade?.LetterGradeString == "A";
+
+        // ── DM-only grades: push emits 'X' on QR scan — not null, letter="X" ─
+        bool dm1 = record.LLS_Grade?.LetterGradeString == "X";
+        bool dm2 = record.TTR_Percent == null;  // empty element → null
+
+        Console.WriteLine($"  Symbology = QR:            {(sym1 ? "PASS" : $"FAIL ('{record.Symbology}')")}");
+        Console.WriteLine($"  Family = QRCode:           {(sym2 ? "PASS" : $"FAIL ({record.SymbologyFamily})")}");
+        Console.WriteLine($"  SymbologyId = ]Q1:         {(sym3 ? "PASS" : $"FAIL ('{record.SymbologyId}')")}");
+        Console.WriteLine($"  DecodedData = GUID:        {(dec1 ? "PASS" : $"FAIL ('{record.DecodedData}')")}");
+        Console.WriteLine($"  Grade letter = A:          {(grd1 ? "PASS" : $"FAIL ('{record.OverallGrade?.LetterGradeString}')")}");
+        Console.WriteLine($"  Grade numeric = 4.0:       {(grd2 ? "PASS" : $"FAIL ({record.OverallGrade?.NumericGrade})")}");
+        Console.WriteLine($"  Aperture = 8 (from '08'):  {(apt1 ? "PASS" : $"FAIL ({record.Aperture})")}");
+        Console.WriteLine($"  ANUPercent has value:      {(anu1 ? "PASS" : "FAIL")}");
+        Console.WriteLine($"  ANUPercent < 1.0 (not×100):{(anu2 ? "PASS" : $"FAIL ({record.ANU_Percent})")}");
+        Console.WriteLine($"  ANUPercent > 0.8:          {(anu3 ? "PASS" : $"FAIL ({record.ANU_Percent})")}");
+        Console.WriteLine($"  ANUPercent exact:          {(anu4 ? "PASS" : $"FAIL ({record.ANU_Percent})")}");
+        Console.WriteLine($"  UEC% = 100:                {(q1   ? "PASS" : $"FAIL ({record.UEC_Percent})")}");
+        Console.WriteLine($"  SC% = null (empty):        {(q2   ? "PASS" : $"FAIL ({record.SC_Percent})")}");
+        Console.WriteLine($"  SCRlRd = 87/6:             {(q3   ? "PASS" : $"FAIL ('{record.SC_RlRd}')")}");
+        Console.WriteLine($"  GNU% = 0:                  {(q4   ? "PASS" : $"FAIL ({record.GNU_Percent})")}");
+        Console.WriteLine($"  FPD_Value = 4:             {(q5   ? "PASS" : $"FAIL ({record.FPD_Value})")}");
+        Console.WriteLine($"  MatrixSize = 29x29:        {(mx1  ? "PASS" : $"FAIL ('{record.MatrixSize}')")}");
+        Console.WriteLine($"  TotalCodewords = 70:       {(mx4  ? "PASS" : $"FAIL ({record.TotalCodewords})")}");
+        Console.WriteLine($"  DataCodewords = null:      {(mx7  ? "PASS" : $"FAIL ({record.DataCodewords})")}");
+        Console.WriteLine($"  NominalXDim = 12.6 (unit strip):{(xd1 ? "PASS" : $"FAIL ({record.NominalXDim_2D})")}");
+        Console.WriteLine($"  OpticsSource = LoadedImage:{(ps1  ? "PASS" : $"FAIL ('{record.OpticsSource}')")}");
+        Console.WriteLine($"  FieldCalibrated = false:   {(ps2  ? "PASS" : $"FAIL ({record.FieldCalibrated})")}");
+        Console.WriteLine($"  CalibrationDate = May 2026:{(ps3 && ps4 && ps5 ? "PASS" : $"FAIL ({record.CalibrationDate})")}");
+        Console.WriteLine($"  ApplicationPass (GS1 info):{(ps6  ? "PASS" : $"FAIL ('{record.ApplicationPass}')")}");
+        Console.WriteLine($"  QR_ULP = A:                {(qr1  ? "PASS" : $"FAIL ('{record.QR_ULP_Grade?.LetterGradeString}')")}");
+        Console.WriteLine($"  QR_URP = A:                {(qr2  ? "PASS" : $"FAIL ('{record.QR_URP_Grade?.LetterGradeString}')")}");
+        Console.WriteLine($"  QR_LLP = A:                {(qr3  ? "PASS" : $"FAIL ('{record.QR_LLP_Grade?.LetterGradeString}')")}");
+        Console.WriteLine($"  QR_HCT = A:                {(qr4  ? "PASS" : $"FAIL ('{record.QR_HCT_Grade?.LetterGradeString}')")}");
+        Console.WriteLine($"  QR_VCT = A:                {(qr5  ? "PASS" : $"FAIL ('{record.QR_VCT_Grade?.LetterGradeString}')")}");
+        Console.WriteLine($"  QR_ALP = A:                {(qr6  ? "PASS" : $"FAIL ('{record.QR_ALP_Grade?.LetterGradeString}')")}");
+        Console.WriteLine($"  QR_VIB = '-' (v3, no VIB): {(qr7  ? "PASS" : $"FAIL ('{record.QR_VIB_Grade?.LetterGradeString}')")}");
+        Console.WriteLine($"  QR_FIB = A:                {(qr8  ? "PASS" : $"FAIL ('{record.QR_FIB_Grade?.LetterGradeString}')")}");
+        Console.WriteLine($"  LLS = X (DM-only on QR):   {(dm1  ? "PASS" : $"FAIL ('{record.LLS_Grade?.LetterGradeString}')")}");
+        Console.WriteLine($"  TTR% = null (empty elem):  {(dm2  ? "PASS" : $"FAIL ({record.TTR_Percent})")}");
+
+        p5dPass = sym1 && sym2 && sym3 && dec1
+               && grd1 && grd2 && grd3
+               && apt1 && apt2 && apt3 && apt4
+               && anu1 && anu2 && anu3 && anu4 && anu5
+               && q1 && q2 && q3 && q4 && q5 && q6
+               && mx1 && mx2 && mx3 && mx4 && mx5 && mx6 && mx7 && mx8
+               && xd1
+               && ps1 && ps2 && ps3 && ps4 && ps5 && ps6 && ps7
+               && qr1 && qr2 && qr3 && qr4 && qr5 && qr6 && qr7 && qr8
+               && dm1 && dm2;
+        Console.WriteLine($"  5-D: {(p5dPass ? "PASS" : "FAIL")}");
+    }
+    catch (Exception ex) { Console.WriteLine($"  5-D EXCEPTION: {ex.Message}"); }
+}
+
 // ── Phase 5 summary ───────────────────────────────────────────────────────────
-bool p5Pass = p5aPass && p5bPass && p5cPass;
+bool p5Pass = p5aPass && p5bPass && p5cPass && p5dPass;
 Console.WriteLine();
 Console.WriteLine($"Phase 5 verification: {(p5Pass ? "PASS" : "FAIL")}");
 if (!p5Pass)
@@ -2747,6 +2882,7 @@ if (!p5Pass)
     if (!p5aPass) Console.WriteLine("  FAIL: 5-A 2D Grade A fixture");
     if (!p5bPass) Console.WriteLine("  FAIL: 5-B 2D Grade F fixture");
     if (!p5cPass) Console.WriteLine("  FAIL: 5-C 1D Code128 fixture");
+    if (!p5dPass) Console.WriteLine("  FAIL: 5-D QR Grade A v1.32 fixture");
 }
 Console.WriteLine();
 Console.WriteLine("Phase 5 complete.");
