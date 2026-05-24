@@ -97,7 +97,7 @@ export function GradingStandards() {
       setMode("multi-standard");
       // Drop any Linear selections — 15416 is not applicable in Multi-Standard mode
       const withoutLinear = new Set(Array.from(selected).filter(k => familyOf(k) !== "Linear"));
-      if (withoutLinear.size === 0) withoutLinear.add("2D-2024");
+      if (withoutLinear.size === 0) withoutLinear.add("15415:2024");
       setSelected(withoutLinear);
       if (!withoutLinear.has(primary)) setPrimary(Array.from(withoutLinear)[0]);
       setPwPrompt(false);
@@ -111,17 +111,14 @@ export function GradingStandards() {
   const isFamilyBlocked = (fam: string) =>
     mode === "multi-standard" && fam === "Linear";
 
-  const isDisabled = (k: StandardKey) => {
-    if (mode === "single") return false;
-    if (isFamilyBlocked(familyOf(k)!)) return true;
-    if (mode === "multi-version") {
-      const fam = familyOf(k)!;
-      const selectedFamilies = new Set(Array.from(selected).map(s => familyOf(s)));
-      if (selectedFamilies.size === 0) return false;
-      return !selectedFamilies.has(fam) && selected.size > 0
-        && !Array.from(selected).some(s => familyOf(s) === fam);
-    }
-    return false;
+  // Hard-disabled: cannot interact at all (Linear in multi-standard)
+  const isHardDisabled = (k: StandardKey) => isFamilyBlocked(familyOf(k)!);
+
+  // Soft-dimmed: visually de-emphasised but still clickable to switch family (multi-version, off-family items)
+  const isSoftDimmed = (k: StandardKey) => {
+    if (mode !== "multi-version" || selected.size === 0) return false;
+    const selectedFamilies = new Set(Array.from(selected).map(s => familyOf(s)));
+    return !selectedFamilies.has(familyOf(k)!);
   };
 
   return (
@@ -194,19 +191,20 @@ export function GradingStandards() {
                 style={isFamilyBlocked(family) ? { opacity: 0.75, pointerEvents: "none" } : undefined}
               >
                 {keys.map(k => {
-                  const dis = isDisabled(k);
+                  const hard = isHardDisabled(k);
+                  const soft = isSoftDimmed(k);
                   const isPrim = primary === k && selected.size > 1;
                   const showPrim = mode !== "single" && selected.has(k) && selected.size > 1;
                   return (
                     <div key={k} className="flex flex-col gap-1">
                       <label
-                        className={`flex items-center gap-2 cursor-pointer select-none ${dis ? "opacity-40 cursor-not-allowed" : ""}`}
+                        className={`flex items-center gap-2 select-none ${hard ? "opacity-40 cursor-not-allowed" : soft ? "opacity-50 cursor-pointer" : "cursor-pointer"}`}
                       >
                         <input
                           type="checkbox"
                           checked={selected.has(k)}
-                          disabled={dis}
-                          onChange={() => !dis && toggle(k)}
+                          disabled={hard}
+                          onChange={() => !hard && toggle(k)}
                           className="accent-[#1a5fa8] w-4 h-4"
                         />
                         <span className="text-sm text-[#222]">{LABEL[k]}</span>
@@ -237,14 +235,15 @@ export function GradingStandards() {
 
           {/* Status bar */}
           <div className="bg-[#f0f4fa] border border-[#c8d8ee] px-3 py-2 text-xs text-[#1a5fa8]">
-            {mode === "single" && (
+            {selected.size === 0 ? (
+              <span className="italic text-[#888]">No standard selected.</span>
+            ) : mode === "single" ? (
               <span>Live scan standard: <strong>{LABEL[primary]}</strong></span>
-            )}
-            {mode !== "single" && (
+            ) : (
               <span>
-                Primary (live scan): <strong>{LABEL[primary]}</strong>
+                Primary (live scan): <strong>{selected.has(primary) ? LABEL[primary] : LABEL[Array.from(selected)[0]]}</strong>
                 {" · "}
-                Additional re-analysis: <strong>{Array.from(selected).filter(s => s !== primary).map(s => LABEL[s]).join(", ") || "none selected"}</strong>
+                Additional re-analysis: <strong>{Array.from(selected).filter(s => s !== primary).map(s => LABEL[s]).join(", ") || "none"}</strong>
               </span>
             )}
           </div>
