@@ -60,3 +60,9 @@ id = "KocJHLT3h0_zH8pXX4AfW"
 uri = "file://VTCCP_Description.docx"
 type = "word_document"
 title = "VTCCP — Command Pilot Description"
+
+[[outputs]]
+id = "Jc4Ox6gnFqJwYsMt4B_a9"
+uri = "file://references/samples/live-scans/qr_guid_v129_inject.jpg"
+type = "image"
+title = "QR GUID Grade A — v1.29 live scan JPEG (IMAGE.LOAD inject)"
