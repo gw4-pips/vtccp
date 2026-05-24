@@ -1,0 +1,1146 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// VTCCP DMST Push Script
+//
+//   Version   : 1.32
+//   Generated : 2026-05-24 UTC
+//   Source    : VTCCP Replit Agent  (github.com/gw4-pips/vtccp)
+//   Target    : Cognex DataMan firmware 5.x / 6.x  /  DMV475
+//
+//   v1.32 — Bug fix + probe refresh (2026-05-24). Driven by v1.31 device-confirmed
+//             findings from DM live scan (2026-05-24) + QR IMAGE.LOAD injection
+//             (2026-05-24, GUID f0cffb39...):
+//
+//             BUG FIX #9 — ANUPercent QR scale error:
+//               v1.31 used mmPctAuto(_anu) for all symbologies. mmPctAuto multiplies
+//               by 100 when raw < 1. For QR, ANU raw IS the percent value in fractional
+//               form (raw=0.8392 = 0.84%) — NOT a fraction of 1 (which would be 84%).
+//               DebugANUSubkeys confirmed: no .percent sub-key exists on DM or QR;
+//               raw, grade, numericGrade are the only keys.
+//               DM:  raw=11.073 → mmPctAuto=11.1 → DMST=11.1% ✓ (raw > 1, passthrough)
+//               QR:  raw=0.8392 → mmPctAuto=83.9 → DMST=0.8%  ✗ (×100 overcorrects)
+//               Fix: guard on _qrBranch; QR emits mmVal(_anu) raw string directly.
+//
+//             PROBE RESULTS (v1.31 DM scan 2026-05-24 + QR injection 2026-05-24):
+//               DebugRSymbology (DM):  9 keys only (name/id/quality/contrast/
+//                 moduleSize/corners/center/angle/size/failureCode). No ECLevel,
+//                 no dataMaskPattern, no version, no ECI on DM.
+//               DebugRSymbology (QR):  identical 9 keys. No ECLevel/dataMask/
+//                 version/ECI on QR either. r.symbology path DEFINITIVELY CLOSED
+//                 on both symbologies for ECLevel, DataMask, ECI, ImagePolarity.
+//               DebugANUSubkeys (DM):  raw=11.073, grade, numericGrade only.
+//                 No .percent sub-key. capitalU path null. Bug #9 root cause confirmed.
+//               DebugANUSubkeys (QR):  raw=0.8392, grade, numericGrade only.
+//                 Identical structure; raw IS the percent (fractional form for QR).
+//               DebugValidationKeys (DM+QR): state/method/failurePos/failureCode/
+//                 failureMsg/gs1/dodUid/matchString — same on both. No ECLevel,
+//                 no eci/eciNumber on either symbology. Path DEFINITIVELY CLOSED.
+//               DebugImagePolarity (DM+QR): same 7 q.general keys on both
+//                 (verticalBWG/horizontalBWG/xDimension/contrastUniformity×3/MRD).
+//                 No polarity, imagePolarity, image, colorMode, imageColor, eci,
+//                 ECI, eciMode, or encodedCharacters. q.general path DEAD for all
+//                 4 missing fields (ImagePolarity, ECI, ECLevel, DataMaskPattern).
+//               DebugRSiblings (DM+QR): r.image=[obj] confirmed new sibling on
+//                 both symbologies. r.image is the sole remaining unexplored path
+//                 for all 4 missing fields. Probe in v1.32 via DebugRImage.
+//               DebugMetricsKeys: 30 keys on both DM and QR — 20 new vs v1.14.
+//                 New: edgeContrastMin/singleScanInt/multiScanInt/signalToNoiseRatio/
+//                 horizontalMarkGrowth/verticalMarkGrowth/dataMatrixCellWidth/
+//                 dataMatrixCellHeight/horizontalMarkMisplacement/
+//                 verticalMarkMisplacement/cellDefects/finderPatternDefects/
+//                 overallGrade/edgeDetermination/defects/referenceDecode/
+//                 decodability/contrastUniformity/reflectanceMargin/minPassGrade.
+//                 New metrics may carry CU, RM, BWG, SNR values via Metric path.
+//
+//             DROPPED PROBES (questions answered by v1.31 DM+QR scans):
+//               DebugANUSubkeys     — no .percent sub-key; fix applied above ✓
+//               DebugValidationKeys — state/method/gs1/dodUid only; no ECLevel/ECI ✓
+//
+//             NEW PROBE:
+//               DebugRImage — enumerate r.image sub-keys. r.image=[obj] confirmed
+//                             present in DebugRSiblings on DM and QR. This is the
+//                             sole remaining unexplored path for:
+//                               - ImagePolarity (DMST: "Black on white")
+//                               - ECI (DMST: 000003)
+//                               - errorCorrectionLevel / ECLevel (DMST: M for QR)
+//                               - dataMaskPattern (DMST: 2 for QR)
+//                             Scan on both DM (]d1) and QR (]Q1).
+//
+//             RETAINED PROBES:
+//               DebugRSymbology    — regression baseline (answered: 9 standard keys
+//                                    on both DM and QR; no undocumented ECLevel/
+//                                    dataMask/ECI keys on fw 6.1.16_sr4)
+//               DebugImagePolarity — q.general confirmed 7 keys on both symbologies;
+//                                    retaining until r.image answered (cross-check)
+//               DebugMetricsKeys   — regression baseline for r.metrics key count
+//               DebugRSiblings     — regression baseline for r-sibling inventory
+//
+//             Confirm by: <PushScriptDiag>v1.32 q=r.trucheck m=found</PushScriptDiag>
+//
+//   v1.31 — Device confirmed 2026-05-24 (DM live scan ApertureRef=16 + QR injection).
+//             Bug fix (QR ANU) applied above; probes carried forward.
+//             v1.30 voided (never installed). Confirm tag was v1.31.
+//
+//   v1.30 [VOIDED — never installed] — Wire fixes + probe refresh (2026-05-20).
+//             Driven by v1.29 device-confirmed findings from 10 live scans
+//             (catalog: v1.29-2026-05-19-*):
+//
+//             BUG FIX #1 — EncodedCharacters:
+//               v1.29 used encodationAnalysisArray.length (_eaLen) as a proxy.
+//               eaLen=33 on DM (DMST=38), eaLen=28 on QR (DMST=50) — both wrong.
+//               eaLen counts encoding analysis TABLE ROWS (mode/charcount/terminator
+//               included), not the actual character count.
+//               Fix: try gnProp("encodedCharacters") (q.general sub-key) first.
+//               If absent (still possible), fall back to _eaLen as before.
+//               DebugImagePolarity probe enumerates q.general keys to confirm.
+//
+//             BUG FIX #3 — QR grade params emitting 'F' on non-QR symbologies:
+//               ULPGrade/URPGrade/LLPGrade/HCTGrade/VCTGrade/ALPGrade/VIBGrade/
+//               FIBGrade all returned 'F' on Data Matrix AND Code 128 live scans
+//               (v1.29 catalog). These are QR-only ISO 15415:2011 Annex C metrics.
+//               For non-QR symbologies the corresponding TrucheckMetric objects
+//               are present but in a sentinel state ({grade:"F", numericGrade:0})
+//               — the firmware populates them with a failure marker even for
+//               scans where QR is not the symbology.
+//               Fix: guard all 8 params with _qrBranch; emit "" for non-QR.
+//
+//             BUG FIX #4 — AGValue / AGGrade (q.printGrowth) wrong:
+//               q.printGrowth is a "print growth" metric (mark size deviation),
+//               NOT an average grade. It returned 11.3/B on DM and -3.2/A on QR
+//               and 0/A on grade-D QR — clearly inconsistent with overall grades.
+//               Fix: remove both AGValue and AGGrade from push output entirely.
+//               AverageGrade/AverageGradeNumeric (from q.averageGrade) are the
+//               correct fields and remain in the output.
+//
+//             BUG FIX #12 + partial #11 — ErrorCorrectionType:
+//               v1.29 emitted "ECC200" for ALL non-QR symbologies (_qrBranch=0
+//               branch), including Code 128 (]C0) and EAN-13 (]E0). These are 1D
+//               symbologies with no error correction type applicable.
+//               Fix: add _isDM flag (AIM id char[1]==='d'). Non-QR/non-DM emits "".
+//               QR fallback changed from "QR" (misleading placeholder) to "" until
+//               DebugRSymbology probe identifies the correct firmware ECLevel key.
+//
+//             DROPPED PROBES (all questions answered by v1.29 10-scan catalog):
+//               DebugModSize       — answered: formula correct (sqrt−2 for square,
+//                                    lookup table for DM rect, sqrt−8 for QR).
+//               DebugECCount       — answered: corrected×2=ErrorCapacityUsed ✓.
+//               DebugSymbols       — answered: q.symbols=null on DM + QR + Code128
+//                                    on fw 6.1.16_sr4. Path dead.
+//               DebugValidationGS1 — answered: r.validation.gs1 IS populated
+//                                    when GS1 parser is on; ecLvl=absent on both
+//                                    DM and QR; all AI values=undefined for non-GS1
+//                                    data. GS1 parser schema known. Path dead for
+//                                    ECLevel. Top-level validation keys not yet
+//                                    enumerated — replaced by DebugValidationKeys.
+//               DebugAimId         — answered: ]d1 (DM), ]Q1 (QR live), ]Q2 (QR
+//                                    loaded ECI). Modifier=1 encodes ECI presence
+//                                    NOT ECLevel. qrBranch logic confirmed correct.
+//
+//             NEW PROBES:
+//               DebugRSymbology    — enumerate r.symbology sub-keys. r.symbology=
+//                                    [obj] confirmed present in DebugRSiblings on
+//                                    all scan types. Comms guide §4 names:
+//                                    name/id/quality/moduleSize/corners/center/
+//                                    angle/size/failureCode. Looking for hidden
+//                                    ECLevel or dataMaskPattern keys — these appear
+//                                    in the DMST General Characteristics table
+//                                    (ECLevel=M, DataMaskPattern=1) and must come
+//                                    from somewhere in the firmware object model.
+//
+//               DebugANUSubkeys    — enumerate q.axialNonuniformity sub-keys.
+//                                    Formula inconsistency confirmed by 2 data
+//                                    point pairs:
+//                                      raw=73.7→DMST 0.7% (GUID pass A)
+//                                      raw=3.9→DMST 3.9% (grade D scan)
+//                                    If the metric object has a .percent sub-key
+//                                    in addition to .raw, .percent may map to the
+//                                    DMST display value consistently. Also probes
+//                                    capital-U variant (axialNonUniformity) for
+//                                    any sub-key differences between the two paths.
+//
+//               DebugImagePolarity — probe all q.general sub-keys (via _enumKV22)
+//                                    plus targeted tries on polarity/imagePolarity/
+//                                    image/colorMode/imageColor/ECI/eci.
+//                                    ImagePolarity empty since v1.20; DMST shows
+//                                    "Black on white" for the grade-D QR.
+//                                    Also surfaces q.general.encodedCharacters
+//                                    to confirm bug #1 fix path is viable.
+//
+//               DebugValidationKeys — enumerate r.validation top-level keys.
+//                                    DebugValidationGS1 always went straight to
+//                                    r.validation.gs1 sub-object; the parent
+//                                    r.validation key set was never enumerated.
+//                                    Looking for: eci / eciNumber / eciMode /
+//                                    errorCorrectionLevel / any non-gs1 key.
+//
+//             Confirm by: <PushScriptDiag>v1.32 q=r.trucheck m=found</PushScriptDiag>
+//
+//   v1.29 — Wire attempt + probe release (2026-05-18). Driven by v1.28 device-
+//             confirmed findings (2026-05-18 11:24:40):
+//             B7 CONFIRMED by DebugArrayLens + DebugModGradeN:
+//               modulationArray.length=684=(18×38 incl QZ border) ✓
+//               codewordArray.length=56=total codewords (data+ECC combined) ✓
+//               encodationAnalysisArray.length=33=EncodedCharacters ✓
+//               modulationArray[100].grade="(" gradeLen=1 (complete, not truncated) ✓
+//               modulationArray[100].raw=94, isBlack=1 ✓
+//             WIRE ATTEMPT: DataCodewords / ECBudget / QR ECLevel via q.symbols[0].
+//             NEW PROBES: DebugSymbols, DebugValidationGS1, DebugAimId.
+//             DROPPED PROBES: DebugArrayLens, DebugModGradeN.
+//             Confirm by: <PushScriptDiag>v1.29 q=r.trucheck m=found</PushScriptDiag>
+//
+//   v1.28 — Wire release (2026-05-18). Driven by v1.27 live scan findings:
+//             WIRE FIX: MinReflectance (q.reflectanceDark, not q.minimumReflectance).
+//             WIRE FIX: ErrorCapacityUsed = corrected × 2 (DM:7×2=14 ✓, QR:0×2=0 ✓).
+//             STRUCTURAL LIMIT CONFIRMED: q.topQuietZone / q.rightQuietZone =
+//               {grade:"X", numericGrade:8.8} — firmware-internal; per-quadrant
+//               grades not exposed via push channel.
+//             CONFIRMED: q.general contains exactly 7 keys; no ECLevel/dataCodewords.
+//
+//   v1.27 — Wire release (2026-05-18). Driven by v1.26 live scan findings:
+//             WIRED: 8 QR-specific grade params (upperLeftPattern etc.).
+//             BUG FIX: ErrorCorrectionType for QR — try gnProp("errorCorrectionLevel").
+//             NEW PROBES: DebugMinRef2, DebugQZObjs, DebugTTRCTObjs, DebugGeneral,
+//               DebugArrayElem0.
+//             Confirm by: <PushScriptDiag>v1.27 q=r.trucheck m=found</PushScriptDiag>
+//
+//   v1.26 — Probe release (2026-05-18). DebugTrucheckKeys, DebugMinRef.
+//             Confirm by: <PushScriptDiag>v1.26 q=r.trucheck m=found</PushScriptDiag>
+//
+//   v1.25 — Confirmed wires: <JpegImageBase64> full JPEG payload, <OpticsSource>
+//             (CU=−1 AND MRD=−1 discriminator), ECI prefix strip from <DecodedData>,
+//             MatrixSize QZ offset for QR (−8 vs −2), <ErrorCorrectionType>
+//             symbology-aware (QR → ecLevel probe; DM → "ECC200").
+//             New probes: DebugSymbols0, DebugPrintGrowth.
+//
+//   v1.24 — New wires: SymbologyId, SymbolQuality, SymbolAngle, ModuleSizePx,
+//             CalibrationDate, FieldCalibrated, FactoryCalibrated, BWGPercent,
+//             MinPassGrade. New probes: DebugImageShape, DebugJpegProbe, DebugGS1,
+//             DebugDodUid, DebugBarcodeAsgn, DebugANUCase, DebugReaderProps.
+//
+//   v1.23 — Final probe round. WIRE: <Source> = r.source.
+//             New probes: DebugSymbology, DebugCellDefects, DebugFPDefects,
+//               DebugDMCellDims, DebugValidation, DebugMetricShape.
+//
+//   v1.22 — Per-region scope pivot + rectangular MatrixSize.
+//             ROLLBACK: per-region grades (ULQZ etc.) from q.upper/lowerLeftPattern
+//               were firmware-internal sentinels (grade:"F") on ALL scans — false data.
+//             WIRE: rect-aware MatrixSize via modArray-length → ECC200 lookup table.
+//             NEW PROBES: DebugMetricsKeys, DebugRSiblings, DebugRectDims.
+//
+//   v1.21 — Per-region (≥32×32 / 2-region rectangular) support pass.
+//             WIRE: ULQZ/URQZ/LLQZ from upperLeft/Right/lowerLeftPattern.grade.
+//
+//   v1.20 — Final wirings from v1.19. Phase 1 feature-complete:
+//             FIX: reflectanceLight / reflectanceDark are primitives.
+//             WIRE: MatrixSize, EncodedCharacters, TotalCodewords, ErrorsCorrected,
+//               CustomNote.
+//
+//   v1.19–v1.10 — Incremental probe/wire cycle establishing the full TrucheckMetric
+//             and Metric binding tables. See v1.29 header for full ancestry.
+//
+//   v1.1–v1.9  — Firmware path discovery, ES3 compatibility fixes, quality-object
+//             resolution loop (r.trucheck confirmed v1.8).
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// HOW TO INSTALL
+//   DataMan Setup Tool → Format Data (click it in the Application Steps sidebar)
+//   1. On the BASIC tab: select the "Script-Based Formatting" radio button
+//      (it is below the "Basic Formatting" radio button — DMST will warn you
+//       that scripting is being enabled; confirm/OK any prompt)
+//   2. Click the SCRIPTING tab (top of the Format Data panel)
+//   3. Paste this entire script into the editor pane on the Scripting tab
+//   4. Click Save Settings → Write to device
+//
+// WHAT IT DOES
+//   After every scan the device calls onResult().  This script builds a
+//   <DMCCResponse><DMSymVerResponse>…</DMSymVerResponse></DMCCResponse> XML
+//   document and assigns it to output.content.  That content is then pushed
+//   over the Network Client TCP connection to VTCCP (10.10.10.19:9004).
+//   VTCCP's DmstListener detects the closing </DMCCResponse> tag, parses the
+//   XML, maps every element to a VerificationRecord, and writes a fully-
+//   populated XLSX row.
+//
+// TROUBLESHOOTING
+//   If a column stays blank in VTCCP: the property name on the right-hand side
+//   of the corresponding elem() call returned undefined.  Cognex exposes
+//   slightly different property names across firmware revisions.  The property
+//   names are annotated below; check the DataMan Scripting API Reference
+//   (Settings → Help in DMST) for your exact firmware if a field is empty.
+//
+// COMPATIBILITY
+//   ECMAScript 5 only — no const/let, no arrow functions, no template literals.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function onResult(decodeResults, readerProperties, outputResults) {
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    // Safely stringify a value; returns "" for undefined/null.
+    function s(v) {
+        return (v === undefined || v === null) ? "" : String(v);
+    }
+
+    // Safely read a nested property path, e.g. prop(q, "lqz") → q.lqz ?? "".
+    function prop(obj, key) {
+        if (!obj) return "";
+        var v = obj[key];
+        return (v === undefined || v === null) ? "" : String(v);
+    }
+
+    // XML-safe string — replaces the five XML special characters.
+    function esc(v) {
+        return s(v)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&apos;");
+    }
+
+    // Emit one XML element.  Empty value → element present but empty.
+    function elem(tag, val) {
+        return "<" + tag + ">" + esc(val) + "</" + tag + ">\r\n";
+    }
+
+    // ISO 8601 timestamp from current wall-clock (device local time).
+    function isoNow() {
+        var t = new Date();
+        function p(n) { return n < 10 ? "0" + n : String(n); }
+        return t.getFullYear() + "-" + p(t.getMonth() + 1) + "-" + p(t.getDate())
+             + "T" + p(t.getHours()) + ":" + p(t.getMinutes()) + ":" + p(t.getSeconds());
+    }
+
+    // ── Inputs ────────────────────────────────────────────────────────────────
+
+    var r  = decodeResults[0];
+    var rp = readerProperties;   // some firmware puts quality here instead of r
+
+    // Null-safe property fetch — returns the value or null; never throws.
+    // Using !== null/undefined (not truthy) so a quality object that happens
+    // to stringify as 0 / false is still captured.
+    function _pick(obj, key) {
+        if (!obj) { return null; }
+        var v = obj[key];
+        return (typeof v !== "undefined" && v !== null) ? v : null;
+    }
+
+    // TrucheckMetric helpers (v1.10) — every sub-property on r.trucheck is a
+    // TrucheckMetric with exactly two fields: .grade (letter) and .numericGrade.
+    function tmGrade(tm) { return (tm && typeof tm["grade"]        !== "undefined") ? s(tm["grade"])        : ""; }
+    function tmNum(tm)   { return (tm && typeof tm["numericGrade"] !== "undefined") ? s(tm["numericGrade"]) : ""; }
+
+    // Metric helpers (v1.13) — Metric objects confirmed to have exactly:
+    //   .grade  — letter string ("A"–"F") or "NA" (valid device output)
+    //   .raw    — measurement number, or -1 (numeric sentinel = no value)
+    // mmGrade() returns grade as-is — "NA" is a valid reported grade and
+    //           is NOT suppressed (device genuinely reports it per scan).
+    // mmVal()   returns raw as string; suppresses -1 (sentinel) → "".
+    // mmPct()   returns raw×100, 1 dp; suppresses -1 → "" (-100% invalid).
+    //           Use mmPct for percentage columns (SCPercent, ANUPercent…).
+    function mmGrade(met) {
+        if (!met) { return ""; }
+        var _v = met["grade"];
+        if (typeof _v === "undefined" || _v === null) { return ""; }
+        return s(_v);  // "NA" is a valid device-returned grade — pass through
+    }
+    function mmVal(met) {
+        if (!met) { return ""; }
+        var _v = met["raw"];
+        if (typeof _v === "undefined" || _v === null) { return ""; }
+        return (_v === -1 || _v === "-1") ? "" : s(_v);
+    }
+    function mmPct(met) {
+        if (!met) { return ""; }
+        var _v = met["raw"];
+        if (typeof _v === "undefined" || _v === null || _v === -1) { return ""; }
+        var _n = parseFloat(_v);
+        if (isNaN(_n)) { return ""; }
+        // Raw is 0–1 ratio; convert to percentage with 1 decimal place.
+        var _pct = Math.round(_n * 1000) / 10;
+        return s(_pct);
+    }
+    // mmPctAuto (v1.16) — UEC.raw arrives already as 0–100 (giving 10000 with mmPct);
+    // others (symbolContrast, ANU, GNU) arrive as 0–1 ratio.  Auto-detect: if the
+    // raw value is > 1, assume it's already a percent; otherwise treat as ratio.
+    function mmPctAuto(met) {
+        if (!met) { return ""; }
+        var _v = met["raw"];
+        if (typeof _v === "undefined" || _v === null || _v === -1) { return ""; }
+        var _n = parseFloat(_v);
+        if (isNaN(_n)) { return ""; }
+        var _pct = (_n > 1) ? _n : (_n * 100);
+        return s(Math.round(_pct * 10) / 10);
+    }
+
+    // ── Quality-object discovery ──────────────────────────────────────────────
+    // Try every known property path in priority order.  _qSource records which
+    // one succeeded so <PushScriptDiag> can report it.  If every probe returns
+    // null the <PushScriptDiag> element will say "none" and all grade columns
+    // will be empty — paste the VS Output [VTCCP-DMST] RawXML line to the
+    // VTCCP agent so it can identify the correct path.
+
+    var q       = null;
+    var _qSrc   = "none";
+
+    // --- decodeResults[0] first-level candidates ---
+    var _rCandidates = [
+        "trucheck",             // DM475 fw 6.1.16_sr4 confirmed (v1.8)
+        "metrics",              // also present on r — may carry measurement data
+        "quality",
+        "verificationResult",
+        "symbolVerificationResult",
+        "symVerResult",
+        "verificationResults",
+        "qualityResult",
+        "gradeResult",
+        "isoResult",
+        "truCheckResult",
+        "verResult",
+        "isoVerResult",
+        "verificationData",
+        "gradeData",
+        "verification",
+        "grade",
+        "gradeInfo",
+        "result",
+        "data"
+    ];
+
+    for (var _ri = 0; _ri < _rCandidates.length; _ri++) {
+        var _v = _pick(r, _rCandidates[_ri]);
+        if (_v !== null) {
+            q     = _v;
+            _qSrc = "r." + _rCandidates[_ri];
+            break;
+        }
+    }
+
+    // --- readerProperties candidates (only if r-level search failed) ---
+    if (q === null) {
+        var _rpCandidates = [
+            "quality",
+            "verificationResult",
+            "symbolVerificationResult",
+            "symVerResult",
+            "qualityResult",
+            "verificationData",
+            "truCheckResult",
+            "isoResult",
+            "gradeResult",
+            "verResult",
+            "gradeData",
+            "verification"
+        ];
+        for (var _rpi = 0; _rpi < _rpCandidates.length; _rpi++) {
+            var _pv = _pick(rp, _rpCandidates[_rpi]);
+            if (_pv !== null) {
+                q     = _pv;
+                _qSrc = "rp." + _rpCandidates[_rpi];
+                break;
+            }
+        }
+    }
+
+    // --- decodeResults array-level (some firmware puts quality on the array) ---
+    if (q === null) {
+        var _arrCandidates = [
+            "quality",
+            "verificationResult",
+            "qualityResult",
+            "gradeResult"
+        ];
+        for (var _ai = 0; _ai < _arrCandidates.length; _ai++) {
+            var _av = _pick(decodeResults, _arrCandidates[_ai]);
+            if (_av !== null) {
+                q     = _av;
+                _qSrc = "decodeResults." + _arrCandidates[_ai];
+                break;
+            }
+        }
+    }
+
+    // --- nested sub-paths on r.result and r.data (last resort) ---
+    if (q === null && _pick(r, "result") !== null) {
+        var _rResult = _pick(r, "result");
+        var _subKeys = ["quality", "verificationResult", "gradeResult", "isoResult"];
+        for (var _si = 0; _si < _subKeys.length; _si++) {
+            var _sv = _pick(_rResult, _subKeys[_si]);
+            if (_sv !== null) {
+                q     = _sv;
+                _qSrc = "r.result." + _subKeys[_si];
+                break;
+            }
+        }
+    }
+
+    // ── XML assembly ──────────────────────────────────────────────────────────
+
+    var o = '<?xml version="1.0" encoding="UTF-8"?>\r\n'
+          + '<DMCCResponse>\r\n'
+          + '<DMSymVerResponse>\r\n';
+
+    // ── Identity / timing ─────────────────────────────────────────────────────
+    //   r.decoded        — true / false
+    //   r.content        — decoded string (empty when NoRead)
+    //   r.symbologyName  — plain string in firmware 6.x  (preferred)
+    //   r.symbology      — plain string in firmware 5.x, typed object in 6.x
+
+    o += elem("DateTime",    isoNow());
+
+    // Firmware-compatibility: r.symbology may be a typed object (6.x) or a
+    // plain string (5.x).  Try property variants before falling back to String().
+    var _symbStr = "";
+    if (r) {
+        if      (typeof r.symbologyName === "string" && r.symbologyName) { _symbStr = r.symbologyName; }
+        else if (typeof r.symbology     === "string" && r.symbology)     { _symbStr = r.symbology; }
+        else if (r.symbology && r.symbology.name)                        { _symbStr = String(r.symbology.name); }
+        else                                                             { _symbStr = s(r.symbology); }
+    }
+    o += elem("SymbologyName", _symbStr);
+
+    // ── v1.24+: r.symbology fields (moved before DecodedData for v1.25 ECI strip)
+    //   Comms guide §4 documents: r.symbology = {name, id, quality, moduleSize,
+    //   corners, center, angle, size, failureCode}. v1.23 DebugSymbology
+    //   confirmed all populated on DM475 fw 6.1.16_sr4 (id="]d1" = AIM
+    //   Symbology ID for Data Matrix ECC200; quality=41 (0-100 decoder conf);
+    //   moduleSize=16.18 px; angle=1° (essentially horizontal placement)).
+    var _sym   = (r && r.symbology && typeof r.symbology === "object") ? r.symbology : null;
+    var _aimId = _sym ? s(_sym["id"]) : "";
+
+    // v1.25: QR branch flag — SymbologyId[1]==='Q' for any QR Code Model 2 variant.
+    //   Used for ECI strip, MatrixSize QZ offset, QR-specific grade guards, and
+    //   ErrorCorrectionType (v1.30 bug #3, #11, #12 fixes).
+    var _qrBranch = (_aimId.length >= 2 && _aimId.charAt(1) === "Q");
+
+    // v1.30: DM branch flag — SymbologyId[1]==='d' for Data Matrix ECC200.
+    //   Used for ErrorCorrectionType (bug #12 fix): only DM emits "ECC200";
+    //   1D symbologies (EAN-13 ]E0, Code 128 ]C0, etc.) emit "".
+    //   DM confirmed: "]d1" → charAt(1)='d'. AIM lowercase 'd' = DM ECC200.
+    var _isDM = (_aimId.length >= 2 && _aimId.charAt(1) === "d");
+
+    // v1.25: Strip ECI prefix from DecodedData for QR with ECI present.
+    //   AIM modifier digit: '2','4','6' = ECI present → strip \x00\x00\x26 (3 bytes).
+    //   '1','3','5' = no ECI → pass through as-is.
+    //   ECI 26 = UTF-8. Bytes: 0x00 0x00 0x26 = charCode 0, 0, 38.
+    //   Ref: references/standards/AIM-identifiers-honeywell-KB000063426.md
+    var _decodedStr = (r && r.decoded) ? (r.content || "") : "";
+    if (_qrBranch && _aimId.length >= 3) {
+        var _aimMod = _aimId.charAt(2);
+        if (_aimMod === "2" || _aimMod === "4" || _aimMod === "6") {
+            if (_decodedStr.length >= 3
+                    && _decodedStr.charCodeAt(0) === 0
+                    && _decodedStr.charCodeAt(1) === 0
+                    && _decodedStr.charCodeAt(2) === 38) {
+                _decodedStr = _decodedStr.substring(3);
+            }
+        }
+    }
+    o += elem("DecodedData", esc(_decodedStr));
+
+    o += elem("SymbologyId",   _sym ? s(_sym["id"])         : "");
+    o += elem("SymbolQuality", _sym ? s(_sym["quality"])    : "");
+    o += elem("SymbolAngle",   _sym ? s(_sym["angle"])      : "");
+    o += elem("ModuleSizePx",  _sym ? s(_sym["moduleSize"]) : "");
+
+    // ── Diagnostic elements (v1.7) ───────────────────────────────────────────
+    // Reports which quality-object path resolved (or "none"), plus a comma-
+    // separated list of every property name that is defined on r and rp.
+    // Visible in VTCCP VS Output as [VTCCP-DMST] RawXML.
+    // Remove this section once the correct property names are confirmed.
+
+    // r.metrics — sibling of r.trucheck on decodeResults[0].
+    // Expected to carry: overall grade, UEC/ANU/GNU, SC%/MOD%/RM%, dimensions.
+    var m = _pick(r, "metrics");
+
+    o += elem("PushScriptDiag", "v1.32 q=" + _qSrc + " m=" + (m ? "found" : "null"));
+    // v1.23: device name from r.source (matches PDF "Device Name" field;
+    //        scan confirmed value "DM475-63530E-PIPS-Verif-Lab").
+    o += elem("Source",         (r && typeof r.source === "string") ? esc(r.source) : "");
+
+    // ── Grade emission (v1.10) ────────────────────────────────────────────────
+    //
+    //   Data sources:
+    //     q  = r.trucheck  — TrucheckResult; each sub-property is a TrucheckMetric
+    //                        with exactly .grade (letter) and .numericGrade (int)
+    //     m  = r.metrics   — sibling object; expected to carry % values, overall
+    //                        grade, verification conditions, and symbol dimensions
+    //
+    //   Confirmed TrucheckMetric properties on q (v1.14 for-in scan) — 18 params:
+    //     unusedErrorCorrection (UEC), symbolContrast, modulation (TrucheckMetricGrade),
+    //     reflectanceMargin (TrucheckMetricGrade), axialNonuniformity, gridNonuniformity,
+    //     fixedPatternDamage, decode, printGrowth, leftLSide (TrucheckMetricGrade),
+    //     bottomLSide (TrucheckMetricGrade), leftQuietZone (TrucheckMetricGrade),
+    //     bottomQuietZone (TrucheckMetricGrade), topQuietZone, rightQuietZone,
+    //     topClockTrack, rightClockTrack
+    //     Also: UII, batch, calibrationDate (device/label metadata, not quality grades)
+    //   CAMELCASE TRAPS: q uses lowercase 'u' (axialNon*u*niformity),
+    //                    m uses capital 'U' (axialNon*U*niformity).
+    //   Confirmed Metric properties on m (v1.14 scan, page 1):
+    //     symbolContrast, cellContrast, axialNonUniformity, printGrowth, UEC,
+    //     modulation, fixedPatternDamage, gridNonUniformity, extremeReflectance (Rl),
+    //     reflectMin (Rd), edgeContrastMin, singleScanInt, multiScanInt,
+    //     signalToNoiseRatio, horizontalMarkGrowth (HBW), verticalMarkGrowth (VBW)
+    //     Page 2 (v1.15 scan) — TTR%/RTR% Metric objects TBD.
+
+    if (q) {
+
+        // ── v1.18 NESTED SUB-OBJECTS (per Cognex CSV template) ────────────────
+        //   q.overall   → grading standard, overall/formal grade, app standard
+        //   q.general   → x-dimension, contrast uniformity, horizontal/vertical BWG,
+        //                 plus probably matrix size, codewords, MRD (probed below)
+        var qOv = _pick(q, "overall");
+        var qGn = _pick(q, "general");
+
+        // Helper: pull any sub-object property as string (handles undefined/null)
+        function ovProp(key) { return qOv ? prop(qOv, key) : ""; }
+        function gnProp(key) { return qGn ? prop(qGn, key) : ""; }
+
+        // ── q (r.trucheck) TrucheckMetric bindings — confirmed names from v1.14 scan
+        var _uec = _pick(q, "unusedErrorCorrection");
+        var _sc  = _pick(q, "symbolContrast");
+        var _cc  = _pick(q, "cellContrast");           // v1.18: DPM branch
+        var _mod = _pick(q, "modulation");
+        var _cm  = _pick(q, "cellModulation");         // v1.18: DPM branch
+        var _rm  = _pick(q, "reflectanceMargin");
+        var _anu = _pick(q, "axialNonuniformity");     // lowercase 'u' on q-side
+        var _gnu = _pick(q, "gridNonuniformity");      // lowercase 'u' on q-side
+        var _fpd = _pick(q, "fixedPatternDamage");
+        var _lls = _pick(q, "leftLSide");
+        var _bls = _pick(q, "bottomLSide");
+        var _lqz = _pick(q, "leftQuietZone");
+        var _bqz = _pick(q, "bottomQuietZone");
+        var _rqz = _pick(q, "rightQuietZone");
+        var _tqz = _pick(q, "topQuietZone");
+        var _tct = _pick(q, "topClockTrack");
+        var _rct = _pick(q, "rightClockTrack");
+        var _dec = _pick(q, "decode");
+        // v1.30 BUG #4: _ag (q.printGrowth) removed — it is a print-growth metric,
+        //   NOT an average grade. AGValue/AGGrade emitted wrong values on all scan
+        //   types (11.3/B on DM, -3.2/A on QR, 0/A on grade-D QR). Removed.
+        //   AverageGrade/AverageGradeNumeric (from q.averageGrade below) are correct.
+
+        // ── Grading standard / DPM branch ─────────────────────────────────────
+        //   Per Cognex template: when overall.gradingStandard != "ISO 15415"
+        //   the contrast/modulation parameters come from cellContrast /
+        //   cellModulation instead of symbolContrast / modulation.
+        var _gradeStd = ovProp("gradingStandard");
+        //   v1.19: device emits "ISO 15415:2011" (with suffix); use prefix match.
+        var _isIso    = (_gradeStd.indexOf("ISO 15415") === 0);
+        var _scSrc    = _isIso ? _sc  : _cc;   // for SCGrade + SCPercent
+        var _modSrc   = _isIso ? _mod : _cm;   // for MODGrade
+
+        // ── Grading summary (v1.18: from q.overall) ───────────────────────────
+        var _ogLetter  = ovProp("gradeLetter");
+        var _ogNumeric = ovProp("gradeValue");
+        o += elem("FormalGrade",         _ogLetter ? (_ogNumeric + "/" + _ogLetter) : "");
+        o += elem("OverallGrade",        _ogLetter);
+        o += elem("OverallGradeNumeric", _ogNumeric);
+        o += elem("GradingStandard",     _gradeStd);
+        o += elem("ApplicationStandard", ovProp("applicationStandardName"));
+        o += elem("ApplicationPass",     ovProp("applicationStandardPass"));
+        // v1.25: Parse reason suffix for parser routing.
+        //   "Pass" → reason="".  "Fail (Quality)" → reason="Quality".
+        //   "Fail (X Dimension out of Range)" → reason="X Dimension out of Range".
+        //   (Format) failures appear when Data Format Check ≠ None.
+        //   Parser must route (Quality) to grade summary; (Format) to app-syntax validator.
+        var _apStr    = ovProp("applicationStandardPass");
+        var _apIdx    = _apStr.indexOf(" (");
+        var _apReason = (_apIdx !== -1 && _apStr.charAt(_apStr.length - 1) === ")")
+                        ? _apStr.substring(_apIdx + 2, _apStr.length - 1) : "";
+        o += elem("ApplicationPassReason", _apReason);
+
+        // ── Verification conditions ───────────────────────────────────────────
+        //   Names TBD — probes below enumerate qOv to reveal actual keys.
+        //   Trying the most likely candidates from PDF report layout.
+        o += elem("ApertureRef", ovProp("aperture")   || ovProp("apertureRef")  || prop(m, "aperture"));
+        o += elem("Wavelength",  ovProp("wavelength") || ovProp("waveLength")   || prop(m, "wavelength"));
+        o += elem("Lighting",    ovProp("lighting")   || ovProp("lightingType") || prop(m, "lighting"));
+        o += elem("Standard",    _gradeStd            || prop(m, "standard"));
+
+        // ── 2D ISO 15415 quality parameters (v1.18: from q.<param>.raw) ───────
+        //   q-side TrucheckMetric has BOTH .grade AND .raw (confirmed by
+        //   Cognex template using decodeResults[0].trucheck.axialNonuniformity.raw).
+        //   mmVal / mmPctAuto work on any object with .raw — reusable.
+        o += elem("UECPercent", mmPctAuto(_uec));
+        o += elem("UECGrade",   tmGrade(_uec));
+
+        //   SC — TRUE ISO SC% from q.symbolContrast.raw
+        //   Rl/Rd from q.reflectanceLight / q.reflectanceDark
+        //   v1.20: device emits these as PRIMITIVE NUMBERS, not objects with .raw.
+        //   Accept either shape: if object → use .raw; if number → use directly.
+        function _refNum(_x) {
+            if (_x === null || typeof _x === "undefined") { return NaN; }
+            if (typeof _x === "number") { return _x; }
+            if (typeof _x === "object" && typeof _x["raw"] !== "undefined") {
+                return parseFloat(_x["raw"]);
+            }
+            return parseFloat(_x);
+        }
+        function _refToPct(_v) { return (_v > 1) ? _v : (_v * 100); }
+        var _rlRaw  = _refNum(_pick(q, "reflectanceLight"));
+        var _rdRaw  = _refNum(_pick(q, "reflectanceDark"));
+        var _rlInt  = (!isNaN(_rlRaw) && _rlRaw !== -1) ? String(Math.round(_refToPct(_rlRaw))) : "";
+        var _rdInt  = (!isNaN(_rdRaw) && _rdRaw !== -1) ? String(Math.round(_refToPct(_rdRaw))) : "";
+        var _scRlRd = (_rlInt && _rdInt) ? (_rlInt + "/" + _rdInt) : "";
+        o += elem("SCPercent",  mmPctAuto(_scSrc));
+        o += elem("SCRlRd",     _scRlRd);
+        o += elem("SCGrade",    tmGrade(_scSrc));
+        //   MinReflectance: q.minimumReflectance is a firmware sentinel
+        //   (raw=0/grade=F/numericGrade=0) on ALL scans — confirmed v1.27
+        //   DebugMinRef2 on DM live (reflDark=5) + QR loaded image (reflDark=0).
+        //   Actual dark reflectance = q.reflectanceDark (primitive number), which
+        //   is already captured as _rdRaw (line above, used for SCRlRd Rd column).
+        //   Emit as rounded integer %; suppress −1 and NaN sentinels.
+        o += elem("MinReflectance", (_rdRaw !== -1 && !isNaN(_rdRaw)) ? String(Math.round(_refToPct(_rdRaw))) : "");
+
+        o += elem("MODGrade",   tmGrade(_modSrc));
+        o += elem("RMGrade",    tmGrade(_rm));
+
+        //   ANU / GNU — percentages from q.<param>.raw (TRUE ISO values)
+        //   ANU percent — v1.32 FIX (bug #9, confirmed 2026-05-24):
+        //   DebugANUSubkeys (DM + QR injection scans) confirmed no .percent sub-key
+        //   exists. The raw value IS the percent, but on different scales by symbology:
+        //     DM:  raw=11.073 → DMST=11.1%  (raw > 1: already an integer percent)
+        //     QR:  raw=0.8392 → DMST=0.8%   (raw < 1: fractional percent, NOT ÷100)
+        //   mmPctAuto multiplies by 100 when raw < 1, giving 83.9 for QR — WRONG.
+        //   Fix: for QR, emit raw string directly; for DM/1D, mmPctAuto is correct.
+        o += elem("ANUPercent", _qrBranch ? s(mmVal(_anu)) : mmPctAuto(_anu));
+        o += elem("ANUGrade",   tmGrade(_anu));
+        o += elem("GNUPercent", mmPctAuto(_gnu));
+        o += elem("GNUGrade",   tmGrade(_gnu));
+
+        //   FPD — grade + raw from q.fixedPatternDamage
+        o += elem("FPDValue",   mmVal(_fpd));
+        o += elem("FPDGrade",   tmGrade(_fpd));
+
+        o += elem("DecodeGrade", tmGrade(_dec));
+
+        // v1.30 BUG #4 FIX: AGValue / AGGrade removed.
+        //   These came from q.printGrowth (a print-growth / mark-size metric),
+        //   NOT from the ISO 15415 average grade parameter.  The values were
+        //   inconsistent: DM 11.3/B, QR −3.2/A, grade-D QR 0/A — all unrelated
+        //   to the ISO overall grade.  AverageGrade/AverageGradeNumeric (q.averageGrade)
+        //   are the correct fields for the ISO average grade.
+
+        // ── 2D matrix / general characteristics (v1.18: from q.general) ───────
+        //   Names confirmed from Cognex template: xDimension, contrastUniformity,
+        //   horizontalBWG, verticalBWG.  Others probed below.
+        //   v1.20: MatrixSize derived from modulationArray.length.
+        //   Square symbols: modArray indexes ALL cells including a 1-cell QZ
+        //   wrapper, so side = sqrt(length) - 2.  (22×22 ECC200: 484+92 frame
+        //   cells = 576 = 24² → 24-2 = 22.  Verified live.)
+        //   v1.22: rectangular symbols also wrap, so length = (rows+2)*(cols+2).
+        //   Without authoritative row/col fields, use a length→size lookup over
+        //   the 6 ECC200 rectangular sizes (verified scan: 16×36 → 18×38 = 684).
+        var _modArr  = _pick(q, "modulationArray");
+        var _modLen  = (_modArr && typeof _modArr.length !== "undefined") ? _modArr.length : 0;
+        var _modSide = (_modLen > 0) ? Math.sqrt(_modLen) : 0;
+        // v1.25: QR uses 4-module quiet zone per side (8 total subtracted from sqrt).
+        //   DM uses 1-module QZ per side (2 total).
+        //   QR v3: sqrt(1369)=37, 37-8=29 ✓  (v1.24 wrongly emitted 35 = 37-2)
+        //   DM 22×22: sqrt(576)=24, 24-2=22 ✓
+        var _qzOffset = _qrBranch ? 8 : 2;
+        var _symSide = (_modSide === Math.floor(_modSide) && _modSide > 2) ? (_modSide - _qzOffset) : 0;
+        var _msz     = (_symSide > 0) ? (_symSide + "x" + _symSide) : "";
+        if (!_msz && _modLen > 0) {
+            // ECC200 rectangular table (length-with-QZ → "rowsXcols")
+            var _rectMap = {
+                "200":  "8x18",
+                "340":  "8x32",
+                "392":  "12x26",
+                "532":  "12x36",
+                "684":  "16x36",
+                "900":  "16x48"
+            };
+            var _rectHit = _rectMap[String(_modLen)];
+            if (_rectHit) { _msz = _rectHit; }
+        }
+
+        //   v1.20: codewordArray.length = total codewords for ECC200.
+        //   v1.27 DebugArrayElem0 confirmed element shape: {codeword:number, isCorrected:0|1}.
+        //   ErrorCapacityUsed formula confirmed: corrected × 2 (ECC200 + QR both use
+        //   2 ECC codewords per corrected error). DM v1.27: 7×2=14 ✓  QR v1.27: 0×2=0 ✓.
+        //   Iterate to count isCorrected==1 for ErrorsCorrected and ErrorCapacityUsed.
+        var _cwArr   = _pick(q, "codewordArray");
+        var _cwLen   = (_cwArr && typeof _cwArr.length !== "undefined") ? _cwArr.length : 0;
+        var _ecCount = 0;
+        if (_cwArr && _cwLen > 0) {
+            for (var _i = 0; _i < _cwLen; _i++) {
+                var _cw = _cwArr[_i];
+                if (_cw && _cw["isCorrected"]) { _ecCount++; }
+            }
+        }
+
+        //   v1.30 BUG #1 FIX: EncodedCharacters.
+        //   v1.20–v1.29 used encodationAnalysisArray.length (_eaLen) as a proxy.
+        //   eaLen counts ENCODING TABLE ROWS (mode indicator + char count + data
+        //   codewords + terminator), NOT the actual encoded character count:
+        //     DM 16×36 GS1: eaLen=33 but DMST="38" chars
+        //     QR v3 alphanumeric: eaLen=28 but DMST="50" chars
+        //   Fix: try q.general.encodedCharacters first (if it exists on this fw).
+        //   If absent → fall back to _eaLen (same as before; probe will confirm).
+        var _eaArr = _pick(q, "encodationAnalysisArray");
+        var _eaLen = (_eaArr && typeof _eaArr.length !== "undefined") ? _eaArr.length : 0;
+        var _encChars = gnProp("encodedCharacters");
+        if (!_encChars && _eaLen > 0) { _encChars = s(_eaLen); }
+
+        o += elem("MatrixSize",            _msz);
+        o += elem("HorizontalBWG",         gnProp("horizontalBWG"));
+        o += elem("VerticalBWG",           gnProp("verticalBWG"));
+        o += elem("EncodedCharacters",     _encChars);
+        o += elem("TotalCodewords",        _cwLen > 0 ? s(_cwLen) : "");
+        // v1.29: attempt q.symbols[0] for DataCodewords, ECBudget, and QR ECLevel.
+        //   RESULT: q.symbols=null on DM, QR, and Code 128 on fw 6.1.16_sr4.
+        //   DebugSymbols confirmed (v1.29 catalog). Path dead on this firmware.
+        //   DataCodewords / ErrorCorrectionBudget stay empty; will be computed
+        //   in C# parser from ECC200 / QR symbol table lookup.
+        var _v29symsArr = _pick(q, "symbols");
+        var _v29sym0 = (_v29symsArr && typeof _v29symsArr.length !== "undefined"
+                        && _v29symsArr.length > 0) ? _v29symsArr[0] : null;
+        var _dataCW = _v29sym0 ? _pick(_v29sym0, "dataCodewords") : null;
+        var _ecCW   = _v29sym0 ? (_pick(_v29sym0, "ecCodewords")
+                                  || _pick(_v29sym0, "errorCorrectionCodewords")) : null;
+        var _symECL = _v29sym0 ? (_pick(_v29sym0, "errorCorrectionLevel")
+                                  || _pick(_v29sym0, "ecLevel")) : null;
+        o += elem("DataCodewords",         (_dataCW !== null) ? s(_dataCW) : "");
+        o += elem("ErrorCorrectionBudget", (_ecCW   !== null) ? s(_ecCW)   : "");
+        o += elem("ErrorsCorrected",       _cwLen > 0 ? s(_ecCount) : "");
+        o += elem("ErrorCapacityUsed",     _cwLen > 0 ? s(_ecCount * 2) : "");
+
+        // v1.30 BUG #12 + partial #11 FIX: ErrorCorrectionType.
+        //   v1.27–v1.29: _qrBranch=0 emitted "ECC200" for ALL non-QR, including
+        //   Code 128 (]C0) and EAN-13 (]E0) — both 1D symbologies with no ECType.
+        //   Fix: only emit "ECC200" for confirmed DM (_isDM: AIM id[1]==='d').
+        //   QR fallback changed from "QR" to "" — DebugRSymbology probe will
+        //   identify the firmware key that carries the EC level (M/L/H/Q).
+        //   All q.symbols[0] paths dead (null on fw 6.1.16_sr4). All q.general
+        //   sub-keys confirmed absent for ECLevel (v1.27 DebugGeneral: 7 keys only).
+        //   r.validation.gs1.errorCorrectionLevel absent on QR + DM (v1.29).
+        //   AIM modifier encodes ECI presence (not ECLevel) — confirmed v1.29.
+        //   Only remaining candidate: r.symbology sub-keys (DebugRSymbology below).
+        var _ecType;
+        if (_qrBranch) {
+            // QR: try all known sub-key paths; emit "" until DebugRSymbology
+            // identifies the correct firmware key (e.g. r.symbology.errorCorrectionLevel)
+            _ecType = _symECL
+                   || gnProp("errorCorrectionLevel")
+                   || gnProp("ecLevel")
+                   || ovProp("ecLevel")
+                   || "";
+        } else if (_isDM) {
+            // Data Matrix ECC200 — confirmed symbol type
+            _ecType = "ECC200";
+        } else {
+            // 1D symbology (EAN-13, Code 128, UPC, etc.) — no ECType applicable
+            _ecType = "";
+        }
+        o += elem("ErrorCorrectionType",   _ecType);
+        o += elem("NominalXDim",           gnProp("xDimension"));
+        // v1.25: PixelsPerModule removed — was always empty; <ModuleSizePx>
+        //   (from r.symbology.moduleSize, confirmed 16.18 px) is the only source.
+        o += elem("ImagePolarity",         gnProp("polarity") || gnProp("imagePolarity"));
+        o += elem("ContrastUniformity",    gnProp("contrastUniformity"));
+        o += elem("MRD",                   gnProp("MRD") || gnProp("mrd"));
+        o += elem("ContrastUniformityRow", gnProp("contrastUniformityRow"));
+        o += elem("ContrastUniformityCol", gnProp("contrastUniformityCol"));
+        // v1.25: OpticsSource — LoadedImage when ContrastUniformity===-1 AND MRD===-1.
+        //   Both must be −1 simultaneously; each alone is insufficient.
+        //   Confirmed across two loaded-image captures: URL QR (SymbolAngle=360°)
+        //   and email QR (SymbolAngle=0°) are both loaded images — SymbolAngle
+        //   is NOT a reliable discriminator. ContrastUniformity and MRD are always
+        //   −1 on loaded images (not computed from optics) and always real values
+        //   on live scans. Parse as float to handle both "−1" string and −1 number.
+        var _cuNum  = parseFloat(gnProp("contrastUniformity"));
+        var _mrdNum = parseFloat(gnProp("MRD") || gnProp("mrd"));
+        o += elem("OpticsSource",
+            (!isNaN(_cuNum) && _cuNum === -1 && !isNaN(_mrdNum) && _mrdNum === -1)
+            ? "LoadedImage" : "LiveScan");
+
+        // ── v1.19 new grade emissions ─────────────────────────────────────────
+        //   distributedDamageGrade: per TKEnum it's a top-level q property —
+        //   probe whether it's a TrucheckMetric (.grade) or a bare string.
+        var _dd = _pick(q, "distributedDamageGrade");
+        o += elem("DDGrade", (_dd && typeof _dd === "object") ? tmGrade(_dd) : s(_dd));
+        //   averageGrade: separate TrucheckMetric carrying the ISO 15415 mean
+        //   grade across all parameters (different from overall).
+        var _avg = _pick(q, "averageGrade");
+        o += elem("AverageGrade",        tmGrade(_avg));
+        o += elem("AverageGradeNumeric", mmVal(_avg));
+        //   v1.20: customNote = device calibration metadata string
+        //   (e.g. "Results from UPCE-44960 Cal. 23 JUN 2023").
+        o += elem("CustomNote",          s(_pick(q, "customNote")));
+
+        // ── 2D L-side and quiet zones ─────────────────────────────────────────
+        //   LLS/BLS — confirmed on q as leftLSide / bottomLSide (v1.15)
+        o += elem("LLSGrade", tmGrade(_lls));
+        o += elem("BLSGrade", tmGrade(_bls));
+        //   LQZ/BQZ/TQZ/RQZ — from q TrucheckMetric sub-objects (confirmed v1.9)
+        o += elem("LQZGrade", tmGrade(_lqz));
+        o += elem("BQZGrade", tmGrade(_bqz));
+        o += elem("TQZGrade", tmGrade(_tqz));
+        o += elem("RQZGrade", tmGrade(_rqz));
+
+        // ── 2D clock track / transition ratio grades ──────────────────────────
+        //   v1.16: TTR/RTR percentages sourced from m.{horizontal,vertical}MarkMisplacement
+        //   (DebugMEnum2 confirmed these are the ISO 15415 mark misplacement metrics,
+        //   which are the DM-firmware equivalent of TTR/RTR in Webscan terminology).
+        //   Grades for TTR/RTR continue to use q.topClockTrack/rightClockTrack until
+        //   firmware exposes a markMisplacement.grade (the Metric debug probe will tell).
+        //   TCT/RCT grades are the same q-side TrucheckMetric.
+        //   v1.19: TTR/RTR have their own q-side TrucheckMetrics (revealed by
+        //   v1.18 DebugTKEnum) — topTransitionRatio / rightTransitionRatio.
+        //   Both have .raw (numeric) and .grade.  No longer aliased to TCT/RCT.
+        var _ttr = _pick(q, "topTransitionRatio");
+        var _rtr = _pick(q, "rightTransitionRatio");
+        o += elem("TTRPercent", mmPctAuto(_ttr));
+        o += elem("TTRGrade",   tmGrade(_ttr));
+        o += elem("RTRPercent", mmPctAuto(_rtr));
+        o += elem("RTRGrade",   tmGrade(_rtr));
+        o += elem("TCTGrade",   tmGrade(_tct));
+        o += elem("RCTGrade",   tmGrade(_rct));
+
+        // ── Per-region parameters (≥ 32×32 / 2-region rectangular) ───────────
+        //   v1.27 DebugQZObjs + DebugTTRCTObjs — CONFIRMED STRUCTURAL LIMIT.
+        //   q.topQuietZone   = {grade:"X", numericGrade:8.8}  (2-key flat object)
+        //   q.rightQuietZone = {grade:"X", numericGrade:8.8}  (same shape)
+        //   q.topTransitionRatio  = {raw:-1, grade:"X", numericGrade:8.8}
+        //   q.rightTransitionRatio = {raw:-1, grade:"X", numericGrade:8.8}
+        //   q.topClockTrack  = {grade:"X", numericGrade:8.8}
+        //   q.rightClockTrack = {grade:"X", numericGrade:8.8}
+        //   These are firmware-internal compound objects.  "grade=X" and
+        //   "numericGrade=8.8" are on an internal 0–10 firmware scale — NOT
+        //   ISO letter grades.  The individual per-quadrant grades (ULQZ/URQZ/
+        //   RUQZ/RLQZ/LQTTR/RQTTR/LQRTR/RQRTR/LQTCT/RQTCT/LQRCT/RQRCT) that
+        //   appear as "A" in the DMST PDF are computed inside DMST from raw data
+        //   and are NOT exposed through the push channel on firmware 6.1.16_sr4.
+        //   These fields remain empty in the push XML.  This is the confirmed
+        //   final answer — no further probing is warranted for this firmware.
+        o += elem("ULQZGrade",        "");
+        o += elem("URQZGrade",        "");
+        o += elem("RUQZGrade",        "");
+        o += elem("RLQZGrade",        "");
+        o += elem("LLQZGrade",        "");
+        o += elem("LRQZGrade",        "");
+        o += elem("HClockTrackGrade", "");
+        o += elem("VClockTrackGrade", "");
+        o += elem("ULQTTRPercent", "");
+        o += elem("ULQTTRGrade",   "");
+        o += elem("URQTTRPercent", "");
+        o += elem("URQTTRGrade",   "");
+        o += elem("LLQTTRPercent", "");
+        o += elem("LLQTTRGrade",   "");
+        o += elem("LRQTTRPercent", "");
+        o += elem("LRQTTRGrade",   "");
+        o += elem("ULQRTRPercent", "");
+        o += elem("ULQRTRGrade",   "");
+        o += elem("URQRTRPercent", "");
+        o += elem("URQRTRGrade",   "");
+        o += elem("LLQRTRPercent", "");
+        o += elem("LLQRTRGrade",   "");
+        o += elem("LRQRTRPercent", "");
+        o += elem("LRQRTRGrade",   "");
+        o += elem("ULQTCTGrade",   "");
+        o += elem("URQTCTGrade",   "");
+        o += elem("LLQTCTGrade",   "");
+        o += elem("LRQTCTGrade",   "");
+        o += elem("ULQRCTGrade",   "");
+        o += elem("URQRCTGrade",   "");
+        o += elem("LLQRCTGrade",   "");
+        o += elem("LRQRCTGrade",   "");
+
+        // ── QR-specific grade parameters ──────────────────────────────────────
+        //   v1.26 DebugTrucheckKeys confirmed: ALL QR grade params are top-level
+        //   q keys (NOT in q.symbols[0], which is always null on this firmware).
+        //   v1.30 BUG #3 FIX: guard all 8 params with _qrBranch.
+        //   On non-QR symbologies (DM, Code 128, EAN-13) the underlying
+        //   TrucheckMetric objects are populated by the firmware with a sentinel
+        //   failure value ({grade:"F", numericGrade:0}).  This caused all 8 fields
+        //   to emit "F" on DM live scans and Code 128 live scans (v1.29 catalog).
+        //   For non-QR symbologies: emit "" (not applicable).
+        //   For QR scans (_qrBranch=true): emit the TrucheckMetric grade as before.
+        o += elem("ULPGrade", _qrBranch ? tmGrade(_pick(q, "upperLeftPattern"))      : "");
+        o += elem("URPGrade", _qrBranch ? tmGrade(_pick(q, "upperRightPattern"))     : "");
+        o += elem("LLPGrade", _qrBranch ? tmGrade(_pick(q, "lowerLeftPattern"))      : "");
+        o += elem("HCTGrade", _qrBranch ? tmGrade(_pick(q, "horizontalClockTrack"))  : "");
+        o += elem("VCTGrade", _qrBranch ? tmGrade(_pick(q, "verticalClockTrack"))    : "");
+        o += elem("ALPGrade", _qrBranch ? tmGrade(_pick(q, "alignmentPatterns"))     : "");
+        o += elem("VIBGrade", _qrBranch ? tmGrade(_pick(q, "versionInformationBlock")) : "");
+        o += elem("FIBGrade", _qrBranch ? tmGrade(_pick(q, "formatInformationBlock")) : "");
+
+        // ── 1D / ANSI summary ─────────────────────────────────────────────────
+        var _ansiGrade = prop(m, "ansiGrade") || prop(m, "symbolAnsiGrade");
+        o += elem("SymbolAnsiGrade", _ansiGrade);
+        o += elem("AvgEdge",   prop(m, "avgEdge"));
+        o += elem("AvgRlRd",   prop(m, "avgRlRd"));
+        o += elem("AvgSC",     prop(m, "avgSc"));
+        o += elem("AvgMinEC",  prop(m, "avgMinEc"));
+        o += elem("AvgMOD",    prop(m, "avgMod"));
+        o += elem("AvgDefect", prop(m, "avgDefect"));
+        o += elem("AvgDcod",   prop(m, "avgDcod"));
+        o += elem("AvgDEC",    prop(m, "avgDec"));
+        o += elem("AvgLQZ",    prop(m, "avgLqz"));
+        o += elem("AvgRQZ",    prop(m, "avgRqz"));
+        o += elem("AvgHQZ",    prop(m, "avgHqz"));
+        o += elem("AvgMinQZ",  prop(m, "avgMinQz"));
+        // v1.24: BWG = Print Growth per comms-and-programming-guide §4. The
+        // r.metrics.printGrowth is a Metric object {raw, grade}, not a scalar,
+        // so prop() returns "[object Metric]" / undefined. Use mmPctAuto.
+        o += elem("BWGPercent",    mmPctAuto(_pick(m, "printGrowth")));
+        o += elem("Magnification", prop(m, "magnification"));
+        o += elem("Ratio",         prop(m, "ratio"));
+        o += elem("NominalXDim1D", prop(m, "nominalXDim1D") || prop(m, "nominalXDim1d"));
+
+    } // end if (q)
+
+    // ── v1.24 + v1.25 wires (post-q-block) ───────────────────────────────────
+    //   v1.25: Full JPEG image payload. v1.24 DebugJpegProbe confirmed:
+    //   type=string, len≈9,912 for live DM / ≈22,260 for loaded QR — well
+    //   within Network Client buffer. r.trucheck.jpegImage is a base64 JPEG
+    //   string. Emit as-is; parser stores in VerificationRecord.JpegImageBase64.
+    o += elem("JpegImageBase64", q ? s(_pick(q, "jpegImage")) : "");
+
+    //   Promote r.trucheck.calibrationDate to first-class. v1.23 stuffed
+    //   calibration metadata into <CustomNote> as a workaround; comms guide §6
+    //   confirms r.trucheck.calibrationDate is a string timestamp directly
+    //   addressable. CustomNote stays as-is (different data — user-set device
+    //   note "Results from UPCE-44960 Cal. 23 JUN 2023").
+    o += elem("CalibrationDate", q ? s(_pick(q, "calibrationDate")) : "");
+
+    //   readerProperties.status3D.{fieldCalibrated, factoryCalibrated} — input
+    //   to the OpticsCompliant logic per comms guide §6. Booleans.
+    var _s3d = _pick(rp, "status3D");
+    o += elem("FieldCalibrated",   _s3d ? s(_pick(_s3d, "fieldCalibrated"))   : "");
+    o += elem("FactoryCalibrated", _s3d ? s(_pick(_s3d, "factoryCalibrated")) : "");
+
+    //   MinPassGrade — per session plan A5. v1.23 DebugMetricsKeys enumerated
+    //   minPassGrade=[obj] on r.metrics. Probe both .grade and .raw shapes.
+    var _mpg = _pick(m, "minPassGrade");
+    o += elem("MinPassGrade", tmGrade(_mpg));
+    o += elem("MinPassRaw",   mmVal(_mpg));
+
+    // ── v1.32 introspection probes ────────────────────────────────────────────
+    //
+    //   RETAINED (regression baselines):
+    //     DebugMetricsKeys   — r.metrics key enumeration (30 keys on fw 6.1.16_sr4)
+    //     DebugRSiblings     — r-sibling inventory (confirmed image=[obj] new 2026-05-24)
+    //     DebugRSymbology    — r.symbology 9-key baseline (DM+QR confirmed identical;
+    //                          no ECLevel/dataMask/ECI/version on either symbology)
+    //     DebugImagePolarity — q.general 7-key baseline (DM+QR confirmed identical;
+    //                          no polarity/eci/encodedChars on either symbology)
+    //
+    //   DROPPED (questions answered by v1.31 DM+QR scans 2026-05-24):
+    //     DebugANUSubkeys     — no .percent sub-key; raw IS percent; bug #9 fixed ✓
+    //     DebugValidationKeys — state/method/gs1/dodUid only; no ECLevel/ECI ✓
+    //
+    //   DROPPED (answered earlier):
+    //     DebugModSize / DebugECCount / DebugSymbols / DebugValidationGS1 /
+    //     DebugAimId — all closed by v1.29 10-scan catalog ✓
+    //
+    //   NEW PROBE:
+    //     DebugRImage — enumerate r.image sub-keys. r.image=[obj] confirmed present
+    //                   in DebugRSiblings on BOTH DM and QR (2026-05-24 scans).
+    //                   This is the SOLE remaining unexplored path for all 4 open
+    //                   fields: ImagePolarity / ECI / ECLevel / DataMaskPattern.
+
+    function _enumKV22(obj, label) {
+        if (!obj) { return "(" + label + " null)"; }
+        if (typeof obj !== "object") {
+            return "(" + label + " " + (typeof obj) + "=" + String(obj).substring(0, 30) + ")";
+        }
+        var _out = "";
+        for (var _k in obj) {
+            var _v = obj[_k];
+            var _t = typeof _v;
+            var _vs;
+            if (_t === "object" && _v !== null) {
+                _vs = (typeof _v.length !== "undefined") ? ("[arr." + _v.length + "]") : "[obj]";
+            } else {
+                _vs = String(_v).substring(0, 40);
+            }
+            _out += _k + "=" + _vs + ";";
+        }
+        return _out || "(" + label + " empty)";
+    }
+
+    // RETAINED: regression baseline — r.metrics key enumeration
+    o += elem("DebugMetricsKeys", _enumKV22(m, "r.metrics"));
+
+    // RETAINED: regression baseline — r siblings (confirms symbology/validation=[obj])
+    var _v25known = { "trucheck": 1, "metrics": 1 };
+    var _v25sibStr = "";
+    if (r && typeof r === "object") {
+        for (var _v25rk in r) {
+            if (_v25known[_v25rk]) { continue; }
+            var _v25rv = r[_v25rk];
+            var _v25rvDesc;
+            if (_v25rv === null) { _v25rvDesc = "null"; }
+            else if (typeof _v25rv === "object") {
+                _v25rvDesc = (typeof _v25rv.length !== "undefined") ? ("[arr." + _v25rv.length + "]") : "[obj]";
+            } else {
+                _v25rvDesc = (typeof _v25rv) + "=" + String(_v25rv).substring(0, 30);
+            }
+            _v25sibStr += _v25rk + "=" + _v25rvDesc + ";";
+        }
+    }
+    o += elem("DebugRSiblings", _v25sibStr || "(no unknown r-siblings)");
+
+    // RETAINED BASELINE: DebugRSymbology — r.symbology 9-key inventory.
+    //   CONFIRMED 2026-05-24 (DM live + QR IMAGE.LOAD injection):
+    //   Identical 9 keys on both DM and QR: name/id/quality/contrast/moduleSize/
+    //   corners/center/angle/size/failureCode. NO undocumented keys found.
+    //   ECLevel, dataMaskPattern, version, ECI — DEFINITIVELY ABSENT from
+    //   r.symbology on fw 6.1.16_sr4 for all tested symbologies.
+    o += elem("DebugRSymbology", _enumKV22(_sym, "r.symbology"));
+
+    // NEW PROBE: DebugRImage — enumerate r.image sub-keys.
+    //   r.image=[obj] confirmed present in DebugRSiblings on DM (2026-05-24 live
+    //   scan) and QR (2026-05-24 IMAGE.LOAD injection). r.image has NEVER been
+    //   probed. It is the sole remaining unexplored path for all 4 missing fields:
+    //     - ImagePolarity (DMST: "Black on white" on DM and QR) — absent from
+    //       r.symbology, r.validation, q.general on all tested scans
+    //     - ECI (DMST: 000003 on ]Q1 QR) — absent from all probed paths
+    //     - errorCorrectionLevel (DMST: M for QR) — absent from all probed paths
+    //     - dataMaskPattern (DMST: 2 for QR) — absent from all probed paths
+    //   Scan on DM (]d1) AND QR (]Q1) — QR may gain ECLevel/ECI/dataMask keys
+    //   that DM lacks; DM may gain imagePolarity that is symbology-agnostic.
+    var _v32img = _pick(r, "image");
+    o += elem("DebugRImage", _enumKV22(_v32img, "r.image"));
+
+    // RETAINED BASELINE: DebugImagePolarity — q.general 7-key inventory.
+    //   CONFIRMED 2026-05-24 (DM live + QR injection): identical 7 keys on both:
+    //   verticalBWG / horizontalBWG / xDimension / contrastUniformity /
+    //   contrastUniformityRow / contrastUniformityCol / MRD.
+    //   No polarity/imagePolarity/image/colorMode/imageColor/eci/ECI/eciMode/
+    //   encodedCharacters key on DM or QR. q.general path DEAD for all 4 missing
+    //   fields. Retained as regression baseline until r.image probed.
+    var _v30gnEnum = _enumKV22((q ? _pick(q, "general") : null), "q.general");
+    var _v30polDesc = "gn.polarity="      + (q ? gnProp("polarity")      : "")
+                    + ";gn.imagePolarity=" + (q ? gnProp("imagePolarity") : "")
+                    + ";gn.image="         + (q ? gnProp("image")         : "")
+                    + ";gn.colorMode="     + (q ? gnProp("colorMode")     : "")
+                    + ";gn.imageColor="    + (q ? gnProp("imageColor")    : "")
+                    + ";gn.eci="           + (q ? gnProp("eci")           : "")
+                    + ";gn.ECI="           + (q ? gnProp("ECI")           : "")
+                    + ";gn.eciMode="       + (q ? gnProp("eciMode")       : "")
+                    + ";gn.encodedChars="  + (q ? gnProp("encodedCharacters") : "")
+                    + ";allKeys=" + _v30gnEnum;
+    o += elem("DebugImagePolarity", _v30polDesc);
+
+    // DebugValidationKeys — DROPPED v1.32 (answered 2026-05-24):
+    //   DM live + QR injection both returned:
+    //   state/method/failurePos/failureCode/failureMsg/gs1/dodUid/matchString.
+    //   No errorCorrectionLevel, no eci/eciNumber on either symbology.
+    //   r.validation path DEFINITIVELY CLOSED for ECLevel and ECI.
+
+    o += '</DMSymVerResponse>\r\n'
+       + '</DMCCResponse>';
+
+    // Firmware 5.x / 6.x compatibility:
+    // Older firmware exposes a global 'output' object; newer firmware passes
+    // the output as the third parameter 'outputResults'.  Try both so the
+    // script works across revisions without modification.
+    if (typeof outputResults !== "undefined" && outputResults !== null) {
+        outputResults.content = o;
+    } else {
+        output.content = o;
+    }
+}

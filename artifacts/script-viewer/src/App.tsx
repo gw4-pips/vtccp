@@ -1,5 +1,5 @@
 import { useState } from "react";
-import scriptText from "./v131.txt?raw";
+import scriptText from "./v132.txt?raw";
 
 const LINE_COUNT = scriptText.split("\n").length;
 const BYTE_COUNT = new Blob([scriptText]).size;
@@ -29,7 +29,7 @@ function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "DmstPushScript_v1.31.txt";
+    a.download = "DmstPushScript_v1.32.txt";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -56,10 +56,10 @@ function App() {
         zIndex: 10,
       }}>
         <div style={{ fontWeight: 600, fontSize: 14, color: "#7ee787" }}>
-          DmstPushScript v1.31
+          DmstPushScript v1.32
         </div>
         <div style={{ fontSize: 12, color: "#8b949e" }}>
-          {LINE_COUNT.toLocaleString()} lines · {(BYTE_COUNT / 1024).toFixed(1)} KB · bug fixes #1/#3/#4/#12 + 4 new probes · 2026-05-24 (voids v1.30)
+          {LINE_COUNT.toLocaleString()} lines · {(BYTE_COUNT / 1024).toFixed(1)} KB · bug fix #9 (QR ANU) + DebugRImage probe · 2026-05-24
         </div>
         <div style={{ flex: 1 }} />
         <button
@@ -104,7 +104,7 @@ function App() {
         color: "#8b949e",
         lineHeight: 1.5,
       }}>
-        <strong style={{ color: "#e6edf3" }}>Install:</strong> DMST → Format Data → Scripting tab → Open Script → paste → Save → Write Settings to verifier. Confirm <code style={{ color: "#7ee787" }}>&lt;PushScriptDiag&gt;v1.31 q=r.trucheck m=found&lt;/PushScriptDiag&gt;</code> appears in the next scan output.
+        <strong style={{ color: "#e6edf3" }}>Install:</strong> DMST → Format Data → Scripting tab → Open Script → paste → Save → Write Settings to verifier. Confirm <code style={{ color: "#7ee787" }}>&lt;PushScriptDiag&gt;v1.32 q=r.trucheck m=found&lt;/PushScriptDiag&gt;</code> appears in the next scan output.
       </div>
 
       <pre style={{
