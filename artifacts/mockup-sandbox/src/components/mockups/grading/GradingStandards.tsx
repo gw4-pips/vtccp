@@ -268,8 +268,9 @@ export function GradingStandards() {
                   <p className="text-xs text-[#666] italic leading-relaxed">
                     Re-grades the stored image <strong className="not-italic text-[#444]">{repeatCount}×</strong> using
                     the selected standard. Each run uses IMAGE.REPLAY on identical pixel data.
-                    A deviation report is generated at the end flagging any parameter whose grade
-                    differs across runs — indicating a threshold-border condition in the grading algorithm.
+                    A deviation report is generated at the end recording every parameter value from every run.
+                    Any numerical difference on any parameter across any run pair is reported —
+                    whether or not it crosses a letter-grade boundary.
                   </p>
                 </div>
               </div>
