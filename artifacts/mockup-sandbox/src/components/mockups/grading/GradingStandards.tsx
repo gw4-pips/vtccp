@@ -67,13 +67,28 @@ export function GradingStandards() {
     if (m === "multi-standard") { setPwPrompt(true); return; }
     setMode(m);
     if (m === "single") {
-      setSelected(new Set([primary]));
+      // In single mode carry at most one item — keep primary if selected, else first selected, else nothing
+      if (selected.has(primary)) {
+        setSelected(new Set([primary]));
+      } else if (selected.size > 0) {
+        const first = Array.from(selected)[0];
+        setPrimary(first);
+        setSelected(new Set([first]));
+      }
+      // if nothing selected, leave empty
     } else {
-      // keep only standards in same family as primary
-      const fam = familyOf(primary)!;
-      const keep = new Set(Array.from(selected).filter(s => familyOf(s) === fam));
-      if (keep.size === 0) keep.add(primary);
-      setSelected(keep);
+      // Multi-Version: keep only standards in same family as primary; if empty, stay empty
+      if (selected.size > 0) {
+        const fam = familyOf(primary)!;
+        const keep = new Set(Array.from(selected).filter(s => familyOf(s) === fam));
+        if (keep.size === 0) {
+          const first = Array.from(selected)[0];
+          setPrimary(first);
+          setSelected(new Set([first]));
+        } else {
+          setSelected(keep);
+        }
+      }
     }
   };
 
