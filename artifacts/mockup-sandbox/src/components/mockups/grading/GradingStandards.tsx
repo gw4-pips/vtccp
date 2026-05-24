@@ -95,11 +95,8 @@ export function GradingStandards() {
   const confirmPassword = () => {
     if (pwInput === "vccs") {
       setMode("multi-standard");
-      // Drop any Linear selections — 15416 is not applicable in Multi-Standard mode
-      const withoutLinear = new Set(Array.from(selected).filter(k => familyOf(k) !== "Linear"));
-      if (withoutLinear.size === 0) withoutLinear.add("15415:2024");
-      setSelected(withoutLinear);
-      if (!withoutLinear.has(primary)) setPrimary(Array.from(withoutLinear)[0]);
+      // Clear all selections on entry — operator must choose deliberately in this mode
+      setSelected(new Set());
       setPwPrompt(false);
       setPwInput("");
       setPwError(false);
