@@ -174,7 +174,7 @@ export function GradingStandards() {
                   </span>
                 )}
               </div>
-              <div className={`px-4 py-3 flex gap-10 ${isFamilyBlocked(family) ? "opacity-60 pointer-events-none" : ""}`}>
+              <div className={`px-4 py-3 flex gap-10 ${isFamilyBlocked(family) ? "opacity-75 pointer-events-none" : ""}`}>
                 {keys.map(k => {
                   const dis = isDisabled(k);
                   const isPrim = primary === k && selected.size > 1;
