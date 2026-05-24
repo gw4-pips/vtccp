@@ -25,9 +25,7 @@ const DEFAULT_PRIMARY: StandardKey = "15415:2024";
 
 export function GradingStandards() {
   const [mode, setMode] = useState<Mode>("single");
-  const [selected, setSelected] = useState<Set<StandardKey>>(
-    new Set([DEFAULT_PRIMARY])
-  );
+  const [selected, setSelected] = useState<Set<StandardKey>>(new Set());
   const [primary, setPrimary] = useState<StandardKey>(DEFAULT_PRIMARY);
   const [pwPrompt, setPwPrompt] = useState(false);
   const [pwInput, setPwInput] = useState("");
@@ -176,7 +174,7 @@ export function GradingStandards() {
                   </span>
                 )}
               </div>
-              <div className={`px-4 py-3 flex gap-10 ${isFamilyBlocked(family) ? "opacity-35 pointer-events-none" : ""}`}>
+              <div className={`px-4 py-3 flex gap-10 ${isFamilyBlocked(family) ? "opacity-60 pointer-events-none" : ""}`}>
                 {keys.map(k => {
                   const dis = isDisabled(k);
                   const isPrim = primary === k && selected.size > 1;
