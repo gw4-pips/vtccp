@@ -230,9 +230,8 @@ export function GradingStandards() {
             </div>
           ))}
 
-          {/* Repeatability Analysis — Single mode only */}
-          {mode === "single" && (
-            <div className="border border-[#c0c0c0]">
+          {/* Repeatability Analysis */}
+          <div className="border border-[#c0c0c0]">
               <div className="bg-[#e8e8e8] border-b border-[#c0c0c0] px-3 py-1 flex items-center justify-between">
                 <span className="text-xs font-semibold text-[#333] uppercase tracking-wider">
                   Repeatability Analysis
@@ -257,12 +256,12 @@ export function GradingStandards() {
                     <input
                       type="number"
                       min={2}
-                      max={50}
+                      max={100}
                       value={repeatCount}
-                      onChange={e => setRepeatCount(Math.max(2, Math.min(50, Number(e.target.value))))}
+                      onChange={e => setRepeatCount(Math.max(2, Math.min(100, Number(e.target.value))))}
                       className="w-16 border border-[#adadad] px-2 py-1 text-sm text-center focus:outline-none focus:border-[#1a5fa8]"
                     />
-                    <span className="text-xs text-[#888]">( 2 – 50 )</span>
+                    <span className="text-xs text-[#888]">( 2 – 100 )</span>
                   </div>
                 </div>
                 <div className="flex-1 pt-0.5">
@@ -274,8 +273,7 @@ export function GradingStandards() {
                   </p>
                 </div>
               </div>
-            </div>
-          )}
+          </div>
 
           {/* Status bar */}
           <div className="bg-[#f0f4fa] border border-[#c8d8ee] px-3 py-2 text-xs text-[#1a5fa8]">
