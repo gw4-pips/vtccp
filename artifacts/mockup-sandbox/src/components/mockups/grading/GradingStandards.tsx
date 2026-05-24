@@ -27,6 +27,7 @@ export function GradingStandards() {
   const [mode, setMode] = useState<Mode>("single");
   const [selected, setSelected] = useState<Set<StandardKey>>(new Set());
   const [primary, setPrimary] = useState<StandardKey>(DEFAULT_PRIMARY);
+  const [pwUnlocked, setPwUnlocked] = useState(false);
   const [pwPrompt, setPwPrompt] = useState(false);
   const [pwInput, setPwInput] = useState("");
   const [pwError, setPwError] = useState(false);
@@ -64,7 +65,13 @@ export function GradingStandards() {
   };
 
   const handleModeChange = (m: Mode) => {
-    if (m === "multi-standard") { setPwPrompt(true); return; }
+    if (m === "multi-standard") {
+      if (!pwUnlocked) { setPwPrompt(true); return; }
+      // Already unlocked this session — switch directly and clear selections
+      setMode("multi-standard");
+      setSelected(new Set());
+      return;
+    }
     setMode(m);
     if (m === "single") {
       // In single mode carry at most one item — keep primary if selected, else first selected, else nothing
@@ -85,6 +92,7 @@ export function GradingStandards() {
   const confirmPassword = () => {
     if (pwInput === "vccs") {
       setMode("multi-standard");
+      setPwUnlocked(true);
       // Clear all selections on entry — operator must choose deliberately in this mode
       setSelected(new Set());
       setPwPrompt(false);
