@@ -27,6 +27,8 @@ export function GradingStandards() {
   const [mode, setMode] = useState<Mode>("single");
   const [selected, setSelected] = useState<Set<StandardKey>>(new Set());
   const [primary, setPrimary] = useState<StandardKey>(DEFAULT_PRIMARY);
+  const [repeatEnabled, setRepeatEnabled] = useState(false);
+  const [repeatCount, setRepeatCount] = useState(10);
   const [pwUnlocked, setPwUnlocked] = useState(false);
   const [pwPrompt, setPwPrompt] = useState(false);
   const [pwInput, setPwInput] = useState("");
@@ -227,6 +229,53 @@ export function GradingStandards() {
               </div>
             </div>
           ))}
+
+          {/* Repeatability Analysis — Single mode only */}
+          {mode === "single" && (
+            <div className="border border-[#c0c0c0]">
+              <div className="bg-[#e8e8e8] border-b border-[#c0c0c0] px-3 py-1 flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#333] uppercase tracking-wider">
+                  Repeatability Analysis
+                </span>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={repeatEnabled}
+                    onChange={e => setRepeatEnabled(e.target.checked)}
+                    className="accent-[#1a5fa8] w-3.5 h-3.5"
+                  />
+                  <span className="text-xs text-[#444] normal-case tracking-normal font-normal">Enable</span>
+                </label>
+              </div>
+              <div
+                className="px-4 py-3 flex items-start gap-6"
+                style={!repeatEnabled ? { opacity: 0.45, pointerEvents: "none" } : undefined}
+              >
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs text-[#444] font-medium">Iterations</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={2}
+                      max={50}
+                      value={repeatCount}
+                      onChange={e => setRepeatCount(Math.max(2, Math.min(50, Number(e.target.value))))}
+                      className="w-16 border border-[#adadad] px-2 py-1 text-sm text-center focus:outline-none focus:border-[#1a5fa8]"
+                    />
+                    <span className="text-xs text-[#888]">( 2 – 50 )</span>
+                  </div>
+                </div>
+                <div className="flex-1 pt-0.5">
+                  <p className="text-xs text-[#666] italic leading-relaxed">
+                    Re-grades the stored image <strong className="not-italic text-[#444]">{repeatCount}×</strong> using
+                    the selected standard. Each run uses IMAGE.REPLAY on identical pixel data.
+                    A deviation report is generated at the end flagging any parameter whose grade
+                    differs across runs — indicating a threshold-border condition in the grading algorithm.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Status bar */}
           <div className="bg-[#f0f4fa] border border-[#c8d8ee] px-3 py-2 text-xs text-[#1a5fa8]">
