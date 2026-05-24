@@ -82,6 +82,11 @@ export function GradingStandards() {
   const confirmPassword = () => {
     if (pwInput === "vccs") {
       setMode("multi-standard");
+      // Drop any Linear selections — 15416 is not applicable in Multi-Standard mode
+      const withoutLinear = new Set(Array.from(selected).filter(k => familyOf(k) !== "Linear"));
+      if (withoutLinear.size === 0) withoutLinear.add("2D-2024");
+      setSelected(withoutLinear);
+      if (!withoutLinear.has(primary)) setPrimary(Array.from(withoutLinear)[0]);
       setPwPrompt(false);
       setPwInput("");
       setPwError(false);
@@ -90,8 +95,12 @@ export function GradingStandards() {
     }
   };
 
+  const isFamilyBlocked = (fam: string) =>
+    mode === "multi-standard" && fam === "Linear";
+
   const isDisabled = (k: StandardKey) => {
     if (mode === "single") return false;
+    if (isFamilyBlocked(familyOf(k)!)) return true;
     if (mode === "multi-version") {
       const fam = familyOf(k)!;
       const selectedFamilies = new Set(Array.from(selected).map(s => familyOf(s)));
@@ -161,10 +170,15 @@ export function GradingStandards() {
                   {family === "2D"     && "2D Matrix  ·  ISO/IEC 15415"}
                   {family === "DPM"    && "DPM  ·  ISO/IEC 29158"}
                 </span>
+                {isFamilyBlocked(family) && (
+                  <span className="ml-3 text-[10px] text-[#999] italic normal-case tracking-normal">
+                    not applicable in Multi-Standard mode
+                  </span>
+                )}
               </div>
-              <div className="px-4 py-3 flex gap-10">
+              <div className={`px-4 py-3 flex gap-10 ${isFamilyBlocked(family) ? "opacity-35 pointer-events-none" : ""}`}>
                 {keys.map(k => {
-                  const dis = isDisabled(k) && !selected.has(k);
+                  const dis = isDisabled(k);
                   const isPrim = primary === k && selected.size > 1;
                   const showPrim = mode !== "single" && selected.has(k) && selected.size > 1;
                   return (
