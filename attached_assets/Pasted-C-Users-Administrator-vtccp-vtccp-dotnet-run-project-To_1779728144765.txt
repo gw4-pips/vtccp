@@ -1,0 +1,123 @@
+C:\Users\Administrator\vtccp\vtccp>dotnet run --project Tools\RepeatabilityRunner -- 10.10.10.7 44444 50 "C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg"
+╔══════════════════════════════════════════════════════════════════╗
+║  VTCCP Repeatability Runner                                      ║
+║  Target : 10.10.10.7:44444
+║  Reps   : 50
+║  Image  : C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg
+╚══════════════════════════════════════════════════════════════════╝
+
+Connecting to device...  OK
+  Model    : DM475
+  Name     : DM475-63530E-PIPS-Verif-Lab
+  Serial   : 1A1903PP010754
+  Firmware : 6.1.16_sr4
+
+Each rep performs IMAGE.LOAD + IMAGE.REPLAY on the provided file.
+No physical trigger required. Device acts as a pure grading engine.
+
+#     Timestamp       ms      Formal Grade         UEC%     SC%      ANU%      GNU%      FPD     MOD   RM    DECODE
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+1     12:54:52.989   121     TIMEOUT / NO READ
+2     12:54:53.119   3       TIMEOUT / NO READ
+3     12:54:53.122   2       TIMEOUT / NO READ
+4     12:54:53.124   2       TIMEOUT / NO READ
+5     12:54:53.127   3       TIMEOUT / NO READ
+6     12:54:53.130   3       TIMEOUT / NO READ
+7     12:54:53.134   2       TIMEOUT / NO READ
+8     12:54:53.137   2       TIMEOUT / NO READ
+9     12:54:53.139   2       TIMEOUT / NO READ
+10    12:54:53.142   2       TIMEOUT / NO READ
+11    12:54:53.144   2       TIMEOUT / NO READ
+12    12:54:53.146   2       TIMEOUT / NO READ
+13    12:54:53.149   2       TIMEOUT / NO READ
+14    12:54:53.151   2       TIMEOUT / NO READ
+15    12:54:53.153   2       TIMEOUT / NO READ
+16    12:54:53.155   4       TIMEOUT / NO READ
+17    12:54:53.160   3       TIMEOUT / NO READ
+18    12:54:53.163   3       TIMEOUT / NO READ
+19    12:54:53.167   2       TIMEOUT / NO READ
+20    12:54:53.169   2       TIMEOUT / NO READ
+21    12:54:53.172   2       TIMEOUT / NO READ
+22    12:54:53.174   2       TIMEOUT / NO READ
+23    12:54:53.177   2       TIMEOUT / NO READ
+24    12:54:53.179   2       TIMEOUT / NO READ
+25    12:54:53.182   2       TIMEOUT / NO READ
+26    12:54:53.184   2       TIMEOUT / NO READ
+27    12:54:53.186   2       TIMEOUT / NO READ
+28    12:54:53.188   2       TIMEOUT / NO READ
+29    12:54:53.190   3       TIMEOUT / NO READ
+30    12:54:53.194   7       TIMEOUT / NO READ
+31    12:54:53.201   2       TIMEOUT / NO READ
+32    12:54:53.204   2       TIMEOUT / NO READ
+33    12:54:53.207   3       TIMEOUT / NO READ
+34    12:54:53.211   2       TIMEOUT / NO READ
+35    12:54:53.214   3       TIMEOUT / NO READ
+36    12:54:53.217   2       TIMEOUT / NO READ
+37    12:54:53.220   3       TIMEOUT / NO READ
+38    12:54:53.224   2       TIMEOUT / NO READ
+39    12:54:53.227   3       TIMEOUT / NO READ
+40    12:54:53.230   2       TIMEOUT / NO READ
+41    12:54:53.233   2       TIMEOUT / NO READ
+42    12:54:53.235   2       TIMEOUT / NO READ
+43    12:54:53.237   2       TIMEOUT / NO READ
+44    12:54:53.240   2       TIMEOUT / NO READ
+45    12:54:53.242   2       TIMEOUT / NO READ
+46    12:54:53.244   7       TIMEOUT / NO READ
+47    12:54:53.252   4       TIMEOUT / NO READ
+48    12:54:53.257   4       TIMEOUT / NO READ
+49    12:54:53.261   390     1.0/**/660/45Q       41.7%    83.0%    11.10%    8.60%     —       A/4.0 C/2.0 A/4.0
+50    12:54:53.654   17      1.0/**/660/45Q       41.7%    83.0%    11.20%    9.30%     —       A/4.0 C/2.0 A/4.0
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+══ TIMING ══════════════════════════════════════════════════════════
+  Completed : 2/50 reps
+  Total     : 407 ms (0.4 s)
+  Per rep   : avg=203 ms   min=17 ms   max=390 ms
+
+══ DEVIATION REPORT ════════════════════════════════════════════════
+  Each parameter is checked across all 2 successful reps.
+  ★ = value changed at least once.  Values shown as: value×count
+
+  Parameter                Status     Values
+  ────────────────────────────────────────────────────────────────────────────────
+    FormalGrade              STABLE     1.0/**/660/45Q
+    OverallGrade             STABLE     D/1.0
+    UEC_Grade                STABLE     C/2.0
+    UEC_Percent              STABLE     41.7000
+    SC_Grade                 STABLE     A/4.0
+    SC_Percent               STABLE     83.0000
+    MOD_Grade                STABLE     A/4.0
+    RM_Grade                 STABLE     C/2.0
+    ANU_Grade                STABLE     D/1.0
+  ★ ANU_Percent              ★ VARIES   11.100000×1  |  11.200000×1
+    GNU_Grade                STABLE     A/4.0
+  ★ GNU_Percent              ★ VARIES   8.600000×1  |  9.300000×1
+    FPD_Grade                STABLE     A/4.0
+    FPD_Value                STABLE     —
+    DECODE_Grade             STABLE     A/4.0
+    LLS_Grade                STABLE     A/4.0
+    BLS_Grade                STABLE     A/4.0
+    LQZ_Grade                STABLE     A/4.0
+    BQZ_Grade                STABLE     A/4.0
+    TQZ_Grade                STABLE     —
+    RQZ_Grade                STABLE     —
+    TTR_Grade                STABLE     —
+    TTR_Percent              STABLE     —
+    RTR_Grade                STABLE     —
+    RTR_Percent              STABLE     —
+    TCT_Grade                STABLE     —
+    RCT_Grade                STABLE     —
+    ErrorsCorrected          STABLE     7
+    ErrorCapacityUsed        STABLE     14
+    DataCodewords            STABLE     32
+    ErrorCorrectionBudget    STABLE     24
+
+  ★ DEVIATION DETECTED — see flagged parameters above.
+    Variation across IMAGE.REPLAY on identical pixels indicates
+    non-determinism in the firmware grading algorithm.
+
+  Run started : 2026-05-25 12:54:52.989
+  Run ended   : 2026-05-25 12:54:53.654
+
+
+C:\Users\Administrator\vtccp\vtccp>

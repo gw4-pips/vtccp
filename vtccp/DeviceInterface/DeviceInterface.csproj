@@ -12,6 +12,12 @@
     <ProjectReference Include="..\ExcelEngine\ExcelEngine.csproj" />
   </ItemGroup>
 
+  <!-- System.Drawing.Common — required for Bitmap-based image loading
+       in TryLoadImageViaReflection (Windows only; same constraint as SDK). -->
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
+
   <!-- Cognex DataMan SDK — ships with DataMan Software (DMST).
        Port 44444 binary protocol; replaces our raw ASCII DmccClient. -->
   <ItemGroup>

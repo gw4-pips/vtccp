@@ -339,12 +339,20 @@ public sealed class DataManSdkClient : IAsyncDisposable
             bool loaded = await Task.Run(() => TryLoadImageViaReflection(filePath), ct);
             System.Diagnostics.Debug.WriteLine($"[VTCCP-D4] TryLoadImage: loaded={loaded}");
 
+            // Give the device time to ingest the image before firing IMAGE.REPLAY.
+            // Without this delay the device rejects IMAGE.REPLAY even when LoadImage
+            // returns true, because the firmware-side buffer is not yet ready.
+            if (loaded)
+                await Task.Delay(400, ct);
+
             // Send IMAGE.REPLAY to fire TruCheck on the loaded image.
             // Result arrives asynchronously via XmlResultArrived — not the SendAsync body.
             var replayResp = await SendAsync(DmccCommand.ImageReplay, ct);
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-D4] IMAGE.REPLAY → code={replayResp.StatusCode} body='{replayResp.Body}'");
 
+            // Abort only when BOTH failed: if LoadImage succeeded we always wait,
+            // because the XmlResultArrived event will fire even if REPLAY status is non-zero.
             if (!loaded && replayResp.StatusCode != 0)
             {
                 System.Diagnostics.Debug.WriteLine(
