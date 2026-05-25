@@ -289,14 +289,11 @@ public sealed class DataManSdkClient : IAsyncDisposable
     /// sends <c>IMAGE.REPLAY</c> to fire TruCheck verification on the loaded image,
     /// and waits for the result to arrive via <c>XmlResultArrived</c>.
     ///
-    /// Image load strategy: discovers and calls the SDK's <c>LoadImage</c> method
-    /// via reflection (to avoid a compile-time dependency on the Windows-only SDK
-    /// on Linux build agents).  All candidate methods on DataManSystem are logged
-    /// at debug verbosity so the correct overload can be confirmed on first
-    /// device run if reflection fails.
-    ///
-    /// IMAGE.REPLAY is sent regardless — on fw 6.1.16_sr4 the device may accept
-    /// it even if our LoadImage call failed (e.g. it queues on the SDK-loaded image).
+    /// Image load strategy: reads the file as raw bytes and passes them to
+    /// <c>DataManSystem.SendCommand("IMAGE.LOAD", bytes)</c> via reflection,
+    /// avoiding a compile-time dependency on the Windows-only Cognex SDK on
+    /// Linux build agents.  The SDK's SendCommand(String, Byte[]) overload is
+    /// the correct mechanism — no LoadImage method exists on DataManSystem.
     ///
     /// D4 result discriminator (confirmed scan #13, 2026-05-24):
     ///   • ContrastUniformity = -1, MRD = -1  →  OpticsSource = "LoadedImage"
@@ -335,28 +332,22 @@ public sealed class DataManSdkClient : IAsyncDisposable
         _system!.XmlResultArrived += xmlHandler;
         try
         {
-            // Load image into device buffer via SDK reflection.
-            bool loaded = await Task.Run(() => TryLoadImageViaReflection(filePath), ct);
-            System.Diagnostics.Debug.WriteLine($"[VTCCP-D4] TryLoadImage: loaded={loaded}");
+            // Load image into device buffer: read file as bytes, send via SDK.
+            bool loaded = await Task.Run(() => TrySendImageViaCommand(filePath), ct);
 
-            // Give the device time to ingest the image before firing IMAGE.REPLAY.
-            // Without this delay the device rejects IMAGE.REPLAY even when LoadImage
-            // returns true, because the firmware-side buffer is not yet ready.
+            // Give the device firmware time to ingest the image before IMAGE.REPLAY.
             if (loaded)
                 await Task.Delay(400, ct);
 
             // Send IMAGE.REPLAY to fire TruCheck on the loaded image.
             // Result arrives asynchronously via XmlResultArrived — not the SendAsync body.
             var replayResp = await SendAsync(DmccCommand.ImageReplay, ct);
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-D4] IMAGE.REPLAY → code={replayResp.StatusCode} body='{replayResp.Body}'");
 
-            // Abort only when BOTH failed: if LoadImage succeeded we always wait,
-            // because the XmlResultArrived event will fire even if REPLAY status is non-zero.
+            // Abort only when both steps failed — if load succeeded, always wait for the event.
             if (!loaded && replayResp.StatusCode != 0)
             {
-                System.Diagnostics.Debug.WriteLine(
-                    "[VTCCP-D4] LoadImage + IMAGE.REPLAY both failed — aborting wait.");
+                Console.Error.WriteLine(
+                    $"[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code={replayResp.StatusCode}).");
                 tcs.TrySetResult(null);
             }
 
@@ -443,116 +434,48 @@ public sealed class DataManSdkClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// Discovers the SDK's LoadImage method via reflection and calls it with a
-    /// Bitmap constructed from <paramref name="filePath"/>.
+    /// Reads <paramref name="filePath"/> as raw bytes and sends them to the device
+    /// via <c>DataManSystem.SendCommand("IMAGE.LOAD", bytes)</c>.
     ///
-    /// System.Drawing.Bitmap is resolved at runtime (not compile-time) so this
-    /// file compiles on non-Windows build agents.  All image/load-related methods
-    /// found on DataManSystem are logged to Debug output to aid discovery of the
-    /// correct overload on first device run.
+    /// Confirmed 2026-05-25: DataManSystem has no LoadImage method.
+    /// SendCommand(String, Byte[]) is the correct SDK mechanism for binary image upload.
     ///
-    /// Returns true if LoadImage was called without throwing; false otherwise.
+    /// Returns true if the call succeeded without throwing; false otherwise.
     /// </summary>
-    private static bool _sdkMethodsLogged = false;
-
-    private bool TryLoadImageViaReflection(string filePath)
+    private bool TrySendImageViaCommand(string filePath)
     {
-        var systemType = _system!.GetType();
-
-        // On first call only: print all image/load-related methods to stderr so the
-        // correct overload can be confirmed from console output (Debug.WriteLine is
-        // invisible in a console app without an attached debugger).
-        if (!_sdkMethodsLogged)
-        {
-            _sdkMethodsLogged = true;
-            var candidates = systemType.GetMethods()
-                .Where(m => m.Name.Contains("Load", StringComparison.OrdinalIgnoreCase)
-                         || m.Name.Contains("Image", StringComparison.OrdinalIgnoreCase)
-                         || m.Name.Contains("Send",  StringComparison.OrdinalIgnoreCase))
-                .Select(m => $"  {m.Name}({string.Join(", ", m.GetParameters().Select(p => p.ParameterType.Name))})")
-                .Distinct()
-                .OrderBy(s => s);
-            Console.Error.WriteLine("[VTCCP-D4] DataManSystem image/load/send methods:");
-            foreach (var c in candidates) Console.Error.WriteLine(c);
-        }
-
-        // Resolve System.Drawing.Bitmap at runtime to avoid compile-time dep on Windows-only assembly.
-        Type? bitmapType =
-            Type.GetType("System.Drawing.Bitmap, System.Drawing.Common") ??
-            Type.GetType("System.Drawing.Bitmap, System.Drawing");
-
-        if (bitmapType is null)
-        {
-            Console.Error.WriteLine(
-                "[VTCCP-D4] FAIL: System.Drawing.Bitmap not resolvable — " +
-                "add System.Drawing.Common package or use a different image-load path.");
-            return false;
-        }
-        Console.Error.WriteLine($"[VTCCP-D4] Bitmap type resolved: {bitmapType.AssemblyQualifiedName}");
-
-        // Construct Bitmap from file path.
-        object? bitmap;
+        byte[] imageBytes;
         try
         {
-            var ctor = bitmapType.GetConstructor([typeof(string)]);
-            bitmap   = ctor?.Invoke([filePath]);
+            imageBytes = File.ReadAllBytes(filePath);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[VTCCP-D4] File read failed: {ex.Message}");
+            return false;
+        }
+
+        // Resolve SendCommand(String, Byte[]) via reflection (no compile-time SDK dep on Linux).
+        var sendMethod = _system!.GetType()
+            .GetMethod("SendCommand", [typeof(string), typeof(byte[])]);
+
+        if (sendMethod is null)
+        {
+            Console.Error.WriteLine("[VTCCP-D4] SendCommand(String, Byte[]) not found on DataManSystem.");
+            return false;
+        }
+
+        try
+        {
+            sendMethod.Invoke(_system, ["IMAGE.LOAD", imageBytes]);
+            return true;
         }
         catch (Exception ex)
         {
             Console.Error.WriteLine(
-                $"[VTCCP-D4] FAIL: Bitmap(\"{filePath}\") ctor threw: {ex.InnerException?.Message ?? ex.Message}");
+                $"[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: {ex.InnerException?.Message ?? ex.Message}");
             return false;
         }
-
-        if (bitmap is null)
-        {
-            Console.Error.WriteLine("[VTCCP-D4] FAIL: Bitmap ctor returned null.");
-            return false;
-        }
-        Console.Error.WriteLine($"[VTCCP-D4] Bitmap constructed OK ({bitmapType.Name}).");
-
-        // Try LoadImage(Bitmap) — exact type match first.
-        try
-        {
-            var loadMethod = systemType.GetMethod("LoadImage", [bitmapType]);
-            if (loadMethod is not null)
-            {
-                loadMethod.Invoke(_system, [bitmap]);
-                Console.Error.WriteLine($"[VTCCP-D4] LoadImage({bitmapType.Name}) invoked OK.");
-                return true;
-            }
-            Console.Error.WriteLine($"[VTCCP-D4] LoadImage({bitmapType.Name}) — method not found.");
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(
-                $"[VTCCP-D4] LoadImage({bitmapType.Name}) threw: {ex.InnerException?.Message ?? ex.Message}");
-        }
-
-        // Try any single-parameter LoadImage overload (Image, object, etc.).
-        foreach (var method in systemType.GetMethods().Where(m => m.Name == "LoadImage"))
-        {
-            var parms = method.GetParameters();
-            if (parms.Length != 1) continue;
-            try
-            {
-                method.Invoke(_system, [bitmap]);
-                Console.Error.WriteLine(
-                    $"[VTCCP-D4] LoadImage({parms[0].ParameterType.Name}) invoked OK.");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine(
-                    $"[VTCCP-D4] LoadImage({parms[0].ParameterType.Name}) threw: " +
-                    $"{ex.InnerException?.Message ?? ex.Message}");
-            }
-        }
-
-        Console.Error.WriteLine(
-            "[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. " +
-            "See method list above — update TryLoadImageViaReflection with the correct name.");
-        return false;
     }
 
     // ── Diagnostic: raw SYMBOL.RESULT probe ──────────────────────────────────

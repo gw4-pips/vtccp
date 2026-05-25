@@ -1,0 +1,307 @@
+
+Build succeeded in 3.2s
+
+C:\Users\Administrator\vtccp\vtccp>dotnet run --project Tools\RepeatabilityRunner -- 10.10.10.7 44444 50 "C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg"
+╔══════════════════════════════════════════════════════════════════╗
+║  VTCCP Repeatability Runner                                      ║
+║  Target : 10.10.10.7:44444
+║  Reps   : 50
+║  Image  : C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg
+╚══════════════════════════════════════════════════════════════════╝
+
+Connecting to device...  OK
+  Model    : DM475
+  Name     : DM475-63530E-PIPS-Verif-Lab
+  Serial   : 1A1903PP010754
+  Firmware : 6.1.16_sr4
+
+Each rep performs IMAGE.LOAD + IMAGE.REPLAY on the provided file.
+No physical trigger required. Device acts as a pure grading engine.
+
+#     Timestamp       ms      Formal Grade         UEC%     SC%      ANU%      GNU%      FPD     MOD   RM    DECODE
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[VTCCP-D4] DataManSystem image/load/send methods:
+  add_ImageArrived(ImageArrivedHandler)
+  add_ImageGraphicsArrived(ImageGraphicsArrivedHandler)
+  BeginGetBufferedImage(Int32, ImageFormat, ImageSize, ImageQuality, AsyncCallback, Object)
+  BeginGetLastReadImage(AsyncCallback, Object)
+  BeginGetLiveImage(ImageFormat, ImageSize, ImageQuality, AsyncCallback, Object)
+  BeginSendCommand(String, AsyncCallback, Object)
+  BeginUploadFeatureKey(String, AsyncCallback, Object)
+  EndGetBufferedImage(IAsyncResult)
+  EndGetLastReadImage(IAsyncResult)
+  EndGetLiveImage(IAsyncResult)
+  EndSendCommand(IAsyncResult)
+  EndUploadFeatureKey(IAsyncResult)
+  GetBufferedImage(Int32, ImageFormat, ImageSize, ImageQuality)
+  GetLastReadImage()
+  GetLiveImage(ImageFormat, ImageSize, ImageQuality)
+  remove_ImageArrived(ImageArrivedHandler)
+  remove_ImageGraphicsArrived(ImageGraphicsArrivedHandler)
+  SendCommand(String, Byte[], Int32)
+  SendCommand(String, Byte[])
+  SendCommand(String, Int32)
+  SendCommand(String)
+  SendCommandWithExpectedBinaryResult(String, Byte[], Int32)
+  SendCommandWithExpectedBinaryResult(String, Byte[])
+  SendCommandWithExpectedBinaryResult(String, Int32)
+  SendCommandWithExpectedBinaryResult(String)
+  UploadFeatureKey(String)
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+1     13:07:51.780   42      TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+2     13:07:51.832   3       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+3     13:07:51.835   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+4     13:07:51.838   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+5     13:07:51.841   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+6     13:07:51.843   4       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+7     13:07:51.848   5       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+8     13:07:51.854   5       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+9     13:07:51.860   3       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+10    13:07:51.863   3       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+11    13:07:51.866   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+12    13:07:51.868   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+13    13:07:51.870   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+14    13:07:51.873   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+15    13:07:51.875   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+16    13:07:51.878   4       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+17    13:07:51.883   4       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+18    13:07:51.887   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+19    13:07:51.890   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+20    13:07:51.893   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+21    13:07:51.896   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+22    13:07:51.898   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+23    13:07:51.901   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+24    13:07:51.903   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+25    13:07:51.906   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+26    13:07:51.908   4       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+27    13:07:51.913   3       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+28    13:07:51.917   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+29    13:07:51.920   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+30    13:07:51.922   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+31    13:07:51.925   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+32    13:07:51.927   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+33    13:07:51.929   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+34    13:07:51.931   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+35    13:07:51.934   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+36    13:07:51.936   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+37    13:07:51.938   4       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+38    13:07:51.943   3       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+39    13:07:51.947   3       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+40    13:07:51.950   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+41    13:07:51.953   3       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+42    13:07:51.956   3       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+43    13:07:51.959   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+44    13:07:51.962   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+45    13:07:51.965   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+46    13:07:51.967   2       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+47    13:07:51.970   4       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+48    13:07:51.975   4       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+49    13:07:51.980   5       TIMEOUT / NO READ
+[VTCCP-D4] Bitmap type resolved: System.Drawing.Bitmap, System.Drawing.Common, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+[VTCCP-D4] Bitmap constructed OK (Bitmap).
+[VTCCP-D4] LoadImage(Bitmap) — method not found.
+[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. See method list above — update TryLoadImageViaReflection with the correct name.
+50    13:07:51.985   3       TIMEOUT / NO READ
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+══ TIMING ══════════════════════════════════════════════════════════
+  Completed : 0/50 reps
+  Total     : 0 ms (0.0 s)
+  Per rep   : avg=0 ms   min=0 ms   max=0 ms
+
+No successful reps — cannot generate deviation report.
