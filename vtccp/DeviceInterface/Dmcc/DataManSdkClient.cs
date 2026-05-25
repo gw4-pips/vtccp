@@ -443,65 +443,96 @@ public sealed class DataManSdkClient : IAsyncDisposable
     /// </summary>
     private bool TrySendImageViaCommand(string filePath)
     {
-        // Resolve SendCommand(String, Byte[]) via reflection (no compile-time SDK dep on Linux).
-        var sendMethod = _system!.GetType()
-            .GetMethod("SendCommand", [typeof(string), typeof(byte[])]);
+        // The DMCC guide confirms IMAGE.LOAD / IMAGE.REPLAY are SDK-level operations
+        // exposed via IDataManSystem.SendImage() — NOT via SendCommand(String, Byte[]).
+        // Use reflection so this code compiles on Linux without the Windows-only SDK.
 
-        if (sendMethod is null)
+        var type = _system!.GetType();
+
+        // Dump all SendImage overloads on first call so we can see the exact signature.
+        var allSendImage = type.GetMethods()
+            .Where(m => m.Name == "SendImage")
+            .ToArray();
+
+        if (allSendImage.Length == 0)
         {
-            Console.Error.WriteLine("[VTCCP-D4] SendCommand(String, Byte[]) not found on DataManSystem.");
+            Console.Error.WriteLine("[VTCCP-D4] No SendImage method found on DataManSystem. Available methods:");
+            foreach (var m in type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                                   .Where(m => !m.IsSpecialName)
+                                   .OrderBy(m => m.Name))
+                Console.Error.WriteLine($"  {m.ReturnType.Name} {m.Name}({string.Join(", ", m.GetParameters().Select(p => p.ParameterType.Name + " " + p.Name))})");
             return false;
         }
 
-        // The SDK's SendCommand("IMAGE.LOAD", Byte[]) throws InvalidParameterException on raw JPEG bytes.
-        // DMST (Windows/GDI) converts images to BMP before passing to the SDK.  Try BMP first, then
-        // the other common formats the Cognex firmware may accept, then fall back to raw file bytes.
-        //
-        // "SET IMAGE.LOAD" gives InvalidCommandException (not a recognised command name for the binary
-        // overload), so only "IMAGE.LOAD" is tried here.
-        //
-        // Byte-format order: BMP → PNG → raw JPEG (original file bytes).
-        var candidates = new List<(string label, Func<byte[]> getBytes)>
+        foreach (var mi in allSendImage)
         {
-            ("BMP",  () =>
-            {
-                using var bmp = new System.Drawing.Bitmap(filePath);
-                using var ms  = new System.IO.MemoryStream();
-                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-                return ms.ToArray();
-            }),
-            ("PNG",  () =>
-            {
-                using var bmp = new System.Drawing.Bitmap(filePath);
-                using var ms  = new System.IO.MemoryStream();
-                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                return ms.ToArray();
-            }),
-            ("raw",  () => File.ReadAllBytes(filePath)),
-        };
+            var parms = mi.GetParameters();
+            Console.Error.WriteLine(
+                $"[VTCCP-D4] SendImage overload: ({string.Join(", ", parms.Select(p => p.ParameterType.Name + " " + p.Name))})");
+        }
 
-        foreach (var (label, getBytes) in candidates)
+        // ── Try SendImage(Bitmap) ─────────────────────────────────────────────
+        var sendImageBmp = allSendImage.FirstOrDefault(m =>
         {
-            byte[] imageBytes;
-            try   { imageBytes = getBytes(); }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"[VTCCP-D4] Image encode ({label}) failed: {ex.Message}");
-                continue;
-            }
+            var p = m.GetParameters();
+            return p.Length == 1 && p[0].ParameterType.Name == "Bitmap";
+        });
 
+        if (sendImageBmp is not null)
+        {
             try
             {
-                sendMethod.Invoke(_system, ["IMAGE.LOAD", imageBytes]);
-                Console.Error.WriteLine($"[VTCCP-D4] SendCommand(IMAGE.LOAD, {label}, {imageBytes.Length} bytes) OK");
+                using var bmp = new System.Drawing.Bitmap(filePath);
+                sendImageBmp.Invoke(_system, [bmp]);
+                Console.Error.WriteLine("[VTCCP-D4] SendImage(Bitmap) OK");
                 return true;
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine(
-                    $"[VTCCP-D4] SendCommand(IMAGE.LOAD, {label}) failed: {ex.InnerException?.Message ?? ex.Message}");
+                    $"[VTCCP-D4] SendImage(Bitmap) failed: {ex.InnerException?.Message ?? ex.Message}");
             }
         }
+
+        // ── Try SendImage(byte[]) ─────────────────────────────────────────────
+        var sendImageBytes = allSendImage.FirstOrDefault(m =>
+        {
+            var p = m.GetParameters();
+            return p.Length == 1 && p[0].ParameterType == typeof(byte[]);
+        });
+
+        if (sendImageBytes is not null)
+        {
+            foreach (var (label, fmt) in new[]
+            {
+                ("BMP", System.Drawing.Imaging.ImageFormat.Bmp),
+                ("PNG", System.Drawing.Imaging.ImageFormat.Png),
+            })
+            {
+                try
+                {
+                    using var bmp = new System.Drawing.Bitmap(filePath);
+                    using var ms  = new System.IO.MemoryStream();
+                    bmp.Save(ms, fmt);
+                    sendImageBytes.Invoke(_system, [ms.ToArray()]);
+                    Console.Error.WriteLine($"[VTCCP-D4] SendImage(byte[], {label}) OK");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine(
+                        $"[VTCCP-D4] SendImage(byte[], {label}) failed: {ex.InnerException?.Message ?? ex.Message}");
+                }
+            }
+        }
+
+        // ── Try any remaining SendImage overload with a single argument ───────
+        foreach (var mi in allSendImage.Where(m => m.GetParameters().Length == 1))
+        {
+            var p0 = mi.GetParameters()[0];
+            Console.Error.WriteLine($"[VTCCP-D4] Unhandled SendImage overload: ({p0.ParameterType.FullName} {p0.Name}) — skipped");
+        }
+
         return false;
     }
 
