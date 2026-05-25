@@ -25,6 +25,7 @@ public sealed class DeviceSession : IAsyncDisposable
     private readonly DataManSdkClient   _client;
     private DmstListener?               _listener;
     private DmstHtmlScraper?            _scraper;
+    private HttpEventSubscriber?        _httpSubscriber;
     private bool                        _disposed;
 
     /// <summary>
@@ -177,6 +178,12 @@ public sealed class DeviceSession : IAsyncDisposable
             }
         }
 
+        if (_httpSubscriber is not null)
+        {
+            await _httpSubscriber.StopAsync();
+            _httpSubscriber = null;
+        }
+
         _scraper?.Stop();
         _scraper = null;
 
@@ -291,6 +298,108 @@ public sealed class DeviceSession : IAsyncDisposable
         if (_listener is null) return;
         await _listener.StopAsync();
         _listener = null;
+    }
+
+    // ── HTTP event subscriber mode ────────────────────────────────────────────
+
+    /// <summary>
+    /// (HTTP subscriber mode) Opens a raw TCP connection to the device on the DMCC
+    /// port and subscribes to the device's HTTP event push stream.
+    ///
+    /// This mode delivers complete scan results — including all HTML supplemental
+    /// fields (ECLevel, DataMaskPattern, ECI, ImagePolarity, DataCodewords,
+    /// ErrorCorrectionBudget, EncodedCharacters) — with zero DMST dependency.
+    /// The device pushes results directly to VTCCP over the same port 44444 used
+    /// for DMCC, multiplexed by connection intent.
+    ///
+    /// Result flow (all on one Keep-Alive TCP connection):
+    ///   PUT /pcm_report.html  →  DmstHtmlScraper.ParseHtml()  →  _pendingHtml
+    ///   PUT /codes.xml        →  DmstResultParser.Parse() + MergeAndValidate()
+    ///                         →  ResultReceived raised on thread pool
+    ///
+    /// When this subscriber is running, <see cref="StartPushListenerAsync"/> and
+    /// <see cref="TriggerAndGetResultAsync"/> are not needed for result delivery.
+    /// The HTML scraper (<see cref="DmstHtmlScraper"/>) is harmless alongside it
+    /// (it simply watches the filesystem; the subscriber enriches records inline).
+    ///
+    /// Safe to call if already running — returns immediately.
+    /// </summary>
+    public async Task StartHttpSubscriberAsync(
+        VerificationRecord? sessionContext = null,
+        CancellationToken   ct            = default)
+    {
+        ThrowIfDisposed();
+        if (_httpSubscriber?.IsRunning == true) return;
+
+        _httpSubscriber = new HttpEventSubscriber(
+            _cfg.Host,
+            _cfg.Port,
+            _map,
+            sessionContext ?? ContextFromDeviceInfo(),
+            rec => ResultReceived?.Invoke(this, rec));
+
+        await _httpSubscriber.StartAsync(ct);
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-SESSION] HTTP subscriber started on {_cfg.Host}:{_cfg.Port}.");
+    }
+
+    /// <summary>Stops the HTTP event subscriber if active.</summary>
+    public async Task StopHttpSubscriberAsync()
+    {
+        if (_httpSubscriber is null) return;
+        await _httpSubscriber.StopAsync();
+        _httpSubscriber = null;
+    }
+
+    // ── D4 Image Load ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// (D4 Image Load) Loads a locally-stored symbol image into the device's image
+    /// buffer and fires <c>IMAGE.REPLAY</c> to trigger a full TruCheck verification
+    /// pass on the loaded image.  Waits for and returns the parsed result record.
+    ///
+    /// The device performs the same ISO grading pipeline as a live scan, using the
+    /// stored pixels rather than a live camera frame.  OpticsSource is always
+    /// "LoadedImage" (CU=-1 / MRD=-1 discriminator, confirmed scan #13, 2026-05-24).
+    ///
+    /// Does NOT invoke TryMergeAsync — the HTML report written by DMST for a
+    /// loaded-image replay is not available on the filesystem in DMST-less mode.
+    /// If the HTTP subscriber is running, HTML supplemental fields arrive inline
+    /// from pcm_report.html and are merged automatically before ResultReceived fires.
+    ///
+    /// Use cases:
+    ///   • Re-verify a previously captured symbol image
+    ///   • Batch grading from an external image library (see Batch Upload feature log)
+    ///   • Repeatability analysis on a fixed stored image
+    ///
+    /// Returns null on load failure, IMAGE.REPLAY rejection, or result timeout.
+    /// </summary>
+    public async Task<VerificationRecord?> LoadAndVerifyImageAsync(
+        string              imagePath,
+        VerificationRecord? sessionContext = null,
+        CancellationToken   ct            = default)
+    {
+        ThrowIfDisposed();
+        if (!_client.IsConnected)
+            throw new InvalidOperationException("Not connected. Call ConnectAsync() first.");
+
+        string? xml = await _client.LoadAndReplayImageAsync(imagePath, ct: ct);
+        if (string.IsNullOrWhiteSpace(xml)) return null;
+
+        var record = DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo());
+
+        // Force OpticsSource to "LoadedImage" — the parser derives this from
+        // CU=-1/MRD=-1, which is correct on fw 6.1.16_sr4, but make it explicit
+        // so callers can rely on it without knowledge of the discrimination logic.
+        if (record.OpticsSource != "LoadedImage")
+            record = record with { OpticsSource = "LoadedImage" };
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-D4] LoadAndVerifyImageAsync complete: " +
+            $"OpticsSource={record.OpticsSource}  Grade={record.OverallGrade}  " +
+            $"Symbology={record.Symbology}  Path='{imagePath}'");
+
+        return record;
     }
 
     // ── Diagnostic probes ────────────────────────────────────────────────────

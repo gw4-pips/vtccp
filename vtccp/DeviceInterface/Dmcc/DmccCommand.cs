@@ -55,6 +55,21 @@ public static class DmccCommand
     public const string GetSymbolResult   = "GET SYMBOL.RESULT";
 
     /// <summary>
+    /// Replays the most recently loaded image through TruCheck verification.
+    /// Sent after the SDK's LoadImage() call to fire a full grading pass on
+    /// the stored image buffer.  Result arrives via XmlResultArrived event.
+    ///
+    /// D4 Image Load sequence (confirmed from scans #11/#13, 2026-05-24):
+    ///   1. DataManSdkClient.LoadAndReplayImageAsync(filePath)
+    ///      a. SDK LoadImage(Bitmap) via reflection — loads pixels into device buffer
+    ///      b. DMCC IMAGE.REPLAY — fires TruCheck verification on loaded image
+    ///      c. Await XmlResultArrived — parse result (OpticsSource = "LoadedImage")
+    ///
+    /// Platforms: DM475V + DMV-8072V. Version: confirmed fw 6.1.16_sr4.
+    /// </summary>
+    public const string ImageReplay = "IMAGE.REPLAY";
+
+    /// <summary>
     /// Configures the result output format to the full XML report.
     /// Should be sent once after connection before polling GET SYMBOL.RESULT.
     /// </summary>

@@ -282,6 +282,196 @@ public sealed class DataManSdkClient : IAsyncDisposable
         }
     }
 
+    // ── D4 Image Load — LoadImage + IMAGE.REPLAY ─────────────────────────────
+
+    /// <summary>
+    /// Loads a locally-stored symbol image into the device's image buffer, then
+    /// sends <c>IMAGE.REPLAY</c> to fire TruCheck verification on the loaded image,
+    /// and waits for the result to arrive via <c>XmlResultArrived</c>.
+    ///
+    /// Image load strategy: discovers and calls the SDK's <c>LoadImage</c> method
+    /// via reflection (to avoid a compile-time dependency on the Windows-only SDK
+    /// on Linux build agents).  All candidate methods on DataManSystem are logged
+    /// at debug verbosity so the correct overload can be confirmed on first
+    /// device run if reflection fails.
+    ///
+    /// IMAGE.REPLAY is sent regardless — on fw 6.1.16_sr4 the device may accept
+    /// it even if our LoadImage call failed (e.g. it queues on the SDK-loaded image).
+    ///
+    /// D4 result discriminator (confirmed scan #13, 2026-05-24):
+    ///   • ContrastUniformity = -1, MRD = -1  →  OpticsSource = "LoadedImage"
+    ///   • r.image.exposureTime = 0, autoExposure = false  (secondary indicator)
+    ///
+    /// Returns the raw XML string, or null on timeout / load failure.
+    /// </summary>
+    public async Task<string?> LoadAndReplayImageAsync(
+        string            filePath,
+        int               timeoutMs = 30_000,
+        CancellationToken ct        = default)
+    {
+        ThrowIfDisposed();
+        if (!IsConnected)
+            throw new InvalidOperationException("Not connected. Call ConnectAsync() first.");
+
+        if (!File.Exists(filePath))
+        {
+            System.Diagnostics.Debug.WriteLine($"[VTCCP-D4] File not found: '{filePath}'");
+            return null;
+        }
+
+        var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        CognexSdk.XmlResultArrivedHandler xmlHandler = (_, args) =>
+        {
+            var prop = args.GetType().GetProperty("XmlResult")
+                    ?? args.GetType().GetProperty("Xml")
+                    ?? args.GetType().GetProperty("Result");
+            if (prop is null) DumpProps("[VTCCP-D4] XmlResultArrivedEventArgs", args);
+            string? xml = prop?.GetValue(args)?.ToString();
+            System.Diagnostics.Debug.WriteLine($"[VTCCP-D4] XmlResultArrived: {xml?.Length ?? 0} chars");
+            tcs.TrySetResult(xml);
+        };
+
+        _system!.XmlResultArrived += xmlHandler;
+        try
+        {
+            // Load image into device buffer via SDK reflection.
+            bool loaded = await Task.Run(() => TryLoadImageViaReflection(filePath), ct);
+            System.Diagnostics.Debug.WriteLine($"[VTCCP-D4] TryLoadImage: loaded={loaded}");
+
+            // Send IMAGE.REPLAY to fire TruCheck on the loaded image.
+            // Result arrives asynchronously via XmlResultArrived — not the SendAsync body.
+            var replayResp = await SendAsync(DmccCommand.ImageReplay, ct);
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-D4] IMAGE.REPLAY → code={replayResp.StatusCode} body='{replayResp.Body}'");
+
+            if (!loaded && replayResp.StatusCode != 0)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "[VTCCP-D4] LoadImage + IMAGE.REPLAY both failed — aborting wait.");
+                tcs.TrySetResult(null);
+            }
+
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(timeoutMs);
+            try
+            {
+                return await tcs.Task.WaitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("[VTCCP-D4] LoadAndReplayImage: timed out.");
+                return null;
+            }
+        }
+        finally
+        {
+            _system!.XmlResultArrived -= xmlHandler;
+        }
+    }
+
+    /// <summary>
+    /// Discovers the SDK's LoadImage method via reflection and calls it with a
+    /// Bitmap constructed from <paramref name="filePath"/>.
+    ///
+    /// System.Drawing.Bitmap is resolved at runtime (not compile-time) so this
+    /// file compiles on non-Windows build agents.  All image/load-related methods
+    /// found on DataManSystem are logged to Debug output to aid discovery of the
+    /// correct overload on first device run.
+    ///
+    /// Returns true if LoadImage was called without throwing; false otherwise.
+    /// </summary>
+    private bool TryLoadImageViaReflection(string filePath)
+    {
+        var systemType = _system!.GetType();
+
+        // Log every image/load-related method name for discovery (one-time cost on D4 path).
+        var candidates = systemType.GetMethods()
+            .Where(m => m.Name.Contains("Load", StringComparison.OrdinalIgnoreCase)
+                     || m.Name.Contains("Image", StringComparison.OrdinalIgnoreCase))
+            .Select(m => $"{m.Name}({string.Join(",", m.GetParameters().Select(p => p.ParameterType.Name))})")
+            .Distinct()
+            .ToArray();
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-D4] DataManSystem image/load methods: [{string.Join(", ", candidates)}]");
+
+        // Resolve System.Drawing.Bitmap at runtime to avoid compile-time dep on Windows-only assembly.
+        Type? bitmapType =
+            Type.GetType("System.Drawing.Bitmap, System.Drawing.Common") ??
+            Type.GetType("System.Drawing.Bitmap, System.Drawing");
+
+        if (bitmapType is null)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                "[VTCCP-D4] System.Drawing.Bitmap not resolvable at runtime — " +
+                "IMAGE.REPLAY will still be sent to trigger on last-loaded image.");
+            return false;
+        }
+
+        // Construct Bitmap from file path.
+        object? bitmap;
+        try
+        {
+            var ctor = bitmapType.GetConstructor([typeof(string)]);
+            bitmap   = ctor?.Invoke([filePath]);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-D4] Bitmap({filePath}) ctor failed: {ex.InnerException?.Message ?? ex.Message}");
+            return false;
+        }
+
+        if (bitmap is null)
+        {
+            System.Diagnostics.Debug.WriteLine("[VTCCP-D4] Bitmap ctor returned null.");
+            return false;
+        }
+
+        // Try LoadImage(Bitmap) — exact type match first.
+        try
+        {
+            var loadMethod = systemType.GetMethod("LoadImage", [bitmapType]);
+            if (loadMethod is not null)
+            {
+                loadMethod.Invoke(_system, [bitmap]);
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-D4] LoadImage({bitmapType.Name}) invoked OK for '{filePath}'.");
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-D4] LoadImage({bitmapType.Name}) threw: {ex.InnerException?.Message ?? ex.Message}");
+        }
+
+        // Try any single-parameter LoadImage overload (Image, object, etc.).
+        foreach (var method in systemType.GetMethods().Where(m => m.Name == "LoadImage"))
+        {
+            var parms = method.GetParameters();
+            if (parms.Length != 1) continue;
+            try
+            {
+                method.Invoke(_system, [bitmap]);
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-D4] LoadImage({parms[0].ParameterType.Name}) invoked OK for '{filePath}'.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-D4] LoadImage({parms[0].ParameterType.Name}) threw: " +
+                    $"{ex.InnerException?.Message ?? ex.Message}");
+            }
+        }
+
+        System.Diagnostics.Debug.WriteLine(
+            "[VTCCP-D4] No compatible LoadImage overload found or all threw. " +
+            "Confirm the correct method name from the log line above and update TryLoadImageViaReflection.");
+        return false;
+    }
+
     // ── Diagnostic: raw SYMBOL.RESULT probe ──────────────────────────────────
 
     /// <summary>

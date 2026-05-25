@@ -339,7 +339,7 @@ public sealed class DmstHtmlScraper : IDisposable
     /// The minified single-line HTML makes regex extraction reliable and fast.
     /// HtmlAgilityPack is not needed and has not been added as a dependency.
     /// </summary>
-    private static DmstHtmlReport ParseHtml(string htmlContent, string sourcePath)
+    internal static DmstHtmlReport ParseHtml(string htmlContent, string sourcePath)
     {
         try
         {
