@@ -207,6 +207,29 @@ public sealed class DmstHtmlScraper : IDisposable
         return record;
     }
 
+    // ── Diagnostic capture ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// When true, the first HTML report received is copied to
+    /// <see cref="DiagnosticCapturePath"/> before being deleted.
+    /// Set to true while ParseHtml is not yet implemented — lets the first live
+    /// sample be inspected without interrupting the normal scraper flow.
+    /// Set to false once ParseHtml is implemented and validated.
+    /// </summary>
+    public bool DiagnosticCaptureEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Path where the first captured HTML report is saved for inspection.
+    /// Default: {Documents}\VTCCP-Diagnostic\dmst_report_sample.html
+    /// Change before calling Start() if a different location is preferred.
+    /// </summary>
+    public string DiagnosticCapturePath { get; set; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+        "VTCCP-Diagnostic",
+        "dmst_report_sample.html");
+
+    private bool _diagnosticCaptured;
+
     // ── FileSystemWatcher callback ────────────────────────────────────────────
 
     private void OnFileCreated(object sender, FileSystemEventArgs e)
@@ -227,7 +250,27 @@ public sealed class DmstHtmlScraper : IDisposable
                     $"[VTCCP-SCRAPER] Parsed '{Path.GetFileName(e.FullPath)}': " +
                     $"ok={report.ParseSucceeded}, dt={report.ScanDateTime?.ToString("HH:mm:ss") ?? "null"}");
 
-                // Delete immediately — data is held in memory; file is transient.
+                // ── Diagnostic capture (first sample only) ──────────────────
+                // Preserves the raw HTML for parser implementation.
+                // Disable DiagnosticCaptureEnabled once ParseHtml is implemented.
+                if (DiagnosticCaptureEnabled && !_diagnosticCaptured)
+                {
+                    _diagnosticCaptured = true;
+                    try
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(DiagnosticCapturePath)!);
+                        File.Copy(e.FullPath, DiagnosticCapturePath, overwrite: true);
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[VTCCP-SCRAPER] Diagnostic copy saved → '{DiagnosticCapturePath}'");
+                    }
+                    catch (Exception copyEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[VTCCP-SCRAPER] Diagnostic copy failed: {copyEx.Message}");
+                    }
+                }
+
+                // Delete the transient DMST output — data is held in memory.
                 File.Delete(e.FullPath);
             }
             catch (Exception ex)
