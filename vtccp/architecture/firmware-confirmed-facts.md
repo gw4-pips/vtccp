@@ -2,7 +2,7 @@
 
 **Device**: DM475-63530E-PIPS-Verif-Lab
 **Firmware**: 6.1.16_sr4
-**Last updated**: 2026-05-25 (v1.33 device confirmed — probe campaign COMPLETE)
+**Last updated**: 2026-05-25 (Wireshark protocol analysis complete)
 **Status**: Living document — append new confirmed facts as probe results arrive.
 **Authority**: All entries are device-confirmed from actual push XML output or DMCC responses,
 not inferred from documentation.
@@ -657,3 +657,123 @@ C# lookup tables (ECC200 table for DM, QR size table for QR) because these were 
 **HTML report provides both values directly and authoritatively. C# table lookup is no longer
 needed for any HTML-correlated scan.** The table lookup remains as a fallback for scans where
 DMST is not running or the .html extension is not configured.
+
+---
+
+## 10. DMST-native wire protocol — Wireshark capture analysis (2026-05-25)
+
+**Source**: `vtccp/architecture/gui-reference/wireshark-dmst-full-capture.txt` (7200 lines)
+**Full analysis**: `vtccp/architecture/wireshark-protocol-analysis.md`
+**Capture date**: 2026-05-25 (DM475-63530E-PIPS-Verif-Lab, fw 6.1.16_sr4)
+**Confirmed**: Live scan trigger_index=55 (good_reads: 27→28), DM 16×36 GS1 label, Grade D
+
+### 10.1 HTTP result-push protocol endpoints
+
+The DMST-native result delivery uses HTTP pub/sub over a dedicated TCP channel (NOT port 44444):
+
+| Endpoint | Direction | Size | Frequency | Content |
+|---|---|---|---|---|
+| `GET /events?enable` | DMST → device | — | Once (subscribe) | Subscription handshake |
+| `HTTP/1.1 204 No Content` | device → DMST | 0 | Response to GET | Subscription confirmed |
+| `PUT /status.xml` | device → DMST | ~4,625 B | ~1/second | Telemetry (read stats, timing) |
+| `PUT /vs.cfg` | device → DMST | 288–400 B | Irregular | Config sync (AES-encrypted, unreadable) |
+| `PUT /codes.xml` | device → DMST | ~9,415 B (monitor) / ~202,249 B (verify) | Per scan | Full result XML including push XML + trucheck data |
+| `PUT /pcm_report.html` | device → DMST | 131–202 KB | Per verification scan | Full HTML report (sent BEFORE codes.xml) |
+
+Device User-Agent: `DM475/6.1.16 (DeviceID=50)`
+
+**VTCCP note**: `DmstListener` uses the DataMan Network Client mechanism (raw XML, not HTTP).
+The HTTP endpoints above are used by DMST only. The HTML files that `DmstHtmlScraper` reads
+are the disk-saved versions of the `PUT /pcm_report.html` body — identical content.
+
+### 10.2 codes.xml — `origin` field discriminator
+
+The `<result>` root element carries an `origin` attribute:
+
+| Value | Meaning | codes.xml size | trucheck data complete? | pcm_report.html sent? |
+|---|---|---|---|---|
+| `"monitor"` | Continuous background monitoring scan | ~9,415 B | No (only CalibrationDate + OpticalVariant + NO DECODE) | No |
+| `"common"` | Full triggered TruCheck verification | ~202,249 B (includes JPEG) | Yes (all tables) | Yes (sent first) |
+
+### 10.3 trucheck_verificaiton_result XML — confirmed field inventory
+
+**Tag name**: `<trucheck_verificaiton_result>` — "verificaiton" is a firmware misspelling (ai transposed).
+
+**Top-level fields** (present on all scans):
+- `<OpticalVariant>DM475V</OpticalVariant>` — exact model string (more precise than DEVICE.TYPE which may return family "DM470")
+- `<CalibrationDate>5/20/2026 1:14:58 AM</CalibrationDate>`
+- `<CalibrationState>0</CalibrationState>` — meaning of 0 not yet confirmed
+
+**SymbolData timing fields** (present on `origin="common"` only):
+- `<VerificaitonTime>183</VerificaitonTime>` — "Verificaiton" misspelled (183 ms total)
+- `<PreDecodeTime>0</PreDecodeTime>`
+- `<BlurTime>64</BlurTime>`
+- `<ThreshTime>13</ThreshTime>`
+- `<StickTime>0</StickTime>`
+- `<LineSearchTime>13</LineSearchTime>`
+- `<CanidateEvaluationTime>30</CanidateEvaluationTime>` — "Canidate" misspelled
+- `<PostDecodeTime>51</PostDecodeTime>`
+- `<ResultTime>0</ResultTime>`
+
+**GradeInfo (full ISO formal notation)**:
+```
+<FormalGrade>1.0/16/660/45Q</FormalGrade>
+```
+Format: `numericGrade / aperture / wavelength / lighting`. Push XML `<FormalGrade>` gives `1/D`
+(abbreviated form). The trucheck XML provides the complete ISO 15415 formal notation.
+
+**Quality parameter table numbers** confirmed from this capture (DM 16×36):
+
+1=UEC, 2=SC, 3a=MOD, 3b=RM, 4=ANU, 5=GNU, 6=FPD, 7=LLS, 8=BLS, 9=LQZ, 10=BQZ,
+11a=ULQZ, 11b=URQZ, 12a=RUQZ, 12b=RLQZ, 13a=LQTTR, 13b=RQTTR, 14a=LQRTR, 14b=RQRTR,
+15a=LQTCT, 15b=RQTCT, 16a=LQRCT, 16b=RQRCT, 17=AG (Average Grade), 18=DECODE
+
+**General Characteristics section** — confirmed values (DM 16×36 GS1 live scan):
+
+| Parameter | trucheck XML value | Push XML value | Status |
+|---|---|---|---|
+| Matrix Size | `16x36 (Data: 14x34)` | `16x36` | trucheck adds inner data region size |
+| Encoded characters | **`38`** | `33` (wrong) | ★ **trucheck value is correct** |
+| Total Codewords | `56` | `56` | Match |
+| Data Codewords | **`32`** | `` (empty) | ★ **trucheck resolves bug #5** |
+| Error Correction Budget | **`24`** | `` (empty) | ★ **trucheck resolves bug #6** |
+| Errors Corrected | `7` | `7` | Match |
+| Error Capacity Used | `14` | `14` | Match |
+| Error Correction Type | `ECC 200` (space) | `ECC200` (no space) | Minor format difference |
+| **Image** | **`Black on white`** | `` (empty) | ★ **ImagePolarity resolved** |
+| Nominal X Dim | `20.3 mil` | `20.3 mil` | Match (per-scan measurement) |
+| Pixels per Module | `15.96` | — (absent) | New field — not in push XML |
+| Contrast Uniformity | `74 at module(12,17)` | `74` | trucheck adds location |
+| MRD | `67% (73% - 6%)` | `67` | trucheck adds expanded form |
+
+**ECLevel, DataMaskPattern, ECI**: NOT present in trucheck XML. FIB section has grade/numericGrade
+only (consistent with v1.33 probe campaign findings). These three fields remain permanently
+unresolvable from device protocol on fw 6.1.16_sr4.
+
+### 10.4 New push XML fields confirmed from this capture
+
+These fields appeared in the decoded full_string but were not previously inventoried:
+
+| Field | Value (DM 16×36 live) | Notes |
+|---|---|---|
+| `<TQZGrade>` | `X` | Top Quiet Zone — not applicable on this DM orientation |
+| `<RQZGrade>` | `X` | Right Quiet Zone — not applicable |
+| `<ULQZGrade>` through `<LRQZGrade>` | `` (empty) | 6 additional QZ grades — likely DMV-8072V fields |
+| `<HClockTrackGrade>` | `` | Horizontal clock track — empty on standard DM |
+| `<VClockTrackGrade>` | `` | Vertical clock track — empty on standard DM |
+| `<ULQTTRGrade>` through `<URQRTRGrade>` | `` | Transition ratio grades — empty on standard DM |
+
+All new fields are empty on the standard 16×36 DM symbol. Likely populated for DMV-8072V
+or DM variants with non-standard finder pattern topology.
+
+### 10.5 NominalXDim — confirmed per-scan values
+
+| Scan | Symbology | NominalXDim |
+|---|---|---|
+| #12 (DM 16×36 live, v1.32) | Data Matrix | `20.3 mil` |
+| #11/#13/#15 (QR 29×29 IMAGE.LOAD) | QR | `12.6 mil` |
+| This Wireshark scan (DM 16×36 live) | Data Matrix | `20.3 mil` |
+
+NominalXDim is a per-scan measurement derived from the optical image — not a device constant.
+It varies with symbol size and distance from camera.
+
