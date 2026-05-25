@@ -82,17 +82,20 @@ is on network/GigE; serial is unused for this unit.
 
 ## Screenshot 3 — "Connecting..." Progress Dialog
 
-**Screenshot**: `dmst-connecting-dialog.png`
+**Screenshots**: `dmst-connecting-dialog.png` (in-progress, ~90% bar) and
+`dmst-connecting-dialog-complete.png` (complete, 100% bar + "Connected" final line)
 
 Modal dialog appears after double-clicking the device row (or clicking Connect).
 Title bar: "DataMan Setup Tool – DM475-63530E-PIPS-Verif-Lab [10.10.10.7]"
 
-Progress bar: nearly complete (green fill ~90%)
-
-Status log messages (in order):
+Status log messages — **complete four-step sequence** (confirmed from second screenshot):
 1. "Establishing connection to device..."
 2. "Retrieving parameters..."
 3. "Retrieving configuration..."
+4. **"Connected"**
+
+Progress bar is 100% green when "Connected" appears. The dialog then auto-dismisses
+and the DMST device workspace tab opens.
 
 Button: **Retry** (available if connection fails)
 
@@ -296,3 +299,112 @@ configured edition, whatever it is.
 **DeviceSession wiring still pending** (from prior session plan): add `_scraper` field,
 `BuildReportPath(deviceInfo.Name)` at ConnectAsync, `TryMergeAsync` in result handler,
 `Stop()` at disconnect. Steps 6 and 7 above should be added at the same time.
+
+---
+
+## Packet capture — intercepting the full DMCC exchange
+
+### Short answer: yes, Wireshark
+
+The DMCC protocol is **unencrypted plaintext XML over TCP port 44444**. There is no
+TLS, no obfuscation. Every byte DMST sends to the device, and every byte the device
+sends back (including push XML result payloads), is fully readable in a packet capture.
+
+### Setup on the DMST Windows host
+
+1. **Install Npcap** (https://npcap.com) — the Windows packet capture driver.
+   Wireshark installs this automatically if not already present.
+2. **Install Wireshark** (https://wireshark.org) — run as Administrator for capture.
+3. **Select the right interface** — the NIC on the 10.10.10.x network (the subnet
+   where the DM475V lives at 10.10.10.7).
+4. **Start capture** before connecting in DMST.
+5. **Apply this display filter** to isolate only the DMST↔device traffic:
+   ```
+   ip.addr == 10.10.10.7 and tcp.port == 44444
+   ```
+6. **Connect to device in DMST** — the full four-step sequence flows through.
+7. **Do one live scan** — the result push XML will appear as a large TCP segment.
+8. **Stop capture**, then use **Analyze → Follow → TCP Stream** to read the full
+   application-layer conversation as reassembled XML text.
+
+### What you will see
+
+The TCP stream will show interleaved client (DMST) and server (device) messages in
+plain XML. Approximate structure:
+
+```xml
+<!-- DMST → device: initial greeting / protocol negotiation -->
+<DMCCRequest><Command>...</Command></DMCCRequest>
+
+<!-- device → DMST: acknowledgement -->
+<DMCCResponse>...</DMCCResponse>
+
+<!-- DMST → device: "Retrieving parameters" phase -->
+<DMCCRequest><Command>GET DEVICE.TYPE</Command></DMCCRequest>
+<DMCCResponse><Value>DM470</Value></DMCCResponse>
+
+<DMCCRequest><Command>GET DEVICE.NAME</Command></DMCCRequest>
+<DMCCResponse><Value>DM475-63530E-PIPS-Verif-Lab</Value></DMCCResponse>
+
+<!-- ... more GETs ... -->
+
+<!-- DMST → device: "Retrieving configuration" phase -->
+<DMCCRequest><Command>GET LIVEIMG.MODE</Command></DMCCRequest>
+<DMCCResponse><Value>2</Value></DMCCResponse>
+
+<!-- ... all TruCheck config GETs ... -->
+
+<!-- device → DMST: push XML result on each scan -->
+<DMCCResponse>
+  <PushScriptDiag>v1.33 q=r.trucheck m=found</PushScriptDiag>
+  <OverallGrade>D</OverallGrade>
+  ...
+</DMCCResponse>
+```
+
+### Why this is valuable for VTCCP
+
+A single Wireshark capture session gives us the **ground truth** on every question
+about the DMST initialization sequence:
+
+| Question | Answered by capture |
+|---|---|
+| Exact DMCC commands in "Retrieving parameters" | ✓ — every GET visible |
+| Exact DMCC commands in "Retrieving configuration" | ✓ — full list |
+| Whether any special TruCheck-launch command exists | ✓ — definitively |
+| Order in which DMST issues commands | ✓ |
+| What DMST sends when "Go Live" is pressed | ✓ |
+| Full push XML payload as delivered to DMST | ✓ — same payload VTCCP receives |
+| GET TRUCHECK.STANDARD response format | ✓ |
+| GET LIVEIMG.MODE response | ✓ |
+| GET DEVICE.TYPE response ("DM470" vs "DM475V") | ✓ |
+
+### VTCCP-side capture
+
+VTCCP's SDK connection also goes to port 44444. If DMST and VTCCP are connected to
+the same device at the same time, both sets of traffic appear in the capture (the
+device supports multiple simultaneous connections). Filter by the TCP connection
+source port to distinguish which is which.
+
+Alternatively: disconnect DMST, run VTCCP alone, and capture VTCCP's connect
+sequence — this verifies that VTCCP's `DeviceSession.ConnectAsync()` issues the
+right GETs in the right order.
+
+### Alternative: Wireshark on a network tap
+
+If the DMST host cannot run Wireshark (managed IT environment), a **network tap** or
+a **managed switch with port mirroring** can mirror the 10.10.10.x port to a separate
+capture machine running Wireshark. The DM475V and the DMST host are both on the same
+LAN segment, so this works without any configuration on either endpoint.
+
+### Capture checklist
+
+- [ ] Npcap + Wireshark installed on DMST host
+- [ ] Capture started **before** connecting in DMST
+- [ ] Display filter: `ip.addr == 10.10.10.7 and tcp.port == 44444`
+- [ ] Connect to device, observe the four-step sequence
+- [ ] Press "Go Live", present a barcode, get one scan result
+- [ ] Stop capture
+- [ ] File → Export Specified Packets → save as `.pcapng`
+- [ ] Analyze → Follow → TCP Stream → copy full exchange text
+- [ ] Share exchange text for VTCCP init-sequence verification
