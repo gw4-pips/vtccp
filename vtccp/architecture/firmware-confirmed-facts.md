@@ -684,7 +684,11 @@ DMST is not running or the .html extension is not configured.
 
 ### 10.1 HTTP result-push protocol endpoints
 
-The DMST-native result delivery uses HTTP pub/sub over a dedicated TCP channel (NOT port 44444):
+The DMST-native result delivery uses HTTP pub/sub over TCP **on port 44444** — the same port
+as DMCC. The device multiplexes both protocols on 44444; a connection that opens with
+`GET /events?enable HTTP/1.1` is treated as an HTTP subscription, while connections sending
+raw DMCC XML are treated as DMCC sessions. Confirmed 2026-05-25 from Wireshark packet 46
+TCP header (`Dst Port: 44444`, capture filter `host 10.10.10.7 and port 44444`).
 
 | Endpoint | Direction | Size | Frequency | Content |
 |---|---|---|---|---|

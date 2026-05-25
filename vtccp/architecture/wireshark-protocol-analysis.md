@@ -19,8 +19,15 @@ in this capture.
 
 | Channel | Port | Direction | Protocol | Purpose |
 |---|---|---|---|---|
-| DMCC command channel | 44444 | DMST → device (request) / device → DMST (response) | Raw DMCC XML over TCP | GET/SET configuration, TRIGGER, GET SYMBOL.RESULT |
-| HTTP result-push channel | unknown (DMST listens) | device → DMST (PUT) / DMST → device (GET subscribe) | HTTP/1.1 over TCP | Result delivery, periodic status, config sync |
+| DMCC command channel | **44444** | DMST → device (request) / device → DMST (response) | Raw DMCC XML over TCP | GET/SET configuration, TRIGGER, GET SYMBOL.RESULT |
+| HTTP result-push channel | **44444** (confirmed 2026-05-25) | DMST → device (GET subscribe) / device → DMST (PUT pushes, same TCP connection) | HTTP/1.1 over TCP | Result delivery, periodic status, config sync |
+
+> **Both channels share port 44444.** The device distinguishes them by connection intent:
+> a DMCC session sends raw XML; an HTTP session opens a TCP connection to port 44444
+> and sends `GET /events?enable HTTP/1.1`. The device responds `204 No Content` and
+> then uses the **same Keep-Alive TCP connection** to push `PUT /status.xml`,
+> `PUT /codes.xml`, and `PUT /pcm_report.html` back to DMST.
+> Source: Wireshark packet 46 — `Dst Port: 44444`, capture filter `host 10.10.10.7 and port 44444`.
 
 This capture covers only the **HTTP result-push channel**.
 
@@ -497,8 +504,25 @@ sending `GET /events?enable`. It would then receive `PUT /codes.xml` directly, i
 the full `trucheck_verificaiton_result` XML. This would eliminate the DMST filesystem
 dependency for supplemental data.
 
+**Port confirmed 2026-05-25**: The device HTTP event server is on **port 44444** — the same
+port as DMCC. A separate TCP connection to port 44444 beginning with `GET /events?enable`
+initiates the HTTP push channel. No separate port configuration required.
+
+**Implementation sketch** (when this is eventually built):
+1. Open a new `TcpClient` to `_cfg.Host:44444` (separate from the DMCC SDK connection)
+2. Send:
+   ```
+   GET /events?enable HTTP/1.1\r\n
+   Date: {RFC1123 timestamp}\r\n
+   X-Peer: {session token}\r\n
+   \r\n
+   ```
+3. Read `HTTP/1.1 204 No Content` — then loop reading HTTP PUT requests on the same stream
+4. Parse `PUT /codes.xml` body: extract `<full_string encoding="base64">` from `<general>` block
+5. Parse `PUT /pcm_report.html` body: same HTML format as DmstHtmlScraper expects
+
 **Decision for now**: Not implementing. DmstHtmlScraper (§6.2) is the current approved path.
-Log this as a future architecture option.
+Log this as a future architecture option — fully unblocked.
 
 ---
 
@@ -506,7 +530,7 @@ Log this as a future architecture option.
 
 | Finding | Value |
 |---|---|
-| DMST-native result protocol | HTTP pub/sub over TCP (separate from DMCC port 44444) |
+| DMST-native result protocol | HTTP pub/sub over TCP on **port 44444** (same port as DMCC — confirmed from Wireshark packet 46 TCP header) |
 | Device HTTP User-Agent | `DM475/6.1.16 (DeviceID=50)` |
 | Subscription endpoint | `GET /events?enable` → `204 No Content` |
 | Push endpoints | `PUT /status.xml`, `PUT /vs.cfg` (AES), `PUT /codes.xml`, `PUT /pcm_report.html` |
