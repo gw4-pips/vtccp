@@ -2,7 +2,7 @@
 
 **Device**: DM475-63530E-PIPS-Verif-Lab
 **Firmware**: 6.1.16_sr4
-**Last updated**: 2026-05-25
+**Last updated**: 2026-05-25 (scans #12–#13 added)
 **Status**: Living document — append new confirmed facts as probe results arrive.
 **Authority**: All entries are device-confirmed from actual push XML output or DMCC responses,
 not inferred from documentation.
@@ -11,18 +11,31 @@ not inferred from documentation.
 
 ## 1. Firmware object model — what is and is not present
 
-### q.general key inventory (confirmed v1.29, 2026-05-19)
+### q.general key inventory (EXACT, confirmed scan #12, 2026-05-24)
 
-`q.general` contains exactly **7 keys** on fw 6.1.16_sr4:
+`q.general` contains exactly **7 keys** on fw 6.1.16_sr4. The DebugImagePolarity `allKeys`
+field from scan #12 (DM live) confirms the complete exact key set:
 
-| Key | Type | Notes |
-|---|---|---|
-| `encodedCharacters` | integer | Use this directly (not encodationAnalysisArray.length) |
-| (5 additional unnamed keys) | — | Enumerated via DebugGeneralKeys probe; names not recorded |
+| Key | Type | Example (DM live) | Example (QR IMAGE.LOAD) |
+|---|---|---|---|
+| `verticalBWG` | number | `11` | `-4` |
+| `horizontalBWG` | number | `11` | `-3` |
+| `xDimension` | string | `"20.3 mil"` | `"12.6 mil"` |
+| `contrastUniformity` | number | `73` | `-1` |
+| `contrastUniformityRow` | number | `12` | `-1` |
+| `contrastUniformityCol` | number | `17` | `-1` |
+| `MRD` | number | `67` | `-1` |
+
+**CRITICAL CORRECTION (2026-05-25)**: `encodedCharacters` is **NOT** one of the 7 keys.
+Prior documentation assumed it was present based on DebugGeneralKeys (v1.29) which did not
+record all key names. Confirmed absent: `gnProp("encodedCharacters")` returns `""` on both
+DM and QR, causing fallback to `encodationAnalysisArray.length` which is also wrong
+(DM: eaLen=33, DMST=38; QR: eaLen=39, DMST=36). `EncodedCharacters` is definitively
+unresolvable from push XML on fw 6.1.16_sr4 — see Appendix A.
 
 **Dead paths in q.general** (confirmed empty on DM and QR):
 `polarity`, `imagePolarity`, `image`, `colorMode`, `imageColor`,
-`eci`, `ECI`, `eciMode`, `encodedChars` — ALL return empty string on fw 6.1.16_sr4.
+`eci`, `ECI`, `eciMode`, `encodedChars`, `encodedCharacters` — ALL absent on fw 6.1.16_sr4.
 Do not probe these again. `ImagePolarity` is definitively unresolvable from push XML.
 
 ### q.symbols (confirmed v1.29, 2026-05-19)
@@ -55,28 +68,82 @@ QR size table for QR).
 **No ECLevel, dataMask, or version key present.** `ECLevel` is definitively unresolvable
 from push XML on fw 6.1.16_sr4 via any path. See §3 (dead paths) for complete list.
 
-### r.image key inventory (confirmed v1.32, 2026-05-24)
+### r.image key inventory (COMPLETE 28-key, confirmed scan #12 DM live, 2026-05-24)
 
 `r.image` contains camera **hardware metadata only** — no symbol quality data.
+Full key inventory from DebugRImage on DM live scan (scan #12):
 
-| Key | Description |
-|---|---|
-| `id` | Device ID string |
-| `FoV` | Field of View object |
-| `RoI` | Region of Interest object |
-| `exposureTime` | Camera exposure setting |
-| `gain` | Camera gain setting |
-| `autoExposure` | Auto-exposure flag |
-| `illEnabled` | Illumination enabled flag |
-| `focusLength` | Focus distance |
-| `mirrorAngle` | Mirror position (2-axis DPM illumination) |
-| `intIllWavelength` | Internal illumination wavelength |
-| `multicolorWavelength` | Multicolor illumination wavelength (if equipped) |
-| `multicolorRatio` | Multicolor channel mix ratio |
-| `multicolorName` | Multicolor preset name |
+| Key | Type / Example (DM live) | Example (QR IMAGE.LOAD) |
+|---|---|---|
+| `id` | number `4007` | `0` |
+| `index` | number `0` | `0` |
+| `FoV` | `[obj]` | `[obj]` |
+| `RoI` | `[obj]` | `[obj]` |
+| `exposureTime` | number `32` | `0` ← secondary LiveScan discriminator |
+| `gain` | number `1.00` | `0.00` |
+| `autoExposure` | boolean `true` | `false` ← secondary LiveScan discriminator |
+| `illEnabled` | boolean `true` | `false` |
+| `illIntensity` | number `1` | — |
+| `extIllEnabled` | boolean `true` | — |
+| `extIllIntensity` | number `1` | — |
+| `focusLength` | number `0` | — |
+| `focusPower` | number `0.00` | — |
+| `setupIndex` | number `0` | — |
+| `inputStates` | `[arr.4]` | — |
+| `filterTime` | number `0` | — |
+| `creationTime` | number `435462838` | — |
+| `creationTicks` | number `0` | — |
+| `creationDate` | `[obj]` | — |
+| `ptpTimeStamp` | `[obj]` | — |
+| `mirrorAngleA` | number `0.000` | — |
+| `mirrorAngleB` | number `0.000` | — |
+| `mirrorPathIndex` | number `-1` | — |
+| `intIllWavelength` | number `65535` (= 0xFFFF sentinel) | — |
+| `intIllWavelengthMask` | number `0` | — |
+| `multicolorWavelength` | `[arr.0]` (not equipped) | — |
+| `multicolorRatio` | `[arr.0]` | — |
+| `multicolorName` | `[arr.0]` | — |
+
+**Secondary OpticsSource discriminator** (supplementary to CU/MRD=-1 primary):
+`r.image.exposureTime=0` and `r.image.autoExposure=false` on IMAGE.LOAD scans.
+Use CU=-1 AND MRD=-1 as the primary discriminant; r.image fields are secondary confirmation only.
 
 `r.image` contains **NO** `ImagePolarity`, `ECI`, `ECLevel`, or `DataMaskPattern`.
-These 4 fields are definitively unresolvable from push XML on fw 6.1.16_sr4.
+These 4 fields are definitively unresolvable via `r.image` on fw 6.1.16_sr4.
+
+### r-sibling complete inventory (confirmed QR scan #13, 2026-05-24)
+
+`r` has the following top-level properties (from DebugRSiblings on scan #13):
+
+| Key | Type | Notes |
+|---|---|---|
+| `decoded` | boolean | `true` on successful decode |
+| `content` | string | Decoded data (first 30 chars in DebugRSiblings) |
+| `decodeTime` | number | `402` (QR GUID IMAGE.LOAD) |
+| `triggerTime` | number | `418` |
+| `timeout` | number | `2000` |
+| `readSetup` | number | `0` |
+| `symbology` | object | = `r.symbology` (9 keys, probed) |
+| `image` | object | = `r.image` (28 keys, probed) |
+| `validation` | object | = `r.validation` (ecLvl=absent confirmed) |
+| `source` | string | Device name, e.g. `"DM475-63530E-PIPS-Verif-Lab"` |
+| `annotation` | string | Empty string on all observed scans |
+| `label` | string | Empty string |
+| `custom_svg` | string | Empty string |
+| `barcodeAssignment` | object | **NEVER PROBED — v1.34 candidate** |
+| `trucheck` | object | `r.trucheck` (all grade metrics — fully probed) |
+| `metrics` | object | `r.metrics` (excluded by DebugRSiblings filter) |
+
+**Total r properties**: 16 (14 shown by DebugRSiblings + trucheck + metrics excluded by filter).
+
+**NEW UNEXPLORED PATH**: `r.barcodeAssignment=[obj]` — revealed by scan #13 DebugRSiblings.
+Name suggests assignment/type configuration rather than decode results, but has never been
+probed. Queue for v1.34 if v1.33 FIB/VIB probes do not resolve ECLevel/DataMaskPattern.
+
+**Note — DM DebugRSiblings parse failure**: The DM scan #12 DebugRSiblings element is present
+in the XML but its value contains GS1 control characters (`<0x1E>`, `<0x1D>`) from the
+`content` field, which break naive XML regex parsers. VTCCP's streaming push XML parser handles
+this correctly. The DM r-sibling inventory is expected to be identical to QR.
 
 ---
 
@@ -138,6 +205,7 @@ v1.33 probes three new elements targeting these gaps.
 |---|---|
 | `q.trucheck` full key enumeration | All top-level q keys already inventoried via v1.14 for-in scan; compound sub-keys covered by FIB/VIB probes above |
 | IMAGE.LOAD path for the above | Covered by the same probes — v1.33 should be run on both live DM scan and QR IMAGE.LOAD injection |
+| `r.barcodeAssignment` sub-keys | Revealed by scan #13 DebugRSiblings; name suggests config not decode results; queue for v1.34 if FIB/VIB don't resolve ECLevel/DataMaskPattern |
 
 ### 3c — ImagePolarity assessment
 
@@ -294,7 +362,7 @@ is the character in the grade string, not an index.
 
 ---
 
-## 13. Live scan catalog — 11 scans (updated 2026-05-24)
+## 13. Live scan catalog — 13 scans (updated 2026-05-25)
 
 | # | Date | Script | Symbology | Grade | Key finding |
 |---|---|---|---|---|---|
@@ -308,7 +376,9 @@ is the character in the grade string, not an index.
 | 8 | 2026-05-19 | v1.29 | EAN-13 | A | ISO 15416:2016, `]E0` |
 | 9 | 2026-05-19 | v1.29 | Code 128 | A | `]C0`; GS1 parser on; non-GS1 data → format fail; ISO grade unaffected |
 | 10 | 2026-05-19 | v1.29 | QR grade D | D | `]Q1`; MOD=D, RM=D, DecodeGrade=F; ANUPercent=3.9→3.9% (broke v1.29 formula) |
-| 11 | 2026-05-24 | v1.32 | QR GUID | A | v1.32 confirmed; ANUPercent=0.8392; `DebugRImage` closes 4 missing fields |
+| 11 | 2026-05-24 | v1.32 | QR GUID (IMAGE.LOAD) | A | v1.32 confirmed; ANUPercent=0.8392; `DebugRImage` closes 4 missing fields |
+| **12** | **2026-05-24** | **v1.32** | **DM GS1 16×36 (LIVE)** | **D** | **q.general exact 7-key names confirmed; EncodedCharacters dead path confirmed (push=33,DMST=38); r.image 28-key full inventory; OpticsSource=LiveScan (CU=73,MRD=67)** |
+| **13** | **2026-05-24** | **v1.32** | **QR GUID f0cffb39 (IMAGE.LOAD)** | **A** | **r-sibling 16-property full inventory; r.barcodeAssignment discovered (never probed); EncodedCharacters dead on QR (push=39,DMST=36); OpticsSource=LoadedImage (CU=-1,MRD=-1)** |
 
 ---
 
@@ -321,7 +391,8 @@ is the character in the grade string, not an index.
 | v1.29 | 2026-05-19 | DM + QR | A/F/D | 11 scans; q.symbols=null; AIM modifier=ECI presence; QR grades confirmed |
 | v1.30 | — | — | — | VOIDED — written 2026-05-20, never installed; superseded by v1.32 |
 | v1.31 | — | — | — | VOIDED — written 2026-05-20, never installed; superseded by v1.32 |
-| v1.32 | 2026-05-24 | QR GUID | A | Bug #9 (ANUPercent) confirmed fixed; `DebugRImage` answered; 4 fields closed |
+| v1.32 | 2026-05-24 | QR GUID + **DM GS1** | A + **D** | Bug #9 fixed; DebugRImage answered; q.general exact 7 keys named; EncodedCharacters dead path confirmed; r.image 28-key + r-sibling 16-prop full inventories; r.barcodeAssignment discovered |
+| v1.33 | — | — | — | **AWAITING DEVICE INSTALL** — DebugRSymbologyNested / DebugQFIBKeys / DebugQVIBKeys |
 
 ---
 
@@ -385,14 +456,15 @@ appear in the standard DMST export PDF. They are VTCCP-exclusive data:
 
 ## Appendix A — Fields that require C# table lookup (firmware does not provide)
 
-| Field | Reason | Lookup table |
+| Field | Reason | Lookup table / Status |
 |---|---|---|
 | `DataCodewords` | `q.symbols = null` | ECC200 table (DM) + QR codeword table by version |
 | `ErrorCorrectionBudget` | `q.symbols = null` | Same table |
 | `ErrorCapacityUsed` | Not exposed | `ErrorsCorrected × 2` (confirmed derivation) |
-| `QR_Version` | Not in `r.symbology` | Derive from `MatrixSize` (e.g. 29×29 → v3) |
-| `QR_ECLevel` | Definitively absent from all push paths | Cannot be derived — omit from report |
-| `QR_MaskPattern` | Definitively absent from all push paths | Cannot be derived — omit from report |
+| `QR_Version` | Not in `r.symbology` top-level keys | Derive from `MatrixSize` (e.g. 29×29 → v3) |
+| `EncodedCharacters` | `q.general.encodedCharacters` ABSENT (not one of the 7 keys); `encodationAnalysisArray.length` fallback also wrong (DM: 33 vs DMST 38; QR: 39 vs DMST 36) | **No known derivation from push XML on fw 6.1.16_sr4** — omit or leave empty; cannot be accurately computed without full encodation analysis parse |
+| `QR_ECLevel` | All top-level paths exhausted; v1.33 FIB sub-key probe **pending** | **Pending v1.33 device results** — do NOT mark permanently unresolvable yet |
+| `QR_MaskPattern` | All top-level paths exhausted; v1.33 FIB sub-key probe **pending** | **Pending v1.33 device results** — do NOT mark permanently unresolvable yet |
 
 ---
 
