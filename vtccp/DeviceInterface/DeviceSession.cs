@@ -253,6 +253,36 @@ public sealed class DeviceSession : IAsyncDisposable
             : record;
     }
 
+    // ── Replay mode (image already loaded) ───────────────────────────────────
+
+    /// <summary>
+    /// (Replay mode) Sends IMAGE.REPLAY on the currently-loaded device image buffer
+    /// and returns the parsed result.  Does NOT load a new image — the device must
+    /// already have an image in its buffer from a prior IMAGE.LOAD or live scan.
+    ///
+    /// Used by Repeatability Analysis to loop N re-grades on a fixed image without
+    /// any physical trigger or image reload between iterations.
+    ///
+    /// Returns null if the device returns no result within <paramref name="timeoutMs"/>.
+    /// </summary>
+    public async Task<VerificationRecord?> ReplayAndGetResultAsync(
+        VerificationRecord? sessionContext = null,
+        int                 timeoutMs      = 15_000,
+        CancellationToken   ct             = default)
+    {
+        ThrowIfDisposed();
+        if (!_client.IsConnected)
+            throw new InvalidOperationException("Not connected. Call ConnectAsync() first.");
+
+        string? xml = await _client.ReplayAndWaitForXmlAsync(timeoutMs, ct);
+        if (string.IsNullOrWhiteSpace(xml)) return null;
+
+        var record = DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo());
+        return _scraper is not null
+            ? await _scraper.TryMergeAsync(record, ct)
+            : record;
+    }
+
     // ── Push mode ─────────────────────────────────────────────────────────────
 
     /// <summary>

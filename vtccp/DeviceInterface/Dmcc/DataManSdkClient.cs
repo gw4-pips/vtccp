@@ -370,6 +370,70 @@ public sealed class DataManSdkClient : IAsyncDisposable
         }
     }
 
+    // ── Replay-only (image already loaded) ───────────────────────────────────
+
+    /// <summary>
+    /// Sends IMAGE.REPLAY to re-grade the currently loaded image buffer and waits
+    /// for the result via XmlResultArrived.  The caller is responsible for ensuring
+    /// an image is already present in the device buffer — no LoadImage call is made.
+    ///
+    /// Used by Repeatability Analysis to loop IMAGE.REPLAY N times on a fixed image.
+    /// Returns the raw XML string, or null on timeout / REPLAY rejection.
+    /// </summary>
+    public async Task<string?> ReplayAndWaitForXmlAsync(
+        int               timeoutMs = 15_000,
+        CancellationToken ct        = default)
+    {
+        ThrowIfDisposed();
+        if (!IsConnected)
+            throw new InvalidOperationException("Not connected. Call ConnectAsync() first.");
+
+        var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        CognexSdk.XmlResultArrivedHandler xmlHandler = (_, args) =>
+        {
+            var prop = args.GetType().GetProperty("XmlResult")
+                    ?? args.GetType().GetProperty("Xml")
+                    ?? args.GetType().GetProperty("Result");
+            if (prop is null) DumpProps("[VTCCP-REPLAY] XmlResultArrivedEventArgs", args);
+            string? xml = prop?.GetValue(args)?.ToString();
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-REPLAY] XmlResultArrived: {xml?.Length ?? 0} chars");
+            tcs.TrySetResult(xml);
+        };
+
+        _system!.XmlResultArrived += xmlHandler;
+        try
+        {
+            var replayResp = await SendAsync(DmccCommand.ImageReplay, ct);
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-REPLAY] IMAGE.REPLAY → code={replayResp.StatusCode} body='{replayResp.Body}'");
+
+            if (replayResp.StatusCode != 0)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "[VTCCP-REPLAY] IMAGE.REPLAY rejected by device — aborting wait.");
+                tcs.TrySetResult(null);
+            }
+
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(timeoutMs);
+            try
+            {
+                return await tcs.Task.WaitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                System.Diagnostics.Debug.WriteLine("[VTCCP-REPLAY] ReplayAndWaitForXml: timed out.");
+                return null;
+            }
+        }
+        finally
+        {
+            _system!.XmlResultArrived -= xmlHandler;
+        }
+    }
+
     /// <summary>
     /// Discovers the SDK's LoadImage method via reflection and calls it with a
     /// Bitmap constructed from <paramref name="filePath"/>.
