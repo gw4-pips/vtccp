@@ -435,7 +435,7 @@ public sealed class DmstHtmlScraper : IDisposable
                 SourceFilePath        = sourcePath,
                 ParseSucceeded        = scanDateTime.HasValue,
 
-                // ── Four fields permanently unresolvable from push XML ─────────
+                // ── Supplemental fields: not accessible via push XML on fw 6.1.16_sr4 ──
                 ECLevel         = Get("Error Correction Level"),   // "M"
                 DataMaskPattern = Get("Data Mask Pattern"),         // "2"
                 ECI             = Get("ECI"),                       // "000003"

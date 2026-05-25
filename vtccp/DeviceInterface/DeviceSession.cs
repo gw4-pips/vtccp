@@ -24,6 +24,7 @@ public sealed class DeviceSession : IAsyncDisposable
     private readonly VerificationXmlMap _map;
     private readonly DataManSdkClient   _client;
     private DmstListener?               _listener;
+    private DmstHtmlScraper?            _scraper;
     private bool                        _disposed;
 
     /// <summary>
@@ -130,6 +131,29 @@ public sealed class DeviceSession : IAsyncDisposable
         var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-DMCC] SET TRIGGER.TYPE 1: code={setResp.StatusCode}");
+
+        // ── HTML report scraper ───────────────────────────────────────────────
+        // Watches the DMST CodeQuality directory for HTML reports written by DMST
+        // after each verification scan.  These reports supply supplemental fields
+        // absent from the push XML on fw 6.1.16_sr4:
+        //   • EncodedCharacters (correct value — push XML is wrong)
+        //   • DataCodewords, ErrorCorrectionBudget
+        //   • ImagePolarity
+        //   • ECLevel, DataMaskPattern, ECI  (QR only)
+        //
+        // Prerequisite: DMST Options → Data Logging → Reporting →
+        //   "Preferred Quality Report File Extension" must be set to ".html".
+        //
+        // Safe no-op when DMST is not running — TryMergeAsync times out in 4 s
+        // and returns the push-XML record unmodified, with no exception thrown.
+        if (DeviceInfo.Name is { Length: > 0 } deviceName)
+        {
+            var reportPath = DmstHtmlScraper.BuildReportPath(deviceName);
+            _scraper = new DmstHtmlScraper(reportPath);
+            _scraper.Start();
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SCRAPER] Started watching '{reportPath}'.");
+        }
     }
 
     /// <summary>Closes the DMCC connection and stops any active push listener.</summary>
@@ -152,6 +176,9 @@ public sealed class DeviceSession : IAsyncDisposable
                     $"[VTCCP-DMCC] Could not restore trigger type: {ex.Message}");
             }
         }
+
+        _scraper?.Stop();
+        _scraper = null;
 
         if (_listener is not null) await _listener.StopAsync();
         await _client.DisconnectAsync();
@@ -213,7 +240,10 @@ public sealed class DeviceSession : IAsyncDisposable
         string? xml = await _client.TriggerAndWaitForXmlAsync(ct: ct);
         if (string.IsNullOrWhiteSpace(xml)) return null;
 
-        return DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo());
+        var record = DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo());
+        return _scraper is not null
+            ? await _scraper.TryMergeAsync(record, ct)
+            : record;
     }
 
     // ── Push mode ─────────────────────────────────────────────────────────────
@@ -232,7 +262,25 @@ public sealed class DeviceSession : IAsyncDisposable
 
         _listener = new DmstListener(_cfg.DmstListenPort, _map,
             sessionContext ?? ContextFromDeviceInfo(),
-            rec => ResultReceived?.Invoke(this, rec));
+            rec =>
+            {
+                // In push mode, TryMergeAsync waits up to 4 s for the DMST HTML
+                // file.  The DmstListener callback is synchronous, so we fire the
+                // async merge on the thread-pool and raise ResultReceived only after
+                // the merge (or timeout) completes.  Scans are never rapid-fire in
+                // TruCheck mode, so ordering is preserved in practice.
+                var scraper = _scraper;
+                if (scraper is null)
+                {
+                    ResultReceived?.Invoke(this, rec);
+                    return;
+                }
+                _ = Task.Run(async () =>
+                {
+                    var enriched = await scraper.TryMergeAsync(rec);
+                    ResultReceived?.Invoke(this, enriched);
+                });
+            });
 
         await _listener.StartAsync(ct);
     }
