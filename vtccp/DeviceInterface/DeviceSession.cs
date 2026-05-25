@@ -245,6 +245,30 @@ public sealed class DeviceSession : IAsyncDisposable
         _listener = null;
     }
 
+    // ── Diagnostic probes ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Diagnostic probe: retrieves the raw DMCC SYMBOL.RESULT in FULL format via a
+    /// raw TCP bypass connection (the SDK throws InvalidCommandException on GET SYMBOL.RESULT).
+    ///
+    /// Call this immediately after a scan completes (push XML or poll result received)
+    /// to capture the firmware's last result in its native FULL format.
+    ///
+    /// Purpose: determine whether DMCC.RESULT-FORMAT FULL exposes ECLevel,
+    /// DataMaskPattern, ECI, or ImagePolarity beyond the push script XML, which our
+    /// 15-scan probe campaign (v1.29–v1.33) confirmed does NOT contain these fields.
+    /// If the FULL-format XML is richer, these fields can be sourced via DMCC.
+    /// If identical, HTML report scraping is the only remaining path.
+    ///
+    /// Output is written to Debug and returned as raw string (may be large XML).
+    /// Returns null on connection failure or empty response.
+    /// </summary>
+    public async Task<string?> GetRawSymbolResultDiagnosticAsync(CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        return await _client.GetRawSymbolResultAsync(ct: ct);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>

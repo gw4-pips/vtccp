@@ -282,6 +282,102 @@ public sealed class DataManSdkClient : IAsyncDisposable
         }
     }
 
+    // ── Diagnostic: raw SYMBOL.RESULT probe ──────────────────────────────────
+
+    /// <summary>
+    /// Diagnostic probe: retrieves the raw DMCC SYMBOL.RESULT response by bypassing
+    /// the SDK (which throws InvalidCommandException on GET SYMBOL.RESULT) via a
+    /// parallel raw TCP connection — the same technique used for TRIGGER.
+    ///
+    /// Sequence:
+    ///   1. Open raw TCP to DMCC port
+    ///   2. Drain welcome banner
+    ///   3. SET DMCC.RESULT-FORMAT FULL  (requests the firmware's full internal format)
+    ///   4. GET SYMBOL.RESULT            (retrieves the last scan result)
+    ///   5. Return raw response string
+    ///
+    /// Call immediately after a scan completes. Used to determine whether FULL format
+    /// exposes ECLevel, DataMaskPattern, ECI, or ImagePolarity beyond what the push
+    /// script XML provides. If the firmware's FULL format is richer than the JS-generated
+    /// push XML, these fields can be sourced via DMCC rather than HTML scraping.
+    ///
+    /// Returns the raw response string (may be large XML), or null on failure.
+    /// Full response is written to Debug output.
+    /// </summary>
+    public async Task<string?> GetRawSymbolResultAsync(
+        int               timeoutMs = 5_000,
+        CancellationToken ct        = default)
+    {
+        ThrowIfDisposed();
+        try
+        {
+            using var tcp = new TcpClient();
+            await tcp.ConnectAsync(_cfg.Host, _cfg.Port, ct);
+            using var stream = tcp.GetStream();
+
+            // Drain welcome banner (device sends ~100 bytes on connect).
+            try
+            {
+                using var bannerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                bannerCts.CancelAfter(400);
+                byte[] bannerBuf = new byte[512];
+                await stream.ReadAsync(bannerBuf, bannerCts.Token);
+            }
+            catch (OperationCanceledException) { /* no banner or timeout — OK */ }
+            catch { }
+
+            // SET DMCC.RESULT-FORMAT FULL — ask firmware for its full internal result format.
+            // This is different from the push script XML which is JS-generated and filtered.
+            // Drain the SET response (short status line) before sending GET.
+            await stream.WriteAsync(Encoding.ASCII.GetBytes("SET DMCC.RESULT-FORMAT FULL\r\n"), ct);
+            string setResp = await ReadRawDmccResponseAsync(stream, 1_000, ct);
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-PROBE] SET DMCC.RESULT-FORMAT FULL → '{setResp.Trim()}'");
+
+            // GET SYMBOL.RESULT — retrieve the last scan's result in the FULL format.
+            await stream.WriteAsync(Encoding.ASCII.GetBytes("GET SYMBOL.RESULT\r\n"), ct);
+            string result = await ReadRawDmccResponseAsync(stream, timeoutMs, ct);
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-PROBE] GET SYMBOL.RESULT FULL: {result.Length} chars\n" +
+                (result.Length <= 8000 ? result : result[..8000] + "\n…[truncated]"));
+
+            return result.Length > 0 ? result : null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-PROBE] GetRawSymbolResult failed: {ex.GetType().Name}: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Reads bytes from a raw DMCC TCP stream until the connection closes or the
+    /// per-call timeout elapses. Returns whatever was accumulated.
+    /// </summary>
+    private static async Task<string> ReadRawDmccResponseAsync(
+        NetworkStream     stream,
+        int               timeoutMs,
+        CancellationToken ct)
+    {
+        var sb  = new StringBuilder();
+        var buf = new byte[65536];
+        using var readCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        readCts.CancelAfter(timeoutMs);
+        try
+        {
+            while (true)
+            {
+                int n = await stream.ReadAsync(buf, readCts.Token);
+                if (n <= 0) break;
+                sb.Append(Encoding.UTF8.GetString(buf, 0, n));
+            }
+        }
+        catch (OperationCanceledException) { /* timeout — return what we have */ }
+        return sb.ToString();
+    }
+
     // ── Reflection helpers ────────────────────────────────────────────────────
 
     private static int? TryGetIntProp(object obj, params string[] names)

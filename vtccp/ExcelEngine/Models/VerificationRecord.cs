@@ -99,6 +99,26 @@ public sealed record class VerificationRecord
     // JPEG image payload (v1.25: r.trucheck.jpegImage base64 string)
     public string? JpegImageBase64 { get; init; }
 
+    // ── Data provenance ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Semicolon-separated list of fields whose values were NOT sourced from the
+    /// push XML (the canonical per-scan output of the Format Data push script).
+    ///
+    /// Format: "FieldName:Source" pairs.
+    /// Example: "ECLevel:HtmlReport;DataMaskPattern:HtmlReport;ECI:HtmlReport"
+    /// Example: "ECLevel:SymbolResultFull;ECI:SymbolResultFull"
+    ///
+    /// Null (omitted) if every populated field came from the push XML.
+    ///
+    /// Populated fields on fw 6.1.16_sr4 — four fields confirmed permanently
+    /// unresolvable from push XML (v1.33 probe campaign, 2026-05-25):
+    ///   ECLevel, DataMaskPattern, ECI, ImagePolarity
+    /// These will set DataSourceExceptions if sourced from a secondary channel
+    /// (DMCC RESULT-FORMAT FULL or DMST HTML report scrape).
+    /// </summary>
+    public string? DataSourceExceptions { get; set; }
+
     // Overall grade outcome
     /// <summary>e.g. "4.0/16/660/45Q" or "4.0/06/660"</summary>
     public string? FormalGrade { get; init; }
