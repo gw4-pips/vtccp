@@ -209,7 +209,7 @@ in base64. The two paths carry identical push XML content.
   <ErrorCapacityUsed>14</ErrorCapacityUsed>
   <ErrorCorrectionType>ECC200</ErrorCorrectionType>
   <NominalXDim>20.3 mil</NominalXDim>
-  <ImagePolarity></ImagePolarity>               <!-- EMPTY: permanently unresolvable from push XML -->
+  <ImagePolarity></ImagePolarity>               <!-- EMPTY: not accessible via push XML — resolved via DmstHtmlScraper HTML report -->
   <ContrastUniformity>74</ContrastUniformity>
   <MRD>67</MRD>
   <ContrastUniformityRow>12</ContrastUniformityRow>
@@ -420,17 +420,17 @@ this capture (DM 16×36 GS1 label, live scan, 2026-05-25):
 | Contrast Uniformity | `74 at module(12,17)` | Location annotation — push XML gives just `74` |
 | MRD | `67% (73% - 6%)` | Expanded form — push XML gives just `67` |
 
-**Summary of previously-unresolvable fields and their resolution status:**
+**Field resolution status — all symbologies:**
 
-| Field | Push XML status | trucheck_verificaiton_result | HTML report (DmstHtmlScraper) |
-|---|---|---|---|
-| `EncodedCharacters` | Wrong (33 vs correct 38) | ✓ **CORRECT: 38** | ✓ "Encoded characters: 38" |
-| `DataCodewords` | Empty | ✓ **CORRECT: 32** | ✓ "Data Codewords: 32" |
-| `ErrorCorrectionBudget` | Empty | ✓ **CORRECT: 24** | ✓ "Error Correction Budget: 24" |
-| `ImagePolarity` | Empty | ✓ **"Black on white"** | ✓ "Image: Black on white" |
-| `ECLevel` (QR) | No path exists | ✗ Not present (FIB=grade/numericGrade only) | Investigate HTML |
-| `DataMaskPattern` (QR) | No path exists | ✗ Not present | Investigate HTML |
-| `ECI` | No path exists | ✗ Not present | Investigate HTML |
+| Field | Applies to | Push XML status | trucheck XML | HTML report (DmstHtmlScraper) |
+|---|---|---|---|---|
+| `EncodedCharacters` | All | Wrong (33 vs correct 38) | ✓ CORRECT: 38 | ✓ "Encoded characters: 38" |
+| `DataCodewords` | All | Empty | ✓ CORRECT: 32 | ✓ "Data Codewords: 32" |
+| `ErrorCorrectionBudget` | All | Empty | ✓ CORRECT: 24 | ✓ "Error Correction Budget: 24" |
+| `ImagePolarity` | All | Empty | ✓ "Black on white" | ✓ "Image: Black on white" — **RESOLVED** in ParseHtml() |
+| `ECLevel` | **QR only** — DM ECC200 has no selectable level; field is inapplicable to DM | Not accessible via push XML | ✗ Not present (FIB={grade,numericGrade} only) | ✓ "Error Correction Level"="M" confirmed in QR HTML — ParseHtml() extension pending |
+| `DataMaskPattern` | **QR only** — DM has no data masking; field is inapplicable to DM | Not accessible via push XML | ✗ Not present | ✓ "Data Mask Pattern"="2" confirmed in QR HTML — ParseHtml() extension pending |
+| `ECI` | QR and others | Not accessible via push XML | ✗ Not present | ✓ "ECI"="000003" confirmed in QR HTML — ParseHtml() extension pending |
 
 **Confirmed**: The trucheck XML and the HTML report are parallel representations of the same
 data. `DmstHtmlScraper.ParseHtml()` reads the same information from the filesystem-saved HTML.
@@ -521,7 +521,7 @@ Log this as a future architecture option.
 | DataCodewords (trucheck XML) | 32 (CORRECT — push XML gives empty) |
 | ErrorCorrectionBudget (trucheck XML) | 24 (CORRECT — push XML gives empty) |
 | ImagePolarity (trucheck XML) | "Black on white" (push XML gives empty) |
-| ECLevel, DataMaskPattern, ECI | Not in trucheck XML — still unresolvable from device protocol |
+| ECLevel (QR only), DataMaskPattern (QR only), ECI | Not in trucheck XML or push XML — accessible via DmstHtmlScraper QR HTML report (ParseHtml() extension pending). DM has no ECLevel or data masking — these fields are inapplicable to DM. |
 | CalibrationState | 0 (meaning not yet confirmed) |
 | pcm_report.html timing | Sent BEFORE the codes.xml for the same scan |
 | HTML CSS grade color | Green ≥34, Yellow-Green 25-33, Yellow 15-24, Orange-Red 5-14, Red 0-4 |

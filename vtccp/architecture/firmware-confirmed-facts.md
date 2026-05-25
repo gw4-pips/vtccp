@@ -194,24 +194,35 @@ The `DebugValidationGS1` probe confirmed `ecLvl=absent` on both DM and QR.
 
 ---
 
-## 3. Fields permanently unresolvable from push XML on fw 6.1.16_sr4
+## 3. Fields not accessible via push XML on fw 6.1.16_sr4
 
 **PROBE CAMPAIGN COMPLETE — 2026-05-25.** v1.33 results (scans #14/#15) have exhausted
-all known firmware paths. All four open fields are confirmed permanently unresolvable
-from the push script's JS scope on fw 6.1.16_sr4.
+all known firmware paths for these fields within the push script JS scope.
 
-The firmware **does** know these values internally — it uses ECLevel and DataMaskPattern
-to decode and grade QR codes, and it applies ImagePolarity during acquisition. However,
-the JS push script environment exposes only grade results, not the decoded structural data.
+**Symbology scope note:**
+- **ECLevel**: QR Code-only concept. QR symbols carry a user-selected error correction level
+  (L/M/Q/H) encoded in the Format Information bitstream at encode time. Data Matrix ECC200
+  has no ECLevel variable — the standard mandates a single fixed error correction scheme with
+  no user-selectable level. Do not apply ECLevel to DM records; the field is inapplicable.
+- **DataMaskPattern**: QR Code-only concept (patterns 0–7, encoded in Format Information).
+  Data Matrix uses no data masking. Do not apply to DM records.
+- **ECI**: Applicable to QR and potentially other 2D symbologies. Identifies the character set
+  encoding in use (e.g. 000003 = ISO 8859-1 Latin-1).
+- **ImagePolarity**: Applicable to all symbologies — now RESOLVED via DmstHtmlScraper.
 
-### 3a — Complete path inventory (all exhausted)
+The firmware **does** know ECLevel and DataMaskPattern internally — it uses them to decode and
+grade QR codes. However, the JS push script environment exposes only grade results (FIB grade
+letter/numericGrade), not the decoded structural values. These values ARE present in the HTML
+verification report that DMST writes to disk; DmstHtmlScraper is the correct access path.
 
-| Field | All paths tried | Final status |
-|---|---|---|
-| `ECLevel` (QR) | `q.symbols=null`; `r.validation.ecLvl=absent`; AIM modifier=ECI presence not ECLevel; `r.symbology` 9 top-level keys=no ecLevel; `q.formatInformationBlock` sub-keys=`{grade, numericGrade}` only | **PERMANENTLY UNRESOLVABLE** |
-| `DataMaskPattern` (QR) | `r.symbology` top-level=absent; `q.general` 7 keys=absent; `q.formatInformationBlock` sub-keys=`{grade, numericGrade}` only | **PERMANENTLY UNRESOLVABLE** |
-| `ECI` value (e.g. `000003`) | `gnProp(eci/ECI/eciMode/encodedChars)=empty`; `r.symbology` top-level=absent; AIM modifier encodes presence not value; no sub-key path found | **PERMANENTLY UNRESOLVABLE** |
-| `ImagePolarity` | `gnProp(polarity/imagePolarity/image/colorMode/imageColor)=empty`; `r.image=hardware metadata only`; not a decode property anywhere in JS scope | **PERMANENTLY UNRESOLVABLE** |
+### 3a — Complete path inventory (push XML paths exhausted)
+
+| Field | Symbology | All push XML paths tried | Push XML status | Resolution path |
+|---|---|---|---|---|
+| `ECLevel` | **QR only** (N/A for DM) | `q.symbols=null`; `r.validation.ecLvl=absent`; AIM modifier=ECI presence not ECLevel; `r.symbology` 9 top-level keys=no ecLevel; `q.formatInformationBlock` sub-keys=`{grade, numericGrade}` only | Not accessible via push XML on fw 6.1.16_sr4 | ✓ In DMST HTML report ("Error Correction Level"="M") — DmstHtmlScraper ParseHtml() extension pending |
+| `DataMaskPattern` | **QR only** (N/A for DM) | `r.symbology` top-level=absent; `q.general` 7 keys=absent; `q.formatInformationBlock` sub-keys=`{grade, numericGrade}` only | Not accessible via push XML on fw 6.1.16_sr4 | ✓ In DMST HTML report ("Data Mask Pattern"="2") — DmstHtmlScraper ParseHtml() extension pending |
+| `ECI` value | QR (and others) | `gnProp(eci/ECI/eciMode/encodedChars)=empty`; `r.symbology` top-level=absent; AIM modifier encodes presence not value; no sub-key path found | Not accessible via push XML on fw 6.1.16_sr4 | ✓ In DMST HTML report ("ECI"="000003") — DmstHtmlScraper ParseHtml() extension pending |
+| `ImagePolarity` | All symbologies | `gnProp(polarity/imagePolarity/image/colorMode/imageColor)=empty`; `r.image=hardware metadata only`; not a decode property anywhere in JS scope | Not accessible via push XML on fw 6.1.16_sr4 | ✓ **RESOLVED** — "Image"="Black on white" in HTML report; DmstHtmlScraper.ParseHtml() already implemented |
 
 ### 3b — Why q.formatInformationBlock was the final path
 
@@ -475,8 +486,10 @@ No ECLevel, DataMaskPattern, or version number in any sub-key. Probe complete; d
 - DM (non-QR): correctly emitted `(not QR)` per branch guard
 
 The firmware computes the FIB grade internally using ECLevel + DataMaskPattern but does
-NOT expose those values in the JS scope. **ECLevel and DataMaskPattern are permanently
-unresolvable from push XML on fw 6.1.16_sr4.** Probe complete; do not re-run.
+NOT expose those values in the JS scope. ECLevel and DataMaskPattern are not accessible
+via push XML on fw 6.1.16_sr4. Both values ARE present in the DMST HTML report
+("Error Correction Level" and "Data Mask Pattern" in the General Characteristics table).
+DmstHtmlScraper ParseHtml() extension will resolve both. Probe complete; do not re-run.
 
 ### DebugQVIBKeys (v1.33, scan #15 QR, 2026-05-24) — CLOSED
 
@@ -527,10 +540,10 @@ appear in the standard DMST export PDF. They are VTCCP-exclusive data:
 | `ErrorCapacityUsed` | Not exposed | `ErrorsCorrected × 2` (confirmed derivation) |
 | `QR_Version` | Not in `r.symbology` top-level keys | Derive from `MatrixSize` (e.g. 29×29 → v3) |
 | `EncodedCharacters` | `q.general.encodedCharacters` ABSENT (not one of the 7 keys); `encodationAnalysisArray.length` fallback also wrong (DM: 33 vs DMST 38; QR: 39 vs DMST 36) | **No known derivation from push XML on fw 6.1.16_sr4** — omit or leave empty; cannot be accurately computed without full encodation analysis parse |
-| `QR_ECLevel` | All paths exhausted (v1.33 confirmed): q.symbols=null; r.validation=absent; AIM modifier=ECI presence; r.symbology top-level=absent; FIB sub-keys={grade,numericGrade} only — ECLevel not exposed | **PERMANENTLY UNRESOLVABLE** from push XML on fw 6.1.16_sr4 — omit from schema |
-| `QR_MaskPattern` | All paths exhausted (v1.33 confirmed): FIB sub-keys={grade,numericGrade} only — DataMaskPattern not exposed | **PERMANENTLY UNRESOLVABLE** from push XML on fw 6.1.16_sr4 — omit from schema |
-| `ECI` (value) | gnProp paths all empty; r.symbology top-level absent; FIB sub-keys absent | **PERMANENTLY UNRESOLVABLE** — omit from schema |
-| `ImagePolarity` | gnProp paths all empty; r.image = hardware metadata only | **PERMANENTLY UNRESOLVABLE** — omit from schema |
+| `QR_ECLevel` | **QR only** (N/A for DM — DM ECC200 has no selectable EC level). All push XML paths exhausted (v1.33 confirmed): q.symbols=null; r.validation=absent; AIM modifier=ECI presence; r.symbology top-level=absent; FIB sub-keys={grade,numericGrade} only | Not accessible via push XML — available in DMST HTML report ("Error Correction Level"="M"); DmstHtmlScraper ParseHtml() extension pending |
+| `QR_MaskPattern` | **QR only** (N/A for DM — DM has no data masking). All push XML paths exhausted (v1.33 confirmed): FIB sub-keys={grade,numericGrade} only | Not accessible via push XML — available in DMST HTML report ("Data Mask Pattern"="2"); DmstHtmlScraper ParseHtml() extension pending |
+| `ECI` (value) | QR and others. All push XML paths exhausted: gnProp paths all empty; r.symbology top-level absent; FIB sub-keys absent | Not accessible via push XML — available in DMST HTML report ("ECI"="000003"); DmstHtmlScraper ParseHtml() extension pending |
+| `ImagePolarity` | All symbologies. Push XML paths exhausted: gnProp paths all empty; r.image = hardware metadata only | **RESOLVED** — "Image" label in DMST HTML report; DmstHtmlScraper.ParseHtml() already implemented |
 
 ---
 
@@ -578,7 +591,9 @@ DMST display). This is a confirmed push script / firmware eaLen calculation bug 
 
 **Conclusion**: DMCC `GET SYMBOL.RESULT` is NOT an alternative data path. It returns identical
 data to the push event XML. No additional fields are obtainable via this command.
-The HTML scraping path is the only resolution for all four permanently unresolvable fields.
+The HTML scraping path (DmstHtmlScraper) resolves all four fields. ImagePolarity is already
+implemented in ParseHtml(). ECLevel, DataMaskPattern, and ECI require a ParseHtml() extension
+to extract those labels from QR HTML reports — confirmed present in the HTML from QR scans.
 
 ---
 
@@ -746,9 +761,12 @@ Format: `numericGrade / aperture / wavelength / lighting`. Push XML `<FormalGrad
 | Contrast Uniformity | `74 at module(12,17)` | `74` | trucheck adds location |
 | MRD | `67% (73% - 6%)` | `67` | trucheck adds expanded form |
 
-**ECLevel, DataMaskPattern, ECI**: NOT present in trucheck XML. FIB section has grade/numericGrade
-only (consistent with v1.33 probe campaign findings). These three fields remain permanently
-unresolvable from device protocol on fw 6.1.16_sr4.
+**ECLevel (QR only), DataMaskPattern (QR only), ECI**: NOT present in trucheck XML or push XML
+on fw 6.1.16_sr4. The FIB section has grade/numericGrade only. Note: DM ECC200 has no
+user-selectable ECLevel and no data masking — these are QR-specific concepts. Both values
+ARE present in the DMST HTML report and accessible via DmstHtmlScraper (ParseHtml() extension
+pending for QR HTML). They are not accessible from the device protocol directly, but are
+accessible via the HTML report path already in use for ImagePolarity.
 
 ### 10.4 New push XML fields confirmed from this capture
 
