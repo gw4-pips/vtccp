@@ -3,19 +3,31 @@
 **Trigger**: Stylized C (©-like) icon at top-left of the DMST TruCheck toolbar  
 **Firmware observed**: 6.1.16_sr4 (DM475-63530E-PIPS-Verif-Lab)  
 **Logged**: 2026-05-25  
-**Screenshots**: `dmst-trucheck-calibration-main.png`, `dmst-trucheck-calibration-custom-xdim.png`
+**Screenshots**:
+- `dmst-trucheck-calibration-main.png` — dialog at open (camera off)
+- `dmst-trucheck-calibration-custom-xdim.png` — Advanced panel expanded
+- `dmst-trucheck-calibration-golive.png` — after Go Live (live feed + targeting overlays)
+- `dmst-trucheck-calibration-inprogress.png` — calibration in progress (progress bar)
+- `dmst-trucheck-calibration-status-dialog.png` — Calibration Status sub-dialog (incomplete result)
 
 ---
 
 ## Overview
 
-The TruCheck Calibration dialog performs reflectance calibration of the DM475V using a
-physical calibration card. Calibration establishes the Rmax (specular white reference) and
-Rmin (specular black reference) reflectance values that ISO 15415/15416 grading depends on.
+The TruCheck Calibration dialog performs **two distinct calibration procedures** simultaneously:
 
-`FieldCalibrated` in the push XML (`<FieldCalibrated>`) reflects whether a calibration has
-been performed in the current session. All observed scans to date return `false` — meaning the
-device uses its factory calibration when this dialog has not been invoked.
+| Component | What it calibrates | Requires |
+|---|---|---|
+| **Rmin / Rmax** | Reflectance references (specular black / specular white) | Rmin and Rmax values entered by operator from calibration card label |
+| **Pixmil** | Pixel-to-mil conversion (X-dimension scale factor) | Recognized Cognex/Webscan certified calibration target in FOV |
+
+Calibration is **complete** only when both succeed. When the target in the field of view is
+not a recognized certified calibration card, Rmin/Rmax update but Pixmil does not — the
+dialog reports **"Calibration incomplete (Rmin/Rmax updated, Pixmil is uncalibrated)"**.
+
+`FieldCalibrated` in the push XML (`<FieldCalibrated>`) reflects calibration state.
+All observed scans to date return `false` — meaning the device uses factory calibration.
+Whether a partial calibration (Rmin/Rmax only) sets `FieldCalibrated=true` is unconfirmed.
 
 ---
 
@@ -72,6 +84,92 @@ NIST-traceability distinction — standard = traceable (certified card), custom 
 
 ---
 
+## Go Live state
+
+**Screenshot**: `dmst-trucheck-calibration-golive.png`
+
+After clicking "Go Live", the camera activates and the live feed fills the preview area.
+Two visual overlays appear:
+
+| Overlay | Description |
+|---|---|
+| **Red dashed rectangle** | Targeting ROI — the region the firmware expects the calibration symbol to occupy. The symbol must be inside this box before firing "Start Calibration". |
+| **Red crosshair (+)** | Frame center indicator. Its position relative to the symbol shows how much centering adjustment is needed. |
+
+The screenshot shows the calibration card symbol (DataMatrix on white stock) partially
+overlapping the ROI but not yet centered — the crosshair is below and left of the symbol.
+Operator physically adjusts the card until the symbol is centered within the dashed box,
+then clicks "Start Calibration".
+
+---
+
+## In-progress state
+
+**Screenshot**: `dmst-trucheck-calibration-inprogress.png`
+
+After clicking "Start Calibration":
+
+- "Calibrating..." text label appears below the live view
+- An **orange/red progress bar** fills left-to-right beneath it
+- Go Live and Start Calibration buttons are disabled during calibration
+- The live feed remains visible (symbol now better centered in frame)
+
+Duration is short — a few seconds at most. The progress bar is the only feedback.
+
+---
+
+## Calibration Status sub-dialog
+
+**Screenshot**: `dmst-trucheck-calibration-status-dialog.png`
+
+Upon completion (success or partial), a modal **Calibration Status** sub-dialog appears
+overlaid on the main calibration window. The progress bar below is fully filled (orange).
+
+### Observed result — incomplete calibration (unrecognized target)
+
+> **Calibration incomplete (Rmin/Rmax updated, Pixmil is uncalibrated)**
+>
+> Save calibration to non-volatile memory?  [ Yes ]  [ No ]
+
+The blue **?** icon (not a red ✗) indicates a warning state rather than a hard failure —
+the calibration partially succeeded.
+
+**What happened**: The symbol in the FOV was a GS1 DataMatrix label (the recurring test
+symbol), not a Cognex/Webscan certified calibration card. The firmware:
+- Updated Rmin/Rmax from the operator-entered values (88 / 5) — **succeeded**
+- Could not determine Pixmil because the target was unrecognized — **not updated**
+
+**Non-volatile memory prompt**: The "Save calibration to non-volatile memory?" question
+appears regardless of whether calibration was complete or partial. Choices:
+
+| Button | Effect |
+|---|---|
+| **Yes** | Writes current Rmin/Rmax (and Pixmil if updated) to device NVM — persists across power cycles and DMST restarts |
+| **No** | Calibration values remain in volatile RAM only — lost when DMST is closed or device reboots |
+
+In this session the operator chose **No** to preserve the existing factory calibration —
+the partial values were not committed to NVM.
+
+### Confirmed partial calibration sequence (DMCC implications)
+
+The two-component model is now confirmed from firmware behavior:
+
+```
+Start Calibration →
+  DMCC: write Rmin=5, Rmax=88   → always executes (user-entered values)
+  DMCC: identify calibration target in FOV → requires certified card
+    if recognized: compute Pixmil from target dimensions + known X-dim → write Pixmil
+    if unrecognized: skip Pixmil update → "Pixmil is uncalibrated"
+  → Calibration Status dialog: complete or incomplete
+  → Prompt: save to NVM? Yes/No
+```
+
+**`FieldCalibrated` flag behavior** (unconfirmed — needs a recognized-target run):
+- Almost certainly requires BOTH Rmin/Rmax AND Pixmil to be updated before returning `true`
+- A partial update (Rmin/Rmax only) likely leaves `FieldCalibrated=false`
+
+---
+
 ## DMCC backend
 
 Calibration in DMST TruCheck is driven by DMCC — the same DMCC commands VTCCP uses.
@@ -91,7 +189,8 @@ implements this feature, the relevant DMCC keys to identify are:
 
 | # | Question | Status |
 |---|---|---|
-| OQ-1 | When Custom X Dimension is used, what calibration card do the Rmax/Rmin values refer to — the same NIST card, or the custom target? The window is silent. | **Pending** — clarification needed from Webscan founder |
-| OQ-2 | What DMCC command(s) does DMST issue to the device when "Start Calibration" is clicked? | Not yet confirmed — check A1 digest |
-| OQ-3 | What DMCC command reads back the current calibration state → feeds `FieldCalibrated`? | Not yet confirmed — `FieldCalibrated` seen as false on all scans |
+| OQ-1 | When Custom X Dimension is used, what Rmax/Rmin values does the operator enter — values from the custom target's own cert label, or the same NIST card values regardless? The window is silent; the "incomplete" result confirms Rmin/Rmax ARE written from user-entered values even without a recognized target, but the intended source of those values in the custom-target case is unclear. | **Pending** — clarification needed from Webscan founder |
+| OQ-2 | What DMCC command(s) does DMST issue to the device when "Start Calibration" is clicked? Likely separate SET commands for Rmin, Rmax, and Pixmil. | Not yet confirmed — check A1 digest |
+| OQ-3 | Does a partial calibration (Rmin/Rmax updated, Pixmil uncalibrated) result in `FieldCalibrated=true` in the next push XML? Hypothesis: no — requires both components. | **Unconfirmed** — needs a recognized-target calibration run followed by a scan |
 | OQ-4 | Final VTCCP name for the "Custom X Dimension" sub-mode | Pending decision — do not use "Advanced Calibration" |
+| OQ-5 | What DMCC command reads back the current calibration state → feeds `FieldCalibrated`? | Not yet confirmed — `FieldCalibrated` seen as false on all scans to date |
