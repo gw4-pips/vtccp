@@ -381,6 +381,20 @@ public sealed class DmstHtmlScraper : IDisposable
                 return decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : null;
             }
 
+            // ── Step 2b: DM matrix size normalisation ─────────────────────────
+            //
+            // QR HTML uses label "QR Size"     → value "29x29" (clean, no suffix).
+            // DM  HTML uses label "Matrix Size" → value "16x36 (Data: 14x34)"
+            //   The " (Data: RxC)" suffix lists the data-only region (without the
+            //   finder/clock border) and must be stripped so the value matches the
+            //   format used by the push XML parser and ECC200 lookup table.
+            static string? StripDataSuffix(string? raw)
+            {
+                if (raw is null) return null;
+                var idx = raw.IndexOf(" (Data:", StringComparison.OrdinalIgnoreCase);
+                return idx >= 0 ? raw[..idx].Trim() : raw;
+            }
+
             // ── Step 3: grade parameter rows ──────────────────────────────────
             //
             // Row structure: [label][secondary][pct%][numeric][letter][PASS/FAIL]
@@ -453,7 +467,9 @@ public sealed class DmstHtmlScraper : IDisposable
                 OverallGrade    = overallGrade,
 
                 // ── Cross-validation: simple characteristics table ─────────────
-                MatrixSize    = Get("QR Size"),
+                // QR HTML: label "QR Size" → "29x29".  DM HTML: label "Matrix Size"
+                // → "16x36 (Data: 14x34)" — strip the " (Data:…)" suffix.
+                MatrixSize    = Get("QR Size") ?? StripDataSuffix(Get("Matrix Size")),
                 NominalXDim   = Get("Nominal X Dim"),
                 HorizontalBWG = GetDecimal("Horizontal BWG", stripPercent: true),
                 VerticalBWG   = GetDecimal("Vertical BWG",   stripPercent: true),

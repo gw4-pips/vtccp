@@ -381,6 +381,18 @@ public static class DmstResultParser
         int? ecCapUsed    = Int(map.ErrorCapacityUsed) ?? CharDataInt("Error Capacity Used");
         string? ecType    = Str(map.ErrorCorrectionType) ?? CharData("Error Correction Type");
 
+        // ── C# table fallback: ECC200 DataCodewords / ErrorCorrectionBudget ──
+        // Push XML <DataCodewords> and <ErrorCorrectionBudget> are EMPTY on
+        // fw 6.1.16_sr4.  When DMST is not running the HTML scraper cannot
+        // supply these values, so derive them from MatrixSize via the
+        // ISO/IEC 16022 ECC200 symbol table (CodewordValuesData.Ecc200DataCodewordsTable).
+        // The HTML scraper's MergeAndValidate will overwrite with the HTML value
+        // (which is authoritative) if a matching report file is found.
+        if (dataCw is null && matrixSize is not null)
+            dataCw = CodewordValuesData.LookupDataCodewords(matrixSize);
+        if (ecBudget is null && totalCw.HasValue && dataCw.HasValue)
+            ecBudget = totalCw.Value - dataCw.Value;
+
         // Nominal X Dim — strip units ("13.1 mil" → 13.1)
         // Push XML may emit "12.6 mil"; CharData may emit "13.1 mil"; both need unit strip.
         decimal? nomXDim2D = Dec(map.NominalXDim);
