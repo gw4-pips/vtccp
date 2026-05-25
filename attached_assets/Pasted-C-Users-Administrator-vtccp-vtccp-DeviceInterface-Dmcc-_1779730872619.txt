@@ -1,0 +1,172 @@
+C:\Users\Administrator\vtccp\vtccp\DeviceInterface\Dmcc\DataManSdkClient.cs(509,25): warning CA1416: This call site is reachable on all platforms. 'ImageFormat.Png' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416)
+╔══════════════════════════════════════════════════════════════════╗
+║  VTCCP Repeatability Runner                                      ║
+║  Target : 10.10.10.7:44444
+║  Reps   : 50
+║  Image  : C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg
+╚══════════════════════════════════════════════════════════════════╝
+
+Connecting to device...  OK
+  Model    : DM475
+  Name     : DM475-63530E-PIPS-Verif-Lab
+  Serial   : 1A1903PP010754
+  Firmware : 6.1.16_sr4
+
+Rep 1 performs IMAGE.LOAD + IMAGE.REPLAY to prime the device buffer.
+Reps 2–N perform IMAGE.REPLAY only on the primed buffer.
+No physical trigger required. Device acts as a pure grading engine.
+
+#     Timestamp       ms      Formal Grade         UEC%     SC%      ANU%      GNU%      FPD     MOD   RM    DECODE
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[VTCCP-D4] No SendImage method found on DataManSystem. Available methods:
+  Void Backup(String fileName)
+  IAsyncResult BeginBackup(String fileName, AsyncCallback callback, Object state)
+  IAsyncResult BeginGetBufferedImage(Int32 index, ImageFormat imageFormat, ImageSize imageSize, ImageQuality imageQuality, AsyncCallback callback, Object state)
+  IAsyncResult BeginGetConfig(String fileName, AsyncCallback callback, Object state)
+  IAsyncResult BeginGetLastReadImage(AsyncCallback callback, Object state)
+  IAsyncResult BeginGetLiveImage(ImageFormat imageFormat, ImageSize imageSize, ImageQuality imageQuality, AsyncCallback callback, Object state)
+  IAsyncResult BeginRestore(String fileName, AsyncCallback callback, Object state)
+  IAsyncResult BeginSendCommand(String command, AsyncCallback callback, Object state)
+  IAsyncResult BeginSetConfig(String fileName, AsyncCallback callback, Object state)
+  IAsyncResult BeginUpdateFirmware(String strippedFileName, Stream fwFileStream, Boolean reboot, AsyncCallback callback, Object state, Int32 timeout)
+  IAsyncResult BeginUploadFeatureKey(String fileName, AsyncCallback callback, Object state)
+  Boolean Cancel(IAsyncResult asyncResult)
+  Boolean CheckFirmware(Stream fwFileStream, String& errorMessage)
+  Void Connect()
+  Void Connect(Int32 timeout)
+  Void Disconnect()
+  Void Dispose()
+  Void EndBackup(IAsyncResult asyncResult)
+  Image EndGetBufferedImage(IAsyncResult asyncResult)
+  Void EndGetConfig(IAsyncResult asyncResult)
+  Image EndGetLastReadImage(IAsyncResult asyncResult)
+  Image EndGetLiveImage(IAsyncResult asyncResult)
+  Void EndRestore(IAsyncResult asyncResult)
+  DmccResponse EndSendCommand(IAsyncResult asyncResult)
+  Void EndSetConfig(IAsyncResult asyncResult)
+  Void EndUpdateFirmware(IAsyncResult asyncResult)
+  Void EndUploadFeatureKey(IAsyncResult asyncResult)
+  Boolean Equals(Object obj)
+  Image GetBufferedImage(Int32 index, ImageFormat imageFormat, ImageSize imageSize, ImageQuality imageQuality)
+  Void GetConfig(String fileName)
+  Int32 GetHashCode()
+  Image GetLastReadImage()
+  Image GetLiveImage(ImageFormat imageFormat, ImageSize imageSize, ImageQuality imageQuality)
+  Type GetType()
+  Void Restore(String fileName)
+  DmccResponse SendCommand(String command)
+  DmccResponse SendCommand(String command, Int32 timeout)
+  DmccResponse SendCommand(String command, Byte[] data)
+  DmccResponse SendCommand(String command, Byte[] data, Int32 timeout)
+  DmccResponse SendCommandWithExpectedBinaryResult(String command)
+  DmccResponse SendCommandWithExpectedBinaryResult(String command, Int32 timeout)
+  DmccResponse SendCommandWithExpectedBinaryResult(String command, Byte[] data)
+  DmccResponse SendCommandWithExpectedBinaryResult(String command, Byte[] data, Int32 timeout)
+  Void SetConfig(String fileName)
+  Void SetKeepAliveOptions(Boolean enabled, Int32 timeout, Int32 interval)
+  Void SetResultTypes(ResultTypes resultTypes)
+  String ToString()
+  Void UpdateFirmware(String strippedFileName, Stream fwFileStream, Boolean reboot, Int32 timeout)
+  Void UploadFeatureKey(String fileName)
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+1     13:31:31.652   30      TIMEOUT / NO READ
+2     13:31:31.893   240     1.0/**/660/45Q       41.7%    83.0%    10.90%    8.20%     —       A/4.0 C/2.0 A/4.0
+3     13:31:32.346   223     1.0/**/660/45Q       41.7%    83.0%    10.90%    7.60%     —       A/4.0 C/2.0 A/4.0
+4     13:31:32.784   101     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.20%     —       A/4.0 C/2.0 A/4.0
+5     13:31:33.097   62      1.0/**/660/45Q       41.7%    83.0%    10.90%    8.00%     —       A/4.0 C/2.0 A/4.0
+6     13:31:33.362   110     1.0/**/660/45Q       41.7%    83.0%    10.90%    7.80%     —       A/4.0 C/2.0 A/4.0
+7     13:31:33.673   81      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+8     13:31:33.961   126     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.30%     —       A/4.0 C/2.0 A/4.0
+9     13:31:34.299   46      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+10    13:31:34.550   118     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.20%     —       A/4.0 C/2.0 A/4.0
+11    13:31:34.880   47      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.30%     —       A/4.0 C/2.0 A/4.0
+12    13:31:35.130   107     1.0/**/660/45Q       41.7%    83.0%    11.00%    7.90%     —       A/4.0 C/2.0 A/4.0
+13    13:31:35.441   84      1.0/**/660/45Q       41.7%    83.0%    10.90%    7.70%     —       A/4.0 C/2.0 A/4.0
+14    13:31:35.737   106     1.0/**/660/45Q       41.7%    83.0%    10.90%    8.10%     —       A/4.0 C/2.0 A/4.0
+15    13:31:36.055   44      1.0/**/660/45Q       41.7%    83.0%    10.90%    8.20%     —       A/4.0 C/2.0 A/4.0
+16    13:31:36.315   103     1.0/**/660/45Q       41.7%    83.0%    10.90%    8.00%     —       A/4.0 C/2.0 A/4.0
+17    13:31:36.630   46      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+18    13:31:36.878   151     1.0/**/660/45Q       41.7%    83.0%    10.90%    7.60%     —       A/4.0 C/2.0 A/4.0
+19    13:31:37.238   43      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+20    13:31:37.492   133     1.0/**/660/45Q       41.7%    83.0%    10.90%    7.80%     —       A/4.0 C/2.0 A/4.0
+21    13:31:37.830   37      1.0/**/660/45Q       41.7%    83.0%    11.00%    7.90%     —       A/4.0 C/2.0 A/4.0
+22    13:31:38.068   175     1.0/**/660/45Q       41.7%    83.0%    10.90%    8.00%     —       A/4.0 C/2.0 A/4.0
+23    13:31:38.456   31      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+24    13:31:38.691   142     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.30%     —       A/4.0 C/2.0 A/4.0
+25    13:31:39.036   45      1.0/**/660/45Q       41.7%    83.0%    11.00%    7.90%     —       A/4.0 C/2.0 A/4.0
+26    13:31:39.285   139     1.0/**/660/45Q       41.7%    83.0%    11.00%    7.80%     —       A/4.0 C/2.0 A/4.0
+27    13:31:39.629   45      1.0/**/660/45Q       41.7%    83.0%    10.90%    7.60%     —       A/4.0 C/2.0 A/4.0
+28    13:31:39.874   136     1.0/**/660/45Q       41.7%    83.0%    11.00%    7.80%     —       A/4.0 C/2.0 A/4.0
+29    13:31:40.222   88      1.0/**/660/45Q       41.7%    83.0%    10.90%    7.90%     —       A/4.0 C/2.0 A/4.0
+30    13:31:40.524   84      1.0/**/660/45Q       41.7%    83.0%    11.00%    7.40%     —       A/4.0 C/2.0 A/4.0
+31    13:31:40.818   70      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+32    13:31:41.097   127     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+33    13:31:41.438   54      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+34    13:31:41.709   118     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+35    13:31:42.035   46      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+36    13:31:42.284   138     1.0/**/660/45Q       41.7%    83.0%    10.90%    7.70%     —       A/4.0 C/2.0 A/4.0
+37    13:31:42.611   55      1.0/**/660/45Q       41.7%    83.0%    11.00%    7.80%     —       A/4.0 C/2.0 A/4.0
+38    13:31:42.878   130     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+39    13:31:43.222   65      1.0/**/660/45Q       41.7%    83.0%    10.90%    7.60%     —       A/4.0 C/2.0 A/4.0
+40    13:31:43.488   119     1.0/**/660/45Q       41.7%    83.0%    10.90%    7.90%     —       A/4.0 C/2.0 A/4.0
+41    13:31:43.816   60      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.20%     —       A/4.0 C/2.0 A/4.0
+42    13:31:44.081   147     1.0/**/660/45Q       41.7%    83.0%    10.90%    7.70%     —       A/4.0 C/2.0 A/4.0
+43    13:31:44.441   37      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+44    13:31:44.691   112     1.0/**/660/45Q       41.7%    83.0%    11.00%    7.90%     —       A/4.0 C/2.0 A/4.0
+45    13:31:45.005   48      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+46    13:31:45.254   145     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+47    13:31:45.613   31      1.0/**/660/45Q       41.7%    83.0%    10.90%    7.90%     —       A/4.0 C/2.0 A/4.0
+48    13:31:45.847   142     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.20%     —       A/4.0 C/2.0 A/4.0
+49    13:31:46.191   57      1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+50    13:31:46.458   136     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+══ TIMING ══════════════════════════════════════════════════════════
+  Completed : 49/50 reps
+  Total     : 4,730 ms (4.7 s)
+  Per rep   : avg=96 ms   min=31 ms   max=240 ms
+
+══ DEVIATION REPORT ════════════════════════════════════════════════
+  Each parameter is checked across all 49 successful reps.
+  ★ = value changed at least once.  Values shown as: value×count
+
+  Parameter                Status     Values
+  ────────────────────────────────────────────────────────────────────────────────
+    FormalGrade              STABLE     1.0/**/660/45Q
+    OverallGrade             STABLE     D/1.0
+    UEC_Grade                STABLE     C/2.0
+    UEC_Percent              STABLE     41.7000
+    SC_Grade                 STABLE     A/4.0
+    SC_Percent               STABLE     83.0000
+    MOD_Grade                STABLE     A/4.0
+    RM_Grade                 STABLE     C/2.0
+    ANU_Grade                STABLE     D/1.0
+  ★ ANU_Percent              ★ VARIES   11.000000×31  |  10.900000×18
+    GNU_Grade                STABLE     A/4.0
+  ★ GNU_Percent              ★ VARIES   8.000000×10  |  8.100000×10  |  7.900000×7  |  8.200000×6  |  7.800000×5  |  7.600000×4  |  8.300000×3  |  7.700000×3  |  7.400000×1
+    FPD_Grade                STABLE     A/4.0
+    FPD_Value                STABLE     —
+    DECODE_Grade             STABLE     A/4.0
+    LLS_Grade                STABLE     A/4.0
+    BLS_Grade                STABLE     A/4.0
+    LQZ_Grade                STABLE     A/4.0
+    BQZ_Grade                STABLE     A/4.0
+    TQZ_Grade                STABLE     —
+    RQZ_Grade                STABLE     —
+    TTR_Grade                STABLE     —
+    TTR_Percent              STABLE     —
+    RTR_Grade                STABLE     —
+    RTR_Percent              STABLE     —
+    TCT_Grade                STABLE     —
+    RCT_Grade                STABLE     —
+    ErrorsCorrected          STABLE     7
+    ErrorCapacityUsed        STABLE     14
+    DataCodewords            STABLE     32
+    ErrorCorrectionBudget    STABLE     24
+
+  ★ DEVIATION DETECTED — see flagged parameters above.
+    Variation across IMAGE.REPLAY on identical pixels indicates
+    non-determinism in the firmware grading algorithm.
+
+  Run started : 2026-05-25 13:31:31.652
+  Run ended   : 2026-05-25 13:31:46.458

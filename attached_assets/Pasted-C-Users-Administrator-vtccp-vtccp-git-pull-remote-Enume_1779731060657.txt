@@ -1,0 +1,38 @@
+C:\Users\Administrator\vtccp\vtccp>git pull
+remote: Enumerating objects: 28, done.
+remote: Counting objects: 100% (28/28), done.
+remote: Compressing objects: 100% (7/7), done.
+remote: Total 17 (delta 13), reused 13 (delta 9), pack-reused 0 (from 0)
+Unpacking objects: 100% (17/17), 6.59 KiB | 116.00 KiB/s, done.
+From https://github.com/gw4-pips/vtccp
+   629f034..8762600  main       -> origin/main
+Updating 629f034..8762600
+Fast-forward
+ ...p-vtccp-DeviceInterface-Dmcc-_1779730390289.txt | 172 +++++++++++++++++++++
+ ...p-vtccp-dotnet-build-VTCCP-sl_1779730253928.txt |  16 ++
+ vtccp/DeviceInterface/Dmcc/DataManSdkClient.cs     | 100 ++----------
+ vtccp/Tools/RepeatabilityRunner/Program.cs         |  17 +-
+ vtccp/architecture/firmware-confirmed-facts.md     |  69 +++++++++
+ 5 files changed, 275 insertions(+), 99 deletions(-)
+ create mode 100644 attached_assets/Pasted-C-Users-Administrator-vtccp-vtccp-DeviceInterface-Dmcc-_1779730390289.txt
+ create mode 100644 attached_assets/Pasted-C-Users-Administrator-vtccp-vtccp-dotnet-build-VTCCP-sl_1779730253928.txt
+
+C:\Users\Administrator\vtccp\vtccp>dotnet build VTCCP.sln -c Release
+Restore complete (0.7s)
+  ExcelEngine net8.0 succeeded (3.4s) → ExcelEngine\bin\Release\net8.0\ExcelEngine.dll
+  DeviceInterface net8.0 succeeded (0.5s) → DeviceInterface\bin\Release\net8.0\DeviceInterface.dll
+  ConfigEngine net8.0 succeeded (0.3s) → ConfigEngine\bin\Release\net8.0\ConfigEngine.dll
+  RepeatabilityRunner net8.0 succeeded (0.5s) → Tools\RepeatabilityRunner\bin\Release\net8.0\RepeatabilityRunner.dll
+  TestHarness net8.0 succeeded (1.1s) → TestHarness\bin\Release\net8.0\TestHarness.dll
+
+Build succeeded in 6.2s
+
+C:\Users\Administrator\vtccp\vtccp>dotnet run --project Tools\RepeatabilityRunner -- 10.10.10.7 44444 50 "C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg"
+╔══════════════════════════════════════════════════════════════════╗
+║  VTCCP Repeatability Runner                                      ║
+║  Target : 10.10.10.7:44444
+║  Reps   : 50
+║  Image  : C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg
+╚══════════════════════════════════════════════════════════════════╝
+
+Connecting to device...
