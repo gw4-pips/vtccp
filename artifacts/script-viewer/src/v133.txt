@@ -1,3 +1,38 @@
+// =============================================================================
+// VCCS -- Verifier Calibration & Conformance Solutions, LLC
+//
+//   CONFIDENTIAL AND PROPRIETARY -- ALL RIGHTS RESERVED
+//
+//   Copyright (c) 2026 Verifier Calibration & Conformance Solutions, LLC.
+//   All rights reserved.
+//
+//   This script and all information contained herein are the exclusive
+//   property of Verifier Calibration & Conformance Solutions, LLC ("VCCS").
+//
+//   TRADE SECRET NOTICE: This script contains trade secrets of VCCS,
+//   including but not limited to: the firmware object-model enumeration
+//   methodology, the proprietary push-data schema, and the grading-field
+//   extraction and formatting logic developed through extensive device
+//   testing. These trade secrets are protected under applicable federal and
+//   state law, including the Defend Trade Secrets Act (18 U.S.C. ss 1836).
+//
+//   No part of this script may be reproduced, disclosed, copied, distributed,
+//   stored in a retrieval system, reverse-engineered, decompiled, modified,
+//   or translated into any language or computer language, in any form or by
+//   any means -- electronic, mechanical, magnetic, optical, chemical, manual,
+//   or otherwise -- without the prior express written authorization of VCCS.
+//
+//   Authorized use is strictly limited to operation within VCCS-licensed
+//   installations of the VTCCP (VCCS TruCheck Command Pilot) system.
+//   Any other use, including use by the hosting verifier manufacturer or
+//   its affiliates, agents, or subcontractors, is expressly prohibited.
+//
+//   Unauthorized disclosure or use of this script or the methodology it
+//   embodies may subject the responsible party to civil liability and
+//   criminal prosecution under applicable law.
+//
+//   For licensing inquiries contact: legal@vccs-solutions.com
+// =============================================================================
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
 //
