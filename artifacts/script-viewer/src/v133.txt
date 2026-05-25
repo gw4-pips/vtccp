@@ -31,7 +31,7 @@
 //   embodies may subject the responsible party to civil liability and
 //   criminal prosecution under applicable law.
 //
-//   For licensing inquiries contact: legal@vccs-solutions.com
+//   For licensing inquiries contact: legal@vccs.llc
 // =============================================================================
 // ─────────────────────────────────────────────────────────────────────────────
 // VTCCP DMST Push Script
