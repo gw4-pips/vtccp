@@ -191,6 +191,60 @@ public sealed class DeviceSession : IAsyncDisposable
         await _client.DisconnectAsync();
     }
 
+    /// <summary>
+    /// Sends REBOOT to the device, then disconnects cleanly.
+    /// The device will be unavailable for ~30–60 s while it restarts.
+    /// After it comes back up DMST and other clients can reconnect normally.
+    /// </summary>
+    public async Task RebootAndDisconnectAsync()
+    {
+        // Restore trigger type first — the reboot will also reset it, but explicit
+        // restore ensures deterministic state even if reboot is skipped in future.
+        if (_originalTriggerType is not null && _client.IsConnected)
+        {
+            try
+            {
+                await _client.SendAsync($"SET TRIGGER.TYPE {_originalTriggerType}");
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-DMCC] Restored trigger type to '{_originalTriggerType}'.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-DMCC] Could not restore trigger type: {ex.Message}");
+            }
+        }
+
+        // Stop any active subscribers/listeners before the device disappears.
+        if (_httpSubscriber is not null) { await _httpSubscriber.StopAsync(); _httpSubscriber = null; }
+        _scraper?.Stop();
+        _scraper = null;
+        if (_listener is not null) await _listener.StopAsync();
+
+        // Issue REBOOT — device starts rebooting immediately; TCP connection will drop.
+        if (_client.IsConnected)
+        {
+            try
+            {
+                await _client.SendAsync(DmccCommand.Reboot);
+                System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] REBOOT command sent.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-DMCC] REBOOT send error (expected if device closed TCP immediately): {ex.Message}");
+            }
+        }
+
+        // SDK disconnect — may throw if device already closed the connection; swallow it.
+        try { await _client.DisconnectAsync(); }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] Disconnect after reboot (benign): {ex.Message}");
+        }
+    }
+
     // ── Device configuration (Code Properties) ───────────────────────────────
 
     /// <summary>

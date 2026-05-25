@@ -183,9 +183,6 @@ for (int i = 1; i <= reps; i++)
 Console.WriteLine(new string('─', hdr.Length + 5));
 Console.WriteLine();
 
-// ── Disconnect ────────────────────────────────────────────────────────────────
-await session.DisconnectAsync();
-
 // ── Timing summary ────────────────────────────────────────────────────────────
 var good = runs.Where(r => r.Record is not null).ToList();
 int  successCount = good.Count;
@@ -293,6 +290,15 @@ else
 Console.WriteLine();
 Console.WriteLine($"  Run started : {runs.First().Timestamp:yyyy-MM-dd HH:mm:ss.fff}");
 Console.WriteLine($"  Run ended   : {runs.Last().Timestamp:yyyy-MM-dd HH:mm:ss.fff}");
+Console.WriteLine();
+
+// ── Reboot + disconnect ───────────────────────────────────────────────────────
+// Rebooting releases the device so DMST can reconnect immediately after.
+// The device will be unavailable for ~30–60 s while it restarts.
+Console.Write("Rebooting device so DMST can reconnect...");
+await session.RebootAndDisconnectAsync();
+Console.WriteLine("  done.");
+Console.WriteLine("  Device will be available again in ~30–60 seconds.");
 Console.WriteLine();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
