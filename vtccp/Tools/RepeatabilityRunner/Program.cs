@@ -81,9 +81,8 @@ Console.WriteLine($"  Name     : {info.Name ?? "unknown"}");
 Console.WriteLine($"  Serial   : {info.Serial ?? "unknown"}");
 Console.WriteLine($"  Firmware : {info.FirmwareVersion ?? "unknown"}");
 Console.WriteLine();
-Console.WriteLine("Rep 1 performs IMAGE.LOAD + IMAGE.REPLAY to prime the device buffer.");
-Console.WriteLine("Reps 2–N perform IMAGE.REPLAY only on the primed buffer.");
-Console.WriteLine("No physical trigger required. Device acts as a pure grading engine.");
+Console.WriteLine("Reads the device's active replay loop — ensure the target image is loaded");
+Console.WriteLine("in DMST before running. No physical trigger required.");
 Console.WriteLine();
 
 // ── Progress header ───────────────────────────────────────────────────────────
@@ -96,6 +95,10 @@ var runs = new List<RunData>(reps);
 var appCts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) => { e.Cancel = true; appCts.Cancel(); };
 
+// Wait for the device's replay loop to settle before the first rep.
+try { await Task.Delay(300, appCts.Token); }
+catch (OperationCanceledException) { return; }
+
 for (int i = 1; i <= reps; i++)
 {
     if (appCts.Token.IsCancellationRequested)
@@ -105,9 +108,7 @@ for (int i = 1; i <= reps; i++)
         break;
     }
 
-    // Rep 1: IMAGE.LOAD + IMAGE.REPLAY to prime the buffer.
-    // Reps 2..N: IMAGE.REPLAY only — no redundant load per rep, no rate-rejection.
-    // A 200 ms inter-rep pause lets the firmware reset between REPLAY commands.
+    // All reps use IMAGE.REPLAY — 200 ms inter-rep gap lets the firmware cycle reset.
     if (i > 1)
     {
         try { await Task.Delay(200, appCts.Token); }
@@ -120,9 +121,7 @@ for (int i = 1; i <= reps; i++)
 
     try
     {
-        rec = i == 1
-            ? await session.LoadAndVerifyImageAsync(imagePath, ct: appCts.Token)
-            : await session.ReplayAndGetResultAsync(ct: appCts.Token);
+        rec = await session.ReplayAndGetResultAsync(ct: appCts.Token);
     }
     catch (OperationCanceledException)
     {

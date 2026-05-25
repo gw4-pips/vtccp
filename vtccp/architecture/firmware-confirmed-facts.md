@@ -799,3 +799,72 @@ or DM variants with non-standard finder pattern topology.
 NominalXDim is a per-scan measurement derived from the optical image — not a device constant.
 It varies with symbol size and distance from camera.
 
+---
+
+## 11. Cognex DataMan SDK — DataManSystem complete public method inventory
+
+**Confirmed**: 2026-05-25 via reflection dump (RepeatabilityRunner D4 probe, fw 6.1.16_sr4,
+SDK v25.4.1 — `C:\Program Files (x86)\Cognex\DataMan\DataMan Software v25.4.1\Cognex.DataMan.SDK.PC.dll`)
+
+**KEY FINDING**: `DataManSystem` has **NO `SendImage` method**. The DMCC guide digest note
+("via `IDataManSystem.SendImage()`") was incorrect for SDK v25.4.1. Image upload mechanism
+via SDK remains unidentified. `SendCommand("IMAGE.LOAD", Byte[])` throws
+`InvalidParameterException` on JPEG, BMP, and PNG bytes. Candidate: `SendCommandWithExpectedBinaryResult`.
+
+### Complete public instance method list
+
+| Return | Method | Parameters |
+|---|---|---|
+| `void` | `Backup` | `String fileName` |
+| `IAsyncResult` | `BeginBackup` | `String fileName, AsyncCallback callback, Object state` |
+| `IAsyncResult` | `BeginGetBufferedImage` | `Int32 index, ImageFormat imageFormat, ImageSize imageSize, ImageQuality imageQuality, AsyncCallback callback, Object state` |
+| `IAsyncResult` | `BeginGetConfig` | `String fileName, AsyncCallback callback, Object state` |
+| `IAsyncResult` | `BeginGetLastReadImage` | `AsyncCallback callback, Object state` |
+| `IAsyncResult` | `BeginGetLiveImage` | `ImageFormat imageFormat, ImageSize imageSize, ImageQuality imageQuality, AsyncCallback callback, Object state` |
+| `IAsyncResult` | `BeginRestore` | `String fileName, AsyncCallback callback, Object state` |
+| `IAsyncResult` | `BeginSendCommand` | `String command, AsyncCallback callback, Object state` |
+| `IAsyncResult` | `BeginSetConfig` | `String fileName, AsyncCallback callback, Object state` |
+| `IAsyncResult` | `BeginUpdateFirmware` | `String strippedFileName, Stream fwFileStream, Boolean reboot, AsyncCallback callback, Object state, Int32 timeout` |
+| `IAsyncResult` | `BeginUploadFeatureKey` | `String fileName, AsyncCallback callback, Object state` |
+| `Boolean` | `Cancel` | `IAsyncResult asyncResult` |
+| `Boolean` | `CheckFirmware` | `Stream fwFileStream, String& errorMessage` |
+| `void` | `Connect` | *(none)* |
+| `void` | `Connect` | `Int32 timeout` |
+| `void` | `Disconnect` | *(none)* |
+| `void` | `Dispose` | *(none)* |
+| `void` | `EndBackup` | `IAsyncResult asyncResult` |
+| `Image` | `EndGetBufferedImage` | `IAsyncResult asyncResult` |
+| `void` | `EndGetConfig` | `IAsyncResult asyncResult` |
+| `Image` | `EndGetLastReadImage` | `IAsyncResult asyncResult` |
+| `Image` | `EndGetLiveImage` | `IAsyncResult asyncResult` |
+| `void` | `EndRestore` | `IAsyncResult asyncResult` |
+| `DmccResponse` | `EndSendCommand` | `IAsyncResult asyncResult` |
+| `void` | `EndSetConfig` | `IAsyncResult asyncResult` |
+| `void` | `EndUpdateFirmware` | `IAsyncResult asyncResult` |
+| `void` | `EndUploadFeatureKey` | `IAsyncResult asyncResult` |
+| `Image` | `GetBufferedImage` | `Int32 index, ImageFormat imageFormat, ImageSize imageSize, ImageQuality imageQuality` |
+| `void` | `GetConfig` | `String fileName` |
+| `Image` | `GetLastReadImage` | *(none)* |
+| `Image` | `GetLiveImage` | `ImageFormat imageFormat, ImageSize imageSize, ImageQuality imageQuality` |
+| `void` | `Restore` | `String fileName` |
+| `DmccResponse` | `SendCommand` | `String command` |
+| `DmccResponse` | `SendCommand` | `String command, Int32 timeout` |
+| `DmccResponse` | `SendCommand` | `String command, Byte[] data` |
+| `DmccResponse` | `SendCommand` | `String command, Byte[] data, Int32 timeout` |
+| `DmccResponse` | `SendCommandWithExpectedBinaryResult` | `String command` |
+| `DmccResponse` | `SendCommandWithExpectedBinaryResult` | `String command, Int32 timeout` |
+| `DmccResponse` | `SendCommandWithExpectedBinaryResult` | `String command, Byte[] data` |
+| `DmccResponse` | `SendCommandWithExpectedBinaryResult` | `String command, Byte[] data, Int32 timeout` |
+| `void` | `SetConfig` | `String fileName` |
+| `void` | `SetKeepAliveOptions` | `Boolean enabled, Int32 timeout, Int32 interval` |
+| `void` | `SetResultTypes` | `ResultTypes resultTypes` |
+| `void` | `UpdateFirmware` | `String strippedFileName, Stream fwFileStream, Boolean reboot, Int32 timeout` |
+| `void` | `UploadFeatureKey` | `String fileName` |
+
+### Notable methods not yet exploited
+
+- **`SendCommandWithExpectedBinaryResult(String, Byte[])`** — differs from `SendCommand`; may be the correct overload for `IMAGE.LOAD` with binary image data. Untested.
+- **`SetResultTypes(ResultTypes)`** — controls which result events fire on the SDK connection. May affect `XmlResultArrived` behaviour.
+- **`GetBufferedImage(Int32 index, ...)`** — retrieves a stored image from the device buffer by index. Index 0 is the most recent. Useful for confirming which image the device is grading.
+- **`SetConfig(String fileName)` / `GetConfig(String fileName)`** — file-based config push/pull. Not a candidate for IMAGE.LOAD.
+

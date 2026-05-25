@@ -443,96 +443,16 @@ public sealed class DataManSdkClient : IAsyncDisposable
     /// </summary>
     private bool TrySendImageViaCommand(string filePath)
     {
-        // The DMCC guide confirms IMAGE.LOAD / IMAGE.REPLAY are SDK-level operations
-        // exposed via IDataManSystem.SendImage() — NOT via SendCommand(String, Byte[]).
-        // Use reflection so this code compiles on Linux without the Windows-only SDK.
-
-        var type = _system!.GetType();
-
-        // Dump all SendImage overloads on first call so we can see the exact signature.
-        var allSendImage = type.GetMethods()
-            .Where(m => m.Name == "SendImage")
-            .ToArray();
-
-        if (allSendImage.Length == 0)
-        {
-            Console.Error.WriteLine("[VTCCP-D4] No SendImage method found on DataManSystem. Available methods:");
-            foreach (var m in type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
-                                   .Where(m => !m.IsSpecialName)
-                                   .OrderBy(m => m.Name))
-                Console.Error.WriteLine($"  {m.ReturnType.Name} {m.Name}({string.Join(", ", m.GetParameters().Select(p => p.ParameterType.Name + " " + p.Name))})");
-            return false;
-        }
-
-        foreach (var mi in allSendImage)
-        {
-            var parms = mi.GetParameters();
-            Console.Error.WriteLine(
-                $"[VTCCP-D4] SendImage overload: ({string.Join(", ", parms.Select(p => p.ParameterType.Name + " " + p.Name))})");
-        }
-
-        // ── Try SendImage(Bitmap) ─────────────────────────────────────────────
-        var sendImageBmp = allSendImage.FirstOrDefault(m =>
-        {
-            var p = m.GetParameters();
-            return p.Length == 1 && p[0].ParameterType.Name == "Bitmap";
-        });
-
-        if (sendImageBmp is not null)
-        {
-            try
-            {
-                using var bmp = new System.Drawing.Bitmap(filePath);
-                sendImageBmp.Invoke(_system, [bmp]);
-                Console.Error.WriteLine("[VTCCP-D4] SendImage(Bitmap) OK");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine(
-                    $"[VTCCP-D4] SendImage(Bitmap) failed: {ex.InnerException?.Message ?? ex.Message}");
-            }
-        }
-
-        // ── Try SendImage(byte[]) ─────────────────────────────────────────────
-        var sendImageBytes = allSendImage.FirstOrDefault(m =>
-        {
-            var p = m.GetParameters();
-            return p.Length == 1 && p[0].ParameterType == typeof(byte[]);
-        });
-
-        if (sendImageBytes is not null)
-        {
-            foreach (var (label, fmt) in new[]
-            {
-                ("BMP", System.Drawing.Imaging.ImageFormat.Bmp),
-                ("PNG", System.Drawing.Imaging.ImageFormat.Png),
-            })
-            {
-                try
-                {
-                    using var bmp = new System.Drawing.Bitmap(filePath);
-                    using var ms  = new System.IO.MemoryStream();
-                    bmp.Save(ms, fmt);
-                    sendImageBytes.Invoke(_system, [ms.ToArray()]);
-                    Console.Error.WriteLine($"[VTCCP-D4] SendImage(byte[], {label}) OK");
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine(
-                        $"[VTCCP-D4] SendImage(byte[], {label}) failed: {ex.InnerException?.Message ?? ex.Message}");
-                }
-            }
-        }
-
-        // ── Try any remaining SendImage overload with a single argument ───────
-        foreach (var mi in allSendImage.Where(m => m.GetParameters().Length == 1))
-        {
-            var p0 = mi.GetParameters()[0];
-            Console.Error.WriteLine($"[VTCCP-D4] Unhandled SendImage overload: ({p0.ParameterType.FullName} {p0.Name}) — skipped");
-        }
-
+        // Device-confirmed 2026-05-25: DataManSystem has NO SendImage method.
+        // Full SDK method inventory logged in firmware-confirmed-facts.md §11.
+        //
+        // SendCommand("IMAGE.LOAD", Byte[]) throws InvalidParameterException on all
+        // tested formats (JPEG, BMP, PNG).  The correct image-upload mechanism has
+        // not yet been identified.  Returns false; caller falls through to replay.
+        //
+        // Candidate for future investigation: SendCommandWithExpectedBinaryResult —
+        // confirmed present on DataManSystem, not yet tested with IMAGE.LOAD.
+        _ = filePath;
         return false;
     }
 
