@@ -24,8 +24,8 @@ The TruCheck Calibration dialog performs **two distinct calibration procedures**
 **Rmin/Rmax source**: The values are not operator estimates — they are certified reference
 values printed on the NIST-traceable conformance test card or Cognex calibration card, given
 to one decimal place precision (e.g., 88.x / 5.x). The operator reads the values off the
-physical card and transcribes them into the RMax/RMin fields. The firmware accepts them
-(rounding to integer per standard rounding rules) and treats them as canonical until the operator explicitly enters
+physical card and transcribes them into the RMax/RMin fields. The firmware accepts them as integers (the one-decimal precision on the card label is not
+practically significant) and treats them as canonical until the operator explicitly enters
 new values — they are sticky across sessions until changed.
 
 Calibration is **complete** only when both components succeed. When the target in the field
