@@ -1,7 +1,7 @@
 # Parser Alignment Gap — v1.25 Push Script vs DmstResultParser
 
 **Date**: 2026-05-18 (updated 2026-05-25)
-**Script version compared**: v1.33 (written 2026-05-25; awaiting device confirmation)
+**Script version compared**: v1.33 (device confirmed 2026-05-25 — probe campaign COMPLETE)
 **Parser version compared**: post-v1.32 QR wiring (VerificationXmlMap + DmstResultParser updated 2026-05-24)
 **Reference XML**: `TestHarness/Fixtures/dmst_qr_grade_a_v132.xml` (device-confirmed QR Grade A)
 **Gap status source**: `vtccp/architecture/firmware-confirmed-facts.md` (authoritative, living doc)

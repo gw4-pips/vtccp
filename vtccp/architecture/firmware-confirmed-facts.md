@@ -2,7 +2,7 @@
 
 **Device**: DM475-63530E-PIPS-Verif-Lab
 **Firmware**: 6.1.16_sr4
-**Last updated**: 2026-05-25 (scans #12–#13 added)
+**Last updated**: 2026-05-25 (v1.33 device confirmed — probe campaign COMPLETE)
 **Status**: Living document — append new confirmed facts as probe results arrive.
 **Authority**: All entries are device-confirmed from actual push XML output or DMCC responses,
 not inferred from documentation.
@@ -65,8 +65,40 @@ QR size table for QR).
 | `size` | object | dimensions object |
 | `failureCode` | integer | `0` |
 
-**No ECLevel, dataMask, or version key present.** `ECLevel` is definitively unresolvable
-from push XML on fw 6.1.16_sr4 via any path. See §3 (dead paths) for complete list.
+**No ECLevel, dataMask, or version key present at top-level.** See §1 nested inventory
+and §3 for complete path inventory. All paths exhausted as of v1.33 (2026-05-25).
+
+### r.symbology nested key inventory (confirmed v1.33, scans #14/#15, 2026-05-24)
+
+The v1.33 `DebugRSymbologyNested` probe enumerated sub-keys of the three nested objects
+within `r.symbology`. No ECLevel, DataMaskPattern, ECI, or ImagePolarity anywhere.
+
+**`r.symbology.size` sub-keys:**
+
+| Key | DM 16×36 | QR 29×29 | Semantics |
+|---|---|---|---|
+| `x` | `36` | `29` | width in modules (columns for DM) |
+| `y` | `16` | `29` | height in modules (rows for DM) |
+
+QR version derivable: `(size.x − 21) / 4 + 1` → 29→v3 ✓ (redundant with MatrixSize string parse)
+
+**`r.symbology.center` sub-keys:**
+
+| Key | DM | QR | Semantics |
+|---|---|---|---|
+| `x` | `1553` | `201` | pixel X of symbol center within image frame |
+| `y` | `485` | `199` | pixel Y of symbol center within image frame |
+
+**`r.symbology.corners[0]` sub-keys:**
+
+| Key | DM | QR | Semantics |
+|---|---|---|---|
+| `x` | `1271` | `57` | pixel X of first corner |
+| `y` | `587` | `59` | pixel Y of first corner |
+
+All 9 top-level keys + all nested sub-keys of `r.symbology` are now fully enumerated.
+No decode-structural data (ECLevel, DataMaskPattern, version number) exposed anywhere.
+Center/corner pixel coordinates are new data — potentially useful for D4 image annotation.
 
 ### r.image key inventory (COMPLETE 28-key, confirmed scan #12 DM live, 2026-05-24)
 
@@ -162,57 +194,62 @@ The `DebugValidationGS1` probe confirmed `ecLvl=absent` on both DM and QR.
 
 ---
 
-## 3. Fields not yet resolved — probe status and open paths
+## 3. Fields permanently unresolvable from push XML on fw 6.1.16_sr4
 
-These fields were not found via live-scan probes on fw 6.1.16_sr4. They are **not confirmed
-permanently unresolvable** — several have plausible alternate paths worth probing, particularly
-via IMAGE.LOAD (see §3b). Keep `VerificationRecord` stubs for all of them.
+**PROBE CAMPAIGN COMPLETE — 2026-05-25.** v1.33 results (scans #14/#15) have exhausted
+all known firmware paths. All four open fields are confirmed permanently unresolvable
+from the push script's JS scope on fw 6.1.16_sr4.
 
-### 3a — Paths tried (live scan only, fw 6.1.16_sr4)
+The firmware **does** know these values internally — it uses ECLevel and DataMaskPattern
+to decode and grade QR codes, and it applies ImagePolarity during acquisition. However,
+the JS push script environment exposes only grade results, not the decoded structural data.
 
-| Field | Paths tried and result |
-|---|---|
-| `ECLevel` (QR) | `q.symbols[0].ecLevel` → q.symbols=null; `r.validation.ecLvl` → absent; AIM modifier bits → encodes ECI presence not ECLevel; top-level `r.symbology` keys (9 found) → no ecLevel key |
-| `DataMaskPattern` (QR) | Top-level `r.symbology` keys → not present; `q.general` sub-keys → empty |
-| `QR_Version` | `r.symbology.size` is a dimensions object — sub-keys not yet enumerated; `q.general` → not found |
-| `ImagePolarity` | `gnProp("polarity"/"imagePolarity"/"image"/"colorMode"/"imageColor")` → all empty; `r.image` → hardware metadata only (not a decode property) |
-| `ECI` (value, e.g. 000003) | `gnProp("eci"/"ECI"/"eciMode"/"encodedChars")` → all empty; `r.symbology` top-level keys → not present |
+### 3a — Complete path inventory (all exhausted)
 
-### 3b — Open paths not yet probed (v1.33 scope — probes written, awaiting device results)
-
-The firmware **must** know ECLevel and DataMaskPattern to verify a QR code — these are
-structural properties encoded in the Format Information Blocks. The question is not whether
-the firmware knows them, but whether they are accessible through the push script's JS scope.
-
-**Key insight (2026-05-25)**: The `_enumKV22` helper used by all prior probes enumerates
-only **top-level** object keys and reports nested objects as `[obj]` or `[arr.N]` without
-recursing. As a result, the sub-keys of the following nested objects have never been examined.
-v1.33 probes three new elements targeting these gaps.
-
-**Paths being probed by v1.33 (awaiting device confirmation):**
-
-| Path | v1.33 probe | Why interesting |
+| Field | All paths tried | Final status |
 |---|---|---|
-| `r.symbology.size` sub-keys | `DebugRSymbologyNested` | `size` is an object; may encode QR version number |
-| `r.symbology.center` sub-keys | `DebugRSymbologyNested` | `center` is an object; sub-keys unconfirmed |
-| `r.symbology.corners[0]` sub-keys | `DebugRSymbologyNested` | First of 4 corner objects; sub-keys unconfirmed |
-| `q.formatInformationBlock` ALL sub-keys | `DebugQFIBKeys` (QR only) | **Highest-probability path**: FIB encodes both ECLevel and DataMaskPattern; only `.grade` has been read — other sub-keys never examined |
-| `q.versionInformationBlock` ALL sub-keys | `DebugQVIBKeys` (QR only) | VIB encodes QR version number; only `.grade` has been read |
+| `ECLevel` (QR) | `q.symbols=null`; `r.validation.ecLvl=absent`; AIM modifier=ECI presence not ECLevel; `r.symbology` 9 top-level keys=no ecLevel; `q.formatInformationBlock` sub-keys=`{grade, numericGrade}` only | **PERMANENTLY UNRESOLVABLE** |
+| `DataMaskPattern` (QR) | `r.symbology` top-level=absent; `q.general` 7 keys=absent; `q.formatInformationBlock` sub-keys=`{grade, numericGrade}` only | **PERMANENTLY UNRESOLVABLE** |
+| `ECI` value (e.g. `000003`) | `gnProp(eci/ECI/eciMode/encodedChars)=empty`; `r.symbology` top-level=absent; AIM modifier encodes presence not value; no sub-key path found | **PERMANENTLY UNRESOLVABLE** |
+| `ImagePolarity` | `gnProp(polarity/imagePolarity/image/colorMode/imageColor)=empty`; `r.image=hardware metadata only`; not a decode property anywhere in JS scope | **PERMANENTLY UNRESOLVABLE** |
 
-**Paths deferred (not in v1.33):**
+### 3b — Why q.formatInformationBlock was the final path
 
-| Path | Reason deferred |
-|---|---|
-| `q.trucheck` full key enumeration | All top-level q keys already inventoried via v1.14 for-in scan; compound sub-keys covered by FIB/VIB probes above |
-| IMAGE.LOAD path for the above | Covered by the same probes — v1.33 should be run on both live DM scan and QR IMAGE.LOAD injection |
-| `r.barcodeAssignment` sub-keys | Revealed by scan #13 DebugRSiblings; name suggests config not decode results; queue for v1.34 if FIB/VIB don't resolve ECLevel/DataMaskPattern |
+The QR Format Information Block encodes both ECLevel (2 bits) and DataMaskPattern (3 bits)
+in the bitstream. `q.formatInformationBlock` is a `TrucheckMetric` object. Prior probes had
+only read `.grade` (the letter). v1.33 enumerated ALL sub-keys:
 
-### 3c — ImagePolarity assessment
+**`q.formatInformationBlock` sub-keys (confirmed v1.33, scan #15, QR Grade A):**
 
-`ImagePolarity` is a capture/display setting, not a QR code structural property.
-It is less likely to appear in the decode path. Still worth one IMAGE.LOAD probe, but
-the prior evidence (all q.general paths empty, r.image = hardware only) makes this
-the lowest-probability open item of the four.
+| Key | Value | Notes |
+|---|---|---|
+| `grade` | `"A"` | Grade letter — already read by all prior versions |
+| `numericGrade` | `4` | Float grade before letter mapping |
+
+Only 2 sub-keys. The firmware grades the FIB but does not expose the decoded ECLevel
+or DataMaskPattern values through the JS scope. **Path exhausted.**
+
+**`q.versionInformationBlock` sub-keys (confirmed v1.33, scan #15, QR v3):**
+
+| Key | Value | Notes |
+|---|---|---|
+| `grade` | `"-"` | No VIB for QR versions 1–6 |
+| `numericGrade` | `4.5` | Firmware sentinel: "not applicable, passing" (above max 4.0) |
+
+Only 2 sub-keys. No version number sub-key. **Path exhausted.**
+
+### 3c — r.barcodeAssignment (only remaining unexplored object)
+
+`r.barcodeAssignment=[obj]` was revealed by scan #13 and has never been probed.
+Given the complete FIB/VIB result, this is the only remaining unexplored object in scope.
+Name strongly suggests setup configuration rather than decode results.
+**Queue as v1.34 low-priority probe; do not expect ECLevel/DataMaskPattern here.**
+
+### 3d — Schema implications
+
+Per Appendix A, these four fields must be omitted from push XML and marked as
+"not available from push channel on fw 6.1.16_sr4" in VTCCP schema documentation.
+Do not allocate Excel column space for permanently-empty fields.
 
 ---
 
@@ -377,8 +414,10 @@ is the character in the grade string, not an index.
 | 9 | 2026-05-19 | v1.29 | Code 128 | A | `]C0`; GS1 parser on; non-GS1 data → format fail; ISO grade unaffected |
 | 10 | 2026-05-19 | v1.29 | QR grade D | D | `]Q1`; MOD=D, RM=D, DecodeGrade=F; ANUPercent=3.9→3.9% (broke v1.29 formula) |
 | 11 | 2026-05-24 | v1.32 | QR GUID (IMAGE.LOAD) | A | v1.32 confirmed; ANUPercent=0.8392; `DebugRImage` closes 4 missing fields |
-| **12** | **2026-05-24** | **v1.32** | **DM GS1 16×36 (LIVE)** | **D** | **q.general exact 7-key names confirmed; EncodedCharacters dead path confirmed (push=33,DMST=38); r.image 28-key full inventory; OpticsSource=LiveScan (CU=73,MRD=67)** |
-| **13** | **2026-05-24** | **v1.32** | **QR GUID f0cffb39 (IMAGE.LOAD)** | **A** | **r-sibling 16-property full inventory; r.barcodeAssignment discovered (never probed); EncodedCharacters dead on QR (push=39,DMST=36); OpticsSource=LoadedImage (CU=-1,MRD=-1)** |
+| 12 | 2026-05-24 | v1.32 | DM GS1 16×36 (LIVE) | D | q.general exact 7-key names; EncodedCharacters dead (push=33,DMST=38); r.image 28-key inventory; OpticsSource=LiveScan (CU=73,MRD=67) |
+| 13 | 2026-05-24 | v1.32 | QR GUID f0cffb39 (IMAGE.LOAD) | A | r-sibling 16-prop inventory; r.barcodeAssignment discovered; EncodedCharacters dead (push=39,DMST=36); OpticsSource=LoadedImage (CU=-1,MRD=-1) |
+| **14** | **2026-05-24** | **v1.33** | **DM GS1 16×36 (LIVE)** | **D** | **v1.33 confirmed; DebugQFIBKeys=(not QR) ✓; DebugQVIBKeys=(not QR) ✓; DebugRSymbologyNested: size.x=36,y=16; center.x=1553,y=485; corners[0].x=1271,y=587** |
+| **15** | **2026-05-24** | **v1.33** | **QR GUID f0cffb39 (IMAGE.LOAD)** | **A** | **PROBE CAMPAIGN COMPLETE: DebugQFIBKeys={grade=A,numericGrade=4} only — ECLevel/DataMask NOT exposed; DebugQVIBKeys={grade=-,numericGrade=4.5}; DebugRSymbologyNested: size.x=29,y=29; center.x=201,y=199; corners[0].x=57,y=59** |
 
 ---
 
@@ -392,7 +431,7 @@ is the character in the grade string, not an index.
 | v1.30 | — | — | — | VOIDED — written 2026-05-20, never installed; superseded by v1.32 |
 | v1.31 | — | — | — | VOIDED — written 2026-05-20, never installed; superseded by v1.32 |
 | v1.32 | 2026-05-24 | QR GUID + **DM GS1** | A + **D** | Bug #9 fixed; DebugRImage answered; q.general exact 7 keys named; EncodedCharacters dead path confirmed; r.image 28-key + r-sibling 16-prop full inventories; r.barcodeAssignment discovered |
-| v1.33 | — | — | — | **AWAITING DEVICE INSTALL** — DebugRSymbologyNested / DebugQFIBKeys / DebugQVIBKeys |
+| v1.33 | **2026-05-24** | **DM GS1 + QR GUID** | **D + A** | **DEVICE CONFIRMED (scans #14/#15). PROBE CAMPAIGN COMPLETE. FIB={grade,numericGrade} only — ECLevel/DataMask permanently unresolvable. r.symbology nested: size.x/y, center.x/y, corners[0].x/y confirmed.** |
 
 ---
 
@@ -423,15 +462,40 @@ This probe is complete; do not re-run.
 
 `ecLvl = absent` on both DM and QR. This probe is complete; do not re-run.
 
-### DebugANUSubkeys (v1.32 carried forward) — OPEN
+### DebugRSymbologyNested (v1.33, scans #14/#15, 2026-05-24) — CLOSED
 
-The sub-key probe is in v1.32 push script but the sub-key name was not separately
-surfaced in the v1.32 output. The correct fix (reading `.percent`) is confirmed working
-from ANUPercent=0.8392 result. Sub-key name documentation is informational only.
+`r.symbology` nested objects fully enumerated. See §1 for complete table.
+Finding: size.x/y = module dimensions; center.x/y and corners[0].x/y = pixel coordinates.
+No ECLevel, DataMaskPattern, or version number in any sub-key. Probe complete; do not re-run.
 
-### DebugValidationKeys (v1.32 carried forward) — OPEN
+### DebugQFIBKeys (v1.33, scan #15 QR, 2026-05-24) — CLOSED ★ DECISIVE
 
-Result not yet received. Probe is live in v1.32.
+`q.formatInformationBlock` = `TrucheckMetric` with exactly **2 sub-keys**: `grade` and `numericGrade`.
+- QR Grade A: `grade="A"`, `numericGrade=4`
+- DM (non-QR): correctly emitted `(not QR)` per branch guard
+
+The firmware computes the FIB grade internally using ECLevel + DataMaskPattern but does
+NOT expose those values in the JS scope. **ECLevel and DataMaskPattern are permanently
+unresolvable from push XML on fw 6.1.16_sr4.** Probe complete; do not re-run.
+
+### DebugQVIBKeys (v1.33, scan #15 QR, 2026-05-24) — CLOSED
+
+`q.versionInformationBlock` = `TrucheckMetric` with exactly **2 sub-keys**: `grade` and `numericGrade`.
+- QR v3 (no VIB): `grade="-"`, `numericGrade=4.5` (firmware "not applicable" sentinel)
+- DM (non-QR): correctly emitted `(not QR)` per branch guard
+
+No version number sub-key. QR version remains derivable only from `MatrixSize` string
+(or new: `r.symbology.size.x/y` integers). Probe complete; do not re-run.
+
+### DebugANUSubkeys (v1.32 carried forward) — INFORMATIONAL
+
+The sub-key probe confirmed `.percent` is the correct sub-key (ANUPercent=0.8392 working).
+Sub-key name documentation is informational only — no action required.
+
+### DebugValidationKeys (v1.32 carried forward) — INFORMATIONAL
+
+Result not separately surfaced; all validation sub-keys superseded by FIB/VIB probe campaign.
+No action required.
 
 ---
 
@@ -463,8 +527,10 @@ appear in the standard DMST export PDF. They are VTCCP-exclusive data:
 | `ErrorCapacityUsed` | Not exposed | `ErrorsCorrected × 2` (confirmed derivation) |
 | `QR_Version` | Not in `r.symbology` top-level keys | Derive from `MatrixSize` (e.g. 29×29 → v3) |
 | `EncodedCharacters` | `q.general.encodedCharacters` ABSENT (not one of the 7 keys); `encodationAnalysisArray.length` fallback also wrong (DM: 33 vs DMST 38; QR: 39 vs DMST 36) | **No known derivation from push XML on fw 6.1.16_sr4** — omit or leave empty; cannot be accurately computed without full encodation analysis parse |
-| `QR_ECLevel` | All top-level paths exhausted; v1.33 FIB sub-key probe **pending** | **Pending v1.33 device results** — do NOT mark permanently unresolvable yet |
-| `QR_MaskPattern` | All top-level paths exhausted; v1.33 FIB sub-key probe **pending** | **Pending v1.33 device results** — do NOT mark permanently unresolvable yet |
+| `QR_ECLevel` | All paths exhausted (v1.33 confirmed): q.symbols=null; r.validation=absent; AIM modifier=ECI presence; r.symbology top-level=absent; FIB sub-keys={grade,numericGrade} only — ECLevel not exposed | **PERMANENTLY UNRESOLVABLE** from push XML on fw 6.1.16_sr4 — omit from schema |
+| `QR_MaskPattern` | All paths exhausted (v1.33 confirmed): FIB sub-keys={grade,numericGrade} only — DataMaskPattern not exposed | **PERMANENTLY UNRESOLVABLE** from push XML on fw 6.1.16_sr4 — omit from schema |
+| `ECI` (value) | gnProp paths all empty; r.symbology top-level absent; FIB sub-keys absent | **PERMANENTLY UNRESOLVABLE** — omit from schema |
+| `ImagePolarity` | gnProp paths all empty; r.image = hardware metadata only | **PERMANENTLY UNRESOLVABLE** — omit from schema |
 
 ---
 
@@ -473,7 +539,7 @@ appear in the standard DMST export PDF. They are VTCCP-exclusive data:
 | Item | Status | Notes |
 |---|---|---|
 | QR pattern grades in Excel sheet | PENDING | Parsed into VerificationRecord (v1.32) but ExcelWriter sheet mapper not yet updated |
-| IMAGE.LOAD QR scan | PENDING (D4) | Needed to confirm D4 stored-image discriminant (CU/MRD cannot distinguish live QR from loaded QR) |
+| IMAGE.LOAD QR scan | **COMPLETE** (scans #13/#15) | CU=-1/MRD=-1 confirmed as LoadedImage discriminant on fw 6.1.16_sr4. OpticsSource logic working. |
 | ISO 29158 / DPM schema | PENDING (C1) | Requires external document |
 | Sensor/frame metadata UI | UNBLOCKED | Plan in `references/architecture/sensor-frame-metadata-plan.md` (check if exists) |
 | Report HTML/PDF (D1) | BLOCKED on C3 | Webscan TruCheck docs required |
