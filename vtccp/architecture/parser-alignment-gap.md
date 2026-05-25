@@ -1,9 +1,10 @@
 # Parser Alignment Gap — v1.25 Push Script vs DmstResultParser
 
-**Date**: 2026-05-18
-**Script version compared**: v1.25 (syntax-verified, awaiting device install)
-**Parser version compared**: post-B4 (this document tracks the state after B4 edits)
-**Reference XML**: `references/samples/live-scans/v1.24-2026-05-18-Probe-DataMatrix-GS1Format06.xml`
+**Date**: 2026-05-18 (updated 2026-05-24)
+**Script version compared**: v1.32 (device-confirmed 2026-05-24)
+**Parser version compared**: post-v1.32 QR wiring (VerificationXmlMap + DmstResultParser updated 2026-05-24)
+**Reference XML**: `TestHarness/Fixtures/dmst_qr_grade_a_v132.xml` (device-confirmed QR Grade A)
+**Gap status source**: `vtccp/architecture/firmware-confirmed-facts.md` (authoritative, living doc)
 
 ---
 
@@ -81,7 +82,7 @@
 | `<SCGrade>` | all | `SC_Grade` | WIRED | |
 | `<MODGrade>` | all | `MOD_Grade` | WIRED | |
 | `<RMGrade>` | all | `RM_Grade` | WIRED | |
-| `<ANUPercent>` | all | `ANU_Percent` | WIRED | Uses lowercase `axialNonuniformity` (confirmed v1.24) |
+| `<ANUPercent>` | all | `ANU_Percent` | WIRED | **Bug #9 fixed v1.32**: v1.32 script reads `.percent` sub-key of `q.metrics.axialNonUniformity`. Raw value is already in % scale (0.8392 = 0.84%). Do NOT apply ÷100. Confirmed device value 2026-05-24. |
 | `<ANUGrade>` | all | `ANU_Grade` | WIRED | |
 | `<GNUPercent>` | all | `GNU_Percent` | WIRED | |
 | `<GNUGrade>` | all | `GNU_Grade` | WIRED | |
@@ -112,8 +113,8 @@
 | `<ErrorCorrectionBudget>` | all | `ErrorCorrectionBudget` | WIRED (always empty) | ABSENT-EMPTY: firmware does not expose |
 | `<ErrorsCorrected>` | all | `ErrorsCorrected` | WIRED | Counted from codewordArray.isCorrected |
 | `<ErrorCapacityUsed>` | all | `ErrorCapacityUsed` | WIRED (always empty) | ABSENT-EMPTY: derivable as ErrorsCorrected × 2 |
-| `<ErrorCorrectionType>` | all | `ErrorCorrectionType` | WIRED | v1.25: DM→"ECC200", QR→"QR" placeholder until DebugSymbols0 confirms ecLevel path |
-| `<NominalXDim>` | all | `NominalXDim_2D` | WIRED | Units stripped ("13.1 mil" → 13.1) |
+| `<ErrorCorrectionType>` | all | `ErrorCorrectionType` | WIRED | DM→"ECC200". QR→ECLevel is **DEFINITIVELY DEAD** on fw 6.1.16_sr4: `q.symbols=null`, `r.symbology` has no ecLevel key, AIM modifier=ECI presence not ECLevel, `r.image` = hardware only. Field emits "QR" for QR scans — correct as a placeholder; ECLevel will never be resolvable from push XML on this firmware. |
+| `<NominalXDim>` | all | `NominalXDim_2D` | WIRED | Units stripped. **v1.32 fix**: push XML emits `"12.6 mil"` (with units); parser now splits on space for both push and CharData paths. Confirmed 2026-05-24. |
 | `<PixelsPerModule>` | ≤v1.24 | `PixelsPerModule` | LEGACY-KEEP | Removed from v1.25 script (always empty — r.trucheck doesn't expose it). Parser still reads it for backward compat with v1.24 and earlier XMLs. Use `ModuleSizePx` (r.symbology.moduleSize) as the live value instead. |
 | `<ImagePolarity>` | all | `ImagePolarity` | WIRED | Parsed to enum |
 | `<ContrastUniformity>` | all | `ContrastUniformity` | WIRED | −1 on loaded images (one component of OpticsSource detection) |
@@ -166,11 +167,26 @@
 
 ---
 
-## Block 9 — QR Code-specific (v1.25 probes pending)
+## Block 9 — QR Code-specific (updated 2026-05-24, all probes answered)
 
 | XML element | Script version | VR field | Gap type | Notes |
 |---|---|---|---|---|
-| `<DebugSymbols0>` | v1.25 | — | DESIGN-INTENT (probe) | Full enum of q.symbols[0]. Awaiting v1.25 install result to determine: QR grade param paths (ulpGrade, urpGrade, llpGrade, hctGrade, vctGrade, alpGrade, vibGrade, fibGrade), ecLevel, maskPattern. VR stubs QR_Version/QR_ECLevel/QR_MaskPattern already present; full QR field wiring is v1.26 scope after probe returns. |
+| `<ULPGrade>` | v1.29+ | `QR_ULP_Grade` | WIRED (v1.32) | Upper-Left Finder Pattern. Present when `SymbologyName="QR"`. Grade A scan: A. |
+| `<URPGrade>` | v1.29+ | `QR_URP_Grade` | WIRED (v1.32) | Upper-Right Finder Pattern. |
+| `<LLPGrade>` | v1.29+ | `QR_LLP_Grade` | WIRED (v1.32) | Lower-Left Finder Pattern. Emits "F" on defocus (scan #4 confirmed). |
+| `<HCTGrade>` | v1.29+ | `QR_HCT_Grade` | WIRED (v1.32) | Horizontal Clock Track. |
+| `<VCTGrade>` | v1.29+ | `QR_VCT_Grade` | WIRED (v1.32) | Vertical Clock Track. |
+| `<ALPGrade>` | v1.29+ | `QR_ALP_Grade` | WIRED (v1.32) | Alignment Pattern (v2+). |
+| `<VIBGrade>` | v1.29+ | `QR_VIB_Grade` | WIRED (v1.32) | Version Information Blocks. Emits `"-"` for v1/v3 QR (no VIB). Emits `"F"` on total fail. |
+| `<FIBGrade>` | v1.29+ | `QR_FIB_Grade` | WIRED (v1.32) | Format Information Blocks. |
+| `QR_Version` | — | `QR_Version` | DERIVABLE | Not in push XML. Derive from `MatrixSize` (e.g. 29×29 → v3). Not yet implemented. |
+| `QR_ECLevel` | — | `QR_ECLevel` | DEAD | All firmware paths closed on fw 6.1.16_sr4. See §3 of `firmware-confirmed-facts.md`. |
+| `QR_MaskPattern` | — | `QR_MaskPattern` | DEAD | Not present in `r.symbology` (9 keys confirmed). See `firmware-confirmed-facts.md` §1. |
+| `SymbologyName="QR"` | v1.29+ | `SymbologyFamily` | WIRED (v1.32) | Push emits `"QR"` not `"QR Code"`. `"QR"` prefix added to `ClassifySymbology` map. |
+
+**Note — DebugSymbols0 probe (v1.25)**: `q.symbols = null` confirmed by `DebugSymbols` probe
+(v1.29, 2026-05-19). The symbols path is dead on fw 6.1.16_sr4. QR grade params are accessed
+directly from the push XML elements (`<ULPGrade>` etc.), not via `q.symbols[0]`.
 
 ---
 
@@ -188,13 +204,18 @@
 
 ---
 
-## Remaining gaps (not B4 scope)
+## Remaining gaps (updated 2026-05-24)
 
-| Gap | Blocker | When |
+| Gap | Status | Notes |
 |---|---|---|
-| `BWGPercent` always empty | v1.25 DebugPrintGrowth will show m.printGrowth shape | v1.26 after device install |
-| `<ErrorCorrectionType>` for QR — currently "QR" placeholder | v1.25 DebugSymbols0 will confirm ecLevel path (symbols[0].ecLevel vs ovProp("ecLevel")) | v1.26 |
-| QR grade params (ULP/URP/LLP/HCT/VCT/ALP/VIB/FIB) | v1.25 DebugSymbols0 | v1.26 |
-| QR_Version / QR_MaskPattern / QR_ECLevel wired | v1.25 DebugSymbols0 | v1.26 |
-| Per-region DM quadrant grades (ULQZ/URQZ/RUQZ/RLQZ) | Unknown — q.symbols[0] or different scope; DebugSymbols0 may surface | v1.26 |
-| ModulationValues / CodewordValues | A1 DMCC mining — identify pull command | B7 |
+| `BWGPercent` always empty | OPEN | `m.printGrowth` probe not yet confirmed on device. Still empty as of v1.32. |
+| `<ErrorCorrectionType>` QR — emits "QR" placeholder | CLOSED (no fix possible) | ECLevel definitively dead on fw 6.1.16_sr4. "QR" is the correct permanent value for QR scans. |
+| QR grade params (ULP/URP/LLP/HCT/VCT/ALP/VIB/FIB) | CLOSED — WIRED (v1.32) | All 8 wired in `VerificationXmlMap` + `DmstResultParser`. Confirmed from `dmst_qr_grade_a_v132.xml`. |
+| `QR_Version` | OPEN — DERIVABLE | Not in push XML. Derive from `MatrixSize` (29×29 → v3). C# lookup table not yet written. |
+| `QR_MaskPattern` | CLOSED (dead) | Not in `r.symbology` (9 keys confirmed). Unresolvable on fw 6.1.16_sr4. |
+| `QR_ECLevel` | CLOSED (dead) | All 5 paths exhausted. See `firmware-confirmed-facts.md` §3. |
+| Per-region DM quadrant grades (ULQZ/URQZ/RUQZ/RLQZ) | OPEN | Script emits `""` since v1.22 rollback. `q.symbols=null` means `q.symbols[0]` path is also dead. Revisit if future firmware exposes per-region data. |
+| `ImagePolarity` | CLOSED (dead) | `q.general` dead paths confirmed; `r.image` = hardware metadata only. Unresolvable. |
+| `ECI` (value, e.g. 000003) | CLOSED (dead) | All push paths empty. DMST shows it; push XML does not expose it on fw 6.1.16_sr4. |
+| QR pattern grades in ExcelWriter sheet mapper | OPEN — TECH DEBT | Parsed into `VerificationRecord` (v1.32) but not yet written to Excel output columns. |
+| ModulationValues / CodewordValues | COMPLETE (B7) | `ModValuesSheetWriter` + `CwValuesSheetWriter` + VerificationRecord + ExcelWriter all wired. |
