@@ -235,8 +235,10 @@ Grayscale distribution of module-center pixels only (one sample per module).
 | ISO 15415:2011 | 1.0 (D) | 16 | 660 | 45Q | 1.0/16/660/45Q |
 | Custom | Fail (Quality) | | | | |
 
-**Standard cited as ISO 15415:2011** — the 2011 edition, not 2024. This is the edition
-the DM475V on fw 6.1.16_sr4 grades against. Relevant for formal report headers in VTCCP.
+**Standard cited as ISO 15415:2011** — this is the edition the operator has configured
+the verifier to use, not a firmware-determined value. The grading standard edition is a
+user-selectable setting in DMST TruCheck, not intrinsic to fw 6.1.16_sr4. VTCCP must
+read and echo whichever edition string the device reports — do not hard-code "2011".
 
 **Image section**: Symbol photograph visible in report (lower-left) — confirms that the
 Report tab DOES include the captured image even though the Main tab image pane went gray.
@@ -367,7 +369,7 @@ horizontal/vertical BWG are both 11% which is high).
 | MRD format: "67% (73% - 6%)" | MRD% (Rl% - Rd%) | General Characteristic |
 | SC format: "Rl/Rd (83/4)" | max=83, min=4 | Quality Detail |
 | Unit Serial | 1A1903PP010754 | Report header |
-| ISO edition cited in report | ISO 15415:2011 (not 2024) | Report header |
+| ISO edition in report header | ISO 15415:2011 — user-configured setting, not firmware-determined | Report header |
 | Operator in report | GW4 | Report Summary |
 | Report image: present even when Main tab is gray | ✓ | Report tab header |
 | q.encodationAnalysisArray mode field | "ASCII" | Encodation Analysis |
