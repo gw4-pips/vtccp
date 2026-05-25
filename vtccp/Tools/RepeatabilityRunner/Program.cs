@@ -242,7 +242,7 @@ Console.WriteLine();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 static string FmtGrade(GradingResult? g) =>
-    g is null ? "—" : $"{g.Letter}/{g.NumericGrade:F1}";
+    g is null ? "—" : $"{g.LetterGradeString}/{g.NumericGrade:F1}";
 
 static string Fmt1(decimal? v) => v.HasValue ? $"{v.Value:F1}%" : "—";
 static string Fmt2(decimal? v) => v.HasValue ? $"{v.Value:F2}%" : "—";
