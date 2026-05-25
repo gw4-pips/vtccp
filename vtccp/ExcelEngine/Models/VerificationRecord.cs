@@ -119,6 +119,24 @@ public sealed record class VerificationRecord
     /// </summary>
     public string? DataSourceExceptions { get; set; }
 
+    /// <summary>
+    /// Semicolon-separated list of fields where the push XML value differs from
+    /// the DMST HTML report value for the same scan.
+    ///
+    /// Format: "FieldName:Push={pushVal},Html={htmlVal}" pairs.
+    /// Example: "OverallGrade:Push=D,Html=D;ContrastUniformity:Push=75,Html=75"
+    ///          — in this case all match, so field would be null.
+    /// Example: "NominalXDim:Push=20.3 mil,Html=20.3 mil" would be null (match).
+    /// A non-null value means at least one field disagreed.
+    ///
+    /// Purpose: cross-validation sanity check. Every field producible from both
+    /// sources is compared; mismatches surface parser errors or firmware anomalies.
+    /// Discrepancy patterns that recur across scans are candidates for Cognex bug reports.
+    ///
+    /// Null if no HTML report was scraped for this scan, or if all compared fields matched.
+    /// </summary>
+    public string? ValidationDiscrepancies { get; set; }
+
     // Overall grade outcome
     /// <summary>e.g. "4.0/16/660/45Q" or "4.0/06/660"</summary>
     public string? FormalGrade { get; init; }
@@ -312,6 +330,15 @@ public sealed record class VerificationRecord
     public string? QR_Version { get; init; }        // e.g. "V3 (29×29)"
     public string? QR_ECLevel { get; init; }        // L / M / Q / H
     public string? QR_MaskPattern { get; init; }    // 0–7
+
+    /// <summary>
+    /// ECI (Extended Channel Interpretation) assignment value, e.g. "000003" (ISO 8859-1 / Latin-1).
+    /// Present when the AIM modifier indicates ECI (]Q1 — modifier bit-0 = ECI assigning mode).
+    /// PERMANENTLY UNRESOLVABLE from push XML on fw 6.1.16_sr4 (v1.33 probe campaign).
+    /// Sourced from DMST HTML report scrape (or DMCC RESULT-FORMAT FULL if probe succeeds).
+    /// Flagged in DataSourceExceptions when populated.
+    /// </summary>
+    public string? QR_ECI { get; init; }
 
     // ISO 15415 QR-specific grade parameters (8 parameters; paths from v1.26 DebugSymbols0 probe):
     public GradingResult? QR_ULP_Grade { get; init; }  // Upper-Left Finder Pattern
