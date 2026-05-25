@@ -2,7 +2,7 @@
 
 **Device**: DM475-63530E-PIPS-Verif-Lab
 **Firmware**: 6.1.16_sr4
-**Last updated**: 2026-05-24
+**Last updated**: 2026-05-25
 **Status**: Living document — append new confirmed facts as probe results arrive.
 **Authority**: All entries are device-confirmed from actual push XML output or DMCC responses,
 not inferred from documentation.
@@ -95,18 +95,56 @@ The `DebugValidationGS1` probe confirmed `ecLvl=absent` on both DM and QR.
 
 ---
 
-## 3. Dead paths — definitively unresolvable fields on fw 6.1.16_sr4
+## 3. Fields not yet resolved — probe status and open paths
 
-These fields cannot be obtained from push XML on this firmware version.
-Do not add new probes for them. Do not allocate space in report output.
+These fields were not found via live-scan probes on fw 6.1.16_sr4. They are **not confirmed
+permanently unresolvable** — several have plausible alternate paths worth probing, particularly
+via IMAGE.LOAD (see §3b). Keep `VerificationRecord` stubs for all of them.
 
-| Field | Paths tried | Why dead |
+### 3a — Paths tried (live scan only, fw 6.1.16_sr4)
+
+| Field | Paths tried and result |
+|---|---|
+| `ECLevel` (QR) | `q.symbols[0].ecLevel` → q.symbols=null; `r.validation.ecLvl` → absent; AIM modifier bits → encodes ECI presence not ECLevel; top-level `r.symbology` keys (9 found) → no ecLevel key |
+| `DataMaskPattern` (QR) | Top-level `r.symbology` keys → not present; `q.general` sub-keys → empty |
+| `QR_Version` | `r.symbology.size` is a dimensions object — sub-keys not yet enumerated; `q.general` → not found |
+| `ImagePolarity` | `gnProp("polarity"/"imagePolarity"/"image"/"colorMode"/"imageColor")` → all empty; `r.image` → hardware metadata only (not a decode property) |
+| `ECI` (value, e.g. 000003) | `gnProp("eci"/"ECI"/"eciMode"/"encodedChars")` → all empty; `r.symbology` top-level keys → not present |
+
+### 3b — Open paths not yet probed (v1.33 scope — probes written, awaiting device results)
+
+The firmware **must** know ECLevel and DataMaskPattern to verify a QR code — these are
+structural properties encoded in the Format Information Blocks. The question is not whether
+the firmware knows them, but whether they are accessible through the push script's JS scope.
+
+**Key insight (2026-05-25)**: The `_enumKV22` helper used by all prior probes enumerates
+only **top-level** object keys and reports nested objects as `[obj]` or `[arr.N]` without
+recursing. As a result, the sub-keys of the following nested objects have never been examined.
+v1.33 probes three new elements targeting these gaps.
+
+**Paths being probed by v1.33 (awaiting device confirmation):**
+
+| Path | v1.33 probe | Why interesting |
 |---|---|---|
-| `ECLevel` (QR) | `q.symbols[0].ecLevel`, `r.validation.ecLvl`, AIM modifier bits, `r.symbology` | `q.symbols=null`, validation path absent, AIM modifier=ECI presence not ECLevel, `r.symbology` has no ecLevel key |
-| `DataMaskPattern` (QR) | `r.symbology`, `q.general` | Not present in any of the 9 `r.symbology` keys |
-| `QR_Version` | `r.symbology.size`, `q.general` | `r.symbology.size` is a dimensions object; version not exposed |
-| `ImagePolarity` | `gnProp("polarity"/"imagePolarity"/"image")`, `r.image` | All q.general paths empty; r.image = hardware metadata only |
-| `ECI` (value) | `gnProp("eci"/"ECI"/"eciMode")`, `r.symbology` | All paths empty; ECI value visible in DMST is not surfaced in push |
+| `r.symbology.size` sub-keys | `DebugRSymbologyNested` | `size` is an object; may encode QR version number |
+| `r.symbology.center` sub-keys | `DebugRSymbologyNested` | `center` is an object; sub-keys unconfirmed |
+| `r.symbology.corners[0]` sub-keys | `DebugRSymbologyNested` | First of 4 corner objects; sub-keys unconfirmed |
+| `q.formatInformationBlock` ALL sub-keys | `DebugQFIBKeys` (QR only) | **Highest-probability path**: FIB encodes both ECLevel and DataMaskPattern; only `.grade` has been read — other sub-keys never examined |
+| `q.versionInformationBlock` ALL sub-keys | `DebugQVIBKeys` (QR only) | VIB encodes QR version number; only `.grade` has been read |
+
+**Paths deferred (not in v1.33):**
+
+| Path | Reason deferred |
+|---|---|
+| `q.trucheck` full key enumeration | All top-level q keys already inventoried via v1.14 for-in scan; compound sub-keys covered by FIB/VIB probes above |
+| IMAGE.LOAD path for the above | Covered by the same probes — v1.33 should be run on both live DM scan and QR IMAGE.LOAD injection |
+
+### 3c — ImagePolarity assessment
+
+`ImagePolarity` is a capture/display setting, not a QR code structural property.
+It is less likely to appear in the decode path. Still worth one IMAGE.LOAD probe, but
+the prior evidence (all q.general paths empty, r.image = hardware only) makes this
+the lowest-probability open item of the four.
 
 ---
 

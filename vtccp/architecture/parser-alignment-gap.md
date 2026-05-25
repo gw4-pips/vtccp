@@ -1,7 +1,7 @@
 # Parser Alignment Gap — v1.25 Push Script vs DmstResultParser
 
-**Date**: 2026-05-18 (updated 2026-05-24)
-**Script version compared**: v1.32 (device-confirmed 2026-05-24)
+**Date**: 2026-05-18 (updated 2026-05-25)
+**Script version compared**: v1.33 (written 2026-05-25; awaiting device confirmation)
 **Parser version compared**: post-v1.32 QR wiring (VerificationXmlMap + DmstResultParser updated 2026-05-24)
 **Reference XML**: `TestHarness/Fixtures/dmst_qr_grade_a_v132.xml` (device-confirmed QR Grade A)
 **Gap status source**: `vtccp/architecture/firmware-confirmed-facts.md` (authoritative, living doc)
@@ -211,11 +211,11 @@ directly from the push XML elements (`<ULPGrade>` etc.), not via `q.symbols[0]`.
 | `BWGPercent` always empty | OPEN | `m.printGrowth` probe not yet confirmed on device. Still empty as of v1.32. |
 | `<ErrorCorrectionType>` QR — emits "QR" placeholder | CLOSED (no fix possible) | ECLevel definitively dead on fw 6.1.16_sr4. "QR" is the correct permanent value for QR scans. |
 | QR grade params (ULP/URP/LLP/HCT/VCT/ALP/VIB/FIB) | CLOSED — WIRED (v1.32) | All 8 wired in `VerificationXmlMap` + `DmstResultParser`. Confirmed from `dmst_qr_grade_a_v132.xml`. |
-| `QR_Version` | OPEN — DERIVABLE | Not in push XML. Derive from `MatrixSize` (29×29 → v3). C# lookup table not yet written. |
-| `QR_MaskPattern` | CLOSED (dead) | Not in `r.symbology` (9 keys confirmed). Unresolvable on fw 6.1.16_sr4. |
-| `QR_ECLevel` | CLOSED (dead) | All 5 paths exhausted. See `firmware-confirmed-facts.md` §3. |
+| `QR_MaskPattern` | UNRESOLVED | Not in top-level `r.symbology` keys (9 confirmed). Sub-objects (`corners[n]`, `center`, `size`) not yet enumerated — v1.33 probe needed. Keep VR stub. |
+| `QR_ECLevel` | UNRESOLVED | Live-scan paths exhausted (q.symbols=null, r.validation absent, AIM=ECI not ECLevel, r.symbology top-level keys). Nested r.symbology objects and IMAGE.LOAD decode path not yet probed. Firmware MUST know ECLevel to grade QR — access path TBD. Keep VR stub. |
+| `QR_Version` | UNRESOLVED — DERIVABLE | Not found via direct push path. Derivable from MatrixSize (e.g. 29×29 → v3). `r.symbology.size` sub-keys not yet enumerated — may expose version directly. v1.33 probe needed. |
 | Per-region DM quadrant grades (ULQZ/URQZ/RUQZ/RLQZ) | OPEN | Script emits `""` since v1.22 rollback. `q.symbols=null` means `q.symbols[0]` path is also dead. Revisit if future firmware exposes per-region data. |
-| `ImagePolarity` | CLOSED (dead) | `q.general` dead paths confirmed; `r.image` = hardware metadata only. Unresolvable. |
-| `ECI` (value, e.g. 000003) | CLOSED (dead) | All push paths empty. DMST shows it; push XML does not expose it on fw 6.1.16_sr4. |
+| `ImagePolarity` | UNRESOLVED (low priority) | `q.general` sub-keys empty; `r.image` = hardware metadata only. ImagePolarity is a capture setting, not a decode property — lower probability than ECLevel. Still worth one IMAGE.LOAD probe. |
+| `ECI` (value, e.g. 000003) | UNRESOLVED | All q.general sub-key paths empty; r.symbology top-level keys don't include it. `q.metrics` and nested `r.symbology` objects not yet probed. IMAGE.LOAD scan may expose different decode context. |
 | QR pattern grades in ExcelWriter sheet mapper | OPEN — TECH DEBT | Parsed into `VerificationRecord` (v1.32) but not yet written to Excel output columns. |
 | ModulationValues / CodewordValues | COMPLETE (B7) | `ModValuesSheetWriter` + `CwValuesSheetWriter` + VerificationRecord + ExcelWriter all wired. |
