@@ -133,11 +133,16 @@ Full field inventory from both screenshots:
 
 Three independent version dropdowns — one per symbology family:
 
-| Standard family | Observed selection | Notes |
+Dropdown options confirmed from screenshots (2026-05-25):
+
+| Standard family | Observed selection | All confirmed options |
 |---|---|---|
-| **1D** | ISO 15416:2016 | Current edition (supersedes 2000 and earlier) |
-| **2D** | ISO 15415:2011 | This is the user-configurable edition that appears in the report header. Do NOT hard-code "2011" in VTCCP — echo whatever the device reports. |
-| **DPM** | ISO 29158:2020 | Current edition of the AIM-DPM / ISO 29158 standard |
+| **1D** | ISO 15416:2016 | ISO 15416:2016 · ISO 15416:2025 |
+| **2D** | ISO 15415:2011 | ISO 15415:2011 · ISO 15415:2024 |
+| **DPM** | ISO 29158:2020 | **ISO 29158:2011** · ISO 29158:2020 · ISO 29158:2025 |
+
+The DPM dropdown is the only one with three options (2011, 2020, 2025).
+Do NOT hard-code any edition string in VTCCP — echo whatever the device reports.
 
 These dropdowns directly determine the edition string in the ISO formal grade notation and
 printed on the verification report. VTCCP must read and echo the active version per
@@ -171,21 +176,64 @@ Standard Versions or QR Quiet Zone selections.
 
 ## DMCC key mapping status
 
-| Field | DMCC key | Status |
-|---|---|---|
-| Grading Standard (15415/6 vs 29158) | Unknown | Not yet confirmed — check A1 digest |
-| Select Standard | Unknown | Likely a preset/template key |
-| Dot Peen | Unknown | Likely TRUCHECK.DOT-PEEN or similar |
-| Min/Max X Dimension | Unknown | |
-| Overall Pass Grade | Unknown | |
-| Data Format Check | `UPC-EAN.SUPPLEMENT` pattern? | Likely separate key — check A1 |
-| Aperture Setting | Unknown | Aperture value appears in formal grade string |
-| ACAS threshold fields | Unknown | One DMCC key per threshold field, likely |
-| Grading Standard Versions (1D/2D/DPM) | Unknown | These drive the edition string in reports |
-| QR Quiet Zone | Unknown | |
+Keys confirmed from `DmccCommand.cs` (A1 digest sourced, fw 6.1.10+):
 
-All DMCC key mapping for this panel is pending A1 digest review.  
-**Do not implement this panel until DMCC keys are confirmed.**
+| Field | DMCC key | Values | Status |
+|---|---|---|---|
+| Grading Standard (top-level) | `TRUCHECK.GRADING-STANDARD` | 0=ISO 15415/6, 1=ISO 29158:2020 | ✓ Confirmed |
+| Select Standard (Application Standard) | `TRUCHECK.APPLICATION-STANDARD` | 0=GS1, 1=HIBCC, 2=UDI(HIBCC+GS1), 3=UID, 4=Auto, 5=Custom, 6=Cryptocode | ✓ Confirmed |
+| Dot Peen | `TRUCHECK.DOT-PEEN` | ON / OFF | ✓ Confirmed |
+| Min X Dimension | `TRUCHECK.APPLICATION-CUSTOM-MINIMUM-X-DIM` | [1–1000] thousandths of an inch | ✓ Confirmed |
+| Max X Dimension | `TRUCHECK.APPLICATION-CUSTOM-MAXIMUM-X-DIM` | [1–1000] thousandths of an inch | ✓ Confirmed |
+| Overall Pass Grade | `TRUCHECK.APPLICATION-CUSTOM-PASS-GRADE` | [0–40], no decimal | ✓ Confirmed |
+| Data Format Check | `TRUCHECK.APPLICATION-CUSTOM-DATA-PARSING-STANDARD` | 0=None, 1=GS1, 2=HIBCC, 3=UID | ✓ Confirmed |
+| Aperture Setting (mode) | `TRUCHECK.APERTURE` | 0=User Set, 1=Auto 80%/50%, 2=Auto Aperture | ✓ Confirmed |
+| Aperture Size (User Set only) | `TRUCHECK.APERTURE-SIZE` | [1–300] ten-thousandths of an inch | ✓ Confirmed |
+| Grading Standard Versions (1D/2D/DPM) | Unknown — NOT yet in DmccCommand.cs | Separate per-family version keys required | **Pending** — search A1 digest |
+| ACAS individual threshold fields | Unknown | One key per threshold, likely | **Pending** — search A1 digest |
+| QR Quiet Zone | Unknown | | **Pending** — search A1 digest |
+
+**Aperture Setting UI vs DMCC enum mismatch note**: DMST UI shows "Auto 50%/80%" but DMCC
+enum is `1=Auto 80%/50%` — same mode, different label order. Use DMCC enum order internally.
+
+---
+
+## Design notes for VTCCP Command Pilot
+
+### Reset Defaults — granularity problem
+
+DMST's "Reset Defaults" button on this panel resets **the entire TruCheck environment**,
+not just the Advanced Custom Application Standard Settings section. This is coarse and
+dangerous — a user adjusting only ACAS thresholds should not inadvertently wipe all
+Application Standard, Aperture, and GS1-table settings.
+
+**VTCCP must offer more granular reset options:**
+
+| Reset scope | What it resets |
+|---|---|
+| Reset Advanced Parameters | ACAS threshold overrides only (equivalent to DMST's "Clear Advanced Parameters" button) |
+| Reset Application Standard | Select Standard, Min/Max X-Dim, Pass Grade, Data Format, Aperture |
+| Reset Grading Standard Versions | 1D/2D/DPM edition dropdowns only |
+| Reset All Application Settings | Full equivalent of DMST Reset Defaults |
+
+Each scope should be a distinct, clearly-labeled button or menu action with a confirmation
+step before firing. Never a single undifferentiated "Reset Defaults."
+
+### UI improvement directive
+
+> "The Command Pilot UI needs to be a significant improvement over this DM TC UI."
+
+The DMST Application Settings panel is a flat scrollable dialog with no grouping hierarchy,
+no inline help, and no visual differentiation between primary settings and advanced overrides.
+The ACAS section is a wall of 20+ N/A dropdowns with no context.
+
+VTCCP Command Pilot design targets:
+- Progressive disclosure: show only relevant fields for the selected Application Standard
+- Inline help text per field (tooltip or sidebar panel) explaining the ISO context
+- Visual grouping by standard family (1D / 2D / DPM) with family-level enable/disable
+- ACAS thresholds: show only fields that deviate from N/A, collapsed by default
+- Reset controls: per-section, with confirmation, with "what will change" preview
+- Live validation: flag when min X-dim ≥ max X-dim, invalid pass grade, etc.
 
 ---
 
