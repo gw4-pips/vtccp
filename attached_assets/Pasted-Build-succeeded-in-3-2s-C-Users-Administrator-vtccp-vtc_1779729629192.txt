@@ -1,0 +1,129 @@
+Build succeeded in 3.2s
+
+C:\Users\Administrator\vtccp\vtccp>dotnet run --project Tools\RepeatabilityRunner -- 10.10.10.7 44444 50 "C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg"
+╔══════════════════════════════════════════════════════════════════╗
+║  VTCCP Repeatability Runner                                      ║
+║  Target : 10.10.10.7:44444
+║  Reps   : 50
+║  Image  : C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg
+╚══════════════════════════════════════════════════════════════════╝
+
+Connecting to device...  OK
+  Model    : DM475
+  Name     : DM475-63530E-PIPS-Verif-Lab
+  Serial   : 1A1903PP010754
+  Firmware : 6.1.16_sr4
+
+Rep 1 performs IMAGE.LOAD + IMAGE.REPLAY to prime the device buffer.
+Reps 2–N perform IMAGE.REPLAY only on the primed buffer.
+No physical trigger required. Device acts as a pure grading engine.
+
+#     Timestamp       ms      Formal Grade         UEC%     SC%      ANU%      GNU%      FPD     MOD   RM    DECODE
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[VTCCP-D4] SendCommand("SET IMAGE.LOAD") failed: Exception of type 'Cognex.DataMan.SDK.InvalidCommandException' was thrown.
+[VTCCP-D4] SendCommand("IMAGE.LOAD") failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+1     13:18:45.424   517     1.0/**/660/45Q       41.7%    83.0%    11.20%    8.70%     —       A/4.0 C/2.0 A/4.0
+2     13:18:46.160   3       TIMEOUT / NO READ
+3     13:18:46.372   1       TIMEOUT / NO READ
+4     13:18:46.574   0       TIMEOUT / NO READ
+5     13:18:46.778   1       TIMEOUT / NO READ
+6     13:18:46.982   1       TIMEOUT / NO READ
+7     13:18:47.192   1       TIMEOUT / NO READ
+8     13:18:47.403   1       TIMEOUT / NO READ
+9     13:18:47.607   1       TIMEOUT / NO READ
+10    13:18:47.820   5       TIMEOUT / NO READ
+11    13:18:48.028   1       TIMEOUT / NO READ
+12    13:18:48.237   1       TIMEOUT / NO READ
+13    13:18:48.446   54      1.0/**/660/45Q       41.7%    83.0%    11.20%    9.40%     —       A/4.0 C/2.0 A/4.0
+14    13:18:48.707   0       TIMEOUT / NO READ
+15    13:18:48.911   1       TIMEOUT / NO READ
+16    13:18:49.121   1       TIMEOUT / NO READ
+17    13:18:49.326   1       TIMEOUT / NO READ
+18    13:18:49.534   1       TIMEOUT / NO READ
+19    13:18:49.744   4       TIMEOUT / NO READ
+20    13:18:49.957   2       TIMEOUT / NO READ
+21    13:18:50.167   1       TIMEOUT / NO READ
+22    13:18:50.371   0       TIMEOUT / NO READ
+23    13:18:50.577   1       TIMEOUT / NO READ
+24    13:18:50.786   1       TIMEOUT / NO READ
+25    13:18:50.997   1       TIMEOUT / NO READ
+26    13:18:51.201   2       TIMEOUT / NO READ
+27    13:18:51.410   1       TIMEOUT / NO READ
+28    13:18:51.623   1       TIMEOUT / NO READ
+29    13:18:51.826   38      1.0/**/660/45Q       41.7%    83.0%    11.00%    7.20%     —       A/4.0 C/2.0 A/4.0
+30    13:18:52.066   4       TIMEOUT / NO READ
+31    13:18:52.285   1       TIMEOUT / NO READ
+32    13:18:52.496   1       TIMEOUT / NO READ
+33    13:18:52.707   29      1.0/**/660/45Q       41.7%    83.0%    11.20%    8.80%     —       A/4.0 C/2.0 A/4.0
+34    13:18:52.942   1       TIMEOUT / NO READ
+35    13:18:53.154   1       TIMEOUT / NO READ
+36    13:18:53.357   1       TIMEOUT / NO READ
+37    13:18:53.558   2       TIMEOUT / NO READ
+38    13:18:53.770   1       TIMEOUT / NO READ
+39    13:18:53.972   1       TIMEOUT / NO READ
+40    13:18:54.185   1       TIMEOUT / NO READ
+41    13:18:54.388   0       TIMEOUT / NO READ
+42    13:18:54.598   1       TIMEOUT / NO READ
+43    13:18:54.808   1       TIMEOUT / NO READ
+44    13:18:55.012   0       TIMEOUT / NO READ
+45    13:18:55.222   1       TIMEOUT / NO READ
+46    13:18:55.427   32      1.0/**/660/45Q       41.7%    83.0%    11.10%    8.60%     —       A/4.0 C/2.0 A/4.0
+47    13:18:55.667   2       TIMEOUT / NO READ
+48    13:18:55.879   1       TIMEOUT / NO READ
+49    13:18:56.082   1       TIMEOUT / NO READ
+50    13:18:56.293   1       TIMEOUT / NO READ
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+══ TIMING ══════════════════════════════════════════════════════════
+  Completed : 5/50 reps
+  Total     : 670 ms (0.7 s)
+  Per rep   : avg=134 ms   min=29 ms   max=517 ms
+
+══ DEVIATION REPORT ════════════════════════════════════════════════
+  Each parameter is checked across all 5 successful reps.
+  ★ = value changed at least once.  Values shown as: value×count
+
+  Parameter                Status     Values
+  ────────────────────────────────────────────────────────────────────────────────
+    FormalGrade              STABLE     1.0/**/660/45Q
+    OverallGrade             STABLE     D/1.0
+    UEC_Grade                STABLE     C/2.0
+    UEC_Percent              STABLE     41.7000
+    SC_Grade                 STABLE     A/4.0
+    SC_Percent               STABLE     83.0000
+    MOD_Grade                STABLE     A/4.0
+    RM_Grade                 STABLE     C/2.0
+    ANU_Grade                STABLE     D/1.0
+  ★ ANU_Percent              ★ VARIES   11.200000×3  |  11.000000×1  |  11.100000×1
+    GNU_Grade                STABLE     A/4.0
+  ★ GNU_Percent              ★ VARIES   8.700000×1  |  9.400000×1  |  7.200000×1  |  8.800000×1  |  8.600000×1
+    FPD_Grade                STABLE     A/4.0
+    FPD_Value                STABLE     —
+    DECODE_Grade             STABLE     A/4.0
+    LLS_Grade                STABLE     A/4.0
+    BLS_Grade                STABLE     A/4.0
+    LQZ_Grade                STABLE     A/4.0
+    BQZ_Grade                STABLE     A/4.0
+    TQZ_Grade                STABLE     —
+    RQZ_Grade                STABLE     —
+    TTR_Grade                STABLE     —
+    TTR_Percent              STABLE     —
+    RTR_Grade                STABLE     —
+    RTR_Percent              STABLE     —
+    TCT_Grade                STABLE     —
+    RCT_Grade                STABLE     —
+    ErrorsCorrected          STABLE     7
+    ErrorCapacityUsed        STABLE     14
+    DataCodewords            STABLE     32
+    ErrorCorrectionBudget    STABLE     24
+
+  ★ DEVIATION DETECTED — see flagged parameters above.
+    Variation across IMAGE.REPLAY on identical pixels indicates
+    non-determinism in the firmware grading algorithm.
+
+  Run started : 2026-05-25 13:18:45.424
+  Run ended   : 2026-05-25 13:18:56.293
+
+
+C:\Users\Administrator\vtccp\vtccp>dotnet build VTCCP.sln -c Release                                                    

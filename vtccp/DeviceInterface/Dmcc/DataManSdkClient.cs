@@ -404,16 +404,15 @@ public sealed class DataManSdkClient : IAsyncDisposable
         _system!.XmlResultArrived += xmlHandler;
         try
         {
+            // Attempt IMAGE.REPLAY to request a fresh grade cycle.
+            // The SDK's SendCommand throws on rejection (device busy / wrong state),
+            // which DmccResponse.Parse maps to code=-2.  Do NOT abort on non-zero
+            // status — the device may already be in a continuous replay/monitoring
+            // loop that delivers XmlResultArrived independently of this command.
+            // Just wait for the event regardless.
             var replayResp = await SendAsync(DmccCommand.ImageReplay, ct);
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-REPLAY] IMAGE.REPLAY → code={replayResp.StatusCode} body='{replayResp.Body}'");
-
-            if (replayResp.StatusCode != 0)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    "[VTCCP-REPLAY] IMAGE.REPLAY rejected by device — aborting wait.");
-                tcs.TrySetResult(null);
-            }
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(timeoutMs);
