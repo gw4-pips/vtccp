@@ -377,6 +377,24 @@ horizontal/vertical BWG are both 11% which is high).
 
 ---
 
+## Supplemental — TruCheck Verification Settings: Application Settings
+
+**Doc**: `dmst-settings-application.md`  
+**Screenshots**: `dmst-settings-application-aperture-dropdown.png`, `dmst-settings-acas-upper.png`, `dmst-settings-acas-lower.png`  
+**Trigger**: Gear icon in DMST toolbar → Application Settings (left nav)
+
+Full field inventory confirmed. Key findings:
+
+- **Grading Standard**: top-level radio — ISO 15415/6 (default) vs. ISO 29158 (AIM-DPM)
+- **Aperture Setting** dropdown: User Set | Auto 50%/80% | Auto Aperture (3 options confirmed)
+- **Data Format Check**: None / GS1 / HIBCC / ISO 15434 — `ApplicationPass` is informational only, `OverallGrade` is operative
+- **Grading Standard Versions** (inside ACAS): 1D=ISO 15416:2016 / 2D=ISO 15415:2011 / DPM=ISO 29158:2020 — user-configurable, NOT firmware-determined; VTCCP must echo, not hard-code
+- **QR Quiet Zone**: ISO 18004 QZ Requirement (4 modules, selected) vs. ISO 16480 (1 module)
+- **VTCCP label**: "Advanced Custom Application Standard Settings" (not DMTC's "Advanced Custom Application Standard")
+- All DMCC key mappings pending A1 digest review — do not implement until confirmed
+
+---
+
 ## Supplemental — TruCheck Calibration window
 
 **Doc**: `dmst-trucheck-calibration.md`  
