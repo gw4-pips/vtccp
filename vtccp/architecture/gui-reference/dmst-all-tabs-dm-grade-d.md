@@ -374,3 +374,18 @@ horizontal/vertical BWG are both 11% which is high).
 | Report image: present even when Main tab is gray | ✓ | Report tab header |
 | q.encodationAnalysisArray mode field | "ASCII" | Encodation Analysis |
 | q.modulationArray grid in Report tab | identical to Advanced Detail | Report bottom |
+
+---
+
+## Supplemental — TruCheck Calibration window
+
+**Doc**: `dmst-trucheck-calibration.md`  
+**Screenshots**: `dmst-trucheck-calibration-main.png`, `dmst-trucheck-calibration-custom-xdim.png`  
+**Trigger**: Stylized C icon (©-like), top-left toolbar
+
+Two-state dialog. Collapsed (standard): enter Rmax/Rmin from calibration card, Go Live, Start Calibration.
+Expanded ("Advanced Calibration"): Custom X Dimension (mils) field + "Calibration will not be NIST traceable" note.
+
+VTCCP naming: do NOT use "Advanced Calibration" — that term has a different meaning in legacy Webscan TruCheck. Final name TBD (candidates: Custom Target Calibration, Custom X-Dim Calibration).
+
+Open: where the Rmax/Rmin values come from when a custom target is used — window is silent. Clarification pending from Webscan founder.
