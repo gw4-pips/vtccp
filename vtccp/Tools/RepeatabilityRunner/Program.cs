@@ -1,36 +1,57 @@
 // VTCCP RepeatabilityRunner — ad-hoc console tool
-// Sends IMAGE.REPLAY N times on the currently-loaded device image and
-// prints a per-parameter stability report.
+// Loads a symbol image onto the device N times via IMAGE.LOAD + IMAGE.REPLAY
+// and prints a per-parameter stability report across all N independent gradings.
 //
 // Usage (from vtccp/ directory):
-//   dotnet run --project Tools/RepeatabilityRunner -- [host] [port] [reps]
-//   dotnet run --project Tools/RepeatabilityRunner -- 10.10.10.7 44444 50
+//   dotnet run --project Tools/RepeatabilityRunner -- <host> <port> <reps> <imagePath>
+//   dotnet run --project Tools/RepeatabilityRunner -- 10.10.10.7 44444 50 "C:\images\dm_rect.bmp"
 //
 // Defaults: host=10.10.10.7  port=44444  reps=50
+// imagePath is REQUIRED — the device does not retain the image buffer between
+// VTCCP sessions.  Each rep performs a fresh IMAGE.LOAD + IMAGE.REPLAY.
 //
 // Prerequisites:
-//   1. Device must have an image in its buffer (prior IMAGE.LOAD or DMST load).
+//   1. Image file must exist at the path provided.
 //   2. VTCCP.sln must be built at least once (dotnet build VTCCP.sln).
 //   3. Run from the vtccp/ directory so project references resolve correctly.
 
 using System.Diagnostics;
 using DeviceInterface;
-using DeviceInterface.Dmcc;
 using ExcelEngine.Models;
 
 const string DefaultHost = "10.10.10.7";
 const int    DefaultPort = 44444;
 const int    DefaultReps = 50;
 
-string host = args.Length > 0 ? args[0] : DefaultHost;
-int    port = args.Length > 1 && int.TryParse(args[1], out int p) ? p : DefaultPort;
-int    reps = args.Length > 2 && int.TryParse(args[2], out int r) ? r : DefaultReps;
+string host      = args.Length > 0 ? args[0] : DefaultHost;
+int    port      = args.Length > 1 && int.TryParse(args[1], out int p) ? p : DefaultPort;
+int    reps      = args.Length > 2 && int.TryParse(args[2], out int r) ? r : DefaultReps;
+string imagePath = args.Length > 3 ? args[3] : string.Empty;
+
+if (string.IsNullOrWhiteSpace(imagePath))
+{
+    Console.WriteLine("ERROR: imagePath is required.");
+    Console.WriteLine();
+    Console.WriteLine("Usage:");
+    Console.WriteLine("  dotnet run --project Tools/RepeatabilityRunner -- <host> <port> <reps> <imagePath>");
+    Console.WriteLine("  dotnet run --project Tools/RepeatabilityRunner -- 10.10.10.7 44444 50 \"C:\\images\\dm_rect.bmp\"");
+    Environment.Exit(1);
+    return;
+}
+
+if (!File.Exists(imagePath))
+{
+    Console.WriteLine($"ERROR: Image file not found: {imagePath}");
+    Environment.Exit(1);
+    return;
+}
 
 // ── Banner ────────────────────────────────────────────────────────────────────
 Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
 Console.WriteLine("║  VTCCP Repeatability Runner                                      ║");
-Console.WriteLine($"║  Target : {host}:{port}                                          ║");
-Console.WriteLine($"║  Reps   : {reps}                                                    ║");
+Console.WriteLine($"║  Target : {host}:{port}");
+Console.WriteLine($"║  Reps   : {reps}");
+Console.WriteLine($"║  Image  : {imagePath}");
 Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
 Console.WriteLine();
 
@@ -60,8 +81,8 @@ Console.WriteLine($"  Name     : {info.Name ?? "unknown"}");
 Console.WriteLine($"  Serial   : {info.Serial ?? "unknown"}");
 Console.WriteLine($"  Firmware : {info.FirmwareVersion ?? "unknown"}");
 Console.WriteLine();
-Console.WriteLine("NOTE: Device must already have an image loaded (prior IMAGE.LOAD or DMST scan).");
-Console.WriteLine("      The DM rect image currently loaded will be replayed.");
+Console.WriteLine("Each rep performs IMAGE.LOAD + IMAGE.REPLAY on the provided file.");
+Console.WriteLine("No physical trigger required. Device acts as a pure grading engine.");
 Console.WriteLine();
 
 // ── Progress header ───────────────────────────────────────────────────────────
@@ -89,7 +110,7 @@ for (int i = 1; i <= reps; i++)
 
     try
     {
-        rec = await session.ReplayAndGetResultAsync(timeoutMs: 20_000, ct: appCts.Token);
+        rec = await session.LoadAndVerifyImageAsync(imagePath, ct: appCts.Token);
     }
     catch (OperationCanceledException)
     {
@@ -223,7 +244,7 @@ if (!anyDeviation)
 {
     Console.ForegroundColor = ConsoleColor.Green;
     Console.WriteLine($"  ✓ ALL PARAMETERS STABLE across all {successCount} reps.");
-    Console.WriteLine("    IMAGE.REPLAY grading is fully deterministic on this firmware.");
+    Console.WriteLine("    LoadImage + IMAGE.REPLAY grading is fully deterministic on this firmware.");
     Console.ResetColor();
 }
 else

@@ -1,0 +1,77 @@
+C:\Users\Administrator\vtccp\vtccp>dotnet run --project Tools\RepeatabilityRunner -- 10.10.10.7 44444 50
+╔══════════════════════════════════════════════════════════════════╗
+║  VTCCP Repeatability Runner                                      ║
+║  Target : 10.10.10.7:44444                                          ║
+║  Reps   : 50                                                    ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Connecting to device...  OK
+  Model    : DM475
+  Name     : DM475-63530E-PIPS-Verif-Lab
+  Serial   : 1A1903PP010754
+  Firmware : 6.1.16_sr4
+
+NOTE: Device must already have an image loaded (prior IMAGE.LOAD or DMST scan).
+      The DM rect image currently loaded will be replayed.
+
+#     Timestamp       ms      Formal Grade         UEC%     SC%      ANU%      GNU%      FPD     MOD   RM    DECODE
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+1     12:37:57.590   4       TIMEOUT / NO READ
+2     12:37:57.606   1       TIMEOUT / NO READ
+3     12:37:57.607   1       TIMEOUT / NO READ
+4     12:37:57.608   0       TIMEOUT / NO READ
+5     12:37:57.609   0       TIMEOUT / NO READ
+6     12:37:57.610   0       TIMEOUT / NO READ
+7     12:37:57.611   1       TIMEOUT / NO READ
+8     12:37:57.612   0       TIMEOUT / NO READ
+9     12:37:57.613   0       TIMEOUT / NO READ
+10    12:37:57.614   0       TIMEOUT / NO READ
+11    12:37:57.614   0       TIMEOUT / NO READ
+12    12:37:57.615   0       TIMEOUT / NO READ
+13    12:37:57.616   0       TIMEOUT / NO READ
+14    12:37:57.617   0       TIMEOUT / NO READ
+15    12:37:57.617   0       TIMEOUT / NO READ
+16    12:37:57.618   0       TIMEOUT / NO READ
+17    12:37:57.619   0       TIMEOUT / NO READ
+18    12:37:57.619   0       TIMEOUT / NO READ
+19    12:37:57.620   0       TIMEOUT / NO READ
+20    12:37:57.621   0       TIMEOUT / NO READ
+21    12:37:57.622   0       TIMEOUT / NO READ
+22    12:37:57.623   0       TIMEOUT / NO READ
+23    12:37:57.623   0       TIMEOUT / NO READ
+24    12:37:57.624   0       TIMEOUT / NO READ
+25    12:37:57.625   0       TIMEOUT / NO READ
+26    12:37:57.625   0       TIMEOUT / NO READ
+27    12:37:57.626   0       TIMEOUT / NO READ
+28    12:37:57.627   1       TIMEOUT / NO READ
+29    12:37:57.628   1       TIMEOUT / NO READ
+30    12:37:57.630   2       TIMEOUT / NO READ
+31    12:37:57.632   0       TIMEOUT / NO READ
+32    12:37:57.633   0       TIMEOUT / NO READ
+33    12:37:57.634   1       TIMEOUT / NO READ
+34    12:37:57.636   0       TIMEOUT / NO READ
+35    12:37:57.637   0       TIMEOUT / NO READ
+36    12:37:57.638   0       TIMEOUT / NO READ
+37    12:37:57.639   0       TIMEOUT / NO READ
+38    12:37:57.639   0       TIMEOUT / NO READ
+39    12:37:57.640   0       TIMEOUT / NO READ
+40    12:37:57.641   0       TIMEOUT / NO READ
+41    12:37:57.642   0       TIMEOUT / NO READ
+42    12:37:57.643   0       TIMEOUT / NO READ
+43    12:37:57.643   0       TIMEOUT / NO READ
+44    12:37:57.644   0       TIMEOUT / NO READ
+45    12:37:57.645   0       TIMEOUT / NO READ
+46    12:37:57.646   0       TIMEOUT / NO READ
+47    12:37:57.647   0       TIMEOUT / NO READ
+48    12:37:57.647   0       TIMEOUT / NO READ
+49    12:37:57.648   0       TIMEOUT / NO READ
+50    12:37:57.649   0       TIMEOUT / NO READ
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+══ TIMING ══════════════════════════════════════════════════════════
+  Completed : 0/50 reps
+  Total     : 0 ms (0.0 s)
+  Per rep   : avg=0 ms   min=0 ms   max=0 ms
+
+No successful reps — cannot generate deviation report.
+
