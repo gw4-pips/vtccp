@@ -453,19 +453,28 @@ public sealed class DataManSdkClient : IAsyncDisposable
     ///
     /// Returns true if LoadImage was called without throwing; false otherwise.
     /// </summary>
+    private static bool _sdkMethodsLogged = false;
+
     private bool TryLoadImageViaReflection(string filePath)
     {
         var systemType = _system!.GetType();
 
-        // Log every image/load-related method name for discovery (one-time cost on D4 path).
-        var candidates = systemType.GetMethods()
-            .Where(m => m.Name.Contains("Load", StringComparison.OrdinalIgnoreCase)
-                     || m.Name.Contains("Image", StringComparison.OrdinalIgnoreCase))
-            .Select(m => $"{m.Name}({string.Join(",", m.GetParameters().Select(p => p.ParameterType.Name))})")
-            .Distinct()
-            .ToArray();
-        System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-D4] DataManSystem image/load methods: [{string.Join(", ", candidates)}]");
+        // On first call only: print all image/load-related methods to stderr so the
+        // correct overload can be confirmed from console output (Debug.WriteLine is
+        // invisible in a console app without an attached debugger).
+        if (!_sdkMethodsLogged)
+        {
+            _sdkMethodsLogged = true;
+            var candidates = systemType.GetMethods()
+                .Where(m => m.Name.Contains("Load", StringComparison.OrdinalIgnoreCase)
+                         || m.Name.Contains("Image", StringComparison.OrdinalIgnoreCase)
+                         || m.Name.Contains("Send",  StringComparison.OrdinalIgnoreCase))
+                .Select(m => $"  {m.Name}({string.Join(", ", m.GetParameters().Select(p => p.ParameterType.Name))})")
+                .Distinct()
+                .OrderBy(s => s);
+            Console.Error.WriteLine("[VTCCP-D4] DataManSystem image/load/send methods:");
+            foreach (var c in candidates) Console.Error.WriteLine(c);
+        }
 
         // Resolve System.Drawing.Bitmap at runtime to avoid compile-time dep on Windows-only assembly.
         Type? bitmapType =
@@ -474,11 +483,12 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
         if (bitmapType is null)
         {
-            System.Diagnostics.Debug.WriteLine(
-                "[VTCCP-D4] System.Drawing.Bitmap not resolvable at runtime — " +
-                "IMAGE.REPLAY will still be sent to trigger on last-loaded image.");
+            Console.Error.WriteLine(
+                "[VTCCP-D4] FAIL: System.Drawing.Bitmap not resolvable — " +
+                "add System.Drawing.Common package or use a different image-load path.");
             return false;
         }
+        Console.Error.WriteLine($"[VTCCP-D4] Bitmap type resolved: {bitmapType.AssemblyQualifiedName}");
 
         // Construct Bitmap from file path.
         object? bitmap;
@@ -489,16 +499,17 @@ public sealed class DataManSdkClient : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-D4] Bitmap({filePath}) ctor failed: {ex.InnerException?.Message ?? ex.Message}");
+            Console.Error.WriteLine(
+                $"[VTCCP-D4] FAIL: Bitmap(\"{filePath}\") ctor threw: {ex.InnerException?.Message ?? ex.Message}");
             return false;
         }
 
         if (bitmap is null)
         {
-            System.Diagnostics.Debug.WriteLine("[VTCCP-D4] Bitmap ctor returned null.");
+            Console.Error.WriteLine("[VTCCP-D4] FAIL: Bitmap ctor returned null.");
             return false;
         }
+        Console.Error.WriteLine($"[VTCCP-D4] Bitmap constructed OK ({bitmapType.Name}).");
 
         // Try LoadImage(Bitmap) — exact type match first.
         try
@@ -507,14 +518,14 @@ public sealed class DataManSdkClient : IAsyncDisposable
             if (loadMethod is not null)
             {
                 loadMethod.Invoke(_system, [bitmap]);
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-D4] LoadImage({bitmapType.Name}) invoked OK for '{filePath}'.");
+                Console.Error.WriteLine($"[VTCCP-D4] LoadImage({bitmapType.Name}) invoked OK.");
                 return true;
             }
+            Console.Error.WriteLine($"[VTCCP-D4] LoadImage({bitmapType.Name}) — method not found.");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine(
+            Console.Error.WriteLine(
                 $"[VTCCP-D4] LoadImage({bitmapType.Name}) threw: {ex.InnerException?.Message ?? ex.Message}");
         }
 
@@ -526,21 +537,21 @@ public sealed class DataManSdkClient : IAsyncDisposable
             try
             {
                 method.Invoke(_system, [bitmap]);
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-D4] LoadImage({parms[0].ParameterType.Name}) invoked OK for '{filePath}'.");
+                Console.Error.WriteLine(
+                    $"[VTCCP-D4] LoadImage({parms[0].ParameterType.Name}) invoked OK.");
                 return true;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(
+                Console.Error.WriteLine(
                     $"[VTCCP-D4] LoadImage({parms[0].ParameterType.Name}) threw: " +
                     $"{ex.InnerException?.Message ?? ex.Message}");
             }
         }
 
-        System.Diagnostics.Debug.WriteLine(
-            "[VTCCP-D4] No compatible LoadImage overload found or all threw. " +
-            "Confirm the correct method name from the log line above and update TryLoadImageViaReflection.");
+        Console.Error.WriteLine(
+            "[VTCCP-D4] FAIL: No compatible LoadImage overload found or all threw. " +
+            "See method list above — update TryLoadImageViaReflection with the correct name.");
         return false;
     }
 

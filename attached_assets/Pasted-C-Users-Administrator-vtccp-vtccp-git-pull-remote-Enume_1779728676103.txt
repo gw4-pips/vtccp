@@ -1,0 +1,104 @@
+C:\Users\Administrator\vtccp\vtccp>git pull
+remote: Enumerating objects: 9, done.
+remote: Counting objects: 100% (9/9), done.
+remote: Compressing objects: 100% (1/1), done.
+remote: Total 5 (delta 4), reused 5 (delta 4), pack-reused 0 (from 0)
+Unpacking objects: 100% (5/5), 708 bytes | 24.00 KiB/s, done.
+From https://github.com/gw4-pips/vtccp
+   05e5c35..047f7b7  main       -> origin/main
+Updating 05e5c35..047f7b7
+Fast-forward
+ vtccp/DeviceInterface/DeviceInterface.csproj | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+C:\Users\Administrator\vtccp\vtccp>dotnet build VTCCP.sln -c Release
+Restore complete (1.0s)
+  ExcelEngine net8.0 succeeded (3.6s) → ExcelEngine\bin\Release\net8.0\ExcelEngine.dll
+  DeviceInterface net8.0 succeeded (1.0s) → DeviceInterface\bin\Release\net8.0\DeviceInterface.dll
+  RepeatabilityRunner net8.0 succeeded (0.6s) → Tools\RepeatabilityRunner\bin\Release\net8.0\RepeatabilityRunner.dll
+  ConfigEngine net8.0 succeeded (0.8s) → ConfigEngine\bin\Release\net8.0\ConfigEngine.dll
+  TestHarness net8.0 succeeded (1.6s) → TestHarness\bin\Release\net8.0\TestHarness.dll
+
+Build succeeded in 7.9s
+
+C:\Users\Administrator\vtccp\vtccp>dotnet run --project Tools\RepeatabilityRunner -- 10.10.10.7 44444 50 "C:\downloads\QR 1.29 Sample.jpg"
+ERROR: Image file not found: C:\downloads\QR 1.29 Sample.jpg
+
+C:\Users\Administrator\vtccp\vtccp>dotnet run --project Tools\RepeatabilityRunner -- 10.10.10.7 44444 50 "C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg"
+╔══════════════════════════════════════════════════════════════════╗
+║  VTCCP Repeatability Runner                                      ║
+║  Target : 10.10.10.7:44444
+║  Reps   : 50
+║  Image  : C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg
+╚══════════════════════════════════════════════════════════════════╝
+
+Connecting to device...  OK
+  Model    : DM475
+  Name     : DM475-63530E-PIPS-Verif-Lab
+  Serial   : 1A1903PP010754
+  Firmware : 6.1.16_sr4
+
+Each rep performs IMAGE.LOAD + IMAGE.REPLAY on the provided file.
+No physical trigger required. Device acts as a pure grading engine.
+
+#     Timestamp       ms      Formal Grade         UEC%     SC%      ANU%      GNU%      FPD     MOD   RM    DECODE
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+1     13:03:35.814   36      TIMEOUT / NO READ
+2     13:03:35.859   3       TIMEOUT / NO READ
+3     13:03:35.863   2       TIMEOUT / NO READ
+4     13:03:35.865   2       TIMEOUT / NO READ
+5     13:03:35.868   2       TIMEOUT / NO READ
+6     13:03:35.870   2       TIMEOUT / NO READ
+7     13:03:35.872   3       TIMEOUT / NO READ
+8     13:03:35.875   2       TIMEOUT / NO READ
+9     13:03:35.877   4       TIMEOUT / NO READ
+10    13:03:35.882   3       TIMEOUT / NO READ
+11    13:03:35.886   2       TIMEOUT / NO READ
+12    13:03:35.889   2       TIMEOUT / NO READ
+13    13:03:35.891   2       TIMEOUT / NO READ
+14    13:03:35.894   2       TIMEOUT / NO READ
+15    13:03:35.896   2       TIMEOUT / NO READ
+16    13:03:35.899   2       TIMEOUT / NO READ
+17    13:03:35.901   2       TIMEOUT / NO READ
+18    13:03:35.903   2       TIMEOUT / NO READ
+19    13:03:35.906   2       TIMEOUT / NO READ
+20    13:03:35.908   3       TIMEOUT / NO READ
+21    13:03:35.912   2       TIMEOUT / NO READ
+22    13:03:35.915   3       TIMEOUT / NO READ
+23    13:03:35.919   2       TIMEOUT / NO READ
+24    13:03:35.921   2       TIMEOUT / NO READ
+25    13:03:35.923   2       TIMEOUT / NO READ
+26    13:03:35.925   2       TIMEOUT / NO READ
+27    13:03:35.928   2       TIMEOUT / NO READ
+28    13:03:35.930   2       TIMEOUT / NO READ
+29    13:03:35.932   2       TIMEOUT / NO READ
+30    13:03:35.934   2       TIMEOUT / NO READ
+31    13:03:35.936   2       TIMEOUT / NO READ
+32    13:03:35.938   2       TIMEOUT / NO READ
+33    13:03:35.941   4       TIMEOUT / NO READ
+34    13:03:35.945   3       TIMEOUT / NO READ
+35    13:03:35.948   2       TIMEOUT / NO READ
+36    13:03:35.951   3       TIMEOUT / NO READ
+37    13:03:35.954   3       TIMEOUT / NO READ
+38    13:03:35.958   2       TIMEOUT / NO READ
+39    13:03:35.960   2       TIMEOUT / NO READ
+40    13:03:35.963   3       TIMEOUT / NO READ
+41    13:03:35.966   2       TIMEOUT / NO READ
+42    13:03:35.969   3       TIMEOUT / NO READ
+43    13:03:35.973   3       TIMEOUT / NO READ
+44    13:03:35.976   3       TIMEOUT / NO READ
+45    13:03:35.980   3       TIMEOUT / NO READ
+46    13:03:35.983   3       TIMEOUT / NO READ
+47    13:03:35.986   2       TIMEOUT / NO READ
+48    13:03:35.989   2       TIMEOUT / NO READ
+49    13:03:35.991   2       TIMEOUT / NO READ
+50    13:03:35.994   3       TIMEOUT / NO READ
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+══ TIMING ══════════════════════════════════════════════════════════
+  Completed : 0/50 reps
+  Total     : 0 ms (0.0 s)
+  Per rep   : avg=0 ms   min=0 ms   max=0 ms
+
+No successful reps — cannot generate deviation report.
+
