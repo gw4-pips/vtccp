@@ -1,5 +1,8 @@
 namespace DeviceInterface.Dmst;
 
+using System.Globalization;
+using System.Net;
+using System.Text.RegularExpressions;
 using ExcelEngine.Models;
 
 /// <summary>
@@ -212,11 +215,10 @@ public sealed class DmstHtmlScraper : IDisposable
     /// <summary>
     /// When true, the first HTML report received is copied to
     /// <see cref="DiagnosticCapturePath"/> before being deleted.
-    /// Set to true while ParseHtml is not yet implemented — lets the first live
-    /// sample be inspected without interrupting the normal scraper flow.
-    /// Set to false once ParseHtml is implemented and validated.
+    /// Set to true temporarily to capture an HTML sample for parser diagnostics.
+    /// ParseHtml() is fully implemented and validated against the 2026-05-25 live sample.
     /// </summary>
-    public bool DiagnosticCaptureEnabled { get; set; } = true;
+    public bool DiagnosticCaptureEnabled { get; set; } = false;
 
     /// <summary>
     /// Path where the first captured HTML report is saved for inspection.
@@ -281,41 +283,210 @@ public sealed class DmstHtmlScraper : IDisposable
         });
     }
 
-    // ── HTML parser (stub) ────────────────────────────────────────────────────
+    // ── HTML parser ───────────────────────────────────────────────────────────
 
     /// <summary>
     /// Parses a DMST TruCheck HTML report into a <see cref="DmstHtmlReport"/>.
     ///
-    /// TODO: implement after first live HTML sample is captured.
+    /// Format confirmed 2026-05-25 from live scan on fw 6.1.16_sr4 (QR GUID, Grade A).
+    /// File: 2026-05-24_23-03-58-752_1779678267324.html
     ///
-    /// To capture the first sample:
-    ///   1. In DMST Options → Data Logging → Reporting, set File Extension to .html.
-    ///   2. Run one QR scan.
-    ///   3. Copy the .html file from {Documents}\{DeviceName}\CodeQuality\ before it
-    ///      is deleted (or add a File.Copy before the File.Delete above temporarily).
-    ///   4. Inspect the file — identify field label strings, table/div structure,
-    ///      DateTime format, and whether ECI/ECLevel appear in the report.
+    /// ── Structure ────────────────────────────────────────────────────────────
     ///
-    /// Implementation strategy once format is known:
-    ///   - NuGet: HtmlAgilityPack (lightweight DOM parser, no headless browser).
-    ///   - XPath: //tr[td[contains(., 'Error Correction Level')]]/td[2]
-    ///   - Parse ScanDateTime from report header.
-    ///   - Parse numeric fields with decimal InvariantCulture.
-    ///   - Return ParseSucceeded=false + ParseError if structure not recognised
-    ///     (new DMST version may change layout).
+    /// The DMST HTML report is a single minified line containing two tables:
+    ///
+    ///   1. Header table (cells 0–30 approx):
+    ///      Labels and values are in SEPARATE rows (multi-column layout).
+    ///      Do NOT use consecutive-pair extraction here.
+    ///      OverallGrade is extracted by searching for the "D.D (L)" pattern.
+    ///
+    ///   2. Simple characteristics table (cells 31–60 approx):
+    ///      Consecutive &lt;td&gt;Label&lt;/td&gt;&lt;td&gt;Value&lt;/td&gt; pairs.
+    ///      All 4 target fields live here.
+    ///      Indexed positions (confirmed, QR Grade A scan):
+    ///        [31/32]="QR Size"/"29x29"
+    ///        [33/34]="Horizontal BWG"/"-3%"
+    ///        [35/36]="Vertical BWG"/"-4%"
+    ///        [37/38]="Encoded characters"/"36"   ← HTML authoritative (push XML: 39 = WRONG)
+    ///        [39/40]="Total Codewords"/"70"
+    ///        [41/42]="Data Codewords"/"44"        ← empty in push XML; HTML authoritative
+    ///        [43/44]="Error Correction Budget"/"26" ← empty in push XML; HTML authoritative
+    ///        [45/46]="Errors Corrected"/"0"
+    ///        [47/48]="Error Capacity Used"/"0"
+    ///        [49/50]="Error Correction Level"/"M"  ← PRIMARY TARGET
+    ///        [51/52]="Data Mask Pattern"/"2"        ← PRIMARY TARGET
+    ///        [53/54]="Image"/"Black on white"       ← PRIMARY TARGET (ImagePolarity)
+    ///        [55/56]="Nominal X Dim"/"12.6 mil"
+    ///        [57/58]="Pixels per Module"/"9.75"
+    ///        [59/60]="ECI"/"000003"                 ← PRIMARY TARGET
+    ///
+    ///   3. Grade parameters table (cells 61+ approx):
+    ///      6-cell rows: [label][secondary][pct%][numeric][letter][PASS/FAIL]
+    ///      UEC row: [61]="1. Unused Error Correction (UEC)"  [62]=""  [63]="100.0%"  ...
+    ///      SC row:  [67]="2. Symbol Contrast (SC)"           [68]="Rl/Rd (87/6)"  [69]="nan%"  ...
+    ///      ANU row: [85]="4. Axial Nonuniformity (ANU)"      [86]=""  [87]="0.8%"  ...
+    ///      GNU row: [91]="5. Grid Nonuniformity (GNU)"        [92]=""  [93]="0.0%"  ...
+    ///      Note: SC shows "nan%" for IMAGE.LOAD scans (loaded-image scan, no live illumination).
+    ///
+    /// ── DateTime ─────────────────────────────────────────────────────────────
+    ///
+    /// The in-page DateTime header is CORRUPT ("31-Dec-1970 07:00:00" = Unix epoch).
+    /// ScanDateTime is parsed from the filename prefix: "yyyy-MM-dd_HH-mm-ss-mmm_..."
+    ///
+    /// ── No external library required ─────────────────────────────────────────
+    ///
+    /// The cell extraction uses <c>Regex.Matches</c> on &lt;td&gt; elements.
+    /// The minified single-line HTML makes regex extraction reliable and fast.
+    /// HtmlAgilityPack is not needed and has not been added as a dependency.
     /// </summary>
     private static DmstHtmlReport ParseHtml(string htmlContent, string sourcePath)
     {
-        System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-SCRAPER] ParseHtml stub — {htmlContent.Length} chars from " +
-            $"'{Path.GetFileName(sourcePath)}'. Implement after first live HTML sample.");
-
-        return new DmstHtmlReport
+        try
         {
-            SourceFilePath = sourcePath,
-            ParseSucceeded = false,
-            ParseError     = "ParseHtml not yet implemented — awaiting first live HTML sample.",
-        };
+            // ── Step 1: extract all <td> text in document order ──────────────
+            //
+            // Empty cells ARE included — they matter for grade-row offset arithmetic.
+            // WebUtility.HtmlDecode converts &amp; &lt; &gt; etc. in cell text.
+            var cells = Regex.Matches(htmlContent, @"<td[^>]*>(.*?)</td>", RegexOptions.Singleline)
+                .Select(m => WebUtility.HtmlDecode(
+                    Regex.Replace(m.Groups[1].Value, "<[^>]+>", "").Trim()))
+                .ToList();
+
+            // ── Step 2: build consecutive-pair label→value lookup ─────────────
+            //
+            // Covers the simple characteristics table cleanly.
+            // The header section's wrong pairs ("Standard"→"Grade" etc.) use generic
+            // labels that are never looked up by the code below — safe to include.
+            var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < cells.Count - 1; i++)
+                if (!string.IsNullOrEmpty(cells[i]))
+                    lookup.TryAdd(cells[i], cells[i + 1]);
+
+            string? Get(string label)
+            {
+                if (!lookup.TryGetValue(label, out var v)) return null;
+                return string.IsNullOrEmpty(v) ? null : v;
+            }
+
+            int? GetInt(string label)
+            {
+                var s = Get(label);
+                return int.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : null;
+            }
+
+            decimal? GetDecimal(string label, bool stripPercent = false)
+            {
+                var s = Get(label);
+                if (stripPercent) s = s?.TrimEnd('%').Trim();
+                return decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : null;
+            }
+
+            // ── Step 3: grade parameter rows ──────────────────────────────────
+            //
+            // Row structure: [label][secondary][pct%][numeric][letter][PASS/FAIL]
+            // Scan ahead up to 5 cells for the first value ending in "%" that is
+            // not "nan%" (nan% = IMAGE.LOAD scan with no live illumination → null).
+            decimal? GetGradePct(string label)
+            {
+                int idx = cells.FindIndex(
+                    c => string.Equals(c, label, StringComparison.OrdinalIgnoreCase));
+                if (idx < 0) return null;
+                for (int i = idx + 1; i < Math.Min(idx + 5, cells.Count); i++)
+                {
+                    var cell = cells[i];
+                    if (cell.EndsWith('%') && cell != "nan%")
+                    {
+                        var num = cell.TrimEnd('%').Trim();
+                        if (decimal.TryParse(num, NumberStyles.Any,
+                                             CultureInfo.InvariantCulture, out var pct))
+                            return pct;
+                    }
+                }
+                return null;
+            }
+
+            // ── Step 4: overall grade letter from header "D.D (L)" pattern ───
+            //
+            // Located near cell 19 in the header table; search a window rather
+            // than hardcoding the index to absorb minor layout variation.
+            string? overallGrade = null;
+            var gradeDisplay = cells.Skip(14).Take(12)
+                .FirstOrDefault(c => Regex.IsMatch(c, @"^\d+\.\d+\s*\([A-Fa-f]\)$"));
+            if (gradeDisplay is not null)
+            {
+                var m = Regex.Match(gradeDisplay, @"\(([A-Fa-f])\)");
+                if (m.Success) overallGrade = m.Groups[1].Value.ToUpperInvariant();
+            }
+
+            // ── Step 5: DateTime from filename ────────────────────────────────
+            //
+            // Format: "yyyy-MM-dd_HH-mm-ss-mmm_<random>.html"
+            // The first 19 chars "yyyy-MM-dd_HH-mm-ss" are always present.
+            DateTime? scanDateTime = null;
+            var fn = Path.GetFileNameWithoutExtension(sourcePath);
+            if (fn.Length >= 19 && DateTime.TryParseExact(
+                    fn[..19], "yyyy-MM-dd_HH-mm-ss",
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+                scanDateTime = dt;
+
+            var report = new DmstHtmlReport
+            {
+                ScanDateTime          = scanDateTime,
+                SourceFilePath        = sourcePath,
+                ParseSucceeded        = scanDateTime.HasValue,
+
+                // ── Four fields permanently unresolvable from push XML ─────────
+                ECLevel         = Get("Error Correction Level"),   // "M"
+                DataMaskPattern = Get("Data Mask Pattern"),         // "2"
+                ECI             = Get("ECI"),                       // "000003"
+                ImagePolarity   = Get("Image"),                     // "Black on white"
+
+                // ── Bonus: present in HTML, empty/wrong in push XML ────────────
+                DataCodewords         = GetInt("Data Codewords"),
+                ErrorCorrectionBudget = GetInt("Error Correction Budget"),
+                EncodedCharacters     = GetInt("Encoded characters"),
+                ErrorsCorrected       = GetInt("Errors Corrected"),
+                ErrorCapacityUsed     = GetInt("Error Capacity Used"),
+                TotalCodewords        = GetInt("Total Codewords"),
+
+                // ── Cross-validation: header-derived ──────────────────────────
+                OverallGrade    = overallGrade,
+
+                // ── Cross-validation: simple characteristics table ─────────────
+                MatrixSize    = Get("QR Size"),
+                NominalXDim   = Get("Nominal X Dim"),
+                HorizontalBWG = GetDecimal("Horizontal BWG", stripPercent: true),
+                VerticalBWG   = GetDecimal("Vertical BWG",   stripPercent: true),
+
+                // ── Cross-validation: grade parameters table ───────────────────
+                UECPercent = GetGradePct("1. Unused Error Correction (UEC)"),
+                SCPercent  = GetGradePct("2. Symbol Contrast (SC)"),       // null on IMAGE.LOAD
+                ANUPercent = GetGradePct("4. Axial Nonuniformity (ANU)"),
+                GNUPercent = GetGradePct("5. Grid Nonuniformity (GNU)"),
+            };
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SCRAPER] ParseHtml: ECLevel={report.ECLevel ?? "null"} " +
+                $"DataMask={report.DataMaskPattern ?? "null"} " +
+                $"ECI={report.ECI ?? "null"} " +
+                $"Polarity={report.ImagePolarity ?? "null"} " +
+                $"DataCW={report.DataCodewords?.ToString() ?? "null"} " +
+                $"ECBudget={report.ErrorCorrectionBudget?.ToString() ?? "null"} " +
+                $"EncodedChars={report.EncodedCharacters?.ToString() ?? "null"}");
+
+            return report;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SCRAPER] ParseHtml exception for '{Path.GetFileName(sourcePath)}': {ex.Message}");
+            return new DmstHtmlReport
+            {
+                SourceFilePath = sourcePath,
+                ParseSucceeded = false,
+                ParseError     = ex.Message,
+            };
+        }
     }
 
     // ── IDisposable ───────────────────────────────────────────────────────────

@@ -1,36 +1,36 @@
 namespace DeviceInterface.Dmst;
 
+using System.Globalization;
 using ExcelEngine.Models;
 
 /// <summary>
 /// Cross-validates a push XML <see cref="VerificationRecord"/> against the
 /// corresponding DMST HTML <see cref="DmstHtmlReport"/> for the same scan.
 ///
-/// Two distinct outputs per scan:
+/// Two distinct operations per scan:
 ///
-///   1. <b>Supplemental merge</b> — fields absent from push XML but present in
-///      the HTML report (QR_ECLevel, QR_MaskPattern, QR_ECI, ImagePolarity) are
-///      written into the record and catalogued in DataSourceExceptions.
+///   1. Supplemental merge — fields absent from push XML but present in the HTML
+///      (QR_ECLevel, QR_MaskPattern, QR_ECI, ImagePolarity, DataCodewords,
+///      ErrorCorrectionBudget, EncodedCharacters) are merged into the record and
+///      catalogued in DataSourceExceptions.
 ///
-///   2. <b>Cross-validation</b> — every field producible from BOTH sources is
-///      compared. Mismatches are recorded in ValidationDiscrepancies and logged.
-///      Recurring patterns across multiple scans indicate parser bugs or firmware
-///      anomalies — both categories are candidates for Cognex bug reports.
+///   2. Cross-validation — every field producible from BOTH sources is compared.
+///      Mismatches → ValidationDiscrepancies + Debug log.
+///      - Agreement: data-integrity credibility.
+///      - Discrepancy: parser bug or firmware anomaly — Cognex bug-report candidate.
 ///
-/// Numeric comparisons use a configurable tolerance (default: 0.05) to absorb
-/// rounding differences between push XML decimal formatting and HTML rendering.
+/// Confirmed from 2026-05-25 live HTML sample (QR GUID, fw 6.1.16_sr4):
+///   ECLevel="M", DataMaskPattern="2", ECI="000003", ImagePolarity="Black on white"
+///   DataCodewords=44, ErrorCorrectionBudget=26, EncodedCharacters=36(vs push 39).
 ///
-/// "Set before scan, clear after" model:
-///   The caller (DeviceSession scan loop) is responsible for arming
-///   DmstHtmlScraper before each trigger and disarming it after the HTML is
-///   scraped. This validator is stateless and operates on already-parsed data.
+/// EncodedCharacters: push XML eaLen is wrong (39 vs HTML authoritative 36).
+/// HTML value is always taken as authoritative; discrepancy is always flagged.
 /// </summary>
 public static class DmstReportValidator
 {
     /// <summary>
-    /// Absolute tolerance for decimal field comparisons (push vs HTML).
-    /// Covers rounding differences in how the firmware formats numbers in
-    /// the JS push output vs. the HTML report renderer.
+    /// Absolute tolerance for decimal field comparisons.
+    /// Absorbs rounding differences between push XML and HTML rendering.
     /// </summary>
     public const decimal NumericTolerance = 0.05m;
 
@@ -38,18 +38,8 @@ public static class DmstReportValidator
 
     /// <summary>
     /// Merges supplemental fields from <paramref name="html"/> into
-    /// <paramref name="record"/> and runs cross-validation.
-    ///
-    /// The returned record is a new instance with:
-    ///   - QR_ECLevel, QR_MaskPattern, QR_ECI, ImagePolarity populated from HTML
-    ///     (if absent from push XML and present in HTML)
-    ///   - DataSourceExceptions updated with source tags for merged fields
-    ///   - ValidationDiscrepancies populated if any overlapping field disagrees
-    ///
-    /// Cross-validation runs unconditionally — even if SYMBOL.RESULT FULL
-    /// eventually provides some fields, we still compare all overlapping push XML
-    /// values against the HTML report for every scan. Discrepancies surface parser
-    /// bugs or firmware anomalies; agreement builds data-integrity credibility.
+    /// <paramref name="record"/> and runs full cross-validation.
+    /// Returns a new record instance with all merged and validated fields set.
     /// </summary>
     public static VerificationRecord MergeAndValidate(
         VerificationRecord record,
@@ -58,11 +48,11 @@ public static class DmstReportValidator
         var exceptions    = new List<string>();
         var discrepancies = new List<string>();
 
-        // ── 1. Supplemental merge ─────────────────────────────────────────────
-
         // Carry forward any existing DataSourceExceptions (e.g. from SYMBOL.RESULT FULL).
         if (!string.IsNullOrEmpty(record.DataSourceExceptions))
             exceptions.Add(record.DataSourceExceptions);
+
+        // ── 1a. Merge: four permanently unresolvable from push XML ────────────
 
         string?       qrECLevel     = record.QR_ECLevel;
         string?       qrMaskPattern = record.QR_MaskPattern;
@@ -86,141 +76,161 @@ public static class DmstReportValidator
         }
         if (imagePolarity == ImagePolarity.Unknown && !string.IsNullOrEmpty(html.ImagePolarity))
         {
-            imagePolarity = ParseImagePolarity(html.ImagePolarity);
-            if (imagePolarity != ImagePolarity.Unknown)
+            var parsed = ParseImagePolarity(html.ImagePolarity);
+            if (parsed != ImagePolarity.Unknown)
+            {
+                imagePolarity = parsed;
                 exceptions.Add("ImagePolarity:HtmlReport");
+            }
+        }
+
+        // ── 1b. Merge: bonus fields (empty in push XML, present in HTML) ──────
+
+        int? dataCodewords         = record.DataCodewords;
+        int? errorCorrectionBudget = record.ErrorCorrectionBudget;
+        int? encodedCharacters     = record.EncodedCharacters;
+
+        if ((dataCodewords is null or 0) && html.DataCodewords.HasValue)
+        {
+            dataCodewords = html.DataCodewords;
+            exceptions.Add("DataCodewords:HtmlReport");
+        }
+        if ((errorCorrectionBudget is null or 0) && html.ErrorCorrectionBudget.HasValue)
+        {
+            errorCorrectionBudget = html.ErrorCorrectionBudget;
+            exceptions.Add("ErrorCorrectionBudget:HtmlReport");
+        }
+        // EncodedCharacters: push XML eaLen fallback is WRONG. HTML is authoritative.
+        // Always take HTML value; always flag discrepancy if push differed.
+        if (html.EncodedCharacters.HasValue)
+        {
+            if (encodedCharacters.HasValue && encodedCharacters != html.EncodedCharacters)
+                discrepancies.Add(
+                    $"EncodedCharacters:Push={encodedCharacters},Html={html.EncodedCharacters}");
+            encodedCharacters = html.EncodedCharacters;
+            exceptions.Add("EncodedCharacters:HtmlReport");
         }
 
         // ── 2. Cross-validation ───────────────────────────────────────────────
-        // Compare every field whose value comes from BOTH push XML and HTML report.
-        // Null-vs-null is silently skipped (no data from either side = no comparison).
 
-        CompareString ("OverallGrade",   record.OverallGrade?.Letter.ToString(),
-                                         html.OverallGrade,                        discrepancies);
-        CompareString ("DecodedData",    record.DecodedData,
-                                         html.DecodedData,                         discrepancies);
+        CompareString ("OverallGrade",   record.OverallGrade?.LetterGradeString,
+                                         html.OverallGrade,                      discrepancies);
         CompareString ("MatrixSize",     NormaliseMatrixSize(record.MatrixSize),
-                                         NormaliseMatrixSize(html.MatrixSize),     discrepancies);
-        CompareString ("ContrastUnif",   record.ContrastUniformity,
-                                         html.ContrastUniformity,                  discrepancies);
-        CompareString ("MRD",            record.MRD,
-                                         html.MRD,                                 discrepancies);
-        CompareString ("ErrCorrType",    record.ErrorCorrectionType,
-                                         html.ErrorCorrectionType,                 discrepancies);
+                                         NormaliseMatrixSize(html.MatrixSize),   discrepancies);
+        // NominalXDim_2D (decimal, e.g. 12.6) vs HTML "12.6 mil" (parse first token).
+        CompareDecimal("NomXDim_2D",     record.NominalXDim_2D,
+                                         ParseNominalXDimHtml(html.NominalXDim), discrepancies);
         CompareDecimal("ANU%",           record.ANU_Percent,
-                                         html.ANUPercent,                          discrepancies);
+                                         html.ANUPercent,                        discrepancies);
         CompareDecimal("GNU%",           record.GNU_Percent,
-                                         html.GNUPercent,                          discrepancies);
+                                         html.GNUPercent,                        discrepancies);
         CompareDecimal("UEC%",           record.UEC_Percent,
-                                         html.UECPercent,                          discrepancies);
+                                         html.UECPercent,                        discrepancies);
         CompareDecimal("SC%",            record.SC_Percent,
-                                         html.SCPercent,                           discrepancies);
-        CompareDecimal("FPD",            record.FPD_Value,
-                                         html.FPDValue,                            discrepancies);
+                                         html.SCPercent,                         discrepancies);
         CompareDecimal("HBwg%",          record.HorizontalBWG,
-                                         html.HorizontalBWG,                       discrepancies);
+                                         html.HorizontalBWG,                     discrepancies);
         CompareDecimal("VBwg%",          record.VerticalBWG,
-                                         html.VerticalBWG,                         discrepancies);
-        // ImagePolarity: compare push enum as canonical string vs HTML literal string
+                                         html.VerticalBWG,                       discrepancies);
+        CompareInt    ("TotalCodewords", record.TotalCodewords,
+                                         html.TotalCodewords,                    discrepancies);
+        CompareInt    ("ErrorsCorrected",record.ErrorsCorrected,
+                                         html.ErrorsCorrected,                   discrepancies);
+        CompareInt    ("ErrCapUsed",     record.ErrorCapacityUsed,
+                                         html.ErrorCapacityUsed,                 discrepancies);
+        // ImagePolarity: compare push enum → canonical string vs HTML literal.
         CompareString ("ImagePolarity",  ImagePolarityToHtmlString(record.ImagePolarity),
-                                         html.ImagePolarity,                       discrepancies);
+                                         html.ImagePolarity,                     discrepancies);
 
-        // Log result.
+        // Log.
         if (discrepancies.Count > 0)
-        {
             System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-VALID] {discrepancies.Count} discrepancy(s) — scan " +
+                $"[VTCCP-VALID] {discrepancies.Count} discrepancy(s) — " +
                 $"{record.VerificationDateTime:HH:mm:ss}:\n  " +
                 string.Join("\n  ", discrepancies));
-        }
         else
-        {
             System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-VALID] All overlapping fields match — scan " +
-                $"{record.VerificationDateTime:HH:mm:ss}.");
-        }
+                $"[VTCCP-VALID] All fields match — {record.VerificationDateTime:HH:mm:ss}.");
 
         // ── 3. Produce merged record ──────────────────────────────────────────
         return record with
         {
-            QR_ECLevel      = qrECLevel,
-            QR_MaskPattern  = qrMaskPattern,
-            QR_ECI          = qrECI,
-            ImagePolarity   = imagePolarity,
+            QR_ECLevel            = qrECLevel,
+            QR_MaskPattern        = qrMaskPattern,
+            QR_ECI                = qrECI,
+            ImagePolarity         = imagePolarity,
+            DataCodewords         = dataCodewords,
+            ErrorCorrectionBudget = errorCorrectionBudget,
+            EncodedCharacters     = encodedCharacters,
 
-            DataSourceExceptions  = exceptions.Count > 0
-                                    ? string.Join(";", exceptions)
-                                    : null,
+            DataSourceExceptions    = exceptions.Count > 0
+                                      ? string.Join(";", exceptions)
+                                      : null,
             ValidationDiscrepancies = discrepancies.Count > 0
-                                    ? string.Join(";", discrepancies)
-                                    : null,
+                                      ? string.Join(";", discrepancies)
+                                      : null,
         };
     }
 
     // ── Comparison helpers ────────────────────────────────────────────────────
 
     private static void CompareString(
-        string       field,
-        string?      push,
-        string?      html,
-        List<string> discrepancies)
+        string field, string? push, string? html, List<string> d)
     {
-        // Both absent → no data from either side; skip silently.
         if (push is null && html is null) return;
         if (string.Equals(push?.Trim(), html?.Trim(), StringComparison.OrdinalIgnoreCase)) return;
-        discrepancies.Add($"{field}:Push={push ?? "null"},Html={html ?? "null"}");
+        d.Add($"{field}:Push={push ?? "null"},Html={html ?? "null"}");
     }
 
     private static void CompareDecimal(
-        string       field,
-        decimal?     push,
-        decimal?     html,
-        List<string> discrepancies)
+        string field, decimal? push, decimal? html, List<string> d)
     {
         if (push is null && html is null) return;
         if (push is null || html is null)
-        {
-            discrepancies.Add($"{field}:Push={push?.ToString() ?? "null"},Html={html?.ToString() ?? "null"}");
-            return;
-        }
+        { d.Add($"{field}:Push={push?.ToString() ?? "null"},Html={html?.ToString() ?? "null"}"); return; }
         if (Math.Abs(push.Value - html.Value) <= NumericTolerance) return;
-        discrepancies.Add($"{field}:Push={push},Html={html}");
+        d.Add($"{field}:Push={push},Html={html}");
+    }
+
+    private static void CompareInt(
+        string field, int? push, int? html, List<string> d)
+    {
+        if (push is null && html is null) return;
+        if (push == html) return;
+        d.Add($"{field}:Push={push?.ToString() ?? "null"},Html={html?.ToString() ?? "null"}");
     }
 
     // ── Conversion helpers ────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Parses the HTML report's image polarity string to the VerificationRecord enum.
-    /// "Normal" → BlackOnWhite (dark marks on light background)
-    /// "Inverted" → WhiteOnBlack (light marks on dark background)
-    /// Anything else → Unknown
-    /// </summary>
     private static ImagePolarity ParseImagePolarity(string htmlValue)
         => htmlValue.Trim().ToLowerInvariant() switch
         {
-            "normal"   => ImagePolarity.BlackOnWhite,
-            "inverted" => ImagePolarity.WhiteOnBlack,
-            _          => ImagePolarity.Unknown,
+            "black on white" => ImagePolarity.BlackOnWhite,
+            "white on black" => ImagePolarity.WhiteOnBlack,
+            _                => ImagePolarity.Unknown,
         };
 
-    /// <summary>
-    /// Converts the VerificationRecord ImagePolarity enum back to the HTML report
-    /// string for cross-validation comparison.
-    /// </summary>
-    private static string? ImagePolarityToHtmlString(ImagePolarity polarity)
-        => polarity switch
+    private static string? ImagePolarityToHtmlString(ImagePolarity p)
+        => p switch
         {
-            ImagePolarity.BlackOnWhite => "Normal",
-            ImagePolarity.WhiteOnBlack => "Inverted",
-            _                          => null,   // Unknown → skip comparison
+            ImagePolarity.BlackOnWhite => "Black on white",
+            ImagePolarity.WhiteOnBlack => "White on black",
+            _                          => null,
         };
 
-    /// <summary>
-    /// Normalises matrix size strings for comparison.
-    /// "16 x 36" → "16x36"; "22x22 (Data: 20x20)" → "22x22 (data: 20x20)".
-    /// </summary>
     private static string? NormaliseMatrixSize(string? raw)
-        => raw?.Replace(" x ", "x", StringComparison.OrdinalIgnoreCase)
-               .Trim()
-               .ToLowerInvariant();
+        => raw?.Replace(" x ", "x", StringComparison.OrdinalIgnoreCase).Trim().ToLowerInvariant();
+
+    /// <summary>
+    /// Parses the numeric part of an HTML NominalXDim string such as "12.6 mil".
+    /// Splits on the first space and parses the leading token as a decimal.
+    /// Returns null if the string is absent or unparseable.
+    /// </summary>
+    private static decimal? ParseNominalXDimHtml(string? htmlValue)
+    {
+        if (string.IsNullOrEmpty(htmlValue)) return null;
+        var token = htmlValue.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        return decimal.TryParse(token, NumberStyles.Any, CultureInfo.InvariantCulture, out var v)
+            ? v : null;
+    }
 }

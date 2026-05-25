@@ -544,3 +544,116 @@ appear in the standard DMST export PDF. They are VTCCP-exclusive data:
 | Sensor/frame metadata UI | UNBLOCKED | Plan in `references/architecture/sensor-frame-metadata-plan.md` (check if exists) |
 | Report HTML/PDF (D1) | BLOCKED on C3 | Webscan TruCheck docs required |
 | CalibrationWarning in D1 | PENDING | `FieldCalibrated=false` on all 11 scans to date — definite risk |
+
+---
+
+## 16. DMCC SYMBOL.RESULT FULL = push script XML verbatim — CONFIRMED CLOSED (2026-05-25)
+
+**Probe**: Raw TCP `GET SYMBOL.RESULT` after scan #15 (QR GUID f0cffb39, IMAGE.LOAD, Grade A).
+**Result**: Response is the push-script-generated XML, returned verbatim by the firmware.
+**Proof**: Response contains `<PushScriptDiag>v1.33 q=r.trucheck m=found</PushScriptDiag>` —
+the push script's own diagnostic tag. The firmware does not maintain a separate "native DMCC XML"
+format; `GET SYMBOL.RESULT` returns whatever the active push script last emitted.
+
+**All four target fields empty in DMCC SYMBOL.RESULT FULL (confirmed):**
+
+| Field | XML tag | Value |
+|---|---|---|
+| ECLevel | `<ErrorCorrectionType>` | `""` (empty) |
+| DataMaskPattern | (no tag) | absent |
+| ECI | (no tag) | absent |
+| ImagePolarity | `<ImagePolarity>` | `""` (empty) |
+
+**Additional confirmed-empty fields in SYMBOL.RESULT FULL:**
+
+| Field | XML tag | Value |
+|---|---|---|
+| DataCodewords | `<DataCodewords>` | `""` (empty) |
+| ErrorCorrectionBudget | `<ErrorCorrectionBudget>` | `""` (empty) |
+| SCPercent | `<SCPercent>` | `""` (empty) |
+
+**EncodedCharacters discrepancy confirmed**: `<EncodedCharacters>39</EncodedCharacters>` in both
+push XML and SYMBOL.RESULT — both say 39. HTML report says 36. HTML is authoritative (matches
+DMST display). This is a confirmed push script / firmware eaLen calculation bug on fw 6.1.16_sr4.
+
+**Conclusion**: DMCC `GET SYMBOL.RESULT` is NOT an alternative data path. It returns identical
+data to the push event XML. No additional fields are obtainable via this command.
+The HTML scraping path is the only resolution for all four permanently unresolvable fields.
+
+---
+
+## 17. DMST HTML report field map — confirmed 2026-05-25
+
+**Source**: `2026-05-24_23-03-58-752_1779678267324.html`
+**Device**: DM475-63530E-PIPS-Verif-Lab, fw 6.1.16_sr4, QR GUID f0cffb39, Grade A, IMAGE.LOAD
+
+### HTML structure overview
+
+The report is a **single minified HTML line** with two main data tables:
+
+1. **Header table** (cells 0–30): Multi-column layout. Labels and values in SEPARATE rows.
+   Do NOT use consecutive `<td>` pairing here. Overall grade extracted via "D.D (L)" regex.
+
+2. **Simple characteristics table** (cells 31–60): Clean `<td>Label</td><td>Value</td>` pairs.
+   All four primary target fields live here.
+
+3. **Grade parameters table** (cells 61+): 6-cell rows per parameter:
+   `[label][secondary][pct%][numeric][letter][PASS/FAIL]`
+
+### DateTime corruption
+
+The in-page header shows `"Wed 31-Dec-1970 07:00:00"` — Unix epoch, corrupt.
+**Always parse DateTime from the filename prefix**: `yyyy-MM-dd_HH-mm-ss-mmm_<random>.html`.
+
+### Complete field extraction map (simple characteristics table)
+
+| Cell index | Label | Confirmed value | Notes |
+|---|---|---|---|
+| [31/32] | "QR Size" | "29x29" | MatrixSize cross-validate |
+| [33/34] | "Horizontal BWG" | "-3%" | strip "%" for decimal |
+| [35/36] | "Vertical BWG" | "-4%" | strip "%" for decimal |
+| [37/38] | "Encoded characters" | "36" | **HTML authoritative; push XML says 39 (WRONG)** |
+| [39/40] | "Total Codewords" | "70" | cross-validate |
+| [41/42] | "Data Codewords" | "44" | **empty in push XML; HTML authoritative** |
+| [43/44] | "Error Correction Budget" | "26" | **empty in push XML; HTML authoritative** |
+| [45/46] | "Errors Corrected" | "0" | cross-validate |
+| [47/48] | "Error Capacity Used" | "0" | cross-validate |
+| [49/50] | **"Error Correction Level"** | **"M"** | ★ PRIMARY TARGET |
+| [51/52] | **"Data Mask Pattern"** | **"2"** | ★ PRIMARY TARGET |
+| [53/54] | **"Image"** | **"Black on white"** | ★ PRIMARY TARGET (ImagePolarity) |
+| [55/56] | "Nominal X Dim" | "12.6 mil" | cross-validate vs NominalXDim_2D |
+| [57/58] | "Pixels per Module" | "9.75" | informational |
+| [59/60] | **"ECI"** | **"000003"** | ★ PRIMARY TARGET |
+
+### Grade parameters table row structure
+
+| Row label | Cell+1 (secondary) | Cell+2 (pct) | Cell+3 (numeric) | Cell+4 (letter) |
+|---|---|---|---|---|
+| "1. Unused Error Correction (UEC)" | "" | "100.0%" | "4.0" | "A" |
+| "2. Symbol Contrast (SC)" | "Rl/Rd (87/6)" | "nan%" | "4.0" | "A" |
+| "3a. Modulation (MOD)" | "" | "" | "4.0" | "A" |
+| "3b. Reflectance Margin (RM)" | "" | "" | "4.0" | "A" |
+| "4. Axial Nonuniformity (ANU)" | "" | "0.8%" | "4.0" | "A" |
+| "5. Grid Nonuniformity (GNU)" | "" | "0.0%" | "4.0" | "A" |
+| "6. Fixed Pattern Damage (FPD)" | "" | "" | "4.0" | "A" |
+
+**"nan%"** on SC: IMAGE.LOAD scans have no live illumination → SC% not computed → `null` in DmstHtmlReport.SCPercent.
+
+### ImagePolarity label
+
+The HTML label for image polarity is **"Image"** (not "ImagePolarity" or "Polarity").
+Value: "Black on white" → `ImagePolarity.BlackOnWhite`; "White on black" → `ImagePolarity.WhiteOnBlack`.
+No other values observed; "Inverted" is NOT used.
+
+### No external library required
+
+Parser uses `Regex.Matches` on `<td>` elements only. The single-line minified HTML makes
+regex extraction reliable. HtmlAgilityPack is NOT required and has not been added.
+
+### DataCodewords and ErrorCorrectionBudget — HTML eliminates C# table lookup need
+
+Prior plan (v1.30 bug list #5/#6) was to derive DataCodewords and ErrorCorrectionBudget from
+C# lookup tables (ECC200 table for DM, QR size table for QR) because these were empty in push XML.
+**HTML report provides both values directly and authoritatively. C# table lookup is no longer
+needed for any HTML-correlated scan.** The table lookup remains as a fallback for scans where
+DMST is not running or the .html extension is not configured.
