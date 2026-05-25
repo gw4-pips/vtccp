@@ -443,17 +443,6 @@ public sealed class DataManSdkClient : IAsyncDisposable
     /// </summary>
     private bool TrySendImageViaCommand(string filePath)
     {
-        byte[] imageBytes;
-        try
-        {
-            imageBytes = File.ReadAllBytes(filePath);
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"[VTCCP-D4] File read failed: {ex.Message}");
-            return false;
-        }
-
         // Resolve SendCommand(String, Byte[]) via reflection (no compile-time SDK dep on Linux).
         var sendMethod = _system!.GetType()
             .GetMethod("SendCommand", [typeof(string), typeof(byte[])]);
@@ -464,18 +453,53 @@ public sealed class DataManSdkClient : IAsyncDisposable
             return false;
         }
 
-        // Try "SET IMAGE.LOAD" first (DMCC write prefix), then bare "IMAGE.LOAD" as fallback.
-        foreach (var cmd in new[] { "SET IMAGE.LOAD", "IMAGE.LOAD" })
+        // The SDK's SendCommand("IMAGE.LOAD", Byte[]) throws InvalidParameterException on raw JPEG bytes.
+        // DMST (Windows/GDI) converts images to BMP before passing to the SDK.  Try BMP first, then
+        // the other common formats the Cognex firmware may accept, then fall back to raw file bytes.
+        //
+        // "SET IMAGE.LOAD" gives InvalidCommandException (not a recognised command name for the binary
+        // overload), so only "IMAGE.LOAD" is tried here.
+        //
+        // Byte-format order: BMP → PNG → raw JPEG (original file bytes).
+        var candidates = new List<(string label, Func<byte[]> getBytes)>
         {
+            ("BMP",  () =>
+            {
+                using var bmp = new System.Drawing.Bitmap(filePath);
+                using var ms  = new System.IO.MemoryStream();
+                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+                return ms.ToArray();
+            }),
+            ("PNG",  () =>
+            {
+                using var bmp = new System.Drawing.Bitmap(filePath);
+                using var ms  = new System.IO.MemoryStream();
+                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                return ms.ToArray();
+            }),
+            ("raw",  () => File.ReadAllBytes(filePath)),
+        };
+
+        foreach (var (label, getBytes) in candidates)
+        {
+            byte[] imageBytes;
+            try   { imageBytes = getBytes(); }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[VTCCP-D4] Image encode ({label}) failed: {ex.Message}");
+                continue;
+            }
+
             try
             {
-                sendMethod.Invoke(_system, [cmd, imageBytes]);
+                sendMethod.Invoke(_system, ["IMAGE.LOAD", imageBytes]);
+                Console.Error.WriteLine($"[VTCCP-D4] SendCommand(IMAGE.LOAD, {label}, {imageBytes.Length} bytes) OK");
                 return true;
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine(
-                    $"[VTCCP-D4] SendCommand(\"{cmd}\") failed: {ex.InnerException?.Message ?? ex.Message}");
+                    $"[VTCCP-D4] SendCommand(IMAGE.LOAD, {label}) failed: {ex.InnerException?.Message ?? ex.Message}");
             }
         }
         return false;
