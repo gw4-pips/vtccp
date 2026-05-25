@@ -85,19 +85,42 @@ Console.WriteLine("Reads the device's active replay loop — ensure the target i
 Console.WriteLine("in DMST before running. No physical trigger required.");
 Console.WriteLine();
 
-// ── Progress header ───────────────────────────────────────────────────────────
-string hdr = $"{"#",-5} {"Timestamp",-15} {"ms",-7} {"Formal Grade",-20} {"UEC%",-8} {"SC%",-8} {"ANU%",-9} {"GNU%",-9} {"FPD",-7} {"MOD",-5} {"RM",-5} {"DECODE",-7}";
-Console.WriteLine(hdr);
-Console.WriteLine(new string('─', hdr.Length + 5));
-
-// ── Data collection ───────────────────────────────────────────────────────────
+// ── Setup ─────────────────────────────────────────────────────────────────────
 var runs = new List<RunData>(reps);
 var appCts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) => { e.Cancel = true; appCts.Cancel(); };
 
-// Wait for the device's replay loop to settle before the first rep.
+// Settle delay — let the firmware replay loop reach steady state after connect.
 try { await Task.Delay(300, appCts.Token); }
 catch (OperationCanceledException) { return; }
+
+// ── Symbol-identity probe (not counted in rep total) ──────────────────────────
+// One silent replay to discover symbology + decoded content before the table starts.
+{
+    var probe = await session.ReplayAndGetResultAsync(ct: appCts.Token);
+    if (probe is not null)
+    {
+        string sym     = probe.Symbology   ?? "—";
+        string decoded = probe.DecodedData ?? "—";
+        if (decoded.Length > 80) decoded = decoded[..77] + "…";
+        Console.WriteLine($"  Symbology : {sym}");
+        Console.WriteLine($"  Decoded   : {decoded}");
+    }
+    else
+    {
+        Console.WriteLine("  Symbology : (no read on probe — check DMST image buffer)");
+    }
+    Console.WriteLine();
+}
+
+// Brief gap between probe and rep 1 so the firmware cycle resets cleanly.
+try { await Task.Delay(200, appCts.Token); }
+catch (OperationCanceledException) { return; }
+
+// ── Progress header ───────────────────────────────────────────────────────────
+string hdr = $"{"#",-5} {"Timestamp",-15} {"ms",-7} {"Formal Grade",-20} {"UEC%",-8} {"SC%",-8} {"ANU%",-9} {"GNU%",-9} {"FPD",-7} {"MOD",-5} {"RM",-5} {"DECODE",-7}";
+Console.WriteLine(hdr);
+Console.WriteLine(new string('─', hdr.Length + 5));
 
 for (int i = 1; i <= reps; i++)
 {
