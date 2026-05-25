@@ -81,7 +81,8 @@ Console.WriteLine($"  Name     : {info.Name ?? "unknown"}");
 Console.WriteLine($"  Serial   : {info.Serial ?? "unknown"}");
 Console.WriteLine($"  Firmware : {info.FirmwareVersion ?? "unknown"}");
 Console.WriteLine();
-Console.WriteLine("Each rep performs IMAGE.LOAD + IMAGE.REPLAY on the provided file.");
+Console.WriteLine("Rep 1 performs IMAGE.LOAD + IMAGE.REPLAY to prime the device buffer.");
+Console.WriteLine("Reps 2–N perform IMAGE.REPLAY only on the primed buffer.");
 Console.WriteLine("No physical trigger required. Device acts as a pure grading engine.");
 Console.WriteLine();
 
@@ -104,13 +105,24 @@ for (int i = 1; i <= reps; i++)
         break;
     }
 
+    // Rep 1: IMAGE.LOAD + IMAGE.REPLAY to prime the buffer.
+    // Reps 2..N: IMAGE.REPLAY only — no redundant load per rep, no rate-rejection.
+    // A 200 ms inter-rep pause lets the firmware reset between REPLAY commands.
+    if (i > 1)
+    {
+        try { await Task.Delay(200, appCts.Token); }
+        catch (OperationCanceledException) { Console.WriteLine($"{i,-5} {"CANCELLED",-15}"); break; }
+    }
+
     var ts = DateTime.Now;
     var sw = Stopwatch.StartNew();
     VerificationRecord? rec = null;
 
     try
     {
-        rec = await session.LoadAndVerifyImageAsync(imagePath, ct: appCts.Token);
+        rec = i == 1
+            ? await session.LoadAndVerifyImageAsync(imagePath, ct: appCts.Token)
+            : await session.ReplayAndGetResultAsync(ct: appCts.Token);
     }
     catch (OperationCanceledException)
     {

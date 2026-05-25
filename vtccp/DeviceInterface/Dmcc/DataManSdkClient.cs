@@ -465,17 +465,21 @@ public sealed class DataManSdkClient : IAsyncDisposable
             return false;
         }
 
-        try
+        // Try "SET IMAGE.LOAD" first (DMCC write prefix), then bare "IMAGE.LOAD" as fallback.
+        foreach (var cmd in new[] { "SET IMAGE.LOAD", "IMAGE.LOAD" })
         {
-            sendMethod.Invoke(_system, ["IMAGE.LOAD", imageBytes]);
-            return true;
+            try
+            {
+                sendMethod.Invoke(_system, [cmd, imageBytes]);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(
+                    $"[VTCCP-D4] SendCommand(\"{cmd}\") failed: {ex.InnerException?.Message ?? ex.Message}");
+            }
         }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(
-                $"[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: {ex.InnerException?.Message ?? ex.Message}");
-            return false;
-        }
+        return false;
     }
 
     // ── Diagnostic: raw SYMBOL.RESULT probe ──────────────────────────────────

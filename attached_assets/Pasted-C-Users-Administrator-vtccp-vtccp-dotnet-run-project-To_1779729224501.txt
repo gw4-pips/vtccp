@@ -1,0 +1,220 @@
+C:\Users\Administrator\vtccp\vtccp>dotnet run --project Tools\RepeatabilityRunner -- 10.10.10.7 44444 50 "C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg"
+╔══════════════════════════════════════════════════════════════════╗
+║  VTCCP Repeatability Runner                                      ║
+║  Target : 10.10.10.7:44444
+║  Reps   : 50
+║  Image  : C:\Users\Administrator\Downloads\QR 1.29 Sample.jpg
+╚══════════════════════════════════════════════════════════════════╝
+
+Connecting to device...  OK
+  Model    : DM475
+  Name     : DM475-63530E-PIPS-Verif-Lab
+  Serial   : 1A1903PP010754
+  Firmware : 6.1.16_sr4
+
+Each rep performs IMAGE.LOAD + IMAGE.REPLAY on the provided file.
+No physical trigger required. Device acts as a pure grading engine.
+
+#     Timestamp       ms      Formal Grade         UEC%     SC%      ANU%      GNU%      FPD     MOD   RM    DECODE
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+1     13:12:31.458   226     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+2     13:12:31.716   280     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+3     13:12:31.999   223     1.0/**/660/45Q       41.7%    83.0%    10.90%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+4     13:12:32.222   235     1.0/**/660/45Q       41.7%    83.0%    11.00%    7.90%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+5     13:12:32.458   199     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+6     13:12:32.658   255     1.0/**/660/45Q       41.7%    83.0%    11.20%    9.60%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+7     13:12:32.913   235     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+8     13:12:33.148   247     1.0/**/660/45Q       41.7%    83.0%    11.00%    7.90%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+9     13:12:33.396   237     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+10    13:12:33.633   204     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+11    13:12:33.838   233     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+12    13:12:34.072   220     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+13    13:12:34.293   219     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+14    13:12:34.512   239     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+15    13:12:34.751   202     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+16    13:12:34.954   219     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+17    13:12:35.174   240     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+18    13:12:35.414   235     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+19    13:12:35.650   213     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+20    13:12:35.864   219     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.20%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+21    13:12:36.084   218     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+22    13:12:36.303   206     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+23    13:12:36.509   228     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+24    13:12:36.737   237     1.0/**/660/45Q       41.7%    83.0%    10.90%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+25    13:12:36.974   234     1.0/**/660/45Q       41.7%    83.0%    11.20%    9.40%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+26    13:12:37.210   226     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+27    13:12:37.436   211     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+28    13:12:37.648   222     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+29    13:12:37.871   222     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+30    13:12:38.094   198     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+31    13:12:38.292   224     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+32    13:12:38.517   231     1.0/**/660/45Q       41.7%    83.0%    11.20%    9.50%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+33    13:12:38.749   205     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+34    13:12:38.954   216     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+35    13:12:39.171   236     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+36    13:12:39.408   221     1.0/**/660/45Q       41.7%    83.0%    11.20%    9.60%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+37    13:12:39.630   239     1.0/**/660/45Q       41.7%    83.0%    11.00%    7.90%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+38    13:12:39.869   200     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+39    13:12:40.069   224     1.0/**/660/45Q       41.7%    83.0%    11.20%    9.50%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+40    13:12:40.294   220     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+41    13:12:40.514   203     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+42    13:12:40.718   232     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+43    13:12:40.951   220     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+44    13:12:41.171   219     1.0/**/660/45Q       41.7%    83.0%    10.90%    8.00%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+45    13:12:41.391   199     TIMEOUT / NO READ
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+46    13:12:41.590   234     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+47    13:12:41.825   234     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+48    13:12:42.060   223     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.10%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+49    13:12:42.283   230     1.0/**/660/45Q       41.7%    83.0%    11.00%    8.00%     —       A/4.0 C/2.0 A/4.0
+[VTCCP-D4] SendCommand(IMAGE.LOAD) failed: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-D4] IMAGE.LOAD + IMAGE.REPLAY both failed (replay code=-2).
+50    13:12:42.514   204     TIMEOUT / NO READ
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+══ TIMING ══════════════════════════════════════════════════════════
+  Completed : 37/50 reps
+  Total     : 8,526 ms (8.5 s)
+  Per rep   : avg=230 ms   min=216 ms   max=280 ms
+
+══ DEVIATION REPORT ════════════════════════════════════════════════
+  Each parameter is checked across all 37 successful reps.
+  ★ = value changed at least once.  Values shown as: value×count
+
+  Parameter                Status     Values
+  ────────────────────────────────────────────────────────────────────────────────
+    FormalGrade              STABLE     1.0/**/660/45Q
+    OverallGrade             STABLE     D/1.0
+    UEC_Grade                STABLE     C/2.0
+    UEC_Percent              STABLE     41.7000
+    SC_Grade                 STABLE     A/4.0
+    SC_Percent               STABLE     83.0000
+    MOD_Grade                STABLE     A/4.0
+    RM_Grade                 STABLE     C/2.0
+    ANU_Grade                STABLE     D/1.0
+  ★ ANU_Percent              ★ VARIES   11.000000×29  |  11.200000×5  |  10.900000×3
+    GNU_Grade                STABLE     A/4.0
+  ★ GNU_Percent              ★ VARIES   8.100000×18  |  8.000000×10  |  7.900000×3  |  9.600000×2  |  9.500000×2  |  8.200000×1  |  9.400000×1
+    FPD_Grade                STABLE     A/4.0
+    FPD_Value                STABLE     —
+    DECODE_Grade             STABLE     A/4.0
+    LLS_Grade                STABLE     A/4.0
+    BLS_Grade                STABLE     A/4.0
+    LQZ_Grade                STABLE     A/4.0
+    BQZ_Grade                STABLE     A/4.0
+    TQZ_Grade                STABLE     —
+    RQZ_Grade                STABLE     —
+    TTR_Grade                STABLE     —
+    TTR_Percent              STABLE     —
+    RTR_Grade                STABLE     —
+    RTR_Percent              STABLE     —
+    TCT_Grade                STABLE     —
+    RCT_Grade                STABLE     —
+    ErrorsCorrected          STABLE     7
+    ErrorCapacityUsed        STABLE     14
+    DataCodewords            STABLE     32
+    ErrorCorrectionBudget    STABLE     24
+
+  ★ DEVIATION DETECTED — see flagged parameters above.
+    Variation across IMAGE.REPLAY on identical pixels indicates
+    non-determinism in the firmware grading algorithm.
+
+  Run started : 2026-05-25 13:12:31.458
+  Run ended   : 2026-05-25 13:12:42.514
