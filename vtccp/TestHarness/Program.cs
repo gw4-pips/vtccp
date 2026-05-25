@@ -2780,11 +2780,11 @@ bool p5dPass = false;
         bool anu5 = record.ANU_Grade?.LetterGradeString == "A";
 
         // ── Other 2D quality parameters ──────────────────────────────────────
-        bool q1 = record.UEC_Percent   == 100m;
-        bool q2 = record.SC_Percent    == null;       // empty in push XML → null
-        bool q3 = record.SC_RlRd       == "87/6";
-        bool q4 = record.GNU_Percent   == 0m;
-        bool q5 = record.FPD_Value     == 4m;
+        bool qp1 = record.UEC_Percent   == 100m;
+        bool qp2 = record.SC_Percent    == null;       // empty in push XML → null
+        bool qp3 = record.SC_RlRd       == "87/6";
+        bool qp4 = record.GNU_Percent   == 0m;
+        bool qp5 = record.FPD_Value     == 4m;
         bool q6 = record.MinReflectance == 6m;
 
         // ── Matrix characteristics ────────────────────────────────────────────
@@ -2834,11 +2834,11 @@ bool p5dPass = false;
         Console.WriteLine($"  ANUPercent < 1.0 (not×100):{(anu2 ? "PASS" : $"FAIL ({record.ANU_Percent})")}");
         Console.WriteLine($"  ANUPercent > 0.8:          {(anu3 ? "PASS" : $"FAIL ({record.ANU_Percent})")}");
         Console.WriteLine($"  ANUPercent exact:          {(anu4 ? "PASS" : $"FAIL ({record.ANU_Percent})")}");
-        Console.WriteLine($"  UEC% = 100:                {(q1   ? "PASS" : $"FAIL ({record.UEC_Percent})")}");
-        Console.WriteLine($"  SC% = null (empty):        {(q2   ? "PASS" : $"FAIL ({record.SC_Percent})")}");
-        Console.WriteLine($"  SCRlRd = 87/6:             {(q3   ? "PASS" : $"FAIL ('{record.SC_RlRd}')")}");
-        Console.WriteLine($"  GNU% = 0:                  {(q4   ? "PASS" : $"FAIL ({record.GNU_Percent})")}");
-        Console.WriteLine($"  FPD_Value = 4:             {(q5   ? "PASS" : $"FAIL ({record.FPD_Value})")}");
+        Console.WriteLine($"  UEC% = 100:                {(qp1  ? "PASS" : $"FAIL ({record.UEC_Percent})")}");
+        Console.WriteLine($"  SC% = null (empty):        {(qp2  ? "PASS" : $"FAIL ({record.SC_Percent})")}");
+        Console.WriteLine($"  SCRlRd = 87/6:             {(qp3  ? "PASS" : $"FAIL ('{record.SC_RlRd}')")}");
+        Console.WriteLine($"  GNU% = 0:                  {(qp4  ? "PASS" : $"FAIL ({record.GNU_Percent})")}");
+        Console.WriteLine($"  FPD_Value = 4:             {(qp5  ? "PASS" : $"FAIL ({record.FPD_Value})")}");
         Console.WriteLine($"  MatrixSize = 29x29:        {(mx1  ? "PASS" : $"FAIL ('{record.MatrixSize}')")}");
         Console.WriteLine($"  TotalCodewords = 70:       {(mx4  ? "PASS" : $"FAIL ({record.TotalCodewords})")}");
         Console.WriteLine($"  DataCodewords = null:      {(mx7  ? "PASS" : $"FAIL ({record.DataCodewords})")}");
@@ -2862,7 +2862,7 @@ bool p5dPass = false;
                && grd1 && grd2 && grd3
                && apt1 && apt2 && apt3 && apt4
                && anu1 && anu2 && anu3 && anu4 && anu5
-               && q1 && q2 && q3 && q4 && q5 && q6
+               && qp1 && qp2 && qp3 && qp4 && qp5 && q6
                && mx1 && mx2 && mx3 && mx4 && mx5 && mx6 && mx7 && mx8
                && xd1
                && ps1 && ps2 && ps3 && ps4 && ps5 && ps6 && ps7

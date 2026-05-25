@@ -70,8 +70,6 @@ Console.WriteLine(hdr);
 Console.WriteLine(new string('─', hdr.Length + 5));
 
 // ── Data collection ───────────────────────────────────────────────────────────
-record RunData(int Rep, DateTime Timestamp, long ElapsedMs, VerificationRecord? Record);
-
 var runs = new List<RunData>(reps);
 var appCts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) => { e.Cancel = true; appCts.Cancel(); };
@@ -248,3 +246,5 @@ static string FmtGrade(GradingResult? g) =>
 
 static string Fmt1(decimal? v) => v.HasValue ? $"{v.Value:F1}%" : "—";
 static string Fmt2(decimal? v) => v.HasValue ? $"{v.Value:F2}%" : "—";
+
+record RunData(int Rep, DateTime Timestamp, long ElapsedMs, VerificationRecord? Record);
