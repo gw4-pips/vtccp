@@ -1,0 +1,16 @@
+C:\Users\Administrator\vtccp\vtccp>dotnet build VTCCP.sln -c Release
+Restore complete (0.8s)
+  ExcelEngine net8.0 succeeded (3.2s) → ExcelEngine\bin\Release\net8.0\ExcelEngine.dll
+  DeviceInterface net8.0 succeeded with 5 warning(s) (0.6s) → DeviceInterface\bin\Release\net8.0\DeviceInterface.dll
+    C:\Users\Administrator\vtccp\vtccp\DeviceInterface\Dmcc\DataManSdkClient.cs(508,25): warning CA1416: This call site is reachable on all platforms. 'ImageFormat.Bmp' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416)
+    C:\Users\Administrator\vtccp\vtccp\DeviceInterface\Dmcc\DataManSdkClient.cs(516,21): warning CA1416: This call site is reachable on all platforms. 'Image.Save(Stream, ImageFormat)' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416)
+    C:\Users\Administrator\vtccp\vtccp\DeviceInterface\Dmcc\DataManSdkClient.cs(509,25): warning CA1416: This call site is reachable on all platforms. 'ImageFormat.Png' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416)
+    C:\Users\Administrator\vtccp\vtccp\DeviceInterface\Dmcc\DataManSdkClient.cs(514,37): warning CA1416: This call site is reachable on all platforms. 'Bitmap' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416)
+    C:\Users\Administrator\vtccp\vtccp\DeviceInterface\Dmcc\DataManSdkClient.cs(485,33): warning CA1416: This call site is reachable on all platforms. 'Bitmap' is only supported on: 'windows' 6.1 and later. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416)
+  ConfigEngine net8.0 succeeded (0.3s) → ConfigEngine\bin\Release\net8.0\ConfigEngine.dll
+  RepeatabilityRunner net8.0 succeeded (0.4s) → Tools\RepeatabilityRunner\bin\Release\net8.0\RepeatabilityRunner.dll
+  TestHarness net8.0 succeeded (0.9s) → TestHarness\bin\Release\net8.0\TestHarness.dll
+
+Build succeeded with 5 warning(s) in 6.0s
+
+C:\Users\Administrator\vtccp\vtccp>
