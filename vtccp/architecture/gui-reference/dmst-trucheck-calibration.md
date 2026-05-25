@@ -18,12 +18,20 @@ The TruCheck Calibration dialog performs **two distinct calibration procedures**
 
 | Component | What it calibrates | Requires |
 |---|---|---|
-| **Rmin / Rmax** | Reflectance references (specular black / specular white) | Rmin and Rmax values entered by operator from calibration card label |
-| **Pixmil** | Pixel-to-mil conversion (X-dimension scale factor) | Recognized Cognex/Webscan certified calibration target in FOV |
+| **Rmin / Rmax** | Reflectance references (specular black / specular white) | Certified Rmin/Rmax values from the physical calibration card's label, transcribed by the operator |
+| **Pixmil** | Pixel-to-mil conversion (X-dimension scale factor) | A recognized Cognex/Webscan certified calibration target physically present in the field of view |
 
-Calibration is **complete** only when both succeed. When the target in the field of view is
-not a recognized certified calibration card, Rmin/Rmax update but Pixmil does not — the
-dialog reports **"Calibration incomplete (Rmin/Rmax updated, Pixmil is uncalibrated)"**.
+**Rmin/Rmax source**: The values are not operator estimates — they are certified reference
+values printed on the NIST-traceable conformance test card or Cognex calibration card, given
+to one decimal place precision (e.g., 88.x / 5.x). The operator reads the values off the
+physical card and transcribes them into the RMax/RMin fields. The firmware accepts them
+(likely storing as integers) and treats them as canonical until the operator explicitly enters
+new values — they are sticky across sessions until changed.
+
+Calibration is **complete** only when both components succeed. When the target in the field
+of view is not a recognized certified calibration card, Rmin/Rmax are committed from the
+operator-entered values but Pixmil is not updated — the dialog reports
+**"Calibration incomplete (Rmin/Rmax updated, Pixmil is uncalibrated)"**.
 
 `FieldCalibrated` in the push XML (`<FieldCalibrated>`) reflects calibration state.
 All observed scans to date return `false` — meaning the device uses factory calibration.
@@ -136,7 +144,7 @@ the calibration partially succeeded.
 
 **What happened**: The symbol in the FOV was a GS1 DataMatrix label (the recurring test
 symbol), not a Cognex/Webscan certified calibration card. The firmware:
-- Updated Rmin/Rmax from the operator-entered values (88 / 5) — **succeeded**
+- Committed Rmin/Rmax from the certified values transcribed by the operator (88 / 5) — **succeeded**
 - Could not determine Pixmil because the target was unrecognized — **not updated**
 
 **Non-volatile memory prompt**: The "Save calibration to non-volatile memory?" question
