@@ -55,7 +55,7 @@ public sealed class DataManSdkClient : IAsyncDisposable
             var ip     = IPAddress.Parse(_cfg.Host);
             _connector = new CognexSdk.EthSystemConnector(ip);
             _system    = new CognexSdk.DataManSystem(_connector);
-            _system.Connect();
+            _system.Connect(_cfg.ConnectTimeoutMs);
             _isConnected = true;
 
             try
