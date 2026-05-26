@@ -53,10 +53,18 @@ public static class DmstResultParser
     {
         map ??= new VerificationXmlMap();
 
+        // The Cognex ReadXml result from XmlResultArrived embeds the JPEG
+        // image in the XML.  The firmware may not base64-encode the image
+        // bytes, leaving raw binary (0x00–0x1F control chars) in the XML
+        // text — these are illegal in XML 1.0 and cause XDocument.Parse to
+        // throw.  We first strip those illegal characters and THEN parse.
+        // Base64 content, tag names, and all printable text survive intact.
+        string safeXml = StripIllegalXmlChars(xml);
+
         XDocument doc;
         try
         {
-            doc = XDocument.Parse(xml);
+            doc = XDocument.Parse(safeXml);
         }
         catch (System.Xml.XmlException xmlEx)
         {
@@ -787,4 +795,48 @@ public static class DmstResultParser
             DeviceSerial    = ctx?.DeviceSerial,
             FirmwareVersion = ctx?.FirmwareVersion,
         };
+
+    /// <summary>
+    /// Removes characters that are illegal in XML 1.0 before handing the
+    /// string to <see cref="XDocument.Parse"/>.
+    ///
+    /// The Cognex firmware embeds the scan JPEG directly in the ReadXml
+    /// payload.  If the image bytes are not base64-encoded by the firmware
+    /// they appear as raw binary in the XML text — which includes bytes in
+    /// the range 0x00–0x08, 0x0B–0x0C, 0x0E–0x1F, and 0xFFFE/0xFFFF, all
+    /// of which are rejected by a conformant XML 1.0 parser.
+    ///
+    /// Legal XML 1.0 characters: #x9 | #xA | #xD | [#x20–#xD7FF] |
+    /// [#xE000–#xFFFD].  Everything else is stripped.  Base64 content,
+    /// element names, tag syntax, and all printable text are unaffected.
+    /// </summary>
+    private static string StripIllegalXmlChars(string xml)
+    {
+        // Fast path — if every character is legal, return the original string
+        // without allocating a new one (typical for small/clean documents).
+        bool hasIllegal = false;
+        foreach (char c in xml)
+        {
+            if (!IsLegalXml10Char(c)) { hasIllegal = true; break; }
+        }
+        if (!hasIllegal) return xml;
+
+        var sb = new System.Text.StringBuilder(xml.Length);
+        foreach (char c in xml)
+        {
+            if (IsLegalXml10Char(c)) sb.Append(c);
+        }
+
+        int stripped = xml.Length - sb.Length;
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-XML] StripIllegalXmlChars: removed {stripped} illegal chars " +
+            $"from {xml.Length}-char XML before parse.");
+
+        return sb.ToString();
+    }
+
+    private static bool IsLegalXml10Char(char c) =>
+        c == 0x9 || c == 0xA || c == 0xD ||
+        (c >= 0x20  && c <= 0xD7FF) ||
+        (c >= 0xE000 && c <= 0xFFFD);
 }
