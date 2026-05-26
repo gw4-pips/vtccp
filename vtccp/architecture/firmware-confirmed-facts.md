@@ -868,3 +868,41 @@ via SDK remains unidentified. `SendCommand("IMAGE.LOAD", Byte[])` throws
 - **`GetBufferedImage(Int32 index, ...)`** — retrieves a stored image from the device buffer by index. Index 0 is the most recent. Useful for confirming which image the device is grading.
 - **`SetConfig(String fileName)` / `GetConfig(String fileName)`** — file-based config push/pull. Not a candidate for IMAGE.LOAD.
 
+---
+
+## 12. Three-level image stack — DM475V / DM395V (documented 2026-05-26)
+
+Three distinct image sources exist on the DataMan platform. They must NOT be conflated.
+
+| Level | Name | Source | Approx size | What it contains |
+|---|---|---|---|---|
+| **1** | **Barcode crop** | `r.trucheck.jpegImage` in push XML → `VerificationRecord.JpegImageBase64` | ~200–600 px | Firmware tight crop around the decoded symbol. Same image shown in DMST verification panel and DMST PDF report. **VTCCP already captures this.** |
+| **2** | **ROI frame** | `IMAGE.SEND` DMCC command | Depends on IMAGE.SIZE setting | Operator-configured Region of Interest rectangle from DMST. Wider than the barcode crop; includes surrounding label area. **OPEN PROBE**: does IMAGE.SEND after a live scan return the ROI or the full frame? Confirm on DM475V (D4 scope). |
+| **3** | **Full sensor frame** | `DataManSystem.GetLastReadImage()` (SDK) | 2448×2048 (DM475V / DM395V), 2048×1536 (DM390 / DM394) | Full field of view at full resolution. Always available after any scan. Not yet exploited in VTCCP. |
+
+### DMST crop observation (user-confirmed 2026-05-26)
+
+DMST crops the image displayed in its verification panel and PDF report to **the barcode symbol only** — not to the full ROI. This confirms that `r.trucheck.jpegImage` (Level 1) is a tight barcode crop, NOT the ROI. The ROI rectangle as configured in DMST is a wider region that includes surrounding label content.
+
+### OCR targeting implications
+
+| OCR target | Required image level | Availability |
+|---|---|---|
+| Characters directly adjacent to the barcode (HRI immediately beside/below the symbol) | Level 1 (barcode crop) — **already captured** | Available now |
+| Lot numbers, expiry dates, IUID strings, text elsewhere on the label | Level 2 (ROI frame) — **not yet captured** | Needs IMAGE.SEND probe |
+| Full label layout, unknown text placement | Level 3 (full frame) — **not yet captured** | Needs SDK call |
+
+### Open probes required before Level 2 use
+
+1. **Does IMAGE.SEND return ROI or full frame?** — send `IMAGE.SEND` via `SendCommandWithExpectedBinaryResult()` immediately after a live scan; inspect JPEG dimensions. Queue for D4 device session.
+2. **Does IMAGE.SIZE setting affect ROI frame or only full frame?** — test with IMAGE.SIZE = 0 (Full) and IMAGE.SIZE = 1 (1/4).
+3. **Is ROI accessible at IMAGE.SIZE = 0 at full 2448×2048 resolution?** — if IMAGE.SEND returns the full frame, Level 2 and Level 3 collapse to the same source.
+
+### VTCCP implementation status
+
+| Level | VTCCP status |
+|---|---|
+| 1 — Barcode crop | **COMPLETE** — captured in push XML, stored in `VerificationRecord.JpegImageBase64`, embedded in Excel. |
+| 2 — ROI frame | **SCAFFOLDED** — `DmccCommand.ImageSend` constant added; `DeviceSession.GetCurrentImageAsync()` not yet written (D4 scope). |
+| 3 — Full frame | **NOT STARTED** — `DataManSystem.GetLastReadImage()` SDK call not yet implemented (D4 scope). |
+

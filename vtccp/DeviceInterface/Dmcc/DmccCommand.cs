@@ -40,6 +40,41 @@ public static class DmccCommand
     /// </summary>
     public const string GetImageSize = "GET IMAGE.SIZE";
 
+    /// <summary>
+    /// Requests the device to transmit the current image buffer as a binary JPEG.
+    ///
+    /// Three-level image stack (DataMan DM475V / DM395V):
+    ///   Level 1 — Barcode crop  : r.trucheck.jpegImage in push XML (200–600 px).
+    ///             Tight crop around the decoded symbol.  Same image shown in
+    ///             the DMST verification panel and embedded in VTCCP Excel cells.
+    ///             VTCCP already captures this in VerificationRecord.JpegImageBase64.
+    ///
+    ///   Level 2 — ROI frame     : IMAGE.SEND after a live scan (this command).
+    ///             The operator-configured Region Of Interest rectangle in DMST.
+    ///             Wider than the barcode crop; includes surrounding label area
+    ///             including adjacent human-readable text / lot numbers.
+    ///             Resolution depends on IMAGE.SIZE setting (0=Full through 3=1/64).
+    ///             OPEN QUESTION: confirmed via IMAGE.SEND test on DM475V? → probe in D4.
+    ///
+    ///   Level 3 — Full frame    : DataManSystem.GetLastReadImage() (SDK method).
+    ///             Full 2448×2048 (DM475V / DM395V) or 2048×1536 (DM390 / DM394).
+    ///             Always available after any scan regardless of IMAGE.SIZE setting.
+    ///             Not yet exploited in VTCCP.
+    ///
+    /// Response is raw binary (JPEG bytes) via SendCommandWithExpectedBinaryResult().
+    /// The IMAGE.SIZE setting controls downscale applied before transmission.
+    ///
+    /// Platforms: ALL. Version: confirmed in DMCC 6.1.16_sr4 digest.
+    ///
+    /// OCR targeting guidance:
+    ///   Barcode crop (Level 1) — adequate for HRI text directly adjacent to the symbol.
+    ///   ROI frame (Level 2)    — required for lot / expiry / IUID text outside the
+    ///                            barcode's immediate area; preferred for label OCR.
+    ///   Full frame (Level 3)   — maximum context; use for layout analysis or when
+    ///                            ROI coverage is unknown.
+    /// </summary>
+    public const string ImageSend = "IMAGE.SEND";
+
     // ── Trigger / result ──────────────────────────────────────────────────────
 
     /// <summary>

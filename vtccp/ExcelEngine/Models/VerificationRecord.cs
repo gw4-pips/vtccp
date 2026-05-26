@@ -97,7 +97,16 @@ public sealed record class VerificationRecord
     public string? OpticsSource { get; init; }    // "LiveScan" | "LoadedImage"
 
     // JPEG image payload (v1.25: r.trucheck.jpegImage base64 string)
+    // Level 1 barcode crop — tight firmware crop around the decoded symbol.
+    // Same image shown in the DMST verification panel (~200–600 px).
     public string? JpegImageBase64 { get; init; }
+
+    // OCR result — populated after DualEngineOcrRunner processes JpegImageBase64.
+    // Null when OCR has not been run or the image was not available.
+    // OcrResult type lives in OcrEngine project; stored as object to avoid
+    // a hard compile-time dependency from ExcelEngine → OcrEngine.
+    // Command Pilot wires the concrete type; serialisation uses OcrResultDto.
+    public OcrResultDto? OcrResult { get; init; }
 
     // ── Data provenance ────────────────────────────────────────────────────────
 
