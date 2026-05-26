@@ -54,8 +54,56 @@ public static class DmstResultParser
         map ??= new VerificationXmlMap();
 
         XDocument doc;
-        try   { doc = XDocument.Parse(xml); }
-        catch { return Fallback(deviceContext, "XML parse failed"); }
+        try
+        {
+            doc = XDocument.Parse(xml);
+        }
+        catch (System.Xml.XmlException xmlEx)
+        {
+            // Log enough context to diagnose the malformed XML without flooding
+            // the debug output with the full 185K string.
+            int pos     = xmlEx.LinePosition > 0 ? xmlEx.LinePosition : 0;
+            int lineNo  = xmlEx.LineNumber   > 0 ? xmlEx.LineNumber   : 0;
+
+            // Estimate a byte offset for context window.  XDocument.Parse works on
+            // a string so LineNumber/LinePosition are character-based but may still
+            // give us the neighbourhood of the problem.
+            int safeLen   = Math.Min(xml.Length, 400);
+            string prefix = xml[..safeLen];
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-XML] Parse failed: {xmlEx.Message}  " +
+                $"Line={lineNo} Col={pos}  TotalChars={xml.Length}");
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-XML] First 400 chars: {prefix}");
+
+            // If the parser gave us a line/col, try to extract a 200-char window
+            // around the error position so we can see the offending character.
+            if (lineNo > 0 && lineNo <= xml.Length)
+            {
+                // Walk to the start of the indicated line.
+                int lineStart = 0;
+                int currentLine = 1;
+                for (int i = 0; i < xml.Length && currentLine < lineNo; i++)
+                {
+                    if (xml[i] == '\n') { currentLine++; lineStart = i + 1; }
+                }
+                int winStart  = Math.Max(0, lineStart + pos - 100);
+                int winEnd    = Math.Min(xml.Length, lineStart + pos + 100);
+                string window = xml[winStart..winEnd];
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-XML] Context window around error: <<<{window}>>>");
+            }
+
+            return Fallback(deviceContext, $"XML parse failed: {xmlEx.Message}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-XML] Unexpected parse error: {ex.GetType().Name}: {ex.Message}  " +
+                $"TotalChars={xml.Length}");
+            return Fallback(deviceContext, $"XML parse failed: {ex.Message}");
+        }
 
         // Navigate to the result container element.
         // Firmware 6.x: <result> root (no DMSymVerResponse wrapper).
