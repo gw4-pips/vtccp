@@ -456,6 +456,246 @@ public sealed class DataManSdkClient : IAsyncDisposable
         return false;
     }
 
+    // ── IMAGE.SEND — ROI frame retrieval ─────────────────────────────────────
+
+    /// <summary>
+    /// Retrieves the current image buffer from the device as a raw JPEG byte array.
+    ///
+    /// This is the Level 2 ROI frame in the three-level image stack:
+    ///   Level 1 — barcode crop  : r.trucheck.jpegImage in push XML (already captured)
+    ///   Level 2 — ROI frame     : IMAGE.SEND (this method) — operator-configured ROI rect
+    ///   Level 3 — full frame    : DataManSystem.GetLastReadImage() SDK (not implemented)
+    ///
+    /// Call AFTER a scan result has been received and parsed — the device retains the
+    /// image buffer until the next trigger.
+    ///
+    /// Strategy (two-stage fallback):
+    ///   1. SDK path — SendCommandWithExpectedBinaryResult("IMAGE.SEND") via reflection.
+    ///      The SDK knows the binary framing protocol; binary payload extracted from
+    ///      the response via reflection (property name scan for byte[] type).
+    ///   2. Raw TCP fallback — send IMAGE.SEND\r\n on a raw socket, read all bytes,
+    ///      strip the DMCC text header (\r\n0\r\n\r\n), return the remaining JPEG bytes.
+    ///
+    /// Returns null if both paths fail or if the response is not a valid JPEG
+    /// (does not start with 0xFF 0xD8 — the JPEG SOI marker).
+    /// Never throws.
+    ///
+    /// Resolution: controlled by the device's IMAGE.SIZE DMCC setting (0=Full … 3=1/64).
+    /// For highest-fidelity OCR use IMAGE.SIZE 0 (Full) — confirmed DMCC key.
+    /// </summary>
+    public async Task<byte[]?> GetRoiImageAsync(
+        int               timeoutMs = 5_000,
+        CancellationToken ct        = default)
+    {
+        ThrowIfDisposed();
+
+        // ── Stage 1: SDK path ────────────────────────────────────────────────
+        if (_system != null)
+        {
+            var sdkResult = await Task.Run(() => TryGetRoiImageViaSdk(), ct);
+            if (sdkResult != null)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-ROI] IMAGE.SEND via SDK: {sdkResult.Length} bytes");
+                return sdkResult;
+            }
+            System.Diagnostics.Debug.WriteLine(
+                "[VTCCP-ROI] SDK path failed — falling back to raw TCP.");
+        }
+
+        // ── Stage 2: Raw TCP fallback ────────────────────────────────────────
+        return await GetRoiImageViaRawTcpAsync(timeoutMs, ct);
+    }
+
+    /// <summary>
+    /// Attempts IMAGE.SEND via the SDK's SendCommandWithExpectedBinaryResult(String) overload.
+    /// Returns the JPEG bytes on success, null on any failure.
+    /// </summary>
+    private byte[]? TryGetRoiImageViaSdk()
+    {
+        if (_system is null) return null;
+        try
+        {
+            // SendCommandWithExpectedBinaryResult is in the SDK method inventory
+            // (firmware-confirmed-facts.md §11).  Call via reflection to avoid
+            // a compile-time dependency on the Windows-only SDK from Linux agents.
+            var method = _system.GetType().GetMethod(
+                "SendCommandWithExpectedBinaryResult",
+                [typeof(string)]);
+
+            if (method is null)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "[VTCCP-ROI] SendCommandWithExpectedBinaryResult(String) not found on DataManSystem.");
+                return null;
+            }
+
+            var sdkResp = method.Invoke(_system, ["IMAGE.SEND"]);
+            if (sdkResp is null) return null;
+
+            // Extract binary payload — scan for a byte[] property on the SDK response.
+            foreach (var prop in sdkResp.GetType().GetProperties())
+            {
+                try
+                {
+                    if (prop.GetValue(sdkResp) is byte[] bytes && bytes.Length > 2)
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[VTCCP-ROI] SDK binary prop '{prop.Name}': {bytes.Length} bytes");
+                        return IsJpeg(bytes) ? bytes : null;
+                    }
+                }
+                catch { }
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                "[VTCCP-ROI] SDK response had no byte[] property — dumping props:");
+            DumpProps("[VTCCP-ROI] SdkResp", sdkResp);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-ROI] SDK IMAGE.SEND failed: {ex.GetType().Name}: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Sends IMAGE.SEND on a raw TCP connection, reads the binary JPEG response,
+    /// strips the DMCC text header (\r\n0\r\n\r\n), and returns the JPEG bytes.
+    /// </summary>
+    private async Task<byte[]?> GetRoiImageViaRawTcpAsync(
+        int               timeoutMs,
+        CancellationToken ct)
+    {
+        try
+        {
+            using var tcp = new TcpClient();
+            tcp.ReceiveBufferSize = 1 << 20;  // 1 MB receive buffer
+            await tcp.ConnectAsync(_cfg.Host, _cfg.Port, ct);
+            using var stream = tcp.GetStream();
+
+            // Drain welcome banner.
+            try
+            {
+                using var bannerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                bannerCts.CancelAfter(400);
+                byte[] bannerBuf = new byte[512];
+                await stream.ReadAsync(bannerBuf, bannerCts.Token);
+            }
+            catch (OperationCanceledException) { }
+            catch { }
+
+            // Send IMAGE.SEND command.
+            await stream.WriteAsync(Encoding.ASCII.GetBytes("IMAGE.SEND\r\n"), ct);
+
+            // Read all bytes until the device closes the connection or timeout.
+            var raw = await ReadRawBinaryResponseAsync(stream, timeoutMs, ct);
+
+            if (raw is null || raw.Length == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("[VTCCP-ROI] Raw TCP: no data received.");
+                return null;
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-ROI] Raw TCP: {raw.Length} bytes received.");
+
+            // Strip the DMCC text header.  Format: \r\n0\r\n\r\n{binary}
+            // The header ends at the first occurrence of \r\n\r\n after the status line.
+            byte[] jpeg = StripDmccHeader(raw);
+
+            if (jpeg.Length == 0)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-ROI] Header strip returned 0 bytes.  " +
+                    $"First 32: {BitConverter.ToString(raw[..Math.Min(32, raw.Length)])}");
+                return null;
+            }
+
+            if (!IsJpeg(jpeg))
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-ROI] Payload is not a JPEG.  " +
+                    $"First 4 bytes: {BitConverter.ToString(jpeg[..Math.Min(4, jpeg.Length)])}");
+                return null;
+            }
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-ROI] JPEG confirmed: {jpeg.Length} bytes.");
+            return jpeg;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-ROI] Raw TCP IMAGE.SEND failed: {ex.GetType().Name}: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Reads all available bytes from a NetworkStream until connection close or timeout.
+    /// Returns null if reading fails entirely.
+    /// </summary>
+    private static async Task<byte[]?> ReadRawBinaryResponseAsync(
+        NetworkStream     stream,
+        int               timeoutMs,
+        CancellationToken ct)
+    {
+        var ms  = new MemoryStream();
+        var buf = new byte[65536];
+        using var readCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        readCts.CancelAfter(timeoutMs);
+        try
+        {
+            while (true)
+            {
+                int n = await stream.ReadAsync(buf, readCts.Token);
+                if (n <= 0) break;
+                await ms.WriteAsync(buf.AsMemory(0, n), readCts.Token);
+            }
+        }
+        catch (OperationCanceledException) { /* timeout — return whatever arrived */ }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-ROI] ReadRawBinary error: {ex.GetType().Name}: {ex.Message}");
+            if (ms.Length == 0) return null;
+        }
+        return ms.ToArray();
+    }
+
+    /// <summary>
+    /// Strips the DMCC text response header from a binary response buffer.
+    ///
+    /// DMCC header format for a successful binary response:
+    ///   \r\n0\r\n\r\n{binary data}
+    ///
+    /// Locates the first \r\n\r\n (double CRLF) in the first 64 bytes, which marks
+    /// the end of the header.  Returns everything after that point.
+    /// If no header separator is found, returns the full buffer (allows for devices
+    /// that send raw binary without a text header, e.g. some firmware variants).
+    /// </summary>
+    private static byte[] StripDmccHeader(byte[] raw)
+    {
+        const int maxHeaderScan = 64;
+        int limit = Math.Min(raw.Length - 3, maxHeaderScan);
+        for (int i = 0; i <= limit; i++)
+        {
+            if (raw[i] == '\r' && raw[i + 1] == '\n' &&
+                raw[i + 2] == '\r' && raw[i + 3] == '\n')
+            {
+                return raw[(i + 4)..];
+            }
+        }
+        return raw;  // no header found — treat entire buffer as payload
+    }
+
+    /// <summary>Returns true if the byte array starts with the JPEG SOI marker 0xFF 0xD8.</summary>
+    private static bool IsJpeg(byte[] data) =>
+        data.Length >= 2 && data[0] == 0xFF && data[1] == 0xD8;
+
     // ── Diagnostic: raw SYMBOL.RESULT probe ──────────────────────────────────
 
     /// <summary>

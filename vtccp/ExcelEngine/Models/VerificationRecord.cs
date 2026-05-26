@@ -101,7 +101,16 @@ public sealed record class VerificationRecord
     // Same image shown in the DMST verification panel (~200–600 px).
     public string? JpegImageBase64 { get; init; }
 
-    // OCR result — populated after DualEngineOcrRunner processes JpegImageBase64.
+    // Level 2 ROI frame — operator-configured Region of Interest rectangle.
+    // Retrieved via IMAGE.SEND immediately after each scan.  Wider than the
+    // barcode crop; includes surrounding label area, HRI, lot numbers, etc.
+    // Null when IMAGE.SEND failed or was not attempted (loaded-image replays
+    // return the loaded image bytes rather than a live camera ROI).
+    // Base64-encoded JPEG string, parallel structure to JpegImageBase64.
+    public string? RoiJpegImageBase64 { get; init; }
+
+    // OCR result — populated after DualEngineOcrRunner processes the ROI image
+    // (or barcode crop for UPC/EAN where HRI is canonically part of the symbol).
     // Null when OCR has not been run or the image was not available.
     // OcrResult type lives in OcrEngine project; stored as object to avoid
     // a hard compile-time dependency from ExcelEngine → OcrEngine.

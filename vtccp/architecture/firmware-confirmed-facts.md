@@ -903,6 +903,14 @@ DMST crops the image displayed in its verification panel and PDF report to **the
 | Level | VTCCP status |
 |---|---|
 | 1 — Barcode crop | **COMPLETE** — captured in push XML, stored in `VerificationRecord.JpegImageBase64`, embedded in Excel. |
-| 2 — ROI frame | **SCAFFOLDED** — `DmccCommand.ImageSend` constant added; `DeviceSession.GetCurrentImageAsync()` not yet written (D4 scope). |
+| 2 — ROI frame | **IMPLEMENTED** — `DataManSdkClient.GetRoiImageAsync()`: SDK `SendCommandWithExpectedBinaryResult` via reflection → raw TCP fallback. `DeviceSession.AttachRoiImageAsync()` wired into `TriggerAndGetResultAsync` and `ReplayAndGetResultAsync`. Stored in `VerificationRecord.RoiJpegImageBase64`. **PENDING DEVICE CONFIRMATION** — first live scan will reveal whether SDK or TCP path succeeds and whether IMAGE.SEND returns ROI or full frame. |
 | 3 — Full frame | **NOT STARTED** — `DataManSystem.GetLastReadImage()` SDK call not yet implemented (D4 scope). |
+
+### OCR image source selection (user-confirmed 2026-05-26)
+
+- **Default (all symbologies except UPC/EAN)**: Level 2 ROI frame (`RoiJpegImageBase64`)
+- **UPC/EAN exception**: Level 1 barcode crop (`JpegImageBase64`) — HRI is canonically part of the symbol presentation; barcode crop already contains it
+- **Fallback when ROI unavailable**: Level 1 barcode crop
+
+Design rule (user-confirmed): "The barcode crop is not sufficient except in rare circumstances where the HRI is canonically associated with the symbol, such as UPC/EAN."
 

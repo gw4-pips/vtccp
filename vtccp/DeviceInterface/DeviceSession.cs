@@ -302,6 +302,7 @@ public sealed class DeviceSession : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(xml)) return null;
 
         var record = DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo());
+        record = await AttachRoiImageAsync(record, ct);
         return _scraper is not null
             ? await _scraper.TryMergeAsync(record, ct)
             : record;
@@ -332,6 +333,7 @@ public sealed class DeviceSession : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(xml)) return null;
 
         var record = DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo());
+        record = await AttachRoiImageAsync(record, ct);
         return _scraper is not null
             ? await _scraper.TryMergeAsync(record, ct)
             : record;
@@ -433,6 +435,49 @@ public sealed class DeviceSession : IAsyncDisposable
         if (_httpSubscriber is null) return;
         await _httpSubscriber.StopAsync();
         _httpSubscriber = null;
+    }
+
+    // ── ROI image retrieval ───────────────────────────────────────────────────
+
+    /// <summary>
+    /// Retrieves the device's current image buffer as raw JPEG bytes via IMAGE.SEND.
+    ///
+    /// For live scans: returns the operator-configured ROI frame — wider than the
+    /// barcode crop in push XML, includes surrounding label area (HRI, lot numbers, etc.).
+    ///
+    /// For loaded-image replays: returns the loaded image bytes (identical to the
+    /// source image that was sent to the device — useful as the OCR source for
+    /// externally-sourced symbols where the original file already contains label context).
+    ///
+    /// Returns null if IMAGE.SEND failed or the response is not a valid JPEG.
+    ///
+    /// Callers that need the base64 string: use Convert.ToBase64String on the result.
+    /// </summary>
+    public Task<byte[]?> GetRoiImageAsync(CancellationToken ct = default)
+    {
+        ThrowIfDisposed();
+        if (!_client.IsConnected)
+            throw new InvalidOperationException("Not connected. Call ConnectAsync() first.");
+        return _client.GetRoiImageAsync(ct: ct);
+    }
+
+    /// <summary>
+    /// Fetches the ROI image via IMAGE.SEND and attaches it to <paramref name="record"/>
+    /// as <c>RoiJpegImageBase64</c>.  If IMAGE.SEND fails, returns the original record unchanged.
+    /// </summary>
+    private async Task<VerificationRecord> AttachRoiImageAsync(
+        VerificationRecord record,
+        CancellationToken  ct)
+    {
+        byte[]? roiBytes = await _client.GetRoiImageAsync(ct: ct);
+        if (roiBytes is null || roiBytes.Length == 0)
+            return record;
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-ROI] Attached to record: {roiBytes.Length} bytes  " +
+            $"Symbology={record.Symbology}  Grade={record.OverallGrade}");
+
+        return record with { RoiJpegImageBase64 = Convert.ToBase64String(roiBytes) };
     }
 
     // ── D4 Image Load ─────────────────────────────────────────────────────────
