@@ -1,0 +1,31 @@
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] CMD 'SET TRIGGER.TYPE 0' → code=0  body=''
+[VTCCP-DMCC] Restored trigger type to '0'.
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] Stopped.
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.IO.IOException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Reader Thread' (27268) has exited with code 0 (0x0).
+The thread 'DataMan SDK CallbackDispatcher Thread' (11648) has exited with code 0 (0x0).
+The thread 'DataMan SDK Writer Thread' (30752) has exited with code 0 (0x0).
+[VTCCP-SDK] Disconnected.
+[VTCCP-SDK] Disconnected.
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] SET RESULT-TYPES 2 -> status -2
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+The program '[12108] VtccpApp.exe' has exited with code 0 (0x0).
