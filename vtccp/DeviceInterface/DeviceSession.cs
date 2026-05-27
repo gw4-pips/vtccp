@@ -115,15 +115,27 @@ public sealed class DeviceSession : IAsyncDisposable
         // for an electrical hardware pulse that never arrives, then times out
         // (~6 s) and returns No Read without ever flashing the illumination.
         //
-        // GET TRIGGER.TYPE: record the original for restore-on-disconnect.
-        // On this firmware (6.1.16_sr4) the PayLoad is empty even on a successful
-        // response, so we cannot rely on it to gate the SET command.
+        // GET TRIGGER.TYPE: record the restore-on-disconnect target.
+        // VTCCP always sets TRIGGER.TYPE to 1 (single/software trigger) so it
+        // can fire TRIGGER commands without a hardware pulse.  When VTCCP exits
+        // it must restore the device to the state DMST expects (0 = continuous
+        // monitoring).
+        //
+        // If the device reports '1' on connect it means a prior VTCCP session
+        // crashed before its DisconnectAsync could restore it — the device is
+        // stuck.  We still restore to '0' on disconnect so DMST regains control.
+        // For any other value (e.g. external trigger '2', '3', '4') we preserve
+        // that setting exactly.
         var trigResp = await _client.SendAsync(DmccCommand.GetTriggerType, ct);
-        _originalTriggerType = string.IsNullOrWhiteSpace(trigResp.Body)
+        string? rawTrigger = string.IsNullOrWhiteSpace(trigResp.Body)
             ? null
             : trigResp.Body.Trim();
+        // Restore target: '0' when device is already at '1' (stuck from prior
+        // VTCCP session), otherwise restore to whatever it actually was.
+        _originalTriggerType = rawTrigger == "1" ? "0" : rawTrigger;
         System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-DMCC] GET TRIGGER.TYPE: code={trigResp.StatusCode}  value='{_originalTriggerType}'");
+            $"[VTCCP-DMCC] GET TRIGGER.TYPE: code={trigResp.StatusCode}  " +
+            $"value='{rawTrigger}'  restoreTo='{_originalTriggerType}'");
 
         // Always attempt to switch to Single (software) trigger mode so VTCCP's
         // software TRIGGER command fires immediately without a hardware pulse.
