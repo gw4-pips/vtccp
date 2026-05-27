@@ -1,0 +1,29 @@
+Exception thrown: 'Cognex.DataMan.SDK.InvalidCommandException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] Connected to 10.10.10.7.  FW=6.1.16_sr4  SetResultTypes(ReadXml) OK.
+[VTCCP-SDK] CMD 'GET DEVICE.TYPE' → code=0  body='DM475'
+[VTCCP-SDK] CMD 'GET DEVICE.NAME' → code=0  body='DM475-63530E-PIPS-Verif-Lab'
+[VTCCP-SDK] CMD 'GET DEVICE.ID' → code=0  body='50'
+[VTCCP-SDK] CMD 'GET TRIGGER.TYPE' → code=0  body='1'
+[VTCCP-DMCC] GET TRIGGER.TYPE: code=0  value='1'
+[VTCCP-SDK] CMD 'SET TRIGGER.TYPE 1' → code=0  body=''
+[VTCCP-DMCC] SET TRIGGER.TYPE 1: code=0
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER 1 failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.), trying plain TRIGGER...
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER also failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.).
+[VTCCP-SDK] SDK rejected TRIGGER — trying raw TCP bypass...
+[VTCCP-SDK] XmlResultArrived: 186878 chars
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-SDK] TRIGGER sent via raw TCP.
+Exception thrown: 'System.Xml.XmlException' in System.Private.Xml.dll
+[VTCCP-SDK] CMD 'SET TRIGGER.TYPE 1' → code=0  body=''
+[VTCCP-DMCC] Restored trigger type to '1'.
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Writer Thread' (20520) has exited with code 0 (0x0).
+The thread 'DataMan SDK CallbackDispatcher Thread' (28148) has exited with code 0 (0x0).
+Exception thrown: 'System.IO.IOException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Reader Thread' (4252) has exited with code 0 (0x0).
+[VTCCP-SDK] Disconnected.
+[VTCCP-SDK] Disconnected.
+The thread '.NET TP Worker' (20368) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (10184) has exited with code 0 (0x0).

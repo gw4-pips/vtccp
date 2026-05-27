@@ -1,0 +1,23 @@
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER 1 failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.), trying plain TRIGGER...
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER also failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.).
+[VTCCP-SDK] SDK rejected TRIGGER — trying raw TCP bypass...
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-SDK] TRIGGER sent via raw TCP.
+[VTCCP-SDK] XmlResultArrived: 187061 chars
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'System.Xml.XmlException' in System.Private.Xml.dll
+[VTCCP-SDK] CMD 'SET TRIGGER.TYPE 1' → code=0  body=''
+[VTCCP-DMCC] Restored trigger type to '1'.
+The thread 'DataMan SDK CallbackDispatcher Thread' (30876) has exited with code 0 (0x0).
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Writer Thread' (28540) has exited with code 0 (0x0).
+Exception thrown: 'System.IO.IOException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Reader Thread' (21948) has exited with code 0 (0x0).
+[VTCCP-SDK] Disconnected.
+[VTCCP-SDK] Disconnected.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationFramework-SystemXmlLinq.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+The thread 30664 has exited with code 0 (0x0).
