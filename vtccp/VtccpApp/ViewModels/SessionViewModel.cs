@@ -329,13 +329,26 @@ public sealed class SessionViewModel : ViewModelBase
             _recordCount = 0; OnPropertyChanged(nameof(RecordCount));
             IsRunning    = true;
 
+            string triggerNote = string.Empty;
+            if (_deviceSession is not null && _deviceSession.OriginalTriggerType is { } origTrig)
+            {
+                string trigName = origTrig switch
+                {
+                    "0" => "Continuous",
+                    "1" => "Single",
+                    "2" => "External",
+                    _   => origTrig,
+                };
+                triggerNote = $"  [DMST trigger was: {trigName} ({origTrig}) → restored on Stop]";
+            }
+
             string modeLabel = _scanMode switch
             {
                 ScanMode.AutoPoll => $"Auto-Poll ({_autoPollIntervalMs} ms)",
                 ScanMode.Push     => $"Push (DMST) — port {SelectedDevice.DmstListenPort}",
                 _                 => "Manual Trigger",
             };
-            StatusMessage = $"Session active — {SelectedDevice.Name} / {SelectedTemplate.Name}  [{modeLabel}]";
+            StatusMessage = $"Session active — {SelectedDevice.Name} / {SelectedTemplate.Name}  [{modeLabel}]{triggerNote}";
 
             if (_scanMode == ScanMode.AutoPoll)
                 _ = RunAutoPollLoopAsync(_pollCts.Token);
@@ -670,6 +683,19 @@ public sealed class SessionViewModel : ViewModelBase
                               : OperatorOverride.Trim(),
         JobName         = SelectedTemplate?.JobName ?? string.Empty,
     };
+
+    /// <summary>
+    /// Called by App.OnExit to ensure the DMCC connection is closed and
+    /// TRIGGER.TYPE is restored to the DMST-native value before the process exits.
+    /// Safe to call when no session is running (no-op).
+    /// </summary>
+    public async Task StopSessionOnExitAsync()
+    {
+        if (!IsRunning) return;
+        _pollCts?.Cancel();
+        await CleanupAsync();
+        IsRunning = false;
+    }
 
     private async Task CleanupAsync()
     {

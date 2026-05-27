@@ -57,6 +57,9 @@ public partial class App : Application
 
     protected override async void OnExit(ExitEventArgs e)
     {
+        // Stop any active session first so trigger type is restored to the
+        // DMST-native value before the process exits.
+        if (_main is not null) await _main.SessionVM.StopSessionOnExitAsync();
         if (_main is not null) await _main.SaveConfigAsync();
         base.OnExit(e);
     }

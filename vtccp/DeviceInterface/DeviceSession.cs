@@ -36,6 +36,13 @@ public sealed class DeviceSession : IAsyncDisposable
     private string? _originalTriggerType;
 
     /// <summary>
+    /// The TRIGGER.TYPE value that was on the device when VTCCP connected — i.e. the
+    /// value DMST had left it at.  Exposed so the UI can display it to the operator.
+    /// Null until ConnectAsync has completed.
+    /// </summary>
+    public string? OriginalTriggerType => _originalTriggerType;
+
+    /// <summary>
     /// Device information queried during <see cref="ConnectAsync"/>.
     /// Populated fields: Type, Serial, Name, FirmwareVersion, CalibrationDate.
     /// Use these to pre-fill <see cref="SessionState"/> before opening an Excel session.
@@ -112,17 +119,15 @@ public sealed class DeviceSession : IAsyncDisposable
         // ── Trigger mode ─────────────────────────────────────────────────────
         // TRIGGER.TYPE values: 0=Continuous, 1=Single, 2=External.
         //
-        // Both Continuous (0) and Single (1) respond to software TRIGGER commands,
-        // so VTCCP's manual trigger works in either mode.  External (2) is the
-        // only mode that blocks software triggers — the device waits for a hardware
-        // pulse that never arrives, times out (~6 s), and returns No Read.
+        // VTCCP Manual Trigger mode sends software TRIGGER commands and needs
+        // Single (1) to ensure exactly one acquisition fires per command.
         //
-        // Rule: only switch to Single if the device is currently External (2).
-        // Leaving Continuous (0) or Single (1) alone preserves DMST's ability to
-        // use "Go Live" mode — which relies on Continuous — when the operator
-        // switches back to DMST between VTCCP sessions.
-        //
-        // GET TRIGGER.TYPE: record the original for restore-on-disconnect.
+        // Strategy:
+        //   1. GET the current value — this is whatever DMST had it set to.
+        //      Store it in _originalTriggerType for restore on Stop/Exit.
+        //   2. SET to Single (1) for VTCCP's use.
+        //   3. On DisconnectAsync (Stop or app exit): restore to _originalTriggerType
+        //      so DMST's "Go Live" continuous mode works again after VTCCP stops.
         var trigResp = await _client.SendAsync(DmccCommand.GetTriggerType, ct);
         _originalTriggerType = string.IsNullOrWhiteSpace(trigResp.Body)
             ? null
@@ -130,20 +135,9 @@ public sealed class DeviceSession : IAsyncDisposable
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-DMCC] GET TRIGGER.TYPE: code={trigResp.StatusCode}  value='{_originalTriggerType}'");
 
-        // Only switch to Single when device is in External mode (2).
-        // Continuous (0) and Single (1) both accept software TRIGGER commands.
-        bool isExternal = _originalTriggerType == "2";
-        if (isExternal)
-        {
-            var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-DMCC] SET TRIGGER.TYPE 1 (was External): code={setResp.StatusCode}");
-        }
-        else
-        {
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-DMCC] TRIGGER.TYPE left unchanged (value='{_originalTriggerType}', not External).");
-        }
+        var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-DMCC] SET TRIGGER.TYPE 1 (Single): code={setResp.StatusCode}");
 
         // ── HTML report scraper ───────────────────────────────────────────────
         // Watches the DMST CodeQuality directory for HTML reports written by DMST
