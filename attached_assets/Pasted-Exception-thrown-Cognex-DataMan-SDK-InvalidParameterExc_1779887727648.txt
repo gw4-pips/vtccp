@@ -1,0 +1,90 @@
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER 1 failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.), trying plain TRIGGER...
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER also failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.).
+[VTCCP-SDK] SDK rejected TRIGGER — using DmccClient bypass (correct idle-gap protocol)...
+[VTCCP-SDK] XmlResultArrived: 181417 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-45-380.html': ok=True, dt=09:14:45
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181437 chars
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-45-986.html': ok=True, dt=09:14:45
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181493 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-46-493.html': ok=True, dt=09:14:46
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181562 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-47-146.html': ok=True, dt=09:14:47
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181644 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-47-704.html': ok=True, dt=09:14:47
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181607 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-48-398.html': ok=True, dt=09:14:48
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181548 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-48-748.html': ok=True, dt=09:14:48
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181673 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-49-387.html': ok=True, dt=09:14:49
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181677 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-49-946.html': ok=True, dt=09:14:49
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181728 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-50-599.html': ok=True, dt=09:14:50
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] SET DMCC.RESULT-FORMAT FULL -> status -2
+[VTCCP-SDK] XmlResultArrived: 181797 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-51-069.html': ok=True, dt=09:14:51
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181644 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-51-686.html': ok=True, dt=09:14:51
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SDK] XmlResultArrived: 181800 chars
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_09-14-52-192.html': ok=True, dt=09:14:52
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
