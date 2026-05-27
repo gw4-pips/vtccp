@@ -116,19 +116,27 @@ public sealed class DeviceSession : IAsyncDisposable
             },
         };
 
-        // ── Trigger mode ─────────────────────────────────────────────────────
         // TRIGGER.TYPE values: 0=Continuous, 1=Single, 2=External.
         //
-        // We GET the original value so TriggerAndGetResultAsync can briefly switch
-        // to Single (1) for a clean one-shot trigger, then restore immediately after.
-        // We do NOT change TRIGGER.TYPE here at connect time — doing so breaks TC's
-        // Live Mode camera feed (TC requires Continuous mode for its image display).
+        // VTCCP Manual Trigger mode sends software TRIGGER commands and needs
+        // Single (1) to ensure exactly one acquisition fires per command.
+        //
+        // Strategy:
+        //   1. GET the current value — this is whatever DMST had it set to.
+        //      Store it in _originalTriggerType for restore on Stop/Exit.
+        //   2. SET to Single (1) for VTCCP's use.
+        //   3. On DisconnectAsync (Stop or app exit): restore to _originalTriggerType
+        //      so DMST's "Go Live" continuous mode works again after VTCCP stops.
         var trigResp = await _client.SendAsync(DmccCommand.GetTriggerType, ct);
         _originalTriggerType = string.IsNullOrWhiteSpace(trigResp.Body)
-            ? "0"
+            ? null
             : trigResp.Body.Trim();
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-DMCC] GET TRIGGER.TYPE: code={trigResp.StatusCode}  value='{_originalTriggerType}'");
+
+        var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-DMCC] SET TRIGGER.TYPE 1 (Single): code={setResp.StatusCode}");
 
         // ── HTML report scraper ───────────────────────────────────────────────
         // Watches the DMST CodeQuality directory for HTML reports written by DMST
@@ -292,29 +300,10 @@ public sealed class DeviceSession : IAsyncDisposable
         if (!_client.IsConnected)
             throw new InvalidOperationException("Not connected. Call ConnectAsync() first.");
 
-        // Briefly set device to Single mode (1) for a clean one-shot trigger,
-        // then restore the original TRIGGER.TYPE immediately after.
-        // This prevents VTCCP from permanently disrupting TC's Live Mode feed.
-        var originalType = _originalTriggerType ?? "0";
-        await _client.SendAsync($"SET TRIGGER.TYPE 1", ct);
-        System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] SET TRIGGER.TYPE 1 (trigger-time).");
-
-        string? xml;
-        try
-        {
-            // Use the SDK's XmlResultArrived event-based path.
-            // "GET SYMBOL.RESULT" throws InvalidCommandException in the SDK; results
-            // must arrive via event after the trigger fires.
-            xml = await _client.TriggerAndWaitForXmlAsync(ct: ct);
-        }
-        finally
-        {
-            // Restore original trigger type so TC's Live Mode resumes immediately.
-            await _client.SendAsync($"SET TRIGGER.TYPE {originalType}");
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-DMCC] Restored TRIGGER.TYPE to {originalType}.");
-        }
-
+        // Use the SDK's XmlResultArrived event-based path.
+        // "GET SYMBOL.RESULT" throws InvalidCommandException in the SDK; results
+        // must arrive via event after the trigger fires.
+        string? xml = await _client.TriggerAndWaitForXmlAsync(ct: ct);
         if (string.IsNullOrWhiteSpace(xml)) return null;
 
         var record = DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo());
