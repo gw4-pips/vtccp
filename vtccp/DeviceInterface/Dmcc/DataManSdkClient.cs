@@ -164,8 +164,17 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
         var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
 
+        // Timestamp gate: only accept XmlResultArrived events that fire AFTER the
+        // trigger has actually been sent.  Events from background Live Mode scans
+        // that arrive before our trigger are silently ignored.
+        // Set to DateTime.UtcNow.Ticks just before each TRIGGER send.
+        long triggerSentTicks = long.MaxValue;
+
         CognexSdk.XmlResultArrivedHandler xmlHandler = (_, args) =>
         {
+            // Ignore events that arrived before the trigger was sent.
+            if (DateTime.UtcNow.Ticks < Volatile.Read(ref triggerSentTicks)) return;
+
             // XmlResultArrivedEventArgs.XmlResult — name confirmed by XmlResultArrivedEventArgs type.
             var prop = args.GetType().GetProperty("XmlResult")
                     ?? args.GetType().GetProperty("Xml")
@@ -195,6 +204,7 @@ public sealed class DataManSdkClient : IAsyncDisposable
                 // Attempt 1: TRIGGER 1
                 try
                 {
+                    Volatile.Write(ref triggerSentTicks, DateTime.UtcNow.Ticks);
                     _system!.SendCommand("TRIGGER 1");
                     System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER 1 sent OK.");
                     triggered = true;
@@ -202,6 +212,7 @@ public sealed class DataManSdkClient : IAsyncDisposable
                 }
                 catch (Exception ex1)
                 {
+                    Volatile.Write(ref triggerSentTicks, long.MaxValue); // reset gate on failure
                     System.Diagnostics.Debug.WriteLine(
                         $"[VTCCP-SDK] TRIGGER 1 failed ({ex1.GetType().Name}: {ex1.Message}), trying plain TRIGGER...");
                 }
@@ -209,12 +220,14 @@ public sealed class DataManSdkClient : IAsyncDisposable
                 // Attempt 2: plain TRIGGER
                 try
                 {
+                    Volatile.Write(ref triggerSentTicks, DateTime.UtcNow.Ticks);
                     _system!.SendCommand("TRIGGER");
                     System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER sent OK.");
                     triggered = true;
                 }
                 catch (Exception ex2)
                 {
+                    Volatile.Write(ref triggerSentTicks, long.MaxValue); // reset gate on failure
                     System.Diagnostics.Debug.WriteLine(
                         $"[VTCCP-SDK] TRIGGER also failed ({ex2.GetType().Name}: {ex2.Message}).");
                 }
@@ -269,6 +282,9 @@ public sealed class DataManSdkClient : IAsyncDisposable
                 catch { }
 
                 // Send the bare TRIGGER command.
+                // Arm the timestamp gate BEFORE WriteAsync so XmlResultArrived
+                // events from this trigger are accepted by the xmlHandler.
+                Volatile.Write(ref triggerSentTicks, DateTime.UtcNow.Ticks);
                 await stream.WriteAsync(Encoding.ASCII.GetBytes("TRIGGER\r\n"), ct);
                 System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER sent — racing socket vs XmlResultArrived...");
 
@@ -625,23 +641,40 @@ public sealed class DataManSdkClient : IAsyncDisposable
             var sdkResp = method.Invoke(_system, ["IMAGE.SEND"]);
             if (sdkResp is null) return null;
 
-            // Extract binary payload — scan for a byte[] property on the SDK response.
+            // Extract binary payload.
+            // The SDK response carries the image in one of two forms:
+            //   • byte[]      — scan for a property whose value is byte[] with length > 2
+            //   • MemoryStream — confirmed live: SdkResp.BinaryData is a MemoryStream
+            //                   (logged as "System.IO.MemoryStream" in DumpProps output)
+            // Check both forms before falling back to DumpProps.
             foreach (var prop in sdkResp.GetType().GetProperties())
             {
                 try
                 {
-                    if (prop.GetValue(sdkResp) is byte[] bytes && bytes.Length > 2)
+                    var val = prop.GetValue(sdkResp);
+
+                    // Form 1: direct byte[]
+                    if (val is byte[] bytes && bytes.Length > 2)
                     {
                         System.Diagnostics.Debug.WriteLine(
-                            $"[VTCCP-ROI] SDK binary prop '{prop.Name}': {bytes.Length} bytes");
+                            $"[VTCCP-ROI] SDK byte[] prop '{prop.Name}': {bytes.Length} bytes");
                         return IsJpeg(bytes) ? bytes : null;
+                    }
+
+                    // Form 2: MemoryStream (BinaryData property — confirmed on fw 6.1.16_sr4)
+                    if (val is System.IO.MemoryStream ms && ms.Length > 2)
+                    {
+                        byte[] msBytes = ms.ToArray();
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[VTCCP-ROI] SDK MemoryStream prop '{prop.Name}': {msBytes.Length} bytes");
+                        return IsJpeg(msBytes) ? msBytes : null;
                     }
                 }
                 catch { }
             }
 
             System.Diagnostics.Debug.WriteLine(
-                "[VTCCP-ROI] SDK response had no byte[] property — dumping props:");
+                "[VTCCP-ROI] SDK response had no byte[] or MemoryStream property — dumping props:");
             DumpProps("[VTCCP-ROI] SdkResp", sdkResp);
             return null;
         }

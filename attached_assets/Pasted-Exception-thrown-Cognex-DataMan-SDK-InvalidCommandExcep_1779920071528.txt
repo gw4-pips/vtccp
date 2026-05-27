@@ -1,0 +1,137 @@
+Exception thrown: 'Cognex.DataMan.SDK.InvalidCommandException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] Connected to 10.10.10.7.  FW=6.1.16_sr4  SetResultTypes(ReadXml) OK.
+[VTCCP-SDK] CMD 'GET DEVICE.TYPE' → code=0  body='DM475'
+[VTCCP-SDK] CMD 'GET IMAGE.SIZE' → code=0  body='0'
+[VTCCP-SDK] CMD 'GET DEVICE.NAME' → code=0  body='DM475-63530E-PIPS-Verif-Lab'
+[VTCCP-SDK] CMD 'GET DEVICE.SERIAL-NUMBER' → code=0  body='1A1903PP010754'
+[VTCCP-SDK] CMD 'GET TRIGGER.TYPE' → code=0  body='0'
+[VTCCP-DMCC] GET TRIGGER.TYPE: code=0  value='0'
+[VTCCP-SDK] CMD 'SET TRIGGER.TYPE 1' → code=0  body=''
+[VTCCP-DMCC] SET TRIGGER.TYPE 1 (Single): code=0
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.IO.FileSystem.Watcher.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-SCRAPER] Watching 'C:\Users\Administrator\Documents\DM475-63530E-PIPS-Verif-Lab\CodeQuality' for DMST HTML reports.
+[VTCCP-SCRAPER] Started watching 'C:\Users\Administrator\Documents\DM475-63530E-PIPS-Verif-Lab\CodeQuality'.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Encoding.CodePages.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.FileExtensions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Json.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Physical.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.IO.RecyclableMemoryStream.dll'. 
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-22-007.html': ok=True, dt=18:09:22
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Drawing.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-22-622.html': ok=True, dt=18:09:22
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.DiagnosticSource.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-23-236.html': ok=True, dt=18:09:23
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-23-818.html': ok=True, dt=18:09:23
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-24-391.html': ok=True, dt=18:09:24
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-25-002.html': ok=True, dt=18:09:25
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-25-542.html': ok=True, dt=18:09:25
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-26-149.html': ok=True, dt=18:09:26
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-26-736.html': ok=True, dt=18:09:26
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-27-338.html': ok=True, dt=18:09:27
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER 1 failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.), trying plain TRIGGER...
+[VTCCP-SDK] XmlResultArrived: 184303 chars
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER also failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.).
+[VTCCP-SDK] SDK rejected TRIGGER — raw TCP bypass (racing socket + XmlResultArrived)...
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-27-933.html': ok=True, dt=18:09:27
+[VTCCP-SDK] XmlResultArrived: 184264 chars
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-SDK] TRIGGER sent — racing socket vs XmlResultArrived...
+[VTCCP-SDK] WhenAny winner: XmlResultArrived  result=184303chars
+[VTCCP-SDK] TriggerAndWaitForXml: returning 184303 chars.
+Exception thrown: 'System.IO.IOException' in System.Net.Sockets.dll
+[VTCCP-SDK] Socket read error: Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request..
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-28-528.html': ok=True, dt=18:09:28
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'System.Xml.XmlException' in System.Private.Xml.dll
+[VTCCP-ROI] SDK response had no byte[] property — dumping props:
+[VTCCP-ROI] SdkResp.CommandId = 115
+[VTCCP-ROI] SdkResp.ResponseId = -1
+[VTCCP-ROI] SdkResp.PayLoad = 5016291
+[VTCCP-ROI] SdkResp.BinaryData = System.IO.MemoryStream
+[VTCCP-ROI] SdkResp.CommandRoundtrip = 00:00:00.2840008
+[VTCCP-ROI] SDK path failed — falling back to raw TCP.
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-29-111.html': ok=True, dt=18:09:29
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-29-775.html': ok=True, dt=18:09:29
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-30-285.html': ok=True, dt=18:09:30
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-30-900.html': ok=True, dt=18:09:30
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-31-475.html': ok=True, dt=18:09:31
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-32-051.html': ok=True, dt=18:09:32
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-32-655.html': ok=True, dt=18:09:32
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-33-215.html': ok=True, dt=18:09:33
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-33-790.html': ok=True, dt=18:09:33
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-34-395.html': ok=True, dt=18:09:34
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-ROI] Raw TCP: no data received.
+[VTCCP-SCRAPER] Correlated HTML report to scan at 18:09:28. Running merge+validate.
+[VTCCP-VALID] 1 discrepancy(s) — 18:09:28:
+  MatrixSize:Push=22x22 (data: 20x20),Html=22x22
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-35-028.html': ok=True, dt=18:09:35
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-35-604.html': ok=True, dt=18:09:35
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-36-100.html': ok=True, dt=18:09:36
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-36-658.html': ok=True, dt=18:09:36
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-37-248.html': ok=True, dt=18:09:37
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-37-883.html': ok=True, dt=18:09:37
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-38-408.html': ok=True, dt=18:09:38
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-38-999.html': ok=True, dt=18:09:38
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-39-567.html': ok=True, dt=18:09:39
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-40-157.html': ok=True, dt=18:09:40
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-40-758.html': ok=True, dt=18:09:40
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-41-311.html': ok=True, dt=18:09:41
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-41-917.html': ok=True, dt=18:09:41
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-42-478.html': ok=True, dt=18:09:42
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-43-050.html': ok=True, dt=18:09:43
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-43-634.html': ok=True, dt=18:09:43
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-44-223.html': ok=True, dt=18:09:44
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-44-834.html': ok=True, dt=18:09:44
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-45-353.html': ok=True, dt=18:09:45
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-27_18-09-45-950.html': ok=True, dt=18:09:45
