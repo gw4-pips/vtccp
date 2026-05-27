@@ -238,83 +238,133 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
             // Both SDK TRIGGER forms were rejected by the SDK's own parameter
             // validation layer (not the device) — firmware 6.1.16_sr4 / SDK v25
-            // version mismatch.  Bypass the SDK entirely: open a raw TCP connection,
-            // send TRIGGER, and read the XML result directly from that same connection.
+            // version mismatch.  Bypass the SDK entirely: open a raw TCP connection
+            // and send TRIGGER.
             //
-            // CRITICAL: the device sends the result XML back on the connection that
-            // sent the TRIGGER — NOT on the SDK's existing connection.  Waiting for
-            // XmlResultArrived after closing the raw TCP socket always times out because
-            // the result was discarded when the socket closed.  We must keep the raw TCP
-            // socket open and read the result from it directly.
+            // Result delivery is ambiguous: the device may return XML on the raw
+            // socket (DMCC synchronous response) OR push it to the SDK's existing
+            // connection via XmlResultArrived (async result subscription).
+            // We race both channels with Task.WhenAny so we catch the result
+            // regardless of which path the firmware uses.
             System.Diagnostics.Debug.WriteLine(
-                "[VTCCP-SDK] SDK rejected TRIGGER — trying raw TCP bypass (read result from same socket)...");
+                "[VTCCP-SDK] SDK rejected TRIGGER — raw TCP bypass (racing socket + XmlResultArrived)...");
             try
             {
                 using var tcp = new TcpClient();
-                tcp.ReceiveTimeout = timeoutMs + 2_000;
+                tcp.ReceiveTimeout = timeoutMs + 5_000;
                 await tcp.ConnectAsync(_cfg.Host, _cfg.Port, ct);
                 using var stream = tcp.GetStream();
 
-                // Drain any welcome banner the device may send on connect.
+                // Drain the device welcome banner.
                 try
                 {
-                    using var bannerCts = new CancellationTokenSource(400);
-                    byte[] buf = new byte[512];
-                    await stream.ReadAsync(buf, bannerCts.Token);
+                    using var bannerCts = new CancellationTokenSource(600);
+                    byte[] bannerBuf = new byte[1024];
+                    int bannerN = await stream.ReadAsync(bannerBuf, bannerCts.Token);
+                    if (bannerN > 0)
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[VTCCP-SDK] Banner ({bannerN}B): '{Encoding.ASCII.GetString(bannerBuf, 0, bannerN).Trim()}'");
                 }
-                catch (OperationCanceledException) { /* no banner or timeout — OK */ }
+                catch (OperationCanceledException) { }
                 catch { }
 
                 // Send the bare TRIGGER command.
                 await stream.WriteAsync(Encoding.ASCII.GetBytes("TRIGGER\r\n"), ct);
-                System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER sent via raw TCP — reading result from same socket...");
+                System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER sent — racing socket vs XmlResultArrived...");
 
-                // Read response chunks until we have a complete XML document or timeout.
-                // The device sends: DMCC ACK (\r\n0\r\n\r\n) then the XML result body.
+                // Race 1: read XML result from the same raw socket.
                 using var readCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 readCts.CancelAfter(timeoutMs);
-                var sb = new StringBuilder(8192);
-                byte[] readBuf = new byte[4096];
+
+                async Task<string?> ReadSocketAsync(System.IO.Stream s, CancellationToken tok)
+                {
+                    var sb2     = new StringBuilder(8192);
+                    byte[] buf2 = new byte[4096];
+                    bool loggedFirst = false;
+                    try
+                    {
+                        while (true)
+                        {
+                            int n = await s.ReadAsync(buf2, tok);
+                            if (n == 0) break;
+                            string chunk = Encoding.UTF8.GetString(buf2, 0, n);
+                            sb2.Append(chunk);
+
+                            // Always log the first bytes from the device — diagnostic gold.
+                            if (!loggedFirst)
+                            {
+                                loggedFirst = true;
+                                string preview = sb2.ToString()[..Math.Min(sb2.Length, 300)]
+                                                    .Replace("\r", "\\r").Replace("\n", "\\n");
+                                System.Diagnostics.Debug.WriteLine(
+                                    $"[VTCCP-SDK] Device response on raw socket ({sb2.Length}B so far): '{preview}'");
+                            }
+
+                            string acc  = sb2.ToString();
+                            bool hasOpen  = acc.Contains("<result", StringComparison.OrdinalIgnoreCase)
+                                         || acc.Contains("<?xml",   StringComparison.OrdinalIgnoreCase);
+                            bool hasClose = acc.Contains("</result>", StringComparison.OrdinalIgnoreCase);
+                            if (hasOpen && hasClose)
+                            {
+                                System.Diagnostics.Debug.WriteLine(
+                                    $"[VTCCP-SDK] Raw socket XML complete: {acc.Length} chars.");
+                                int xs = acc.IndexOf('<');
+                                return xs > 0 ? acc[xs..] : acc;
+                            }
+                        }
+                    }
+                    catch (OperationCanceledException) { }
+                    catch (Exception ex2)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[VTCCP-SDK] Socket read error: {ex2.Message}");
+                    }
+
+                    if (sb2.Length > 0)
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[VTCCP-SDK] Socket closed without complete XML ({sb2.Length}B accumulated).");
+                    return null;
+                }
+
+                // Race 2: tcs resolves when XmlResultArrived fires on SDK channel.
+                var socketTask = ReadSocketAsync(stream, readCts.Token);
+                var eventTask  = tcs.Task;
+
+                // WhenAny completes as soon as either task finishes.
+                // socketTask is bounded by readCts; eventTask may never complete if
+                // XmlResultArrived never fires — use WaitAsync to impose the same limit.
+                string? result = null;
                 try
                 {
-                    while (true)
+                    var winner = await Task.WhenAny(socketTask, eventTask).WaitAsync(readCts.Token);
+                    result = await winner;
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SDK] WhenAny winner: {(winner == (Task<string?>)socketTask ? "socket" : "XmlResultArrived")}  result={result?.Length ?? 0}chars");
+
+                    if (result is null)
                     {
-                        int n = await stream.ReadAsync(readBuf, readCts.Token);
-                        if (n == 0) break;
-                        sb.Append(Encoding.UTF8.GetString(readBuf, 0, n));
-                        string accumulated = sb.ToString();
-                        // XML starts with <?xml or <result; ends with </result>.
-                        // Wait until we have both the opening and closing tags.
-                        bool hasOpen  = accumulated.Contains("<result", StringComparison.OrdinalIgnoreCase)
-                                     || accumulated.Contains("<?xml",   StringComparison.OrdinalIgnoreCase);
-                        bool hasClose = accumulated.Contains("</result>", StringComparison.OrdinalIgnoreCase);
-                        if (hasOpen && hasClose)
-                        {
-                            System.Diagnostics.Debug.WriteLine(
-                                $"[VTCCP-SDK] Raw TCP result received: {accumulated.Length} chars.");
-                            // Strip any leading DMCC framing (\r\n0\r\n\r\n) before the XML.
-                            int xmlStart = accumulated.IndexOf('<');
-                            return xmlStart > 0 ? accumulated[xmlStart..] : accumulated;
-                        }
+                        // First winner returned null — wait briefly for the other channel.
+                        var other = winner == (Task<string?>)socketTask
+                            ? eventTask : (Task<string?>)socketTask;
+                        try { result = await other.WaitAsync(readCts.Token); }
+                        catch (OperationCanceledException) { }
                     }
                 }
                 catch (OperationCanceledException)
                 {
-                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] Raw TCP read timed out.");
+                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] Both channels timed out.");
+                    // Capture any result that arrived just after the timeout fired.
+                    if (socketTask.IsCompleted) result = await socketTask;
+                    if (result is null && tcs.Task.IsCompleted) result = tcs.Task.Result;
                 }
 
-                // Return whatever was accumulated (may be partial or empty).
-                if (sb.Length > 0)
-                {
-                    int xmlStart = sb.ToString().IndexOf('<');
-                    return xmlStart >= 0 ? sb.ToString()[xmlStart..] : null;
-                }
-                return null;
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SDK] TriggerAndWaitForXml: returning {result?.Length ?? 0} chars.");
+                return result;
             }
             catch (Exception tcpEx)
             {
                 System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SDK] Raw TCP TRIGGER failed: {tcpEx.GetType().Name}: {tcpEx.Message}");
+                    $"[VTCCP-SDK] Raw TCP TRIGGER exception: {tcpEx.GetType().Name}: {tcpEx.Message}");
                 return null;
             }
         }
