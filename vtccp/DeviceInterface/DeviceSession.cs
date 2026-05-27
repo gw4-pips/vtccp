@@ -110,14 +110,19 @@ public sealed class DeviceSession : IAsyncDisposable
         };
 
         // ── Trigger mode ─────────────────────────────────────────────────────
-        // Many DMV devices default to External (hardware-only) trigger mode.
-        // Software TRIGGER commands are received but the device arms and waits
-        // for an electrical hardware pulse that never arrives, then times out
-        // (~6 s) and returns No Read without ever flashing the illumination.
+        // TRIGGER.TYPE values: 0=Continuous, 1=Single, 2=External.
+        //
+        // Both Continuous (0) and Single (1) respond to software TRIGGER commands,
+        // so VTCCP's manual trigger works in either mode.  External (2) is the
+        // only mode that blocks software triggers — the device waits for a hardware
+        // pulse that never arrives, times out (~6 s), and returns No Read.
+        //
+        // Rule: only switch to Single if the device is currently External (2).
+        // Leaving Continuous (0) or Single (1) alone preserves DMST's ability to
+        // use "Go Live" mode — which relies on Continuous — when the operator
+        // switches back to DMST between VTCCP sessions.
         //
         // GET TRIGGER.TYPE: record the original for restore-on-disconnect.
-        // On this firmware (6.1.16_sr4) the PayLoad is empty even on a successful
-        // response, so we cannot rely on it to gate the SET command.
         var trigResp = await _client.SendAsync(DmccCommand.GetTriggerType, ct);
         _originalTriggerType = string.IsNullOrWhiteSpace(trigResp.Body)
             ? null
@@ -125,13 +130,20 @@ public sealed class DeviceSession : IAsyncDisposable
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-DMCC] GET TRIGGER.TYPE: code={trigResp.StatusCode}  value='{_originalTriggerType}'");
 
-        // Always attempt to switch to Single (software) trigger mode so VTCCP's
-        // software TRIGGER command fires immediately without a hardware pulse.
-        // SET TRIGGER.TYPE 1 uses the integer form — the string "Single" is
-        // rejected by some firmware with InvalidParameterException.
-        var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
-        System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-DMCC] SET TRIGGER.TYPE 1: code={setResp.StatusCode}");
+        // Only switch to Single when device is in External mode (2).
+        // Continuous (0) and Single (1) both accept software TRIGGER commands.
+        bool isExternal = _originalTriggerType == "2";
+        if (isExternal)
+        {
+            var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] SET TRIGGER.TYPE 1 (was External): code={setResp.StatusCode}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] TRIGGER.TYPE left unchanged (value='{_originalTriggerType}', not External).");
+        }
 
         // ── HTML report scraper ───────────────────────────────────────────────
         // Watches the DMST CodeQuality directory for HTML reports written by DMST
