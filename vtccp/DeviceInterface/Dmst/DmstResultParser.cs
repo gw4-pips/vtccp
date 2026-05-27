@@ -53,13 +53,19 @@ public static class DmstResultParser
     {
         map ??= new VerificationXmlMap();
 
-        // The Cognex ReadXml result from XmlResultArrived embeds the JPEG
-        // image in the XML.  The firmware places the GS1 FNC1 character
-        // (0x1D) literally in the decoded-data element — illegal in XML 1.0
-        // for XDocument.Parse, but valid content that we must NOT strip
-        // (stripping it breaks GS1 DataMatrix detection).
-        // Fix: parse with XmlReaderSettings.CheckCharacters=false so the
-        // parser accepts 0x1D and other control chars in element content.
+        // Strip characters that are illegal in XML 1.0 before parsing.
+        // The Cognex firmware sometimes embeds raw GS1 FNC1 (0x1D) or other
+        // control characters in the result payload — the XML parser rejects them.
+        // StripIllegalXmlChars() removes only characters outside the legal XML 1.0
+        // set; all base64 content, element syntax, and printable text is unaffected.
+        //
+        // GS1 safety: the firmware always writes the FNC1 delimiter as the text
+        // placeholder "<F1>" in the Data / DecodedData element (confirmed from live
+        // scans — row 4 in Excel shows "<F1>01003555...").  GS1Parser.cs normalises
+        // "<F1>" → raw 0x1D internally, so GS1 DataMatrix parsing is fully intact
+        // after the strip.  CheckCharacters=false is retained as belt-and-suspenders.
+        xml = StripIllegalXmlChars(xml);
+
         XDocument doc;
         try
         {
