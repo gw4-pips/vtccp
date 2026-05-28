@@ -259,8 +259,21 @@ public static class DmstResultParser
             ?? deviceContext?.Symbology
             ?? "Unknown";
 
+        // Read SymbologyId early — needed to detect GS1 variants below.
+        // (Also stored on the record at the normal location further down.)
+        string? symbIdEarly = Str(map.SymbologyId);
+
         SymbologyFamily symbFamily = map.ClassifySymbology(symbName);
         string symbology = NormaliseSymbologyName(symbName);
+
+        // GS1 DataMatrix: firmware reports <SymbologyName>Data Matrix</SymbologyName>
+        // regardless of GS1 content.  The AIM ID ]d2 signals "FNC1 in first position"
+        // (confirmed on fw 6.1.16_sr4: plain DM → ]d1, GS1 DM → ]d2).
+        if (symbology == "DataMatrix" && symbIdEarly == "]d2")
+        {
+            symbology  = "GS1 DataMatrix";
+            symbFamily = SymbologyFamily.GS1DataMatrix;
+        }
 
         // ── Timestamp ─────────────────────────────────────────────────────────
         // Firmware 6.x: timestamp is inside the base64-encoded <full_string>.
