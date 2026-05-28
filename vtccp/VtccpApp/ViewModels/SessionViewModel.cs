@@ -491,49 +491,61 @@ public sealed class SessionViewModel : ViewModelBase
             catch (OperationCanceledException) { }
             catch { }
 
-            // Switch to Extended response mode so the device ACKs every command with ||[N]\r\n.
-            // Default (Silent, mode 0) returns no bytes at all — TRIGGER ON would appear to timeout.
+            // Helper: send one raw DMCC command and read back the ||[N]\r\n ACK line.
+            // SET COM.DMCC-RESPONSE 2 must be sent first (no ACK expected for it because
+            // the device is in Silent mode when it receives that command — the mode switch
+            // takes effect immediately but silently, so subsequent commands get ACKs).
+            async Task<string> SendAndReadAck(string command, int ackTimeoutMs)
+            {
+                await stream.WriteAsync(
+                    System.Text.Encoding.ASCII.GetBytes(
+                        $"{DeviceInterface.Dmcc.DmccCommand.WireHeader}{command}\r\n"));
+
+                var ackSb = new System.Text.StringBuilder();
+                byte[] ackBuf = new byte[128];
+                try
+                {
+                    using var ackCts = new System.Threading.CancellationTokenSource(ackTimeoutMs);
+                    while (true)
+                    {
+                        using var idleCts2 = System.Threading.CancellationTokenSource
+                            .CreateLinkedTokenSource(ackCts.Token);
+                        idleCts2.CancelAfter(cfg.IdleGapMs);
+                        int na = await stream.ReadAsync(ackBuf, idleCts2.Token);
+                        if (na == 0) break;
+                        ackSb.Append(System.Text.Encoding.ASCII.GetString(ackBuf, 0, na));
+                        if (ackSb.ToString().Contains("\r\n")) break;
+                    }
+                }
+                catch (OperationCanceledException) { }
+                return ackSb.ToString();
+            }
+
+            // 1. Switch to Extended response mode (no ACK — device was in Silent mode).
             await stream.WriteAsync(
                 System.Text.Encoding.ASCII.GetBytes(
                     $"{DeviceInterface.Dmcc.DmccCommand.WireHeader}{DeviceInterface.Dmcc.DmccCommand.SetDmccResponseExtended}\r\n"));
-            try
-            {
-                using var modeAckCts = new System.Threading.CancellationTokenSource(1_000);
-                byte[] modeBuf = new byte[64];
-                int modeN = await stream.ReadAsync(modeBuf, modeAckCts.Token);
-                if (modeN > 0)
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-DMCC] SET COM.DMCC-RESPONSE 2 ack ({modeN}B): " +
-                        $"'{System.Text.Encoding.ASCII.GetString(modeBuf, 0, modeN).Trim()}'");
-            }
-            catch (OperationCanceledException) { }
-            catch { }
+            System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] SET COM.DMCC-RESPONSE 2 sent (no ACK expected in silent mode).");
 
-            // Send TRIGGER ON — correct DMCC wire syntax per DMCC Reference doc.
-            await stream.WriteAsync(
-                System.Text.Encoding.ASCII.GetBytes(
-                    $"{DeviceInterface.Dmcc.DmccCommand.WireHeader}{DeviceInterface.Dmcc.DmccCommand.TriggerOn}\r\n"));
-            System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] TRIGGER ON sent via raw TCP.");
+            // 2. SET TRIGGER.TYPE 1 (Single — enables software TRIGGER ON).
+            //    TRIGGER.TYPE=0 (External) only accepts hardware trigger signals; the device
+            //    silently ignores DMCC TRIGGER ON at type 0. Type 1 (Single) allows both.
+            string ttAck = await SendAndReadAck(DeviceInterface.Dmcc.DmccCommand.SetTriggerTypeSingle, 2_000);
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] SET TRIGGER.TYPE 1 ack: '{ttAck.Replace("\r","\\r").Replace("\n","\\n")}'");
 
-            // Read device acknowledgment — just a short status code line.
-            var sb = new System.Text.StringBuilder();
-            byte[] buf = new byte[256];
-            using var readCts = new System.Threading.CancellationTokenSource(cfg.ResponseTimeoutMs);
-            try
-            {
-                while (true)
-                {
-                    using var idleCts = System.Threading.CancellationTokenSource
-                        .CreateLinkedTokenSource(readCts.Token);
-                    idleCts.CancelAfter(cfg.IdleGapMs);
-                    int n = await stream.ReadAsync(buf, idleCts.Token);
-                    if (n == 0) break;
-                    sb.Append(System.Text.Encoding.ASCII.GetString(buf, 0, n));
-                }
-            }
-            catch (OperationCanceledException) { }
+            // 3. Fire TRIGGER ON.
+            string trigAck = await SendAndReadAck(DeviceInterface.Dmcc.DmccCommand.TriggerOn, cfg.ResponseTimeoutMs);
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] TRIGGER ON sent via raw TCP. ack: '{trigAck.Replace("\r","\\r").Replace("\n","\\n")}'");
 
-            string raw = sb.ToString();
+            // 4. Restore TRIGGER.TYPE to 0 (External) — VTCCP must not leave the device in
+            //    software-trigger mode; the physical button must continue to work after this call.
+            string restoreAck = await SendAndReadAck($"SET TRIGGER.TYPE 0", 2_000);
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] Restored TRIGGER.TYPE 0. ack: '{restoreAck.Replace("\r","\\r").Replace("\n","\\n")}'");
+
+            string raw = trigAck;
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-DMCC] TRIGGER raw response ({raw.Length}B): " +
                 $"'{raw.Replace("\r", "\\r").Replace("\n", "\\n")}'");
