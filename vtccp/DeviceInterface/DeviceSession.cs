@@ -116,17 +116,19 @@ public sealed class DeviceSession : IAsyncDisposable
             },
         };
 
-        // TRIGGER.TYPE values: 0=Continuous, 1=Single, 2=External.
+        // TRIGGER.TYPE confirmed values from DMCC Reference fw 6.1.16_sr4:
+        //   0=Single(external)  1=Presentation(internal)  2=Manual(button)
+        //   3=Burst(external)   4=Self(internal)           5=Continuous(external)
         //
-        // VTCCP Manual Trigger mode sends software TRIGGER commands and needs
-        // Single (1) to ensure exactly one acquisition fires per command.
+        // GET is kept as a diagnostic read so the UI and logs can show the
+        // device's current trigger mode on connect.
         //
-        // Strategy:
-        //   1. GET the current value — this is whatever DMST had it set to.
-        //      Store it in _originalTriggerType for restore on Stop/Exit.
-        //   2. SET to Single (1) for VTCCP's use.
-        //   3. On DisconnectAsync (Stop or app exit): restore to _originalTriggerType
-        //      so DMST's "Go Live" continuous mode works again after VTCCP stops.
+        // SET TRIGGER.TYPE is intentionally NOT issued here.
+        // Rationale: the raw TCP TRIGGER command fires a single acquisition
+        // regardless of TRIGGER.TYPE, and DMST itself never changes TRIGGER.TYPE
+        // during normal Go-Live / Verify operation (it stays at Single/external).
+        // The prior SET TRIGGER.TYPE 1 was based on a wrong assumption and
+        // may have caused undesirable post-scan reader behaviour — under probe.
         var trigResp = await _client.SendAsync(DmccCommand.GetTriggerType, ct);
         _originalTriggerType = string.IsNullOrWhiteSpace(trigResp.Body)
             ? null
@@ -134,9 +136,10 @@ public sealed class DeviceSession : IAsyncDisposable
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-DMCC] GET TRIGGER.TYPE: code={trigResp.StatusCode}  value='{_originalTriggerType}'");
 
-        var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
-        System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-DMCC] SET TRIGGER.TYPE 1 (Single): code={setResp.StatusCode}");
+        // SET TRIGGER.TYPE 1 — COMMENTED OUT (probe: was this causing post-scan looping?)
+        // var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
+        // System.Diagnostics.Debug.WriteLine(
+        //     $"[VTCCP-DMCC] SET TRIGGER.TYPE 1 (Single): code={setResp.StatusCode}");
 
         // ── HTML report scraper ───────────────────────────────────────────────
         // Watches the DMST CodeQuality directory for HTML reports written by DMST
@@ -165,23 +168,23 @@ public sealed class DeviceSession : IAsyncDisposable
     /// <summary>Closes the DMCC connection and stops any active push listener.</summary>
     public async Task DisconnectAsync()
     {
-        // Restore the original trigger type so VTCCP does not permanently change
-        // the device's configured trigger source.
-        if (_originalTriggerType is not null && _client.IsConnected)
-        {
-            try
-            {
-                var restoreCmd = $"SET TRIGGER.TYPE {_originalTriggerType}";
-                await _client.SendAsync(restoreCmd);
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-DMCC] Restored trigger type to '{_originalTriggerType}'.");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-DMCC] Could not restore trigger type: {ex.Message}");
-            }
-        }
+        // TRIGGER.TYPE restore — COMMENTED OUT (SET on connect is also commented out;
+        // nothing to restore.  Re-enable both together if SET is reinstated.)
+        // if (_originalTriggerType is not null && _client.IsConnected)
+        // {
+        //     try
+        //     {
+        //         var restoreCmd = $"SET TRIGGER.TYPE {_originalTriggerType}";
+        //         await _client.SendAsync(restoreCmd);
+        //         System.Diagnostics.Debug.WriteLine(
+        //             $"[VTCCP-DMCC] Restored trigger type to '{_originalTriggerType}'.");
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         System.Diagnostics.Debug.WriteLine(
+        //             $"[VTCCP-DMCC] Could not restore trigger type: {ex.Message}");
+        //     }
+        // }
 
         if (_httpSubscriber is not null)
         {
@@ -203,22 +206,22 @@ public sealed class DeviceSession : IAsyncDisposable
     /// </summary>
     public async Task RebootAndDisconnectAsync()
     {
-        // Restore trigger type first — the reboot will also reset it, but explicit
-        // restore ensures deterministic state even if reboot is skipped in future.
-        if (_originalTriggerType is not null && _client.IsConnected)
-        {
-            try
-            {
-                await _client.SendAsync($"SET TRIGGER.TYPE {_originalTriggerType}");
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-DMCC] Restored trigger type to '{_originalTriggerType}'.");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-DMCC] Could not restore trigger type: {ex.Message}");
-            }
-        }
+        // TRIGGER.TYPE restore — COMMENTED OUT (SET on connect is also commented out;
+        // nothing to restore.  Re-enable both together if SET is reinstated.)
+        // if (_originalTriggerType is not null && _client.IsConnected)
+        // {
+        //     try
+        //     {
+        //         await _client.SendAsync($"SET TRIGGER.TYPE {_originalTriggerType}");
+        //         System.Diagnostics.Debug.WriteLine(
+        //             $"[VTCCP-DMCC] Restored trigger type to '{_originalTriggerType}'.");
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         System.Diagnostics.Debug.WriteLine(
+        //             $"[VTCCP-DMCC] Could not restore trigger type: {ex.Message}");
+        //     }
+        // }
 
         // Stop any active subscribers/listeners before the device disappears.
         if (_httpSubscriber is not null) { await _httpSubscriber.StopAsync(); _httpSubscriber = null; }
