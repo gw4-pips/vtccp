@@ -4,9 +4,21 @@ namespace DeviceInterface.Dmcc;
 /// Well-known DMCC command strings for the Cognex DataMan DMV device,
 /// confirmed against the DataMan DMCC Reference 6.1.16_sr4 (2026-04-21).
 ///
-/// DMCC command syntax: plain ASCII text, CRLF-terminated.
-/// Example:  GET DEVICE.TYPE\r\n
-///           SET DEVICE.NAME MyReader\r\n
+/// DMCC wire protocol (raw TCP):
+///   Command format:  ||>{command}\r\n
+///   e.g.  ||>GET DEVICE.TYPE\r\n
+///         ||>TRIGGER ON\r\n
+///   The "||>" is the bare header (full form: ||checksum:command-id>; all fields optional).
+///
+///   Response format (Extended mode, COM.DMCC-RESPONSE=2):
+///     ||[0]\r\n                    ← status 0 = OK
+///     ||[101]\r\n                  ← invalid command
+///     ||[102]\r\n                  ← invalid parameter
+///     ||[104]\r\n                  ← parameter rejected (reader state)
+///   Silent mode (default, COM.DMCC-RESPONSE=0): no ACK at all — set Extended immediately after banner.
+///
+/// When commands are sent via the Cognex SDK (DataManSdkClient.SendAsync), the SDK
+/// adds the header/framing automatically.  Raw TCP callers must prepend WireHeader.
 /// </summary>
 public static class DmccCommand
 {
@@ -75,13 +87,43 @@ public static class DmccCommand
     /// </summary>
     public const string ImageSend = "IMAGE.SEND";
 
+    // ── Raw TCP wire helpers ───────────────────────────────────────────────────
+
+    /// <summary>
+    /// Bare DMCC command header for raw TCP connections.
+    /// All commands sent on raw TCP must be prefixed: WireHeader + command + "\r\n".
+    /// The Cognex SDK adds its own framing automatically — do NOT use this prefix
+    /// when calling DataManSdkClient.SendAsync / _system.SendCommand.
+    /// </summary>
+    public const string WireHeader = "||>";
+
+    /// <summary>
+    /// Switches the DMCC response mode to Extended (mode 2).
+    /// Send this immediately after draining the welcome banner on a raw TCP connection.
+    /// In Extended mode every command returns ||[status]\r\n — enables reliable ACK detection.
+    /// Default at connect time is Silent (mode 0): no ACK for any command.
+    /// Wire form: ||>SET COM.DMCC-RESPONSE 2\r\n
+    /// </summary>
+    public const string SetDmccResponseExtended = "SET COM.DMCC-RESPONSE 2";
+
     // ── Trigger / result ──────────────────────────────────────────────────────
 
     /// <summary>
-    /// Issues a single software trigger (capture + verify one symbol).
-    /// Response is status only — no body.
+    /// Fires a single software trigger (capture + verify one symbol).
+    /// DMCC wire form (confirmed from DMCC Reference): ||>TRIGGER ON\r\n
+    /// Extended-mode response: ||[0]\r\n  (then result via HTTP push or XmlResultArrived).
+    /// The SDK's SendCommand may also accept "TRIGGER ON" — try that path first.
     /// </summary>
-    public const string Trigger           = "TRIGGER";
+    public const string TriggerOn  = "TRIGGER ON";
+
+    /// <summary>Cancels a held Manual trigger. Wire form: ||>TRIGGER OFF\r\n</summary>
+    public const string TriggerOff = "TRIGGER OFF";
+
+    /// <summary>
+    /// Bare "TRIGGER" — kept only for SDK compatibility probes.
+    /// The correct DMCC form is TriggerOn ("TRIGGER ON").
+    /// </summary>
+    public const string Trigger = "TRIGGER";
 
     /// <summary>
     /// Returns the verification result for the most recent scan as DMST XML.

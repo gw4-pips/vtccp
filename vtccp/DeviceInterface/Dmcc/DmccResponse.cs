@@ -3,18 +3,30 @@ namespace DeviceInterface.Dmcc;
 /// <summary>
 /// Parsed result of a single DMCC command exchange.
 ///
-/// DMCC response wire format (CRLF = \r\n):
-///   CRLF                    ← start marker (blank line)
-///   {status_code}CRLF       ← 0 = OK, non-zero = error
-///   CRLF                    ← present only when a body follows
-///   {body_line_1}CRLF       ← zero or more body lines
-///   {body_line_N}CRLF
+/// Two wire formats are handled:
 ///
-/// Status codes:
+/// 1. Extended mode (COM.DMCC-RESPONSE=2) — actual device wire format:
+///      ||[0]\r\n                    ← status 0 = OK
+///      ||[101]\r\n                  ← invalid command
+///      ||[102]\r\n                  ← invalid parameter
+///      ||[104]\r\n                  ← rejected (reader state)
+///    For commands with a data body (e.g. GET results):
+///      ||[0]\r\n
+///      ||[1]{base64-or-plain-data}\r\n
+///
+/// 2. Legacy / SDK-synthesised format (used internally in DataManSdkClient.SendAsync):
+///      CRLF                    ← start marker
+///      {status_code}CRLF       ← 0 = OK
+///      CRLF
+///      {body_line}CRLF
+///
+/// Status codes (device):
 ///   0   = Success
-///   6   = No read (device did not decode a symbol)
-///   8   = Busy / command rejected
-///   Other = device-specific error
+///   6   = No read
+///   8   = Busy / rejected
+///   101 = Invalid command
+///   102 = Invalid parameter
+///   104 = Parameter rejected due to reader state
 /// </summary>
 public sealed class DmccResponse
 {
@@ -40,40 +52,75 @@ public sealed class DmccResponse
     // ── Parsing ───────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Parses a raw DMCC response buffer (as received from the TCP stream).
-    /// Tolerates minor formatting variations across firmware versions.
+    /// Parses a raw DMCC response buffer (as received from the TCP stream or
+    /// synthesised internally by DataManSdkClient.SendAsync).
+    /// Handles both the Extended wire format (||[N]\r\n) and the legacy
+    /// SDK-synthesised format (\r\n{N}\r\n\r\n{body}).
     /// </summary>
     public static DmccResponse Parse(string raw)
     {
         if (string.IsNullOrEmpty(raw))
             return new DmccResponse(DmccStatus.NoResponse, string.Empty);
 
-        // Split on CRLF or just LF for robustness.
-        var lines = raw.Split(["\r\n", "\n"], StringSplitOptions.None);
+        string trimmed = raw.TrimStart();
 
-        // Walk past leading blank lines to find the status line.
+        // ── Extended wire format: ||[N]\r\n ────────────────────────────────────
+        // Sent by the device when COM.DMCC-RESPONSE = 2.
+        if (trimmed.StartsWith("||[", StringComparison.Ordinal))
+        {
+            var lines = raw.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
+
+            // First line: ||[status]
+            int status = DmccStatus.ParseError;
+            if (lines.Length > 0)
+            {
+                string first = lines[0].Trim();
+                int lb = first.IndexOf('[');
+                int rb = first.IndexOf(']');
+                if (lb >= 0 && rb > lb &&
+                    int.TryParse(first.AsSpan(lb + 1, rb - lb - 1), out int parsed))
+                    status = parsed;
+            }
+
+            // Subsequent lines: ||[1]data  or  plain data (body).
+            var bodyParts = new System.Text.StringBuilder();
+            for (int i = 1; i < lines.Length; i++)
+            {
+                string l = lines[i].Trim();
+                if (l.StartsWith("||[", StringComparison.Ordinal))
+                {
+                    int rb2 = l.IndexOf(']');
+                    if (rb2 >= 0 && rb2 + 1 < l.Length)
+                        l = l[(rb2 + 1)..];
+                }
+                if (bodyParts.Length > 0) bodyParts.Append("\r\n");
+                bodyParts.Append(l);
+            }
+
+            return new DmccResponse(status, bodyParts.ToString());
+        }
+
+        // ── Legacy / SDK-synthesised format: \r\n{N}\r\n\r\n{body} ───────────
+        var legLines = raw.Split(["\r\n", "\n"], StringSplitOptions.None);
         int idx = 0;
-        while (idx < lines.Length && string.IsNullOrWhiteSpace(lines[idx]))
+        while (idx < legLines.Length && string.IsNullOrWhiteSpace(legLines[idx]))
             idx++;
 
-        // Status code line.
-        if (idx >= lines.Length)
+        if (idx >= legLines.Length)
             return new DmccResponse(DmccStatus.ParseError, raw);
 
-        if (!int.TryParse(lines[idx].Trim(), out int status))
+        if (!int.TryParse(legLines[idx].Trim(), out int legStatus))
             return new DmccResponse(DmccStatus.ParseError, raw);
         idx++;
 
-        // Skip blank separator between status and body.
-        while (idx < lines.Length && string.IsNullOrWhiteSpace(lines[idx]))
+        while (idx < legLines.Length && string.IsNullOrWhiteSpace(legLines[idx]))
             idx++;
 
-        // Remaining lines = body.
-        string body = idx < lines.Length
-            ? string.Join("\r\n", lines[idx..]).TrimEnd('\r', '\n')
+        string legBody = idx < legLines.Length
+            ? string.Join("\r\n", legLines[idx..]).TrimEnd('\r', '\n')
             : string.Empty;
 
-        return new DmccResponse(status, body);
+        return new DmccResponse(legStatus, legBody);
     }
 
     public override string ToString() =>

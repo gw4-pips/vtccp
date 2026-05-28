@@ -491,9 +491,29 @@ public sealed class SessionViewModel : ViewModelBase
             catch (OperationCanceledException) { }
             catch { }
 
-            // Send TRIGGER.
-            await stream.WriteAsync(System.Text.Encoding.ASCII.GetBytes("TRIGGER\r\n"));
-            System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] TRIGGER sent via raw TCP.");
+            // Switch to Extended response mode so the device ACKs every command with ||[N]\r\n.
+            // Default (Silent, mode 0) returns no bytes at all — TRIGGER ON would appear to timeout.
+            await stream.WriteAsync(
+                System.Text.Encoding.ASCII.GetBytes(
+                    $"{DeviceInterface.Dmcc.DmccCommand.WireHeader}{DeviceInterface.Dmcc.DmccCommand.SetDmccResponseExtended}\r\n"));
+            try
+            {
+                using var modeAckCts = new System.Threading.CancellationTokenSource(1_000);
+                byte[] modeBuf = new byte[64];
+                int modeN = await stream.ReadAsync(modeBuf, modeAckCts.Token);
+                if (modeN > 0)
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-DMCC] SET COM.DMCC-RESPONSE 2 ack ({modeN}B): " +
+                        $"'{System.Text.Encoding.ASCII.GetString(modeBuf, 0, modeN).Trim()}'");
+            }
+            catch (OperationCanceledException) { }
+            catch { }
+
+            // Send TRIGGER ON — correct DMCC wire syntax per DMCC Reference doc.
+            await stream.WriteAsync(
+                System.Text.Encoding.ASCII.GetBytes(
+                    $"{DeviceInterface.Dmcc.DmccCommand.WireHeader}{DeviceInterface.Dmcc.DmccCommand.TriggerOn}\r\n"));
+            System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] TRIGGER ON sent via raw TCP.");
 
             // Read device acknowledgment — just a short status code line.
             var sb = new System.Text.StringBuilder();

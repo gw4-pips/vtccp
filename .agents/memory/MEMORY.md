@@ -3,3 +3,4 @@
 - [DM475V Trigger Type Ground Truth](trigger-type-ground-truth.md) — normal idle state = Single (external); motion detection NEVER in play; Presentation mode theory was wrong
 - [HTTP result delivery](http-result-delivery.md) — XmlResultArrived dead for external triggers; HTTP subscriber (GET /events?enable port 44444) is the only path; CP software trigger still unresolved
 - [GS1 DataMatrix detection](gs1-datamatrix-detection.md) — ]d2 = GS1 DM (FNC1 first position); 0x1D must be replaced with | before XDocument.Load (CheckCharacters=false insufficient)
+- [DMCC raw TCP wire protocol](dmcc-wire-protocol.md) — TRIGGER ON not TRIGGER; ||> header required; Silent mode sends zero bytes; must set Extended mode first

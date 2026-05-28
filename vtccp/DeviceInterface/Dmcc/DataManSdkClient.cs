@@ -192,31 +192,44 @@ public sealed class DataManSdkClient : IAsyncDisposable
             bool triggered = false;
             await Task.Run(() =>
             {
-                // Attempt 1: TRIGGER 1
+                // Attempt 1: "TRIGGER ON" — correct DMCC syntax per DMCC Reference doc.
                 try
                 {
-                    _system!.SendCommand("TRIGGER 1");
-                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER 1 sent OK.");
+                    _system!.SendCommand("TRIGGER ON");
+                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER ON sent OK via SDK.");
                     triggered = true;
                     return;
                 }
                 catch (Exception ex1)
                 {
                     System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-SDK] TRIGGER 1 failed ({ex1.GetType().Name}: {ex1.Message}), trying plain TRIGGER...");
+                        $"[VTCCP-SDK] TRIGGER ON failed ({ex1.GetType().Name}: {ex1.Message}), trying TRIGGER 1...");
                 }
 
-                // Attempt 2: plain TRIGGER
+                // Attempt 2: legacy forms
                 try
                 {
-                    _system!.SendCommand("TRIGGER");
-                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER sent OK.");
+                    _system!.SendCommand("TRIGGER 1");
+                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER 1 sent OK via SDK.");
                     triggered = true;
+                    return;
                 }
                 catch (Exception ex2)
                 {
                     System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-SDK] TRIGGER also failed ({ex2.GetType().Name}: {ex2.Message}).");
+                        $"[VTCCP-SDK] TRIGGER 1 failed ({ex2.GetType().Name}: {ex2.Message}), trying bare TRIGGER...");
+                }
+
+                try
+                {
+                    _system!.SendCommand("TRIGGER");
+                    System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER sent OK via SDK.");
+                    triggered = true;
+                }
+                catch (Exception ex3)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SDK] All SDK TRIGGER forms failed ({ex3.GetType().Name}: {ex3.Message}).");
                 }
             }, ct);
 
@@ -268,9 +281,27 @@ public sealed class DataManSdkClient : IAsyncDisposable
                 catch (OperationCanceledException) { }
                 catch { }
 
-                // Send the bare TRIGGER command.
-                await stream.WriteAsync(Encoding.ASCII.GetBytes("TRIGGER\r\n"), ct);
-                System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER sent — racing socket vs XmlResultArrived...");
+                // Switch to Extended response mode so every command gets ||[N]\r\n ACK.
+                // Default (Silent, mode 0) sends no ACK — we would never know if TRIGGER ON landed.
+                await stream.WriteAsync(
+                    Encoding.ASCII.GetBytes($"{DmccCommand.WireHeader}{DmccCommand.SetDmccResponseExtended}\r\n"), ct);
+                try
+                {
+                    using var modeAckCts = new CancellationTokenSource(1_000);
+                    byte[] modeBuf = new byte[64];
+                    int modeN = await stream.ReadAsync(modeBuf, modeAckCts.Token);
+                    if (modeN > 0)
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[VTCCP-SDK] SET COM.DMCC-RESPONSE 2 ack ({modeN}B): " +
+                            $"'{Encoding.ASCII.GetString(modeBuf, 0, modeN).Trim()}'");
+                }
+                catch (OperationCanceledException) { }
+                catch { }
+
+                // Send TRIGGER ON — correct DMCC wire form per DMCC Reference doc.
+                await stream.WriteAsync(
+                    Encoding.ASCII.GetBytes($"{DmccCommand.WireHeader}{DmccCommand.TriggerOn}\r\n"), ct);
+                System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER ON sent via raw TCP — racing socket vs XmlResultArrived...");
 
                 // Race 1: read XML result from the same raw socket.
                 using var readCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
