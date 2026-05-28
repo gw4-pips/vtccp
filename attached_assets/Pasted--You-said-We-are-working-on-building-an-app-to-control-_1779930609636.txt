@@ -1,0 +1,81 @@
+You said: We are working on building an app to control a 475V verifier reader and the soon to be released 395V series independently of DataMan Setup Tool (DMST).We are working on building an app to control a 475V verifier reader and the soon to be released 395V series independently of DataMan Setup Tool (DMST).  For now we are constrained to make the 475V interface work.  We need to ascertain what trigger-related settings are the default when DMST opens the 475V, what that state turns to (and by what method) when the TruChcek Go LIve button is pushed or when the Caancel LIve button is selected.Immediately following a Connect command from DMST to the selected Cognex reader, the Image Preview pane is opened as static gray, no ROI displayed.  The TC app window is opened and the TC dsiplay window is also static gray.  Trigger is set to Singler (external) at this point.  CTRL-T doe snot change the trigger type setting but results in the DMST Image Panel displaying a live image wiht ROI shown.  The TC image window remAINS GRAY. zonly sfter selecting Go Live does the TC window mirror the ImPan window, AND THE trigger type is still Single buy greyed out.What can you discern about the commands that should be sent to the 475V from a 3rd party app to mimic the DMST functions of 1) CONNECT, 2) Go Live, and 3) vERIFY AND 4 gO lIVE?Show more9:02 PMClaude responded: This is a rich enough picture to give you a thorough analysis.Searched the webSearched the webThis is a rich enough picture to give you a thorough analysis. Let me synthesize what the documentation and your described observations reveal about each of the four operations.
+
+Deconstructing the DMST → 475V Communication Sequence
+Your observations are the most useful primary source here, because the TruCheck-specific DMCC command layer isn't fully documented publicly. Here's what we can infer with reasonable confidence for each state transition.
+
+1. CONNECT
+What DMST does:
+After connecting, the TruCheck window automatically opens. The post-connect state you described — Image Preview gray, no ROI, trigger set to Single (external), TC window gray — tells us a lot. Cognex
+What DMST sends on connect (based on SDK behavior and protocol documentation):
+
+Opens a TCP Telnet session on port 23 (default) to the reader's IP address
+Sends ||>SET COM.DMCC-RESPONSE 2 (extended response format, so it can parse acknowledgements)
+Queries device identity: ||>GET DEVICE.TYPE, ||>GET DEVICE.FIRMWARE-VER
+Queries current configuration: ||>GET TRIG.TYPE, ||>GET TRIG.ENABLED, and likely many other GET commands to populate the Setup Tool UI
+Sets Transfer and Display Images = enabled (tells reader to push images over the connection)
+Does NOT change trigger type — the reader stays in whatever its saved state is, which on the 475V defaults to Single (external)
+The SDK Connect() method negotiates the image transfer channel separately from the DMCC command channel
+
+Key insight from your observation: The Image Preview pane shows gray after connect but does show a live image after CTRL+T (a Single trigger fires). This confirms the connection is fully established and image transfer is active, but the reader is idle — waiting for a trigger event. The TC window stays gray because TruCheck hasn't been activated yet; it's a separate subsystem within DMST.
+For your 3rd party app — CONNECT sequence:
+TCP connect to <reader_ip>:23
+||>SET COM.DMCC-RESPONSE 2\r\n
+||>GET DEVICE.TYPE\r\n
+||>GET TRIG.TYPE\r\n
+||>GET TRIG.ENABLED\r\n
+||>SET XFER.IMG-TRANSFER-ENABLE 1\r\n   ← enables image push
+You'll also want to subscribe to the image data stream. The SDK uses a separate port or the same Telnet connection depending on image transfer mode. If not using the SDK, you'll receive image data as binary blobs interleaved with DMCC responses on the same connection (or on a second port if configured).
+
+2. GO LIVE (TC Window → Go Live button)
+What your observations reveal:
+After Connect, the TC window is gray. After Go Live:
+
+The TC window mirrors the Image Preview (continuous live image feed)
+Trigger type is still Single but grayed out (UI-locked, not changed at the firmware level)
+
+The trigger type staying as Single but greyed out is the critical clue. DMST is not switching the trigger mode to Self or Presentation at the firmware level. Instead, it is:
+
+Entering a rapid-fire "live image polling" mode — repeatedly sending Single triggers (or using the SDK's GetLiveImage() loop) at a fast interval
+Locking the UI against trigger type changes to prevent the user disrupting the live feed
+Routing the resulting images to both the Image Preview pane AND the TC window
+
+The SDK provides GetLiveImage() with both synchronous and asynchronous implementations, using Begin/End prefix pairs for async. For displaying live images, the SDK subscribes to the ImageArrived event using a polling thread. Cognex
+So "Go Live" in TruCheck context is not a single DMCC command — it's a loop managed by DMST:
+For your 3rd party app — GO LIVE sequence:
+# Option A: SDK-based (recommended)
+DataManSystem.GetLiveImage()  ← called in a polling loop
+# or subscribe to DataManSystem.ImageArrived event
+
+# Option B: Pure DMCC (no SDK)
+# Rapidly repeat at interval (e.g. 100ms):
+||>TRIGGER\r\n
+# Receive image blob
+# Display in TC window
+The graying-out of the trigger type is purely a UI state in DMST — your app will need to implement the equivalent yourself (disable trigger type controls while in live mode).
+
+3. VERIFY (after Go Live → Verify button)
+After selecting Go Live, the button changes to Verify. Once you have made your region selection, click Verify or press and release the trigger button on the verifier to begin verification. Cognex
+What happens at Verify:
+DMST stops the live image loop and sends a single deliberate trigger to acquire the verification frame. The difference from a normal Single trigger is that additional DMCC commands are sent before/after to:
+
+Define the ROI (region of interest) drawn by the user
+Request a full TruCheck grading result (not just a decode)
+Retrieve the structured verification result data (grade parameters, ISO scores, etc.)
+
+For your 3rd party app — VERIFY sequence:
+# 1. Stop live loop
+# 2. If ROI defined, set it:
+||>SET ROI.ENABLE 1\r\n
+||>SET ROI.TOP <y>\r\n
+||>SET ROI.LEFT <x>\r\n
+||>SET ROI.WIDTH <w>\r\n
+||>SET ROI.HEIGHT <h>\r\n
+
+# 3. Fire the verification trigger:
+||>TRIGGER\r\n
+
+# 4. Retrieve verification result:
+||>GET VERIFIER.RESULT\r\n   ← TruCheck-specific
+||>GET VERIFIER.GRADE\r\n
+# (exact command names may vary — check your installed DMCC Command Reference)
+The exact TruCheck DMCC result commands (VERIFIER.*) are documented in the DataMan Control Commands help file installed with DMST at Cognex\DataMan Software vX.X.X\Documentation\English\DataMan Control Commands. This is your most important reference for the verifier-specific commands and is not publicly web-accessible.
