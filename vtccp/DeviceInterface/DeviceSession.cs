@@ -68,6 +68,7 @@ public sealed class DeviceSession : IAsyncDisposable
     public async Task ConnectAsync(CancellationToken ct = default)
     {
         ThrowIfDisposed();
+        System.Diagnostics.Debug.WriteLine("[VTCCP-BUILD] DeviceSession 2026-05-28 — SET TRIGGER.TYPE disabled.");
 
         for (int attempt = 1; ; attempt++)
         {
