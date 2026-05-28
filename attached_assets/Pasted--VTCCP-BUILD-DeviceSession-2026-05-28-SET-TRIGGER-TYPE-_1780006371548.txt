@@ -1,0 +1,62 @@
+[VTCCP-BUILD] DeviceSession 2026-05-28 — SET TRIGGER.TYPE disabled. HTTP subscriber activated.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Cognex.DataMan.SDK.PC.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\mscorlib.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Net.Sockets.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'Cognex.DataMan.SDK.InvalidCommandException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] Connected to 10.10.10.7.  FW=6.1.16_sr4  SetResultTypes(ReadXml) OK.
+[VTCCP-SDK] CMD 'GET DEVICE.TYPE' → code=0  body='DM475'
+[VTCCP-SDK] CMD 'GET IMAGE.SIZE' → code=0  body='0'
+[VTCCP-SDK] CMD 'GET DEVICE.NAME' → code=0  body='DM475-63530E-PIPS-Verif-Lab'
+[VTCCP-SDK] CMD 'GET DEVICE.SERIAL-NUMBER' → code=0  body='1A1903PP010754'
+[VTCCP-SDK] CMD 'GET TRIGGER.TYPE' → code=0  body='0'
+[VTCCP-DMCC] GET TRIGGER.TYPE: code=0  value='0'
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.IO.FileSystem.Watcher.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-SCRAPER] Watching 'C:\Users\Administrator\Documents\DM475-63530E-PIPS-Verif-Lab\CodeQuality' for DMST HTML reports.
+[VTCCP-SCRAPER] Started watching 'C:\Users\Administrator\Documents\DM475-63530E-PIPS-Verif-Lab\CodeQuality'.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+The thread '.NET TP Worker' (24004) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (31400) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (14888) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (29456) has exited with code 0 (0x0).
+[VTCCP-HTTP-SUB] Subscribed to 10.10.10.7:44444/events. Receive loop starting.
+[VTCCP-SESSION] HTTP subscriber started on 10.10.10.7:44444.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Encoding.CodePages.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.FileExtensions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Json.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Physical.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.IO.RecyclableMemoryStream.dll'. 
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Drawing.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120234 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (183579 B)
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] Push XML decoded: 19641 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 18:11:51:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=70.1,Html=0.7
+  SC%:Push=60.4,Html=60
+  ErrorsCorrected:Push=4,Html=null
+  ErrCapUsed:Push=8,Html=null
+  ImagePolarity:Push=null,Html=White on black
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\EPPlus.Interfaces.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (5017134 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4645 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4645 B)
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Security.Cryptography.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\EPPlus.System.Drawing.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\System.Drawing.Common.dll'. Symbol loading disabled by Include/Exclude setting.
+The thread 31208 has exited with code 0 (0x0).
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER 1 failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.), trying plain TRIGGER...
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER also failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.).
+[VTCCP-SDK] SDK rejected TRIGGER — raw TCP bypass (racing socket + XmlResultArrived)...
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-SDK] TRIGGER sent — racing socket vs XmlResultArrived...
