@@ -321,6 +321,13 @@ public sealed class SessionViewModel : ViewModelBase
                 var cfg = SelectedDevice.ToDeviceConfig();
                 _deviceSession = new DeviceSession(cfg, _xmlMap);
                 await _deviceSession.ConnectAsync();
+
+                // Subscribe to the device's HTTP result push channel — same channel
+                // DMST uses for all TC verification results (codes.xml origin="common").
+                // ResultReceived fires for every TC verification regardless of trigger source
+                // (DMST Verify button, physical reader button, or CP's own TRIGGER).
+                _deviceSession.ResultReceived += (_, rec) => OnPushRecord(rec);
+                await _deviceSession.StartHttpSubscriberAsync();
             }
 
             await Task.Run(() => _sessionMgr.StartSession(state));
@@ -334,9 +341,12 @@ public sealed class SessionViewModel : ViewModelBase
             {
                 string trigName = origTrig switch
                 {
-                    "0" => "Continuous",
-                    "1" => "Single",
-                    "2" => "External",
+                    "0" => "Single",
+                    "1" => "Presentation",
+                    "2" => "Manual",
+                    "3" => "Burst",
+                    "4" => "Self",
+                    "5" => "Continuous",
                     _   => origTrig,
                 };
                 triggerNote = $"  [DMST trigger was: {trigName} ({origTrig}) → restored on Stop]";
