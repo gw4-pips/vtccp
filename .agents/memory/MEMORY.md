@@ -1,3 +1,5 @@
 - [Three-level image stack](image-stack.md) — barcode crop (L1, captured) / ROI frame (L2, IMAGE.SEND probe needed) / full frame (L3, SDK); DMST crops to barcode only
 - [OcrEngine project](ocr-engine-setup.md) — dual-engine scaffold (Windows.Media.Ocr + Tesseract 5.2.0); tessdata/eng.traineddata must be present at runtime; VtccpApp TFM bumped to net8.0-windows10.0.18362.0
 - [DM475V Trigger Type Ground Truth](trigger-type-ground-truth.md) — normal idle state = Single (external); motion detection NEVER in play; Presentation mode theory was wrong
+- [HTTP result delivery](http-result-delivery.md) — XmlResultArrived dead for external triggers; HTTP subscriber (GET /events?enable port 44444) is the only path; CP software trigger still unresolved
+- [GS1 DataMatrix detection](gs1-datamatrix-detection.md) — ]d2 = GS1 DM (FNC1 first position); 0x1D must be replaced with | before XDocument.Load (CheckCharacters=false insufficient)
