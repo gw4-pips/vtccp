@@ -1,0 +1,44 @@
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Net.Sockets.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'Cognex.DataMan.SDK.InvalidCommandException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] Connected to 10.10.10.7.  FW=6.1.16_sr4  SetResultTypes(ReadXml) OK.
+[VTCCP-SDK] CMD 'GET DEVICE.TYPE' → code=0  body='DM475'
+[VTCCP-SDK] CMD 'GET IMAGE.SIZE' → code=0  body='0'
+[VTCCP-SDK] CMD 'GET DEVICE.NAME' → code=0  body='DM475-63530E-PIPS-Verif-Lab'
+[VTCCP-SDK] CMD 'GET DEVICE.SERIAL-NUMBER' → code=0  body='1A1903PP010754'
+[VTCCP-SDK] CMD 'GET TRIGGER.TYPE' → code=0  body='0'
+[VTCCP-DMCC] GET TRIGGER.TYPE: code=0  value='0'
+[VTCCP-SDK] CMD 'SET TRIGGER.TYPE 1' → code=0  body=''
+[VTCCP-DMCC] SET TRIGGER.TYPE 1 (Single): code=0
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.IO.FileSystem.Watcher.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-SCRAPER] Watching 'C:\Users\Administrator\Documents\DM475-63530E-PIPS-Verif-Lab\CodeQuality' for DMST HTML reports.
+[VTCCP-SCRAPER] Started watching 'C:\Users\Administrator\Documents\DM475-63530E-PIPS-Verif-Lab\CodeQuality'.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Encoding.CodePages.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.FileExtensions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Json.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Physical.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.IO.RecyclableMemoryStream.dll'. 
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Drawing.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.StackTrace.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-28_10-37-16-111.html': ok=True, dt=10:37:16
+[VTCCP-SCRAPER] Parsed '2026-05-28_10-37-16-105.html': ok=True, dt=10:37:16
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-28_10-37-16-688.html': ok=True, dt=10:37:16
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-28_10-37-16-725.html': ok=True, dt=10:37:16
+[VTCCP-SDK] CMD 'SET TRIGGER.TYPE 0' → code=0  body=''
+[VTCCP-DMCC] Restored trigger type to '0'.
+[VTCCP-SCRAPER] Stopped.
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.IO.IOException' in System.Net.Sockets.dll
+[VTCCP-SDK] Disconnected.
+[VTCCP-SDK] Disconnected.
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-28_10-37-17-290.html': ok=True, dt=10:37:17
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-SCRAPER] Parsed '2026-05-28_10-37-17-361.html': ok=True, dt=10:37:17
