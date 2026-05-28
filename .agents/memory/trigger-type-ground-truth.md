@@ -1,37 +1,61 @@
 ---
 name: DM475V Trigger Type Ground Truth
-description: Confirmed trigger configuration of DM475-63530E-PIPS-Verif-Lab in its normal idle/static state, as seen in DMST immediately on connect.
+description: Confirmed TRIGGER.TYPE enum, device idle state, SDK behaviour, and VTCCP design decisions for fw 6.1.16_sr4.
 ---
 
 # DM475V Trigger Type — Device-Confirmed Ground Truth
 
-**Confirmed by user screenshot, 2026-05-27**
+## TRIGGER.TYPE enum — fw 6.1.16_sr4 (from DMCC Reference ZIP)
 
-## Normal idle/static state (immediately upon DMST connect, before any scan)
+Source: `idp10154189968.htm` inside `DataMan_Command_Reference_6.1.16_sr4.zip`
 
-- **Trigger type**: Single (external)
-  - Type = Single: one acquisition per trigger signal
-  - Source = External: hardware signal from PIPS system (NOT software/DMCC command)
-- **Image panel**: gray (no scan yet)
-- **ROI**: defined (visible in TC)
-- **LED action on reader**: none — device is waiting for hardware trigger
-- **TC display**: gray (no result)
+| Value | Name |
+|---|---|
+| 0 | Single (external) |
+| 1 | Presentation (internal) |
+| 2 | Manual (button) |
+| 3 | Burst (external) |
+| 4 | Self (internal) |
+| 5 | Continuous (external) |
 
-## Motion detection
+There is NO "Single (software/DMCC)" entry. The old code comment `0=Continuous, 1=Single, 2=External` was completely wrong.
 
-- **Motion detection is NOT checked**
-- **Motion detection NEVER comes into play on this device/setup**
-- Do not factor motion detection into any trigger logic, restore logic, or state analysis
+## Device idle state
 
-## Previous incorrect theory
+- Device idles at TRIGGER.TYPE=**0** (Single external) — confirmed in every exception log
+- DMST never changes TRIGGER.TYPE during Go Live or Verify — it stays at 0 the whole time
+- DMST's continuous scanning is a **programmatic loop** firing software TRIGGER commands, not a firmware mode change
+- The loop fires regardless of object presence (even scans an empty base plate)
+- **Presentation mode (TRIGGER.TYPE=1) is never a factor in this environment** — established as canonical
 
-- "Presentation mode" theory was WRONG — device is NOT in Presentation mode
-- The static/gray state is Single+External: device waiting for a hardware PIPS trigger, which never fires because no product is present
+## SDK behaviour for GET TRIGGER.TYPE
 
-## Implications for VTCCP trigger restore
+- GET TRIGGER.TYPE works fine via SDK (`_client.SendAsync`) — returns `'0'` or `'1'`
+- The prior claim that "SDK PayLoad is empty on 6.1.16_sr4 for GET TRIGGER.TYPE" was WRONG
+- No raw TCP bypass is needed for this command
 
-- When VTCCP sets TRIGGER.TYPE 1 (Single/software), it changes the trigger SOURCE from External to DMCC/software while keeping the type as Single
-- The restore must return the device to Single+External, not just Single
-- Exact DMCC string returned by GET TRIGGER.TYPE on this firmware is still unknown — may be "Single", "External", an integer, or a combined value
-- Raw TCP GET TRIGGER.TYPE must be used at connect to capture the real value (SDK PayLoad is empty on 6.1.16_sr4)
-- More user information is expected — wait before writing restore code
+## What VTCCP was doing (prior to 2026-05-28)
+
+- `ConnectAsync`: read TRIGGER.TYPE (stored as `_originalTriggerType`), then immediately SET to 1
+- `DisconnectAsync` / `RebootAndDisconnectAsync`: restored to `_originalTriggerType`
+- The SET was an AI-assumed "Single software mode" — no documentation or user instruction supported it
+- TRIGGER.TYPE=1 is Presentation (internal), not any kind of "Single software"
+
+## Current state (as of 2026-05-28 — commit 43d58dc)
+
+- `GET TRIGGER.TYPE` read is **kept** — logged as diagnostic, stored in `_originalTriggerType`
+- `SET TRIGGER.TYPE 1` is **commented out** — probe to determine if it caused post-scan looping
+- Both restore blocks (DisconnectAsync + RebootAndDisconnectAsync) are **commented out** in sync
+- Raw TCP TRIGGER command fires a scan regardless of TRIGGER.TYPE — confirmed working at TRIGGER.TYPE=0
+
+## Why raw TCP is still needed for TRIGGER itself
+
+- `_system.SendCommand("TRIGGER 1")` → always throws `InvalidParameterException` (fw/SDK version mismatch)
+- `_system.SendCommand("TRIGGER")` → also throws `InvalidParameterException`
+- Raw TCP `||>TRIGGER\r\n` (second TCP connection) → works; result delivered via SDK's `XmlResultArrived` event (not the raw socket)
+- This is unrelated to TRIGGER.TYPE — it is a firmware 6.1.16_sr4 / SDK v25 protocol mismatch
+
+## Open probe (2026-05-28)
+
+Does removing `SET TRIGGER.TYPE 1` change the undesirable post-scan looping behaviour?
+Result expected from user test within ~45 min of 2026-05-28 session.
