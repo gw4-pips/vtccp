@@ -1,0 +1,58 @@
+[VTCCP-HTTP-SUB] Subscribed to 10.10.10.7:44444/events. Receive loop starting.
+[VTCCP-SESSION] HTTP subscriber started on 10.10.10.7:44444.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Encoding.CodePages.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.FileExtensions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Json.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Physical.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.IO.RecyclableMemoryStream.dll'. 
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Drawing.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+The thread '.NET TP Worker' (30836) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (4636) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (24432) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (12124) has exited with code 0 (0x0).
+The thread 29044 has exited with code 0 (0x0).
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120255 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (183585 B)
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] Push XML decoded: 19660 chars.
+Exception thrown: 'System.Xml.XmlException' in System.Private.Xml.dll
+[VTCCP-XML] Parse failed: '', hexadecimal value 0x1D, is an invalid character. Line 6, position 44.  Line=6 Col=44  TotalChars=19660
+[VTCCP-XML] First 400 chars: <?xml version="1.0" encoding="UTF-8"?>
+<DMCCResponse>
+<DMSymVerResponse>
+<DateTime>2026-05-28T18:03:18</DateTime>
+<SymbologyName>Data Matrix</SymbologyName>
+<DecodedData>01003555137102132110000328934717280331101197170</DecodedData>
+<SymbologyId>]d2</SymbologyId>
+<SymbolQuality>100</SymbolQuality>
+<SymbolAngle>357</SymbolAngle>
+<ModuleSizePx>12.628162384033203</ModuleSizePx>
+<PushScriptD
+[VTCCP-XML] Context window around error: <<</DateTime>
+<SymbologyName>Data Matrix</SymbologyName>
+<DecodedData>01003555137102132110000328934717280331101197170</DecodedData>
+<SymbologyId>]d2</SymbologyId>
+<SymbolQuality>100</SymbolQuality>
+>>>
+[VTCCP-VALID] 11 discrepancy(s) — 18:03:17:
+  OverallGrade:Push=null,Html=F
+  MatrixSize:Push=null,Html=22x22
+  NomXDim_2D:Push=null,Html=16.4
+  ANU%:Push=null,Html=6.0
+  GNU%:Push=null,Html=0.7
+  UEC%:Push=null,Html=70.0
+  SC%:Push=null,Html=60
+  HBwg%:Push=null,Html=0
+  VBwg%:Push=null,Html=0
+  TotalCodewords:Push=null,Html=50
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (5017134 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4650 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4650 B)
