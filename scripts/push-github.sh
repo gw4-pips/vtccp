@@ -29,9 +29,20 @@ GITHUB_SHA=$(curl -s \
 echo "    GitHub HEAD: $GITHUB_SHA"
 echo "    Replit HEAD: $(git --no-optional-locks rev-parse HEAD)"
 
-# Get all files that differ between GitHub HEAD and our working tree.
-CHANGED=$(git --no-optional-locks diff --name-only "$GITHUB_SHA" HEAD 2>/dev/null || \
-          git --no-optional-locks diff --name-only --diff-filter=ACMRT HEAD 2>/dev/null)
+# Get all files that differ between GitHub HEAD and Replit HEAD.
+# Primary: git diff between the two SHAs (requires GitHub SHA to be in local history).
+# Fallback: if GitHub SHA is not in local history (Replit checkpoint divergence), collect
+#           files changed in the last 30 commits on the Replit side — safe over-approximation.
+CHANGED=""
+if git --no-optional-locks cat-file -e "$GITHUB_SHA^{commit}" 2>/dev/null; then
+    CHANGED=$(git --no-optional-locks diff --name-only "$GITHUB_SHA" HEAD 2>/dev/null)
+    echo "    Diff mode: git diff $GITHUB_SHA..HEAD"
+else
+    echo "    WARNING: GitHub SHA not in local history (Replit checkpoint divergence)."
+    echo "    Fallback: collecting files changed in last 30 Replit commits."
+    CHANGED=$(git --no-optional-locks log --name-only --pretty=format: -n 30 HEAD 2>/dev/null \
+              | grep -v '^$' | sort -u)
+fi
 
 if [ -z "$CHANGED" ]; then
     echo "==> Nothing to push — GitHub is already up to date."
@@ -60,21 +71,23 @@ while IFS= read -r FILE; do
 
     FILE_SHA=$(echo "$META" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('sha',''))" 2>/dev/null || true)
 
-    CONTENT_B64=$(base64 -w0 < "$FILE")
     COMMIT_MSG="Sync: $FILE"
 
+    # Write payload to a temp file to avoid "Argument list too long" on large binaries.
+    PAYLOAD_FILE=$(mktemp /tmp/gh_payload_XXXXXX.json)
+    FPATH="$FILE"
     if [ -n "$FILE_SHA" ]; then
-        # File exists on GitHub — update it.
-        PAYLOAD=$(python3 -c "
-import json, sys
-print(json.dumps({'message': sys.argv[1], 'content': sys.argv[2], 'sha': sys.argv[3]}))
-" "$COMMIT_MSG" "$CONTENT_B64" "$FILE_SHA")
+        python3 -c "
+import json, base64
+content = open('$FPATH', 'rb').read()
+print(json.dumps({'message': '$COMMIT_MSG', 'content': base64.b64encode(content).decode(), 'sha': '$FILE_SHA'}))
+" > "$PAYLOAD_FILE"
     else
-        # File is new — create it.
-        PAYLOAD=$(python3 -c "
-import json, sys
-print(json.dumps({'message': sys.argv[1], 'content': sys.argv[2]}))
-" "$COMMIT_MSG" "$CONTENT_B64")
+        python3 -c "
+import json, base64
+content = open('$FPATH', 'rb').read()
+print(json.dumps({'message': '$COMMIT_MSG', 'content': base64.b64encode(content).decode()}))
+" > "$PAYLOAD_FILE"
     fi
 
     STATUS=$(curl -s -o /tmp/gh_push_resp.json -w "%{http_code}" \
@@ -82,8 +95,9 @@ print(json.dumps({'message': sys.argv[1], 'content': sys.argv[2]}))
         -H "Authorization: Bearer $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
         -H "Content-Type: application/json" \
-        -d "$PAYLOAD" \
+        --data-binary "@$PAYLOAD_FILE" \
         "https://api.github.com/repos/$OWNER/$REPO/contents/$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote('$FILE', safe='/'))")")
+    rm -f "$PAYLOAD_FILE"
 
     if [ "$STATUS" = "200" ] || [ "$STATUS" = "201" ]; then
         echo "  OK ($STATUS): $FILE"

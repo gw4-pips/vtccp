@@ -1,0 +1,33 @@
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Security.Cryptography.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120393 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (183572 B)
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] Push XML decoded: 19794 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 18:35:46:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=70.4,Html=0.7
+  SC%:Push=60.4,Html=60
+  ErrorsCorrected:Push=3,Html=null
+  ErrCapUsed:Push=6,Html=null
+  ImagePolarity:Push=null,Html=White on black
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\EPPlus.System.Drawing.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\System.Drawing.Common.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (5017134 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4648 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4648 B)
+The thread 29152 has exited with code 0 (0x0).
+The thread '.NET TP Worker' (14728) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (21280) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (28728) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (21896) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (28700) has exited with code 0 (0x0).
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER 1 failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.), trying plain TRIGGER...
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] TRIGGER also failed (InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.).
+[VTCCP-SDK] SDK rejected TRIGGER — raw TCP bypass (racing socket + XmlResultArrived)...
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-SDK] TRIGGER sent — racing socket vs XmlResultArrived...

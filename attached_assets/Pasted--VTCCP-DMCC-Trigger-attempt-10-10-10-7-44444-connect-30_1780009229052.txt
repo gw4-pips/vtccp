@@ -1,0 +1,24 @@
+[VTCCP-DMCC] Trigger attempt: 10.10.10.7:44444  connect=3000ms  response=5000ms  idle=150ms
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Cognex.DataMan.SDK.PC.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\mscorlib.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'Cognex.DataMan.SDK.InvalidCommandException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] Connected to 10.10.10.7.  FW=6.1.16_sr4  SetResultTypes(ReadXml) OK.
+Exception thrown: 'Cognex.DataMan.SDK.InvalidParameterException' in Cognex.DataMan.SDK.PC.dll
+[VTCCP-SDK] CMD 'TRIGGER' — InvalidParameterException: Exception of type 'Cognex.DataMan.SDK.InvalidParameterException' was thrown.
+[VTCCP-DMCC] TRIGGER response: code=-2  body=''
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+Exception thrown: 'System.IO.IOException' in System.Net.Sockets.dll
+[VTCCP-SDK] Disconnected.
+The thread 'DataMan SDK Reader Thread' (26204) has exited with code 0 (0x0).
+The thread 'DataMan SDK Writer Thread' (30780) has exited with code 0 (0x0).
+The thread 'DataMan SDK CallbackDispatcher Thread' (15672) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (20188) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (30108) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (32552) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (17532) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (32252) has exited with code 0 (0x0).
+The thread 25836 has exited with code 0 (0x0).
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+The program '[23868] VtccpApp.exe' has exited with code 0 (0x0).
