@@ -464,10 +464,68 @@ public sealed class SessionViewModel : ViewModelBase
             $"[VTCCP-DMCC] Trigger attempt: {cfg.Host}:{cfg.Port}  " +
             $"connect={cfg.ConnectTimeoutMs}ms  response={cfg.ResponseTimeoutMs}ms  idle={cfg.IdleGapMs}ms");
 
-        await using var client = new DeviceInterface.Dmcc.DataManSdkClient(cfg);
-        await client.ConnectAsync();
+        // Send TRIGGER via raw TCP.  DataManSdkClient.SendAsync routes through the
+        // Cognex SDK which throws InvalidParameterException on fw 6.1.16_sr4 before
+        // the command ever reaches the device.  Raw TCP bypasses that validation layer.
+        // The scan result (if one fires) arrives via the HTTP subscriber — this path
+        // only needs to fire the trigger and read back the DMCC acknowledgment.
+        DeviceInterface.Dmcc.DmccResponse resp;
+        try
+        {
+            using var tcp = new System.Net.Sockets.TcpClient();
+            using var connectCts = new System.Threading.CancellationTokenSource(cfg.ConnectTimeoutMs);
+            await tcp.ConnectAsync(cfg.Host, cfg.Port, connectCts.Token);
+            var stream = tcp.GetStream();
 
-        var resp = await client.SendAsync(DeviceInterface.Dmcc.DmccCommand.Trigger);
+            // Drain device welcome banner (~100 B sent on every raw TCP connect).
+            try
+            {
+                byte[] bannerBuf = new byte[512];
+                using var bannerCts = new System.Threading.CancellationTokenSource(600);
+                int nb = await stream.ReadAsync(bannerBuf, bannerCts.Token);
+                if (nb > 0)
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-DMCC] Banner ({nb}B): " +
+                        $"'{System.Text.Encoding.ASCII.GetString(bannerBuf, 0, nb).Trim()}'");
+            }
+            catch (OperationCanceledException) { }
+            catch { }
+
+            // Send TRIGGER.
+            await stream.WriteAsync(System.Text.Encoding.ASCII.GetBytes("TRIGGER\r\n"));
+            System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] TRIGGER sent via raw TCP.");
+
+            // Read device acknowledgment — just a short status code line.
+            var sb = new System.Text.StringBuilder();
+            byte[] buf = new byte[256];
+            using var readCts = new System.Threading.CancellationTokenSource(cfg.ResponseTimeoutMs);
+            try
+            {
+                while (true)
+                {
+                    using var idleCts = System.Threading.CancellationTokenSource
+                        .CreateLinkedTokenSource(readCts.Token);
+                    idleCts.CancelAfter(cfg.IdleGapMs);
+                    int n = await stream.ReadAsync(buf, idleCts.Token);
+                    if (n == 0) break;
+                    sb.Append(System.Text.Encoding.ASCII.GetString(buf, 0, n));
+                }
+            }
+            catch (OperationCanceledException) { }
+
+            string raw = sb.ToString();
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] TRIGGER raw response ({raw.Length}B): " +
+                $"'{raw.Replace("\r", "\\r").Replace("\n", "\\n")}'");
+
+            resp = DeviceInterface.Dmcc.DmccResponse.Parse(raw);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] TRIGGER raw TCP exception: {ex.GetType().Name}: {ex.Message}");
+            resp = DeviceInterface.Dmcc.DmccResponse.Parse(string.Empty);
+        }
 
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-DMCC] TRIGGER response: code={resp.StatusCode}  " +
@@ -485,15 +543,15 @@ public sealed class SessionViewModel : ViewModelBase
                 "Device busy — trigger rejected. Wait a moment and retry.",
 
             DeviceInterface.Dmcc.DmccStatus.NoResponse =>
-                "Trigger: SDK connected but device sent no reply to TRIGGER (code -2). " +
-                "Check VS Output for [VTCCP-SDK] lines.",
+                "Trigger: device sent no reply to TRIGGER (code -2). " +
+                "Check VS Output for [VTCCP-DMCC] lines.",
 
             DeviceInterface.Dmcc.DmccStatus.Timeout =>
                 "Trigger: connection timed out (code -3). " +
                 "Verify the device IP/port and that the device is online.",
 
             DeviceInterface.Dmcc.DmccStatus.ParseError =>
-                "Trigger: unrecognised response format from device (code -1). " +
+                "Trigger: unexpected response format from device (code -1). " +
                 "Check firmware version or DMCC port setting.",
 
             _ => string.IsNullOrWhiteSpace(resp.Body)

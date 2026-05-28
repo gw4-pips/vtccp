@@ -268,14 +268,9 @@ public sealed class DataManSdkClient : IAsyncDisposable
                 catch (OperationCanceledException) { }
                 catch { }
 
-                // DIAGNOSTIC PROBE — send GET DEVICE.TYPE instead of TRIGGER.
-                // Purpose: confirm the raw TCP connection is accepted as a valid DMCC
-                // session while the SDK + HTTP subscriber are already connected.
-                // If the device responds with a model string, the third connection works
-                // and the issue is specific to the TRIGGER command at TRIGGER.TYPE=0.
-                // If the device is silent, the connection is being dropped/refused.
-                await stream.WriteAsync(Encoding.ASCII.GetBytes("GET DEVICE.TYPE\r\n"), ct);
-                System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] PROBE: GET DEVICE.TYPE sent on raw TCP (third connection, SDK+HTTP already live)...");
+                // Send the bare TRIGGER command.
+                await stream.WriteAsync(Encoding.ASCII.GetBytes("TRIGGER\r\n"), ct);
+                System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] TRIGGER sent — racing socket vs XmlResultArrived...");
 
                 // Race 1: read XML result from the same raw socket.
                 using var readCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
