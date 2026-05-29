@@ -2,50 +2,53 @@
 
 Source: Cognex DataMan Control Commands Reference, fw 6.1.16_sr4
 Format: MadCap Flare WebHelp2 HTML export
-Filed: 2026-05-29
-
-These are the original HTML pages from the DMCC Reference documentation set.
-Uploaded in batches by the user (zipping was not possible on the source machine).
+Filed: 2026-05-29 — COMPLETE SET (794 files via 7z archive)
 
 ---
 
-## Files received
+## Coverage summary
 
-### Batch 1 — 2026-05-29
-
-| File | Topic | Notes |
+| Category | Overview | Individual command pages |
 |---|---|---|
-| `DataMan_Control_Commands_Overview.htm` | DataMan Control Commands — top-level overview | Pre-existing from earlier session |
-| `Action.overview.htm` | Action Commands — overview | |
-| `Camera.overview.htm` | Camera Commands — overview | |
-| `Code_Quality.overview.htm` | Code Quality Commands — overview | |
-| `Communication.overview.htm` | Communication Commands — overview | Largest file (1232 lines) — TCP/IP, serial, HTTP settings |
-| `Data_Formatting.overview.htm` | Data Formatting Commands — overview | |
-| `data-formatting-tokens.htm` | Data Formatting Tokens — full reference | Large file (1589 lines) — output format token definitions |
-| `Data_Validation.overview.htm` | Data Validation Commands — overview | |
-| `Decoder.overview.htm` | Decoder Commands — overview | |
+| Action | `Action.overview.htm` | 95 |
+| Camera | `Camera.overview.htm` | 101 |
+| Code Quality | `Code Quality.overview.htm` | 9 |
+| Communication | `Communication.overview.htm` | 211 |
+| Data Formatting | `Data Formatting.overview.htm` | 21 |
+| Data Validation | `Data Validation.overview.htm` | 12 |
+| Decoder | `Decoder.overview.htm` | 111 |
+| I/O | `IO.overview.htm` | 51 |
+| Record/Playback | `RecordPlayback.overview.htm` | 28 |
+| Symbology | `Symbology.overview.htm` | 122 |
+| System | `System.overview.htm` | 20 |
+| **Total** | **11 overviews** | **781 detail pages** |
+
+Also present: `dmcc-main.html` (help index), `data-formatting-tokens.htm` (token reference), `DataMan_Control_Commands_Overview.htm` (protocol overview).
+
+**Total files: 795** (781 idp*.htm detail pages + 14 named files + this INDEX.md)
 
 ---
 
-## Files pending (batches 2+)
+## Priority files for trigger investigation
 
-The full DMCC folder contains 100+ files. Remaining batches to be received.
-Expected topics (based on known DMCC Reference structure):
-
-- Input/Output commands
-- System commands
-- Trigger commands  ← HIGH PRIORITY for trigger investigation
-- Image commands (IMAGE.LOAD, IMAGE.SEND, IMAGE.REPLAY)
-- Code Quality detail pages (individual command entries)
-- Communication detail pages
-- Decoder detail pages (TRIGGER.TYPE, GET/SET individual pages)
+| File | Command | Category | Notes |
+|---|---|---|---|
+| `idp10154189968.htm` | `TRIGGER.TYPE` | Camera | GET/SET — trigger mode enum. **Key file for trigger reset plan.** |
+| `idp10153430112.htm` | `TRIGGER` (action) | Action | Software trigger ON/OFF |
+| `idp10153440704.htm` | `TRIGGER` (state) | Action | Get current trigger state |
+| `idp10153456512.htm` | `MOTION-DETECTION.ACTIVE` | Action | Check motion detection state |
+| `idp10153461680.htm` | `MOTION-DETECTION.ENABLE` | Action | Enable/disable motion detection |
 
 ---
 
-## Priority files to watch for in upcoming batches
+## Other files of interest
 
-| File pattern | Why needed |
-|---|---|
-| `Trigger.*` or `trigger*` | TRIGGER.TYPE values, TRIGGER command syntax — critical for trigger investigation |
-| `IMAGE.*` | IMAGE.LOAD / IMAGE.REPLAY for D4 batch upload feature |
-| Any file containing `TRIGGER.TYPE` | Confirm exact SET/GET syntax and value table |
+| File | Command | Category | Notes |
+|---|---|---|---|
+| `IO.overview.htm` | I/O Commands | I/O | 51 commands — input/output lines, beeper, etc. |
+| `System.overview.htm` | System Commands | System | 20 commands — reboot, reset, firmware, etc. |
+| `Symbology.overview.htm` | Symbology Commands | Symbology | 122 commands — UPC-EAN, Code 128, DataMatrix, QR settings |
+| `RecordPlayback.overview.htm` | Record/Playback Commands | Record/Playback | 28 commands — IMAGE.LOAD, IMAGE.REPLAY |
+
+### IMAGE.LOAD / IMAGE.REPLAY (D4 scope)
+These live in the RecordPlayback category. Look for `idp*.htm` files linked from `RecordPlayback.overview.htm` for the exact DMCC key names and argument syntax.
