@@ -478,11 +478,11 @@ public sealed class SessionViewModel : ViewModelBase
             await tcp.ConnectAsync(cfg.Host, DmccRawPort, connectCts.Token);
             var stream = tcp.GetStream();
 
-            // Drain welcome banner — port 23 typically sends one on connect.
+            // Drain welcome banner — port 23 on this device sends none; keep wait short.
             try
             {
                 byte[] bannerBuf = new byte[512];
-                using var bannerCts = new System.Threading.CancellationTokenSource(1_500);
+                using var bannerCts = new System.Threading.CancellationTokenSource(200);
                 int nb = await stream.ReadAsync(bannerBuf, bannerCts.Token);
                 if (nb > 0)
                     System.Diagnostics.Debug.WriteLine(

@@ -1,33 +1,63 @@
 ---
 name: DMCC raw TCP wire protocol
-description: Correct wire format for raw TCP DMCC commands — trigger syntax, header, response modes
+description: Port, command format, ACK format, and trigger sequence for raw DMCC on DM475V fw 6.1.16_sr4
 ---
 
-## Rules
+## Port — CRITICAL
 
-**Command format**: `||>{COMMAND} {ARGUMENT}\r\n`
-- `||>` is the bare header (full form: `||checksum:command-id>` — all fields optional)
-- Every raw TCP command must include this prefix; bare `COMMAND\r\n` is silently ignored
+- **Port 23** — raw DMCC text interface (Telnet/DMCC). This is where `||>COMMAND\r\n` works. **CONFIRMED WORKING 2026-05-28.**
+- **Port 44444** — DataMan SDK/HTTP port. Only the Cognex SDK's own binary session protocol works here. Bare TCP with `||>COMMAND\r\n` is silently ignored — device does not recognise it as a DMCC session at all, returns zero bytes for every command.
 
-**Trigger command**: `||>TRIGGER ON\r\n`
-- Argument is required: `ON` fires the trigger, `OFF` cancels a held manual trigger
-- `TRIGGER\r\n`, `TRIGGER 1\r\n` are wrong — device silently ignores them
-- The Cognex SDK also throws `InvalidParameterException` for `SendCommand("TRIGGER")` and `SendCommand("TRIGGER 1")`
-- Try `SendCommand("TRIGGER ON")` via SDK first — may work since it's the correct form
+**Why:** Port 44444 multiplexes SDK binary sessions and HTTP event subscription (GET /events?enable). It does NOT accept raw DMCC text commands from new TCP connections. Port 23 is the classic DMCC Telnet interface.
 
-**Response modes** (set via `SET COM.DMCC-RESPONSE`):
-- Mode 0 (Silent, default): **no ACK for any command** — device sends zero bytes; TRIGGER ON appears to timeout
-- Mode 2 (Extended): every command returns `||[status]\r\n`
-  - `||[0]\r\n` = OK
-  - `||[101]\r\n` = invalid command
-  - `||[102]\r\n` = invalid parameter
-  - `||[104]\r\n` = parameter rejected due to reader state
+## Command format
 
-**Required raw TCP sequence**:
-1. Connect → drain welcome banner (≤600ms read)
-2. `||>SET COM.DMCC-RESPONSE 2\r\n` → read ACK `||[0]\r\n` (≤1000ms)
-3. `||>TRIGGER ON\r\n` → read ACK `||[0]\r\n` (result arrives via HTTP push)
+```
+||>COMMAND\r\n
+```
 
-**Why:** The welcome banner drain and SET COM.DMCC-RESPONSE 2 step were omitted in the first raw TCP implementation, and `TRIGGER` was sent without the `ON` argument and without the `||>` header. All three errors combined to produce zero bytes from the device and no scan.
+- `||>` is the wire header (DmccCommand.WireHeader)
+- Commands are plain ASCII text
+- TRIGGER ON (not TRIGGER, not TRIGGER 1)
 
-**How to apply:** Any future raw TCP command sequence must follow steps 1-3. The constants are in `DmccCommand`: `WireHeader`, `SetDmccResponseExtended`, `TriggerOn`, `TriggerOff`. `DmccResponse.Parse` handles both the `||[N]\r\n` wire format and the SDK-synthesised `\r\nN\r\n\r\nbody` format.
+## Session setup sequence — CONFIRMED WORKING 2026-05-28
+
+1. Connect TCP to **port 23**
+2. Wait briefly for banner (200 ms) — DM475V at 10.10.10.7 sends **NO banner** on port 23
+3. Send `||>SET COM.DMCC-RESPONSE 2\r\n` — switch to Extended mode (no ACK for this line; device was in Silent mode, mode takes effect immediately)
+4. Send `||>TRIGGER ON\r\n`
+5. Read ACK: `||:::2[0]\r\n` = success (11 bytes)
+
+## ACK format — port 23 (fw 6.1.16_sr4)
+
+Port-23 connections return ACKs in this form:
+```
+||:::2[0]\r\n
+```
+NOT the classic `||[0]\r\n`. The `:::2` is a session/mode prefix specific to this firmware/connection type. The status code is always the **rightmost** `[N]` on the line.
+
+**DmccResponse.Parse updated 2026-05-28**: uses `LastIndexOf(']')` + `LastIndexOf('[', rb)` so it handles both `||[0]` and `||:::2[0]` correctly. Match condition is `StartsWith("||")` — not `StartsWith("||[")`.
+
+## TRIGGER.TYPE — no manipulation needed
+
+TRIGGER ON works at TRIGGER.TYPE=0 (Single/external) — do NOT change TRIGGER.TYPE before firing. The device accepts software TRIGGER ON in its normal idle state. Earlier code that set TRIGGER.TYPE 1 before triggering was unnecessary and wrong.
+
+## Result delivery
+
+The scan result does NOT come back on the port-23 DMCC connection. It arrives asynchronously via the HTTP subscriber (GET /events?enable on port 44444 → PUT /codes.xml). The DMCC connection only needs to fire the trigger and read the ACK, then can be closed.
+
+## Response modes
+
+- Mode 0 (Silent, default): no ACK for any command — zero bytes returned
+- Mode 2 (Extended): every command returns `||...[status]\r\n`
+  - `[0]` = OK
+  - `[101]` = invalid command
+  - `[102]` = invalid parameter
+  - `[104]` = parameter rejected due to reader state
+
+## Constants (DmccCommand.cs)
+
+- `WireHeader` = `"||>"`
+- `SetDmccResponseExtended` = `"SET COM.DMCC-RESPONSE 2"`
+- `TriggerOn` = `"TRIGGER ON"`
+- `TriggerOff` = `"TRIGGER OFF"`

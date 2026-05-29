@@ -64,30 +64,34 @@ public sealed class DmccResponse
 
         string trimmed = raw.TrimStart();
 
-        // ── Extended wire format: ||[N]\r\n ────────────────────────────────────
+        // ── Extended wire format: ||...[N]\r\n ────────────────────────────────
         // Sent by the device when COM.DMCC-RESPONSE = 2.
-        if (trimmed.StartsWith("||[", StringComparison.Ordinal))
+        // The prefix after "||" varies by firmware/session context; confirmed forms:
+        //   ||[0]\r\n          — classic form (no session prefix)
+        //   ||:::2[0]\r\n      — form observed on raw-TCP port-23 connections
+        // Strategy: match any line starting with "||", find the rightmost [N] for status.
+        if (trimmed.StartsWith("||", StringComparison.Ordinal))
         {
             var lines = raw.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
 
-            // First line: ||[status]
+            // First line: find rightmost [...] group — that is the status code.
             int status = DmccStatus.ParseError;
             if (lines.Length > 0)
             {
                 string first = lines[0].Trim();
-                int lb = first.IndexOf('[');
-                int rb = first.IndexOf(']');
+                int rb = first.LastIndexOf(']');
+                int lb = rb >= 0 ? first.LastIndexOf('[', rb) : -1;
                 if (lb >= 0 && rb > lb &&
                     int.TryParse(first.AsSpan(lb + 1, rb - lb - 1), out int parsed))
                     status = parsed;
             }
 
-            // Subsequent lines: ||[1]data  or  plain data (body).
+            // Subsequent lines: strip any ||...] header prefix, collect body.
             var bodyParts = new System.Text.StringBuilder();
             for (int i = 1; i < lines.Length; i++)
             {
                 string l = lines[i].Trim();
-                if (l.StartsWith("||[", StringComparison.Ordinal))
+                if (l.StartsWith("||", StringComparison.Ordinal))
                 {
                     int rb2 = l.IndexOf(']');
                     if (rb2 >= 0 && rb2 + 1 < l.Length)
