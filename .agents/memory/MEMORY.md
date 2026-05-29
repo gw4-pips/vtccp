@@ -4,3 +4,5 @@
 - [HTTP result delivery](http-result-delivery.md) — XmlResultArrived dead for external triggers; HTTP subscriber (GET /events?enable port 44444) is the only path; CP software trigger confirmed working
 - [GS1 DataMatrix detection](gs1-datamatrix-detection.md) — ]d2 = GS1 DM (FNC1 first position); 0x1D must be replaced with | before XDocument.Load (CheckCharacters=false insufficient)
 - [DMCC raw TCP wire protocol](dmcc-wire-protocol.md) — port 23 (not 44444) for raw DMCC text; TRIGGER ON works at TRIGGER.TYPE=0; ACK format is ||:::2[0]\r\n on port-23 connections
+- [VTCCP Working Rules](vtccp-working-rules.md) — DO NOT BUILD WITHOUT ASKING; assume less / prove more; one variable at a time
+- [Trigger Reset & DMST Recovery Plan](trigger-reset-plan.md) — restore TRIGGER.TYPE to live-feed mode on exit; restore point commit f474fa7; Manual vs Push cleanup paths differ
