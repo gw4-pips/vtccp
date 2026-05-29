@@ -576,7 +576,7 @@ public static class DmstResultParser
             VerificationDateTime = verifyDt,
             Symbology            = symbology,
             SymbologyFamily      = symbFamily,
-            DecodedData          = Str(map.DecodedData),
+            DecodedData          = BarcodeDataFormatter.FormatForDisplay(Str(map.DecodedData), symbId),
             FormalGrade          = formalGrade,
             OverallGrade         = overall,
 
