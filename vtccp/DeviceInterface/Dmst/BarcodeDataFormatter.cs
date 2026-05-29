@@ -98,9 +98,15 @@ public static class BarcodeDataFormatter
 
         string cleaned = SubstituteControlChars(rawData);
 
-        return IsGS1FNC1First(aimId)
-            ? "<F1>" + cleaned
-            : cleaned;
+        if (!IsGS1FNC1First(aimId))
+            return cleaned;
+
+        // In GS1 DataMatrix (and GS1-128, GS1 QR, etc.) the FNC1 codeword (232 / 0xE8)
+        // serves as both the initial GS1 indicator and every subsequent field separator.
+        // DmstResultParser converts FNC1/GS bytes (0x1D) to "|" before XML parsing.
+        // Replace all of those pipes with <F1> to match DMST TruCheck display output,
+        // e.g. <F1>0100355513710213<F1>2110000328934717<F1>280331<F1>101197170
+        return "<F1>" + cleaned.Replace("|", "<F1>", StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -116,9 +122,9 @@ public static class BarcodeDataFormatter
 
         string result = formatted;
 
-        if (IsGS1FNC1First(aimId) &&
-            result.StartsWith("<F1>", StringComparison.Ordinal))
-            result = result[4..];
+        // All <F1> tokens (leading indicator and internal separators) represent
+        // FNC1/GS — collapse them all to | first, then normalise to 0x1D below.
+        result = result.Replace("<F1>", "|", StringComparison.Ordinal);
 
         foreach (var (ch, mnemonic) in _controlMnemonics)
             result = result.Replace(mnemonic, ch.ToString(), StringComparison.Ordinal);
