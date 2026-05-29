@@ -1,4 +1,4 @@
-#!/bin/bash
+Plan#!/bin/bash
 # Auto-push to GitHub after every commit/checkpoint made in Replit.
 # GITHUB_TOKEN is a Replit secret available in the shell environment.
 # Token is stripped from output so it never appears in logs.
