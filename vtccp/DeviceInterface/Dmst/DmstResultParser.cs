@@ -53,15 +53,19 @@ public static class DmstResultParser
     {
         map ??= new VerificationXmlMap();
 
-        // The firmware places the GS1 Group Separator (0x1D, ASCII GS / FNC1)
-        // literally in decoded-data element content.  0x1D is in the range
-        // 0x0E–0x1F which is absolutely forbidden in XML 1.0 — XDocument.Load
-        // throws XmlException even with CheckCharacters=false (that flag only
-        // suppresses "not recommended" chars, not the strictly-illegal ones).
-        // Fix: replace 0x1D with pipe before parsing.  Pipe is the conventional
-        // human-readable GS1 AI separator and is safe in XML.  The original
-        // decoded bytes are preserved in the raw push XML sidecar if needed.
-        xml = xml.Replace('\x1D', '|');
+        // Control characters 0x00–0x08, 0x0B, 0x0C, 0x0E–0x1F are strictly
+        // forbidden in XML 1.0 — XmlReader throws even with CheckCharacters=false
+        // (that flag suppresses "not recommended" chars, not the illegal ones).
+        //
+        // Strategy: substitute each forbidden byte with its XML-safe mnemonic form
+        // &lt;MNEMONIC&gt;, which the parser renders as the text string <MNEMONIC>
+        // inside element content.  The data is preserved verbatim in the raw push
+        // XML sidecar so nothing is lost.
+        //
+        // Special case: 0x1D (GS) → "|" rather than "<GS>" so that the
+        // BarcodeDataFormatter's GS1 <F1> logic (which works on pipe) continues
+        // to function correctly for GS1 DataMatrix / GS1-128 / GS1 QR.
+        xml = SubstituteForbiddenXmlChars(xml);
 
         XDocument doc;
         try
@@ -814,46 +818,64 @@ public static class DmstResultParser
         };
 
     /// <summary>
-    /// Removes characters that are illegal in XML 1.0 before handing the
-    /// string to <see cref="XDocument.Parse"/>.
+    /// Replaces every character that is strictly forbidden in XML 1.0 with an
+    /// XML-safe representation so the document can be parsed without data loss.
     ///
-    /// The Cognex firmware embeds the scan JPEG directly in the ReadXml
-    /// payload.  If the image bytes are not base64-encoded by the firmware
-    /// they appear as raw binary in the XML text — which includes bytes in
-    /// the range 0x00–0x08, 0x0B–0x0C, 0x0E–0x1F, and 0xFFFE/0xFFFF, all
-    /// of which are rejected by a conformant XML 1.0 parser.
+    /// GS (0x1D) → "|" — preserves the pipe-based GS1 AI-separator convention
+    /// that <see cref="BarcodeDataFormatter"/> expects downstream.
     ///
-    /// Legal XML 1.0 characters: #x9 | #xA | #xD | [#x20–#xD7FF] |
-    /// [#xE000–#xFFFD].  Everything else is stripped.  Base64 content,
-    /// element names, tag syntax, and all printable text are unaffected.
+    /// All other forbidden chars (0x01–0x08, 0x0B, 0x0C, 0x0E–0x1C, 0x1E, 0x1F)
+    /// → "&amp;lt;MNEMONIC&amp;gt;" which the XmlReader parses as the literal text
+    /// string "&lt;MNEMONIC&gt;" inside element content — readable in Excel and
+    /// consistent with the angle-bracket convention used throughout the codebase.
+    ///
+    /// Chars that ARE legal in XML 1.0 (0x09 TAB, 0x0A LF, 0x0D CR, 0x20–0xFFFD
+    /// excluding surrogates) are left untouched.
     /// </summary>
-    private static string StripIllegalXmlChars(string xml)
+    private static string SubstituteForbiddenXmlChars(string xml)
     {
-        // Fast path — if every character is legal, return the original string
-        // without allocating a new one (typical for small/clean documents).
-        bool hasIllegal = false;
+        // Fast path: the vast majority of push XML documents contain no forbidden
+        // chars (only decoded-data elements ever carry them).
+        bool hasForbidden = false;
         foreach (char c in xml)
         {
-            if (!IsLegalXml10Char(c)) { hasIllegal = true; break; }
+            if (!IsLegalXml10Char(c)) { hasForbidden = true; break; }
         }
-        if (!hasIllegal) return xml;
+        if (!hasForbidden) return xml;
 
-        var sb = new System.Text.StringBuilder(xml.Length);
+        var sb = new System.Text.StringBuilder(xml.Length + 128);
         foreach (char c in xml)
         {
-            if (IsLegalXml10Char(c)) sb.Append(c);
+            if (IsLegalXml10Char(c)) { sb.Append(c); continue; }
+
+            // GS → pipe (GS1 separator convention expected by BarcodeDataFormatter)
+            if (c == '\x1D') { sb.Append('|'); continue; }
+
+            // All other forbidden chars → &lt;MNEMONIC&gt; so they survive parsing
+            // as human-readable text tokens inside the element content.
+            string mnemonic = c switch
+            {
+                '\x01' => "SOH", '\x02' => "STX", '\x03' => "ETX",
+                '\x04' => "EOT", '\x05' => "ENQ", '\x06' => "ACK",
+                '\x07' => "BEL", '\x08' => "BS",
+                '\x0B' => "VT",  '\x0C' => "FF",
+                '\x0E' => "SO",  '\x0F' => "SI",
+                '\x10' => "DLE", '\x11' => "DC1", '\x12' => "DC2",
+                '\x13' => "DC3", '\x14' => "DC4", '\x15' => "NAK",
+                '\x16' => "SYN", '\x17' => "ETB", '\x18' => "CAN",
+                '\x19' => "EM",  '\x1A' => "SUB", '\x1B' => "ESC",
+                '\x1C' => "FS",  '\x1E' => "RS",  '\x1F' => "US",
+                _ => $"0x{(int)c:X2}",
+            };
+            sb.Append("&lt;");
+            sb.Append(mnemonic);
+            sb.Append("&gt;");
         }
-
-        int stripped = xml.Length - sb.Length;
-        System.Diagnostics.Debug.WriteLine(
-            $"[VTCCP-XML] StripIllegalXmlChars: removed {stripped} illegal chars " +
-            $"from {xml.Length}-char XML before parse.");
-
         return sb.ToString();
     }
 
     private static bool IsLegalXml10Char(char c) =>
-        c == 0x9 || c == 0xA || c == 0xD ||
-        (c >= 0x20  && c <= 0xD7FF) ||
-        (c >= 0xE000 && c <= 0xFFFD);
+        c == '\x09' || c == '\x0A' || c == '\x0D' ||
+        (c >= '\x20'   && c <= '\uD7FF') ||
+        (c >= '\uE000' && c <= '\uFFFD');
 }

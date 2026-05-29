@@ -5,11 +5,15 @@ namespace DeviceInterface.Dmst;
 /// matching the conventions used by the DataMan Setup Tool (DMST / TruCheck).
 ///
 /// ── Write path (device → display / Excel) ─────────────────────────────────
-///   1. Any remaining literal control characters (0x01–0x1F, excluding tab/CR/LF
-///      and 0x1D which DmstResultParser already converts to "|") are replaced with
-///      their angle-bracket mnemonics: &lt;ETX&gt;, &lt;EOT&gt;, &lt;RS&gt;, etc.
-///   2. "&lt;F1&gt;" is prepended for GS1 symbologies (AIM ID indicates FNC1 in first
-///      position).  The pipe characters already present represent GS separators.
+///   1. DmstResultParser.SubstituteForbiddenXmlChars() runs BEFORE XML parsing and
+///      converts every forbidden XML 1.0 byte to its angle-bracket mnemonic text
+///      (&lt;RS&gt;, &lt;EOT&gt;, etc.) except GS (0x1D) which becomes "|".  After parsing,
+///      those text tokens are already in DecodedData — SubstituteControlChars below
+///      acts only as a safety net for any literal byte that somehow survived.
+///   2. Any remaining literal control chars in DecodedData are replaced with
+///      mnemonics: &lt;ETX&gt;, &lt;EOT&gt;, &lt;RS&gt;, etc.
+///   3. "&lt;F1&gt;" is prepended for GS1 symbologies (AIM ID indicates FNC1 in first
+///      position), and every "|" (GS/FNC1 separator) becomes "&lt;F1&gt;" too.
 ///
 /// ── Read-back path (Excel → IMAGE.LOAD / round-trip) ─────────────────────
 ///   Reverses step 2 (strip "&lt;F1&gt;") and step 1 (restore mnemonics to bytes),
