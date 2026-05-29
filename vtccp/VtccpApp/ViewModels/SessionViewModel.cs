@@ -505,6 +505,12 @@ public sealed class SessionViewModel : ViewModelBase
                     $"{DeviceInterface.Dmcc.DmccCommand.WireHeader}{DeviceInterface.Dmcc.DmccCommand.SetDmccResponseExtended}\r\n"));
             System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] SET COM.DMCC-RESPONSE 2 sent.");
 
+            // Announce the trigger on the UI thread BEFORE firing it.
+            // OnPushRecord will overwrite this message when the scan result arrives.
+            // Setting it here (not after the ACK read) prevents the idle-gap timer
+            // from expiring and overwriting a record message that arrived first.
+            StatusMessage = "Trigger sent — waiting for push result…";
+
             // Send TRIGGER ON.
             // TRIGGER.TYPE=0 (Single/external) accepts software TRIGGER ON directly —
             // no trigger-type manipulation needed.
@@ -551,33 +557,37 @@ public sealed class SessionViewModel : ViewModelBase
             $"[VTCCP-DMCC] TRIGGER response: code={resp.StatusCode}  " +
             $"body='{(resp.Body.Length > 80 ? resp.Body[..80] + "…" : resp.Body)}'");
 
-        StatusMessage = resp.StatusCode switch
+        // On success (Ok) the message was already set to "Trigger sent — waiting…"
+        // before the trigger fired, so OnPushRecord can overwrite it with the record
+        // summary without being raced by the idle-gap timer expiring here.
+        // Only update StatusMessage for non-Ok outcomes (errors the operator must see).
+        if (resp.StatusCode != DeviceInterface.Dmcc.DmccStatus.Ok)
         {
-            DeviceInterface.Dmcc.DmccStatus.Ok =>
-                "Trigger sent — waiting for push result…",
+            StatusMessage = resp.StatusCode switch
+            {
+                DeviceInterface.Dmcc.DmccStatus.NoRead =>
+                    "Trigger fired — no symbol in field of view.",
 
-            DeviceInterface.Dmcc.DmccStatus.NoRead =>
-                "Trigger fired — no symbol in field of view.",
+                DeviceInterface.Dmcc.DmccStatus.Busy =>
+                    "Device busy — trigger rejected. Wait a moment and retry.",
 
-            DeviceInterface.Dmcc.DmccStatus.Busy =>
-                "Device busy — trigger rejected. Wait a moment and retry.",
+                DeviceInterface.Dmcc.DmccStatus.NoResponse =>
+                    "Trigger: device sent no reply (code -2). " +
+                    "Check VS Output for [VTCCP-DMCC] lines.",
 
-            DeviceInterface.Dmcc.DmccStatus.NoResponse =>
-                "Trigger: device sent no reply to TRIGGER (code -2). " +
-                "Check VS Output for [VTCCP-DMCC] lines.",
+                DeviceInterface.Dmcc.DmccStatus.Timeout =>
+                    "Trigger: connection timed out (code -3). " +
+                    "Verify the device IP/port and that the device is online.",
 
-            DeviceInterface.Dmcc.DmccStatus.Timeout =>
-                "Trigger: connection timed out (code -3). " +
-                "Verify the device IP/port and that the device is online.",
+                DeviceInterface.Dmcc.DmccStatus.ParseError =>
+                    "Trigger: unexpected response format from device (code -1). " +
+                    "Check firmware version or DMCC port setting.",
 
-            DeviceInterface.Dmcc.DmccStatus.ParseError =>
-                "Trigger: unexpected response format from device (code -1). " +
-                "Check firmware version or DMCC port setting.",
-
-            _ => string.IsNullOrWhiteSpace(resp.Body)
-                    ? $"Trigger: device returned code {resp.StatusCode}."
-                    : $"Trigger: device returned code {resp.StatusCode} — {resp.Body}",
-        };
+                _ => string.IsNullOrWhiteSpace(resp.Body)
+                        ? $"Trigger: device returned code {resp.StatusCode}."
+                        : $"Trigger: device returned code {resp.StatusCode} — {resp.Body}",
+            };
+        }
     }
 
     // ── Auto-Poll background loop ─────────────────────────────────────────────

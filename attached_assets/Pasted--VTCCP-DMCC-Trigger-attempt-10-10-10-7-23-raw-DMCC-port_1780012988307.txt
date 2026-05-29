@@ -1,0 +1,151 @@
+[VTCCP-DMCC] Trigger attempt: 10.10.10.7:23 (raw DMCC port)  connect=3000ms  response=5000ms  idle=150ms
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-DMCC] Banner wait timed out (no banner).
+[VTCCP-DMCC] SET COM.DMCC-RESPONSE 2 sent.
+[VTCCP-DMCC] TRIGGER ON sent.
+[VTCCP-DMCC] TRIGGER raw response (22B): '||:::2[0]\r\n||:::2[0]\r\n'
+[VTCCP-DMCC] TRIGGER response: code=0  body='||:::2[0]'
+The thread 20548 has exited with code 0 (0x0).
+The thread '.NET TP Worker' (29124) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (32204) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (21300) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (21392) has exited with code 0 (0x0).
+[VTCCP-DMST] RawXML (19287 chars): <?xml version="1.0" encoding="UTF-8"?>
+<DMCCResponse>
+<DMSymVerResponse>
+<DateTime>2026-05-28T20:02:11</DateTime>
+<SymbologyName>Data Matrix</SymbologyName>
+<DecodedData>01003555137102132110000328934717280331101197170</DecodedData>
+<SymbologyId>]d2</SymbologyId>
+<SymbolQuality>100</SymbolQuality>
+<SymbolAngle>357</SymbolAngle>
+<ModuleSizePx>12.632450103759766</ModuleSizePx>
+<PushScriptDiag>v1.34 q=r.trucheck m=found</PushScriptDiag>
+<Source>DM475-63530E-PIPS-Verif-Lab</Source>
+<FormalGrade>0/F</FormalGrade>
+<OverallGrade>F</OverallGrade>
+<OverallGradeNumeric>0</OverallGradeNumeric>
+<GradingStandard>ISO 15415:2011</GradingStandard>
+<ApplicationStandard>Custom</ApplicationStandard>
+<ApplicationPass>Fail (Quality)</ApplicationPass>
+<ApplicationPassReason>Quality</ApplicationPassReason>
+<ApertureRef>08</ApertureRef>
+<Wavelength>660</Wavelength>
+<Lighting>45Q</Lighting>
+<Standard>ISO 15415:2011</Standard>
+<UECPercent>70</UECPercent>
+<UECGrade>A</UECGrade>
+<SCPercent>61</SCPercent>
+<SCRlRd>64/3</SCRlRd>
+<SCGrade>B</SCGrade>
+<MinReflectance>3</MinReflectance>
+<MODGrade>C</MODGrade>
+<RMGrade>C</RMGrade>
+<ANUPercent>5.8</ANUPercent>
+<ANUGrade>A</ANUGrade>
+<GNUPercent>70.2</GNUPercent>
+<GNUGrade>A</GNUGrade>
+<FPDValue>1</FPDValue>
+<FPDGrade>D</FPDGrade>
+<DecodeGrade>F</DecodeGrade>
+<MatrixSize>22x22</MatrixSize>
+<HorizontalBWG>0</HorizontalBWG>
+<VerticalBWG>0</VerticalBWG>
+<EncodedCharacters>31</EncodedCharacters>
+<TotalCodewords>50</TotalCodewords>
+<DataCodewords></DataCodewords>
+<ErrorCorrectionBudget></ErrorCorrectionBudget>
+<ErrorsCorrected>3</ErrorsCorrected>
+<ErrorCapacityUsed>6</ErrorCapacityUsed>
+<ErrorCorrectionType>ECC200</ErrorCorrectionType>
+<NominalXDim>16.4 mil</NominalXDim>
+<ImagePolarity></ImagePolarity>
+<ContrastUniformity>6</ContrastUniformity>
+<MRD>7</MRD>
+<ContrastUniformityRow>1</ContrastUniformityRow>
+<ContrastUniformityCol>1</ContrastUniformityCol>
+<OpticsSource>LiveScan</OpticsSource>
+<DDGrade>X</DDGrade>
+<AverageGrade>C</AverageGrade>
+<AverageGradeNumeric>2</AverageGradeNumeric>
+<CustomNote></CustomNote>
+<LLSGrade>A</LLSGrade>
+<BLSGrade>A</BLSGrade>
+<LQZGrade>A</LQZGrade>
+<BQZGrade>C</BQZGrade>
+<TQZGrade>A</TQZGrade>
+<RQZGrade>A</RQZGrade>
+<TTRPercent>0</TTRPercent>
+<TTRGrade>A</TTRGrade>
+<RTRPercent>0</RTRPercent>
+<RTRGrade>A</RTRGrade>
+<TCTGrade>D</TCTGrade>
+<RCTGrade>A</RCTGrade>
+<ULQZGrade></ULQZGrade>
+<URQZGrade></URQZGrade>
+<RUQZGrade></RUQZGrade>
+<RLQZGrade></RLQZGrade>
+<LLQZGrade></LLQZGrade>
+<LRQZGrade></LRQZGrade>
+<HClockTrackGrade></HClockTrackGrade>
+<VClockTrackGrade></VClockTrackGrade>
+<ULQTTRPercent></ULQTTRPercent>
+<ULQTTRGrade></ULQTTRGrade>
+<URQTTRPercent></URQTTRPercent>
+<URQTTRGrade></URQTTRGrade>
+<LLQTTRPercent></LLQTTRPercent>
+<LLQTTRGrade></LLQTTRGrade>
+<LRQTTRPercent></LRQTTRPercent>
+<LRQTTRGrade></LRQTTRGrade>
+<ULQRTRPercent></ULQRTRPercent>
+<ULQRTRGrade></ULQRTRGrade>
+<URQRTRPercent></URQRTRPercent>
+<URQRTRGrade></URQRTRGrade>
+<LLQRTRPercent></LLQRTRPercent>
+<LLQRTRGrade></LLQRTRGrade>
+<LRQRTRPercent></LRQRTRPercent>
+<LRQRTRGrade></LRQRTRGrade>
+<ULQTCTGrade></ULQTCTGrade>
+<URQTCTGrade></URQTCTGrade>
+<LLQTCTGrade></LLQTCTGrade>
+<LRQTCTGrade></LRQTCTGrade>
+<ULQRCTGrade></ULQRCTGrade>
+<URQRCTGrade></URQRCTGrade>
+<LLQRCTGrade></LLQRCTGrade>
+<LRQRCTGrade></LRQRCTGrade>
+<ULPGrade></ULPGrade>
+<URPGrade></URPGrade>
+<LLPGrade></LLPGrade>
+<HCTGrade></HCTGrade>
+<VCTGrade></VCTGrade>
+<ALPGrade></ALPGrade>
+<VIBGrade></VIBGrade>
+<FIBGrade></FIBGrade>
+<SymbolAnsiGrade></SymbolAnsiGrade>
+<AvgEdge></AvgEdge>
+<AvgRlRd></AvgRlRd>
+<AvgSC></AvgSC>
+<AvgMinEC></AvgMinEC>
+<AvgMOD></AvgMOD>
+<AvgDefect></AvgDefect>
+<AvgDcod></AvgDcod>
+<AvgDEC></AvgDEC>
+<AvgLQZ></AvgLQZ>
+<AvgRQZ></AvgRQZ>
+<AvgHQZ></AvgHQZ>
+<AvgMinQZ></AvgMinQZ>
+<BWGPercent></BWGPercent>
+<Magnification></Magnification>
+<Ratio></Ratio>
+<NominalXDim1D></NominalXDim1D>
+<JpegImageBase64>/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABsSFBc…[truncated]
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\EPPlus.Interfaces.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Security.Cryptography.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\EPPlus.System.Drawing.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\System.Drawing.Common.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+The program '[28184] VtccpApp.exe' has exited with code 0 (0x0).
