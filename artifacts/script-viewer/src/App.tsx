@@ -189,9 +189,13 @@ function getDismissedSet(): Set<string> {
   }
 }
 
+const DISMISSED_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
 function saveDismissedSet(set: Set<string>) {
   try {
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify([...set]));
+    const cutoff = Date.now() - DISMISSED_MAX_AGE_MS;
+    const pruned = [...set].filter((ts) => new Date(ts).getTime() >= cutoff);
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(pruned));
   } catch {
   }
 }
