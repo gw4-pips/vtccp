@@ -243,6 +243,16 @@ public static class TruCheckCompatibleSchema
             cols.Add(Col($"DFC_R{slot}_Check", $"DFC R{slot} Check",  8, SymbologyGroup.Universal, famGS1));
         }
 
+        // ── Block J: OCR (Label Text Recognition) ─────────────────────────────
+        // Populated when OCR is enabled for the session (operator toggle, default on).
+        // Source: L1 barcode-crop JPEG from push XML r.trucheck.jpegImage.
+        // L2 ROI frame (wider label area) is a future enhancement (Manual mode only).
+        cols.Add(Col("OcrText",    "OCR Text",   40, SymbologyGroup.Universal));
+        cols.Add(Col("OcrTier",    "OCR Tier",    8, SymbologyGroup.Universal));
+        cols.Add(Col("OcrWinText", "OCR Win",    30, SymbologyGroup.Universal));
+        cols.Add(Col("OcrTessText","OCR Tess",   30, SymbologyGroup.Universal));
+        cols.Add(Col("OcrSource",  "OCR Source", 12, SymbologyGroup.Universal));
+
         return cols;
     }
 

@@ -203,6 +203,13 @@ public static class ISO15416Mapper
             d[$"DFC_R{slot}_Check"] = null;
         }
 
+        // ── Block J: OCR ──────────────────────────────────────────────────────
+        d["OcrText"]    = r.OcrResult?.AgreedText;
+        d["OcrTier"]    = r.OcrResult?.Tier;
+        d["OcrWinText"] = r.OcrResult?.WindowsText;
+        d["OcrTessText"]= r.OcrResult?.TesseractText;
+        d["OcrSource"]  = r.OcrResult?.ImageSource;
+
         return d;
     }
 

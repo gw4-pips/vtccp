@@ -51,6 +51,32 @@ start, or lazily bind on first record.
 
 ---
 
+### Push script auto-deploy on connect
+
+**Status**: PARKED — log only, no implementation until user directs.
+
+Every VCCS Command Pilot installation currently requires the operator to manually
+copy the push script into DMST → TruCheck Configuration → Event window. This is
+a setup step that can fail silently if the wrong version is pasted.
+
+**Requirement**: when VTCCP connects to a DataMan device, it should automatically
+write the current production push script to the device via DMCC so the device is
+always running the correct version — no manual paste required.
+
+**Implementation path when approved**:
+- Identify the DMCC key for the event/push script (likely in the DMCC guide A1 digest
+  under the `TRIGGER.*` or `EVENT.*` namespace — exact key to confirm before coding)
+- On `ConnectAsync`: after device info is read, issue a DMCC SET with the bundled
+  script text; compare version tag first to avoid unnecessary writes
+- Bundle the canonical push script as an embedded resource in VtccpApp
+  (same pattern as `tessdata/eng.traineddata`) so no file path is needed at runtime
+- Version check: read back the DiagTag from a lightweight GET after SET to confirm
+  the device accepted the script correctly
+
+**Blocked by**: Exact DMCC key confirmation + user approval.
+
+---
+
 ### GS1 `<F1>` formatter — ]d1 vs ]d2
 
 **Status**: PARKED at user request, 2026-05-29.

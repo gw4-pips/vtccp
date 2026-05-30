@@ -9,6 +9,7 @@ using DeviceInterface.Dmst;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
 using ExcelEngine.Session;
+using OcrEngine;
 using VtccpApp.Commands;
 
 /// <summary>
@@ -40,6 +41,17 @@ public sealed class SessionViewModel : ViewModelBase
     private bool                                _isRunning;
     private string                              _statusMessage = "Ready.";
     private int                                 _recordCount;
+
+    // ── OCR ───────────────────────────────────────────────────────────────────
+
+    private readonly DualEngineOcrRunner _ocrRunner = new();
+
+    /// <summary>
+    /// Controls whether OCR runs on the L1 barcode-crop image for each accepted scan.
+    /// TODO: bind to a per-session UI toggle (checkbox in SessionView) before shipping.
+    ///       Defaulting true so OCR results populate during development and testing.
+    /// </summary>
+    private bool _ocrEnabled = true;
 
     // ── UPC/EAN Supplemental state ────────────────────────────────────────────
     private int    _upcEanSupplementalMode = 0;
@@ -666,16 +678,46 @@ public sealed class SessionViewModel : ViewModelBase
     private async Task AcceptRecordInnerAsync(VerificationRecord record)
     {
         if (_sessionMgr is null) return;
+
+        // ── OCR pass (L1 barcode-crop image) ─────────────────────────────────
+        // TODO: replace _ocrEnabled with a per-session UI toggle (checkbox in
+        //       SessionView) before shipping.  Defaulting true for dev/testing.
+        if (_ocrEnabled && record.JpegImageBase64 is { Length: > 0 } b64)
+        {
+            try
+            {
+                byte[]    jpegBytes = Convert.FromBase64String(b64);
+                OcrResult ocrResult = await _ocrRunner.RunAsync(
+                    jpegBytes, OcrImageSource.BarcodeCrop);
+                record = record with { OcrResult = ToOcrDto(ocrResult) };
+            }
+            catch { /* OCR failure must never block record acceptance */ }
+        }
+
         bool savedToDisk = await Task.Run(() => _sessionMgr.AddRecord(record));
         _history.AddRecord(record);
         _recordCount++; OnPropertyChanged(nameof(RecordCount));
-        string grade = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
-        string num   = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
+        string grade     = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
+        string num       = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
+        string ocrSuffix = record.OcrResult?.Tier is { Length: > 0 } t ? $"  | OCR: {t}" : string.Empty;
         if (savedToDisk)
-            StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}";
+            StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}";
         else
-            StatusMessage = $"⚠ Record {RecordCount}: {record.Symbology} — {grade}{num}  [file open in Excel — close Excel before ending session]";
+            StatusMessage = $"⚠ Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}  [file open in Excel — close Excel before ending session]";
     }
+
+    private static ExcelEngine.Models.OcrResultDto ToOcrDto(OcrResult r) =>
+        new()
+        {
+            AgreedText          = r.AgreedText,
+            Tier                = r.Tier.ToString(),
+            WindowsText         = r.WindowsEngineText,
+            WindowsConfidence   = r.WindowsEngineConfidence,
+            TesseractText       = r.TesseractText,
+            TesseractConfidence = r.TesseractConfidence,
+            EditDistance        = r.EditDistance,
+            ImageSource         = r.ImageSource.ToString(),
+        };
 
     // ── UPC/EAN Supplemental read / write ─────────────────────────────────────
 
