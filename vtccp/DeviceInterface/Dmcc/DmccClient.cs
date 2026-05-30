@@ -55,8 +55,11 @@ public sealed class DmccClient : IAsyncDisposable
         // and we must not stall for the full ResponseTimeoutMs here.
         WelcomeBanner = await ReadUntilIdleAsync(ct, _cfg.BannerTimeoutMs);
 
-        // Port 44444 is DataMan's proprietary DMCC interface — no telnet handshake
-        // required.  Commands are accepted immediately after connection.
+        // NOTE: DmccClient is only used in TestHarness against MockDmccServer
+        // (OS-assigned ephemeral port).  In production, DataManSdkClient is used
+        // instead — it sends raw DMCC text on port 23 (RawDmccPort), not 44444.
+        // Port 44444 does NOT accept bare ||>COMMAND\r\n TCP connections; those
+        // are silently dropped.  Port 23 is the raw DMCC text (Telnet) interface.
     }
 
     /// <summary>Gracefully closes the connection.</summary>
