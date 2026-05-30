@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import scriptText from "./v134.txt?raw";
 
 const LINE_COUNT = scriptText.split("\n").length;
@@ -170,9 +170,98 @@ function PushLogTab() {
   );
 }
 
+interface PushStatus {
+  failed: boolean;
+  failedAt: string | null;
+  failedMessage: string | null;
+  lastStatusLine: string | null;
+}
+
+function usePushStatus() {
+  const [status, setStatus] = useState<PushStatus | null>(null);
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    let lastFailedAt: string | null = null;
+
+    async function poll() {
+      try {
+        const res = await fetch("/api/push-status");
+        if (!res.ok) return;
+        const data: PushStatus = await res.json();
+        setStatus(data);
+        if (data.failed && data.failedAt !== lastFailedAt) {
+          lastFailedAt = data.failedAt;
+          setDismissed(false);
+        }
+        if (!data.failed) {
+          setDismissed(false);
+        }
+      } catch {
+      }
+    }
+
+    poll();
+    const id = setInterval(poll, 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  return { status, dismissed, dismiss: () => setDismissed(true) };
+}
+
+function PushFailureBanner({ status, onDismiss }: { status: PushStatus; onDismiss: () => void }) {
+  return (
+    <div style={{
+      background: "#2d0a0a",
+      border: "1px solid #da3633",
+      borderLeft: "4px solid #f85149",
+      borderRadius: 0,
+      padding: "10px 16px",
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 12,
+      fontSize: 12,
+      lineHeight: 1.6,
+    }}>
+      <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>✗</span>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 700, color: "#f85149", marginBottom: 2 }}>
+          GitHub push failed
+        </div>
+        <div style={{ color: "#ffa198" }}>
+          {status.failedMessage ?? "Push failed — check .github-sync-status for details."}
+        </div>
+        {status.failedAt && (
+          <div style={{ color: "#8b949e", marginTop: 4, fontSize: 11 }}>
+            {status.failedAt} · Run <code style={{ color: "#7ee787" }}>bash scripts/sync-github.sh</code> to retry
+          </div>
+        )}
+      </div>
+      <button
+        onClick={onDismiss}
+        title="Dismiss"
+        style={{
+          background: "transparent",
+          border: "none",
+          color: "#8b949e",
+          cursor: "pointer",
+          fontSize: 16,
+          lineHeight: 1,
+          padding: "0 2px",
+          flexShrink: 0,
+        }}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
 function App() {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<"script" | "push-log">("script");
+  const { status, dismissed, dismiss } = usePushStatus();
+  const showBanner = status?.failed === true && !dismissed;
 
   const copy = async () => {
     try {
@@ -295,6 +384,10 @@ function App() {
           Push Log
         </button>
       </div>
+
+      {showBanner && status && (
+        <PushFailureBanner status={status} onDismiss={dismiss} />
+      )}
 
       {activeTab === "script" && (
         <>

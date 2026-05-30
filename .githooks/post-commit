@@ -39,10 +39,19 @@ PUSH_EXIT=$?
 # Redact token before printing output.
 sed "s|https://[^@]*@|https://***@|g" "$TMPFILE"
 
+FAILED_FILE="$(git rev-parse --show-toplevel 2>/dev/null)/.github-push-failed"
+
 if [ "$PUSH_EXIT" -eq 0 ]; then
     _log "GitHub push OK — $LOCAL_SHA."
+    rm -f "$FAILED_FILE"
 else
-    _log "ERROR: push failed (exit $PUSH_EXIT). Run: bash scripts/sync-github.sh"
+    if grep -q "stale info\|rejected\|\[rejected\]" "$TMPFILE"; then
+        FAIL_MSG="Push rejected (exit $PUSH_EXIT). Check .github-sync-status for details."
+    else
+        FAIL_MSG="Push failed (exit $PUSH_EXIT). Check .github-sync-status for details."
+    fi
+    _log "ERROR: $FAIL_MSG"
+    printf 'timestamp=%s\nmessage=%s\n' "$TIMESTAMP" "$FAIL_MSG" > "$FAILED_FILE"
     echo "[post-commit] Replit commit still succeeded — your code is safe."
 fi
 
