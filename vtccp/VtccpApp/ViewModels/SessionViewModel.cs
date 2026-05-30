@@ -33,9 +33,9 @@ public sealed class SessionViewModel : ViewModelBase
 
     // ── Runtime state ─────────────────────────────────────────────────────────
 
-    private DeviceSession?                      _deviceSession;
-    private DeviceInterface.Dmst.DmstListener?  _dmstListener;
-    private SessionManager?                     _sessionMgr;
+    private DeviceSession?                              _deviceSession;
+    private DeviceInterface.Dmst.HttpEventSubscriber?  _pushHttpSubscriber;
+    private SessionManager?                             _sessionMgr;
     private System.Threading.CancellationTokenSource? _pollCts;
     private bool                                _isRunning;
     private string                              _statusMessage = "Ready.";
@@ -292,12 +292,18 @@ public sealed class SessionViewModel : ViewModelBase
         {
             if (_scanMode == ScanMode.Push)
             {
-                // Push mode: DMST stays open on port 23 — we only listen for pushed XML.
-                // No DMCC connection is opened so DataMan Setup Tool can remain active
-                // for live view and positioning.
-                int listenPort = SelectedDevice.DmstListenPort;
-                StatusMessage = $"Starting push listener on port {listenPort}…";
-
+                // Push mode: subscribe directly to the device's HTTP event channel on
+                // port 44444.  No SDK connection is opened so DMST can remain fully
+                // active alongside CP (live view, manual Verify button, positioning).
+                //
+                // Results from ANY scan source — physical reader button, DMST Verify,
+                // or CP's own Trigger Scan — arrive via the device's HTTP pub-sub
+                // channel (PUT /codes.xml with origin="common").  This replaces the
+                // old DmstListener (TCP port 9004) approach which required DMST to
+                // manage the push destination and broke whenever DMST was closed or
+                // CONFIG.DEFAULT was issued.
+                StatusMessage = "Subscribing to device push channel…";
+                var cfg = SelectedDevice.ToDeviceConfig();
                 var ctx = new VerificationRecord
                 {
                     Symbology       = string.Empty,
@@ -309,10 +315,9 @@ public sealed class SessionViewModel : ViewModelBase
                     BatchNumber     = state.BatchNumber  ?? string.Empty,
                     CompanyName     = state.CompanyName  ?? string.Empty,
                 };
-
-                _dmstListener = new DeviceInterface.Dmst.DmstListener(
-                    listenPort, _xmlMap, ctx, OnPushRecord);
-                await _dmstListener.StartAsync(_pollCts.Token);
+                _pushHttpSubscriber = new DeviceInterface.Dmst.HttpEventSubscriber(
+                    cfg.Host, cfg.Port, _xmlMap, ctx, OnPushRecord);
+                await _pushHttpSubscriber.StartAsync(_pollCts.Token);
             }
             else
             {
@@ -376,10 +381,10 @@ public sealed class SessionViewModel : ViewModelBase
         _pollCts?.Cancel();
 
         // ── Step 1: stop the push listener so no new records arrive ──────────
-        if (_dmstListener is not null)
+        if (_pushHttpSubscriber is not null)
         {
-            await _dmstListener.StopAsync();
-            _dmstListener = null;
+            await _pushHttpSubscriber.StopAsync();
+            _pushHttpSubscriber = null;
         }
 
         // ── Step 2: drain in-flight AcceptRecordAsync calls (max 2 s) ────────
@@ -802,10 +807,10 @@ public sealed class SessionViewModel : ViewModelBase
             await _deviceSession.DisposeAsync();
             _deviceSession = null;
         }
-        if (_dmstListener is not null)
+        if (_pushHttpSubscriber is not null)
         {
-            await _dmstListener.StopAsync();
-            _dmstListener = null;
+            await _pushHttpSubscriber.StopAsync();
+            _pushHttpSubscriber = null;
         }
         _sessionMgr?.Dispose();
         _sessionMgr = null;
