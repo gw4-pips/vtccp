@@ -6,3 +6,4 @@
 - [DMCC raw TCP wire protocol](dmcc-wire-protocol.md) — port 23 (not 44444) for raw DMCC text; TRIGGER ON works at TRIGGER.TYPE=0; ACK format is ||:::2[0]\r\n on port-23 connections
 - [VTCCP Working Rules](vtccp-working-rules.md) — DO NOT BUILD WITHOUT ASKING; assume less / prove more; one variable at a time
 - [Trigger Reset & DMST Recovery Plan](trigger-reset-plan.md) — restore TRIGGER.TYPE to live-feed mode on exit; restore point commit f474fa7; Manual vs Push cleanup paths differ
+- [DMST blank image — COM.DMCC-SAVE required](dmcc-save-required.md) — COM.DMCC-RESET alone is insufficient; must follow with COM.DMCC-SAVE to persist defaults to NVRAM

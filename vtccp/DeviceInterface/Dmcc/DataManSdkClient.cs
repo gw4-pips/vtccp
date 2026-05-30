@@ -30,7 +30,7 @@ using CognexSdk = Cognex.DataMan.SDK;
 ///     an internal list BEFORE sending to the device. Commands not in that list
 ///     (e.g. "GET FIRMWARE.VER", "GET SYMBOL.RESULT", "COM.DMCC-RESET") throw
 ///     InvalidCommandException and never reach the wire. Any command that must
-///     bypass this gate must use a raw TCP connection instead (see SendDmccResetViaRawTcpAsync).
+///     bypass this gate must use a raw TCP connection instead (see SendDmccRestoreAsync).
 /// </summary>
 public sealed class DataManSdkClient : IAsyncDisposable
 {
@@ -60,6 +60,16 @@ public sealed class DataManSdkClient : IAsyncDisposable
         ThrowIfDisposed();
         if (IsConnected) return;
 
+        // Pre-connect restore: fix any bad DATA.IMAGE-TYPE value left in NVRAM by a
+        // previous SDK session.  The Cognex SDK's Connect() internally sets DATA.IMAGE-TYPE
+        // (and other DMCC communication params) to values that suppress image delivery, then
+        // persists them via an internal COM.DMCC-SAVE.  Those values survive device restarts
+        // (they are in NVRAM) and cause DMST's image panel to remain blank after any prior
+        // VTCCP session.  Sending COM.DMCC-RESET + COM.DMCC-SAVE here writes the firmware
+        // defaults back to NVRAM BEFORE the SDK has a chance to overwrite them, and also
+        // repairs the device for any DMST connections that open between VTCCP sessions.
+        await SendDmccRestoreAsync(label: "pre-connect");
+
         await Task.Run(() =>
         {
             var ip     = IPAddress.Parse(_cfg.Host);
@@ -79,12 +89,8 @@ public sealed class DataManSdkClient : IAsyncDisposable
     {
         _isConnected = false;
 
-        // Send COM.DMCC-RESET via raw TCP BEFORE closing the SDK connection.
-        // Must be raw TCP — the SDK's SendCommand() validation layer rejects this
-        // command with InvalidCommandException before it reaches the wire (same
-        // behaviour as "GET FIRMWARE.VER" and "GET SYMBOL.RESULT").
-        await SendDmccResetViaRawTcpAsync();
-
+        // Disconnect the SDK first so any SDK-internal cleanup commands are sent before
+        // we overwrite device state with our restore sequence below.
         await Task.Run(() =>
         {
             try
@@ -100,78 +106,106 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
         _system    = null;
         _connector = null;
+
+        // Post-disconnect restore: undo whatever DATA.IMAGE-TYPE / COM.DMCC-* changes the
+        // SDK made during its session (including any internal COM.DMCC-SAVE calls).
+        // COM.DMCC-RESET resets the in-memory values to firmware defaults; COM.DMCC-SAVE
+        // persists them to NVRAM so that DMST's next connection loads the correct value.
+        // Without the COM.DMCC-SAVE step, COM.DMCC-RESET only fixes the current (now
+        // closed) session and the bad NVRAM value remains, causing DMST to show a blank
+        // image panel on every subsequent connection.
+        await SendDmccRestoreAsync(label: "post-disconnect");
     }
 
     /// <summary>
-    /// Sends <c>COM.DMCC-RESET</c> via a transient raw TCP connection on port 23
-    /// (the raw DMCC text / Telnet port).
+    /// Sends <c>COM.DMCC-RESET</c> followed immediately by <c>COM.DMCC-SAVE</c> via a
+    /// transient raw TCP connection on port 23 (the raw DMCC Telnet interface).
     ///
-    /// Why raw TCP:  The Cognex SDK's <c>SendCommand()</c> validates command names against
-    /// an internal whitelist before sending them to the device.  <c>COM.DMCC-RESET</c> is
-    /// not in that list, so it throws <c>InvalidCommandException</c> and never reaches the
-    /// wire.  A raw TCP connection bypasses the SDK entirely.
+    /// Why both commands are required:
+    ///   COM.DMCC-RESET  — resets DATA.IMAGE-TYPE, DATA.RESULT-TYPE, DATA.RESULT-ENCODING,
+    ///                     DATA.RESULT-ALWAYSSEND, COM.DMCC-RESPONSE, COM.DMCC-CHECKSUM,
+    ///                     COM.DMCC-HEADER to their firmware defaults for the current session.
+    ///   COM.DMCC-SAVE   — persists those defaults to NVRAM so every future TCP connection
+    ///                     (including DMST reconnects) loads the correct values.
     ///
-    /// Why port 23 (not _cfg.Port / 44444):  Port 44444 multiplexes the SDK binary protocol
-    /// and HTTP pub-sub.  Bare TCP connections sending <c>||&gt;COMMAND\r\n</c> on port 44444
-    /// are silently ignored — the device returns zero bytes and does NOT execute the command.
-    /// Port 23 is the classic DMCC Telnet interface; <c>||&gt;COMMAND\r\n</c> is executed there.
-    /// Confirmed on DM475V fw 6.1.16_sr4.
+    ///   Without COM.DMCC-SAVE the RESET only fixes the current (now-closed) session.
+    ///   The bad value the Cognex SDK wrote to NVRAM during its own Connect() call survives,
+    ///   and DMST loads it on the next connection → image panel stays blank.
     ///
-    /// What COM.DMCC-RESET does on the device (DMCC Reference, ALL platforms, v4.4.0):
-    /// Resets the following settings back to firmware defaults for ALL future connections:
-    ///   DATA.IMAGE-TYPE, DATA.RESULT-TYPE, DATA.RESULT-ENCODING, DATA.RESULT-ALWAYSSEND,
-    ///   COM.DMCC-RESPONSE, COM.DMCC-CHECKSUM, COM.DMCC-HEADER.
+    /// Why port 23 (not 44444):
+    ///   Port 44444 is the SDK / HTTP-event port.  Bare TCP connections sending
+    ///   <c>||&gt;COMMAND\r\n</c> on port 44444 are silently dropped — zero bytes returned,
+    ///   command never executed.  Port 23 is the Telnet/DMCC text interface; confirmed
+    ///   working on DM475V fw 6.1.16_sr4.
     ///
-    /// Without this reset, any session that called SetResultTypes() (which the SDK
-    /// persists via COM.DMCC-SAVE) leaves DATA.IMAGE-TYPE in a state that strips
-    /// images from result delivery, blanking DMST's image panel until device reboot.
+    /// Why raw TCP (not SDK SendCommand):
+    ///   The SDK validates command names against an internal whitelist.  COM.DMCC-RESET
+    ///   and COM.DMCC-SAVE are not on the list; calling them via the SDK throws
+    ///   InvalidCommandException before anything reaches the wire.
     /// </summary>
-    private async Task SendDmccResetViaRawTcpAsync()
+    private async Task SendDmccRestoreAsync(string label = "")
     {
+        var tag = string.IsNullOrEmpty(label) ? "" : $" [{label}]";
         try
         {
-            using var tcp    = new TcpClient();
-            using var outerCts = new CancellationTokenSource(2_000);
+            using var tcp      = new TcpClient();
+            using var outerCts = new CancellationTokenSource(3_000);
             // Port 23 = raw DMCC text interface. Port 44444 silently drops bare TCP.
             await tcp.ConnectAsync(_cfg.Host, DmccCommand.RawDmccPort, outerCts.Token);
             var stream = tcp.GetStream();
 
-            // Drain welcome banner (~100 B sent by device on raw TCP connect).
+            // Drain welcome banner — DM475V sends none on port 23, but drain defensively.
             try
             {
-                using var bannerCts = new CancellationTokenSource(400);
-                await stream.ReadAsync(new byte[512], bannerCts.Token);
+                using var bannerCts = new CancellationTokenSource(300);
+                await stream.ReadAsync(new byte[256], bannerCts.Token);
             }
-            catch (OperationCanceledException) { /* no banner or timed out — OK */ }
+            catch (OperationCanceledException) { }
             catch { }
 
-            // Send COM.DMCC-RESET with the bare DMCC wire header (||>command\r\n).
-            byte[] cmd = Encoding.ASCII.GetBytes(
+            // Step 1: COM.DMCC-RESET — resets DMCC communication params to firmware defaults.
+            byte[] resetCmd = Encoding.ASCII.GetBytes(
                 $"{DmccCommand.WireHeader}{DmccCommand.DmccReset}\r\n");
-            await stream.WriteAsync(cmd, outerCts.Token);
+            await stream.WriteAsync(resetCmd, outerCts.Token);
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SDK]{tag} COM.DMCC-RESET sent on port 23.");
 
-            // Read ACK (best-effort — device is in silent mode by default so may
-            // send nothing; the command is still executed regardless).
+            // Brief pause so the device fully processes RESET before we SAVE.
+            await Task.Delay(120);
+
+            // Step 2: COM.DMCC-SAVE — persists the reset defaults to NVRAM.
+            //   This is the critical step that was missing.  Without it, COM.DMCC-RESET
+            //   only affects the current session; DMST's next connection still loads the
+            //   bad DATA.IMAGE-TYPE value the SDK had written to NVRAM via its own
+            //   internal COM.DMCC-SAVE during Connect().
+            byte[] saveCmd = Encoding.ASCII.GetBytes(
+                $"{DmccCommand.WireHeader}{DmccCommand.DmccSave}\r\n");
+            await stream.WriteAsync(saveCmd, outerCts.Token);
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SDK]{tag} COM.DMCC-SAVE sent on port 23 — defaults persisted to NVRAM.");
+
+            // Read any ACK bytes (best-effort; device is in silent mode by default).
             try
             {
                 using var ackCts = new CancellationTokenSource(600);
-                byte[] ack = new byte[32];
+                byte[] ack = new byte[64];
                 int n = await stream.ReadAsync(ack, ackCts.Token);
                 if (n > 0)
                     System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-SDK] COM.DMCC-RESET ack ({n}B): " +
+                        $"[VTCCP-SDK]{tag} RESET+SAVE ack ({n}B): " +
                         $"'{Encoding.ASCII.GetString(ack, 0, n).Trim()}'");
             }
             catch (OperationCanceledException) { /* silent mode — expected */ }
             catch { }
 
             System.Diagnostics.Debug.WriteLine(
-                "[VTCCP-SDK] COM.DMCC-RESET sent via raw TCP — DATA.IMAGE-TYPE restored to firmware default.");
+                $"[VTCCP-SDK]{tag} COM.DMCC-RESET + COM.DMCC-SAVE complete. " +
+                $"DATA.IMAGE-TYPE restored to firmware default in NVRAM.");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-SDK] COM.DMCC-RESET raw TCP failed: {ex.GetType().Name}: {ex.Message}");
+                $"[VTCCP-SDK]{tag} RESET+SAVE failed: {ex.GetType().Name}: {ex.Message}");
         }
     }
 
