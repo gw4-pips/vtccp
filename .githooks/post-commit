@@ -1,7 +1,10 @@
-Plan#!/bin/bash
+#!/bin/bash
 # Auto-push to GitHub after every commit/checkpoint made in Replit.
 # GITHUB_TOKEN is a Replit secret available in the shell environment.
 # Token is stripped from output so it never appears in logs.
+#
+# IMPORTANT: This hook only runs if core.hooksPath = .githooks is set.
+# Run once to configure: bash scripts/setup-git-hooks.sh
 
 if [ -z "$GITHUB_TOKEN" ]; then
     echo "[post-commit] GITHUB_TOKEN not set — skipping GitHub push."
@@ -11,14 +14,16 @@ fi
 GITHUB_URL="https://${GITHUB_TOKEN}@github.com/gw4-pips/vtccp.git"
 
 echo "[post-commit] Pushing to GitHub..."
-git push "$GITHUB_URL" main 2>&1 \
+git push "$GITHUB_URL" HEAD:main 2>&1 \
     | sed "s|https://[^@]*@|https://***@|g"
 
 EXIT=${PIPESTATUS[0]}
 if [ $EXIT -eq 0 ]; then
     echo "[post-commit] GitHub push OK."
 else
-    echo "[post-commit] GitHub push failed (exit $EXIT) — Replit commit still succeeded."
+    echo "[post-commit] GitHub push failed (exit $EXIT)."
+    echo "[post-commit] If GitHub is ahead of Replit, run: bash scripts/sync-github.sh"
+    echo "[post-commit] Replit commit still succeeded — your code is safe."
 fi
 
 exit 0
