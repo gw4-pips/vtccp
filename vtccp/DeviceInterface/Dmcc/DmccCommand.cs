@@ -107,6 +107,30 @@ public static class DmccCommand
     /// </summary>
     public const string ImageSend = "IMAGE.SEND";
 
+    /// <summary>
+    /// Mirrors the acquired image over the vertical axis (= Flip Horizontal in DMST UI).
+    /// SET/GET. Values: ON / OFF.
+    /// DMST path: Advanced → Imager Settings → Image Mirroring → Flip Horizontal.
+    /// Platforms: DM80, DM280, DM290, DM300, DM360, DM370, DM390, DM470, DM503.
+    /// DM475V confirmed via DMST UI — probe before relying on firmware support.
+    /// Version: 5.2.0.
+    /// </summary>
+    public const string GetMirrorHorizontal  = "GET CAMERA.MIRROR-HORIZONTAL";
+    public const string SetMirrorHorizontalOn  = "SET CAMERA.MIRROR-HORIZONTAL ON";
+    public const string SetMirrorHorizontalOff = "SET CAMERA.MIRROR-HORIZONTAL OFF";
+
+    /// <summary>
+    /// Mirrors the acquired image over the horizontal axis (= Flip Vertical in DMST UI).
+    /// SET/GET. Values: ON / OFF.
+    /// DMST path: Advanced → Imager Settings → Image Mirroring → Flip Vertical.
+    /// Platforms: DM70, DM80, DM260, DM280, DM290, DM300, DM360, DM370, DM390, DM470, DM503.
+    /// DM475V confirmed via DMST UI — probe before relying on firmware support.
+    /// Version: 5.2.0.
+    /// </summary>
+    public const string GetMirrorVertical  = "GET CAMERA.MIRROR-VERTICAL";
+    public const string SetMirrorVerticalOn  = "SET CAMERA.MIRROR-VERTICAL ON";
+    public const string SetMirrorVerticalOff = "SET CAMERA.MIRROR-VERTICAL OFF";
+
     // ── Raw TCP wire helpers ───────────────────────────────────────────────────
 
     /// <summary>
@@ -357,6 +381,47 @@ public static class DmccCommand
     /// </summary>
     public const string GetQrQualityMetrics = "GET QR.QUALITY-METRICS";
     public static string SetQrQualityMetrics(int mode) => $"SET QR.QUALITY-METRICS {mode}";
+
+    // ── Device time / NTP ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Gets/sets the timezone for local time on the device.
+    /// Argument is a Location string (e.g. "America/New_York") or POSIX timezone.
+    /// DMST path: System Settings → Device Time Settings → Time Zone / Value.
+    /// Platforms: All. Version: 5.7.0.
+    /// After CONFIG.DEFAULT: must be restored to "America/New_York" (PIPS-Verif-Lab default).
+    /// </summary>
+    public const string GetTimezone = "GET DEVICE.TIMEZONE";
+    public static string SetTimezone(string tz) => $"SET DEVICE.TIMEZONE {tz}";
+
+    /// <summary>
+    /// Enables or disables NTP time synchronisation.
+    /// SET/GET. Values: ON / OFF.
+    /// DMST path: System Settings → Device Time Settings → Enable NTP.
+    /// Platforms: All. Version: 5.7.0.
+    /// After CONFIG.DEFAULT: restore to ON.
+    /// </summary>
+    public const string GetNtpEnable  = "GET NTP.ENABLE";
+    public const string SetNtpEnableOn  = "SET NTP.ENABLE ON";
+    public const string SetNtpEnableOff = "SET NTP.ENABLE OFF";
+
+    /// <summary>
+    /// Primary NTP server address (IP or DNS hostname).
+    /// DMST path: System Settings → Device Time Settings → NTP Server 1.
+    /// Platforms: All. Version: 5.7.0.
+    /// After CONFIG.DEFAULT: restore to "time.nist.gov" (PIPS-Verif-Lab default).
+    /// </summary>
+    public const string GetNtpServer1 = "GET NTP.SERVER1";
+    public static string SetNtpServer1(string server) => $"SET NTP.SERVER1 {server}";
+
+    /// <summary>
+    /// Secondary NTP server address (IP or DNS hostname). Empty string to clear.
+    /// DMST path: System Settings → Device Time Settings → NTP Server 2.
+    /// Platforms: All. Version: 5.7.0.
+    /// After CONFIG.DEFAULT: leave empty (PIPS-Verif-Lab default).
+    /// </summary>
+    public const string GetNtpServer2 = "GET NTP.SERVER2";
+    public static string SetNtpServer2(string server) => $"SET NTP.SERVER2 {server}";
 
     // ── Device control ────────────────────────────────────────────────────────
 
