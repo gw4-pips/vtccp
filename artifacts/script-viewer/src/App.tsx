@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import scriptText from "./v135.txt?raw";
+import scriptText from "./v136.txt?raw";
 
 const LINE_COUNT = scriptText.split("\n").length;
 const BYTE_COUNT = new Blob([scriptText]).size;
@@ -487,10 +487,10 @@ function App() {
         zIndex: 10,
       }}>
         <div style={{ fontWeight: 600, fontSize: 14, color: "#7ee787" }}>
-          DmstPushScript v1.35
+          DmstPushScript v1.36
         </div>
         <div style={{ fontSize: 12, color: "#8b949e" }}>
-          {LINE_COUNT.toLocaleString()} lines · {(BYTE_COUNT / 1024).toFixed(1)} KB · production build · probes: RoI/FoV/barcodeAssignment · 2026-05-30
+          {LINE_COUNT.toLocaleString()} lines · {(BYTE_COUNT / 1024).toFixed(1)} KB · production build · probes: JpegDiag/QTopKeys/RTopKeys/RoI/FoV · 2026-05-30
         </div>
         <div style={{ flex: 1 }} />
         <SyncBadge
