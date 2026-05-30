@@ -177,26 +177,36 @@ interface PushStatus {
   lastStatusLine: string | null;
 }
 
+const DISMISSED_KEY = "push-failure-dismissed-timestamps";
+
+function getDismissedSet(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveDismissedSet(set: Set<string>) {
+  try {
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify([...set]));
+  } catch {
+  }
+}
+
 function usePushStatus() {
   const [status, setStatus] = useState<PushStatus | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissedTimestamps, setDismissedTimestamps] = useState<Set<string>>(getDismissedSet);
 
   useEffect(() => {
-    let lastFailedAt: string | null = null;
-
     async function poll() {
       try {
         const res = await fetch("/api/push-status");
         if (!res.ok) return;
         const data: PushStatus = await res.json();
         setStatus(data);
-        if (data.failed && data.failedAt !== lastFailedAt) {
-          lastFailedAt = data.failedAt;
-          setDismissed(false);
-        }
-        if (!data.failed) {
-          setDismissed(false);
-        }
       } catch {
       }
     }
@@ -206,7 +216,20 @@ function usePushStatus() {
     return () => clearInterval(id);
   }, []);
 
-  return { status, dismissed, dismiss: () => setDismissed(true) };
+  const failedAt = status?.failedAt ?? null;
+  const dismissed = failedAt !== null && dismissedTimestamps.has(failedAt);
+
+  function dismiss() {
+    if (!failedAt) return;
+    setDismissedTimestamps((prev) => {
+      const next = new Set(prev);
+      next.add(failedAt);
+      saveDismissedSet(next);
+      return next;
+    });
+  }
+
+  return { status, dismissed, dismiss };
 }
 
 function PushFailureBanner({ status, onDismiss }: { status: PushStatus; onDismiss: () => void }) {
