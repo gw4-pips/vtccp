@@ -410,7 +410,7 @@ is the character in the grade string, not an index.
 
 ---
 
-## 13. Live scan catalog — 13 scans (updated 2026-05-25)
+## 13. Live scan catalog — 16 scans (updated 2026-05-30)
 
 | # | Date | Script | Symbology | Grade | Key finding |
 |---|---|---|---|---|---|
@@ -429,6 +429,7 @@ is the character in the grade string, not an index.
 | 13 | 2026-05-24 | v1.32 | QR GUID f0cffb39 (IMAGE.LOAD) | A | r-sibling 16-prop inventory; r.barcodeAssignment discovered; EncodedCharacters dead (push=39,DMST=36); OpticsSource=LoadedImage (CU=-1,MRD=-1) |
 | **14** | **2026-05-24** | **v1.33** | **DM GS1 16×36 (LIVE)** | **D** | **v1.33 confirmed; DebugQFIBKeys=(not QR) ✓; DebugQVIBKeys=(not QR) ✓; DebugRSymbologyNested: size.x=36,y=16; center.x=1553,y=485; corners[0].x=1271,y=587** |
 | **15** | **2026-05-24** | **v1.33** | **QR GUID f0cffb39 (IMAGE.LOAD)** | **A** | **PROBE CAMPAIGN COMPLETE: DebugQFIBKeys={grade=A,numericGrade=4} only — ECLevel/DataMask NOT exposed; DebugQVIBKeys={grade=-,numericGrade=4.5}; DebugRSymbologyNested: size.x=29,y=29; center.x=201,y=199; corners[0].x=57,y=59** |
+| **16** | **2026-05-30** | **v1.36** | **DM GS1 22×22 (LIVE)** | **F** | **★ ROI CONFIRMED: r.image.RoI=left=696;top=192;right=2336;bottom=1324; FoV=2448×2048. JPEG confirmed in push XML (len=16368). batch=str.len=7 (GS1 AI(10) pre-parsed by firmware). barcodeAssignment result=-1. modulationArray=[arr.576]=24×24 ✓** |
 
 ---
 
@@ -443,6 +444,9 @@ is the character in the grade string, not an index.
 | v1.31 | — | — | — | VOIDED — written 2026-05-20, never installed; superseded by v1.32 |
 | v1.32 | 2026-05-24 | QR GUID + **DM GS1** | A + **D** | Bug #9 fixed; DebugRImage answered; q.general exact 7 keys named; EncodedCharacters dead path confirmed; r.image 28-key + r-sibling 16-prop full inventories; r.barcodeAssignment discovered |
 | v1.33 | **2026-05-24** | **DM GS1 + QR GUID** | **D + A** | **DEVICE CONFIRMED (scans #14/#15). PROBE CAMPAIGN COMPLETE. FIB={grade,numericGrade} only — ECLevel/DataMask permanently unresolvable. r.symbology nested: size.x/y, center.x/y, corners[0].x/y confirmed.** |
+| v1.34 | — | — | — | VOIDED — planned 2026-05-25 as production-clean build; never written; superseded by v1.35 probe campaign |
+| v1.35 | — | — | — | VOIDED — written 2026-05-30, never device-installed; superseded by v1.36 (added DebugJpegDiag + DebugQTopKeys + DebugRTopKeys) |
+| **v1.36** | **2026-05-30** | **DM GS1 22×22** | **F** | **DEVICE CONFIRMED (scan #16). ROI sub-keys confirmed. FoV=2448×2048 confirmed. JPEG in push XML confirmed. batch field confirmed. barcodeAssignment result=-1 confirmed.** |
 
 ---
 
@@ -509,6 +513,87 @@ Sub-key name documentation is informational only — no action required.
 
 Result not separately surfaced; all validation sub-keys superseded by FIB/VIB probe campaign.
 No action required.
+
+### DebugRImageRoI (v1.36, scan #16 DM GS1 22×22, 2026-05-30) — CLOSED ★ DECISIVE
+
+`r.image.RoI` sub-keys confirmed: **`left`, `top`, `right`, `bottom`** (named pixel offsets from
+sensor top-left corner). Scan #16 values: `left=696; top=192; right=2336; bottom=1324`.
+
+- ROI crop dimensions for this scan: 1640 × 1132 px
+- Coordinate origin: top-left of full sensor frame (same as FoV)
+- Format is named object keys, NOT positional space-separated like the DMCC `GET DECODER.ROI` response
+
+**Implementation decision**: VTCCP does **not** need a separate `GET DECODER.ROI` DMCC call.
+The ROI rectangle is available in every push result at `r.image.RoI`. The push script should emit
+`DebugRImageRoI` values as regular XML elements (`RoILeft`, `RoITop`, `RoIRight`, `RoIBottom`) so
+the C# parser can cache them for the Level 2 `IMAGE.SEND` crop. Probe complete; do not re-run.
+
+### DebugRImageFoV (v1.36, scan #16 DM GS1 22×22, 2026-05-30) — CLOSED ★ DECISIVE
+
+`r.image.FoV` sub-keys confirmed: **`left`, `top`, `right`, `bottom`**.
+Scan #16 values: `left=0; top=0; right=2448; bottom=2048`.
+
+- Full sensor frame = **2448 × 2048** px on DM475V at `IMAGE.SIZE=0` — confirmed live
+- Format: top-left=(0,0), bottom-right=(width,height) — consistent with RoI coordinate system
+- Matches DM475V hardware spec (§ sensor & frame metadata)
+
+Probe complete; do not re-run.
+
+### DebugJpegDiag (v1.36, scan #16 DM GS1 22×22, 2026-05-30) — CLOSED
+
+Confirmed: `q.jpegImage=str.len=16368` (r.trucheck.jpegImage — the Level 1 barcode crop).
+`r.jpegImage=null` confirms r.image does NOT have a jpegImage key (camera hardware metadata only).
+`qImgKeys=jpegImage=str.len=16368` confirms jpegImage is a top-level key of r.trucheck.
+
+**JPEG regression diagnosis**: The JPEG IS present in the push XML on GS1 DM scans. The device
+and push script are correct. If `VerificationRecord.JpegImageBase64` is null after parsing, the
+issue is in the C# pipeline — not in the push XML source. The `SubstituteForbiddenXmlChars`
+sanitizer in `DmstResultParser.Parse` (line 68) handles the `0x1D` GS character in DecodedData;
+the parse should succeed. Probe complete; do not re-run.
+
+### DebugQTopKeys (v1.36, scan #16 DM GS1 22×22, 2026-05-30) — CLOSED
+
+Full r.trucheck (q) key inventory confirmed for ISO 15415:2024 DM GS1 22×22 Grade F scan.
+**New fields not seen on earlier scans:**
+
+| Key | Value | Notes |
+|---|---|---|
+| `UII` | str.len=0 | Unique Item Identifier — empty on this scan (GS1 DM without IUID encoding) |
+| `batch` | str.len=7 | **GS1 AI(10) lot/batch pre-parsed by firmware** — `1197170` from this scan's AI(10). Eliminates need to parse GS1 AIs in C# for batch extraction. |
+| `applicationStdNotation` | str.len=0 | New notation string field |
+| `gradeInfoNotation` | str.len=0 | New notation string field |
+| `appInfoNotation` | str.len=0 | New notation string field |
+| `linearEdge`, `linearMinimumReflectance`, `linearSymbolContrast`, `linearMinimumEdgeContrast`, `linearModulation`, `linearDefect`, `linearDecode`, `linearDecodability`, `linearQuietZone` | [obj] each | ISO 15415:2024 linear-equivalent grade objects — new in this firmware/standard edition |
+| `printGrowth` | [obj] | BWG (print growth / bar width gain) as structured object |
+| `minimumReflectance` | [obj] | Minimum reflectance as structured object (was scalar) |
+| `applicationStdArray` | [arr.13] | Array of 13 application standard check results |
+| `asciiArray` | [arr.48] | 48-item ASCII/encodation analysis array |
+
+Existing arrays confirmed for 22×22 symbol:
+- `modulationArray=[arr.576]` = 24×24 (22+1 QZ border each side) ✓
+- `codewordArray=[arr.50]` = 50 total (DM 22×22: 32 data + 18 ECC)
+- `encodationAnalysisArray=[arr.31]`
+
+Probe complete for DM. QR equivalents not yet verified for new fields.
+
+### DebugRTopKeys (v1.36, scan #16 DM GS1 22×22, 2026-05-30) — CLOSED
+
+Full r-sibling key inventory confirmed (same 16 keys as scan #13):
+`decoded, content, decodeTime, triggerTime, timeout, readSetup, symbology, image, validation,
+metrics, source, annotation, label, custom_svg, trucheck, barcodeAssignment`
+
+No new r-sibling keys versus scan #13. The 16-key inventory is stable across symbologies and
+firmware variants at fw 6.1.16_sr4. Probe complete; do not re-run.
+
+### DebugBarcodeAssignment (v1.36, scan #16 DM GS1 22×22, 2026-05-30) — PARTIAL
+
+`r.barcodeAssignment` first confirmed sub-key data: `result=-1; stats=[obj]`.
+
+- `result=-1` on a Grade F / fail scan — likely "no assignment match" or "unassigned"
+- `stats=[obj]` — nested object, sub-keys not yet probed
+
+**Open**: `stats` sub-key enumeration needed. Also need `result` value on a Grade A scan to
+determine if it changes (e.g. assignment index vs -1 sentinel). Queue for a future probe version.
 
 ---
 
@@ -904,18 +989,22 @@ DMST crops the image displayed in its verification panel and PDF report to **the
 Full-frame archival (`DataManSystem.GetLastReadImage()` or uncropped `IMAGE.SEND`) is out of
 scope — the storage cost at full 2448×2048 JPEG resolution is not justified.
 
-### Open probe — v1.35 (2026-05-30)
+### ★ CONFIRMED — r.image.RoI and r.image.FoV (v1.36, scan #16, 2026-05-30)
 
-`r.image.RoI` and `r.image.FoV` are confirmed present as `[obj]` in the push XML on every
-scan (scans #12/#13 2026-05-24) but their sub-keys have never been probed. v1.35 adds
-`DebugRImageRoI` and `DebugRImageFoV` to enumerate them.
+`r.image.RoI` and `r.image.FoV` sub-keys confirmed via DebugRImageRoI / DebugRImageFoV probes.
 
-**Expected outcomes:**
-- `r.image.RoI` sub-keys — likely `left`, `right`, `top`, `bottom` pixel offsets matching
-  `GET DECODER.ROI`. If confirmed, VTCCP can read the ROI rectangle directly from every push
-  result and skip the separate `GET DECODER.ROI` DMCC call entirely.
-- `r.image.FoV` sub-keys — likely `width` and `height` in pixels, confirming full-frame
-  dimensions (expected 2448×2048 for DM475V at `IMAGE.SIZE=0`).
+**r.image.RoI** (scan #16, DM GS1 22×22 live): `left=696; top=192; right=2336; bottom=1324`
+- Crop dimensions: 1640 × 1132 px
+- Named keys: `left`, `top`, `right`, `bottom` (origin = sensor top-left)
+
+**r.image.FoV** (scan #16): `left=0; top=0; right=2448; bottom=2048`
+- Full sensor frame: **2448 × 2048** px — confirmed live on DM475V at `IMAGE.SIZE=0`
+
+**Implementation decision (updated)**: VTCCP does **not** need a separate `GET DECODER.ROI`
+DMCC call for Level 2 image acquisition. The ROI rectangle is in every push result.
+Promote `RoILeft`, `RoITop`, `RoIRight`, `RoIBottom` from debug elements to production push
+XML fields, parse them into `VerificationRecord`, and use them for the `IMAGE.SEND` software
+crop — eliminating the on-connect DMCC round-trip.
 
 ### OCR targeting implications
 
