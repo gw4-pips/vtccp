@@ -248,9 +248,12 @@ function SyncBadge({ status, reachable, onClick }: {
   reachable: boolean | null;
   onClick: () => void;
 }) {
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+
   let dotColor: string;
   let label: string;
   let sublabel: string | null = null;
+  let tooltipText: string | null = null;
 
   if (reachable === null) {
     dotColor = "#484f58";
@@ -262,51 +265,83 @@ function SyncBadge({ status, reachable, onClick }: {
     dotColor = "#f85149";
     label = "Push failed";
     sublabel = status.failedAt ?? null;
+    tooltipText = status.failedMessage ?? status.failedAt ?? null;
   } else {
     dotColor = "#3fb950";
     label = "GitHub ✓";
     if (status.lastStatusLine) {
       const ts = status.lastStatusLine.replace(/^.*?(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?).*$/, "$1");
       sublabel = ts !== status.lastStatusLine ? ts : status.lastStatusLine.slice(0, 40);
+      tooltipText = status.lastStatusLine;
     }
   }
 
   return (
-    <button
-      onClick={onClick}
-      title="View push log"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 6,
-        background: "transparent",
-        border: "1px solid #30363d",
-        borderRadius: 6,
-        padding: "4px 10px",
-        cursor: "pointer",
-        fontFamily: "inherit",
-        color: "#e6edf3",
-        textAlign: "left",
-        transition: "border-color 0.15s",
-      }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = "#58a6ff")}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = "#30363d")}
-    >
-      <span style={{
-        width: 8,
-        height: 8,
-        borderRadius: "50%",
-        background: dotColor,
-        flexShrink: 0,
-        boxShadow: reachable && status && !status.failed ? `0 0 6px ${dotColor}88` : undefined,
-      }} />
-      <span style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3 }}>{label}</span>
-        {sublabel && (
-          <span style={{ fontSize: 10, color: "#8b949e", lineHeight: 1.2 }}>{sublabel}</span>
-        )}
-      </span>
-    </button>
+    <div style={{ position: "relative", display: "inline-flex" }}>
+      <button
+        onClick={onClick}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          background: "transparent",
+          border: "1px solid #30363d",
+          borderRadius: 6,
+          padding: "4px 10px",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          color: "#e6edf3",
+          textAlign: "left",
+          transition: "border-color 0.15s",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = "#58a6ff";
+          setTooltipVisible(true);
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = "#30363d";
+          setTooltipVisible(false);
+        }}
+      >
+        <span style={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          background: dotColor,
+          flexShrink: 0,
+          boxShadow: reachable && status && !status.failed ? `0 0 6px ${dotColor}88` : undefined,
+        }} />
+        <span style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3 }}>{label}</span>
+          {sublabel && (
+            <span style={{ fontSize: 10, color: "#8b949e", lineHeight: 1.2 }}>{sublabel}</span>
+          )}
+        </span>
+      </button>
+
+      {tooltipVisible && tooltipText && (
+        <div style={{
+          position: "absolute",
+          top: "calc(100% + 6px)",
+          right: 0,
+          background: "#1c2128",
+          border: "1px solid #30363d",
+          borderRadius: 6,
+          padding: "6px 10px",
+          fontSize: 11,
+          color: "#e6edf3",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          maxWidth: 320,
+          lineHeight: 1.5,
+          zIndex: 100,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+          pointerEvents: "none",
+        }}>
+          {tooltipText}
+        </div>
+      )}
+    </div>
   );
 }
 
