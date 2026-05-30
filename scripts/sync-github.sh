@@ -4,9 +4,18 @@
 # This is a FORCE push — it makes GitHub match Replit exactly.
 # Only use this when you are certain Replit's code is the authoritative version.
 #
-# Usage: bash scripts/sync-github.sh
+# Usage: bash scripts/sync-github.sh [--yes]
+#   --yes  Skip the confirmation prompt when GitHub has commits Replit doesn't
 
 set -euo pipefail
+
+YES=0
+for arg in "$@"; do
+    case "$arg" in
+        --yes|-y) YES=1 ;;
+        *) echo "Unknown argument: $arg"; exit 1 ;;
+    esac
+done
 
 if [ -z "${GITHUB_TOKEN:-}" ]; then
     echo "ERROR: GITHUB_TOKEN is not set. Configure it as a Replit secret."
@@ -28,6 +37,30 @@ if git fetch "$GITHUB_URL" "main:refs/remotes/origin/main" 2>&1 \
         | sed "s|https://[^@]*@|https://***@|g"; then
     REMOTE_SHA=$(git --no-optional-locks rev-parse --short refs/remotes/origin/main 2>/dev/null || echo "unknown")
     echo "==> GitHub HEAD before push: $REMOTE_SHA"
+
+    # Check for commits GitHub has that Replit doesn't (would be overwritten).
+    AHEAD_COMMITS=$(git --no-optional-locks log HEAD..refs/remotes/origin/main --oneline 2>/dev/null || true)
+    if [ -n "$AHEAD_COMMITS" ]; then
+        COMMIT_COUNT=$(echo "$AHEAD_COMMITS" | wc -l | tr -d ' ')
+        echo ""
+        echo "WARNING: GitHub has $COMMIT_COUNT commit(s) that Replit does not:"
+        echo "$AHEAD_COMMITS" | sed 's/^/    /'
+        echo ""
+        echo "A force-push will permanently overwrite these commits on GitHub."
+        if [ "$YES" -eq 0 ]; then
+            read -r -p "==> Continue with force-push? [y/N] " REPLY
+            case "$REPLY" in
+                [yY][eE][sS]|[yY]) ;;
+                *)
+                    echo "Aborted. No changes were pushed to GitHub."
+                    exit 1
+                    ;;
+            esac
+        else
+            echo "==> --yes flag set, skipping confirmation."
+        fi
+        echo ""
+    fi
 else
     # Fetch failed (e.g. repo is empty or unreachable). Fall through and let
     # the push surface the real error.
