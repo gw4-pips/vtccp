@@ -51,6 +51,56 @@ start, or lazily bind on first record.
 
 ---
 
+### Device Repair Sequence — "CP Reset"
+
+**Status**: LOGGED CONCEPT — do not build without explicit instruction.
+
+**Idea**: A single VTCCP command ("Repair Device" or "Restore Baseline") that replays
+the exact DMCC SET sequence needed to put the DM475V back into a known-good VCCS
+operating state — including all TruCheck configuration, imaging settings, and the
+current JS push script. Targeted at advanced application repair without needing DMST.
+
+**What the repair sequence would do (proposed order):**
+1. Open a brief raw TCP connection to port 23 (same path as Push-mode trigger)
+2. Issue DMCC SET commands to restore all required TruCheck settings to VCCS baseline:
+   - `SET TRIGGER.TYPE 0` (external / single, VCCS baseline)
+   - `SET LIVEIMG.MODE 2` (image delivered with each result — required for TruCheck)
+   - `SET IMAGE.FORMAT 1` (JPEG)
+   - `SET IMAGE.SIZE 0` (full resolution)
+   - All grading standard, aperture, wavelength, lighting, application standard params
+     (list TBD — requires TC config screenshots per the VCCS Command Pilot feature plan)
+3. Write the current production JS push script to the device via DMCC
+   (exact SET key TBD — see "Push script auto-deploy on connect" below)
+4. Verify: GET each key back and confirm value matches expected; report any mismatch
+5. Close port-23 connection
+
+**Why this is the right architecture:**
+- Every Telnet command the user sent was already a raw DMCC SET on port 23
+- VTCCP owns the port-23 TCP channel (`SendRawDmccAsync` / Push-mode trigger path)
+- No DMST dependency — the repair runs even if DMST is not installed
+- The repair sequence is idempotent — running it twice has no side effects
+- Could be triggered from the UI, from a CLI flag, or automatically on connect
+  if a config drift is detected
+
+**Blocking unknowns (same as VCCS Command Pilot feature):**
+1. **Full TruCheck DMCC key list** — requires detailed DMST TC window screenshots
+   (all panels) to map every visible setting to its DMCC key. Cannot write the
+   repair SET list without this.
+2. **DMCC key for push script delivery** — the SET key that writes the JS script
+   text to the device (see "Push script auto-deploy" item below). Must confirm
+   before that step can be included.
+
+**Relationship to other features:**
+- Overlaps with the VCCS Command Pilot Full Device Configuration feature (same
+  DMCC key research dependency)
+- Tighter scope: repair sequence is a fixed write-only restore, not a full
+  read/edit/write config GUI
+- The push script delivery step is the same capability as "Push script auto-deploy"
+- Could be implemented incrementally: ship the LIVEIMG.MODE + IMAGE.* + TRIGGER.TYPE
+  restore first (all keys confirmed), then add TruCheck params as screenshots arrive
+
+---
+
 ### Push script auto-deploy on connect
 
 **Status**: PARKED — log only, no implementation until user directs.
