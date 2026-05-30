@@ -190,11 +190,15 @@ function getDismissedSet(): Set<string> {
 }
 
 const DISMISSED_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const DISMISSED_MAX_COUNT = 100;
 
 function saveDismissedSet(set: Set<string>) {
   try {
     const cutoff = Date.now() - DISMISSED_MAX_AGE_MS;
-    const pruned = [...set].filter((ts) => new Date(ts).getTime() >= cutoff);
+    const pruned = [...set]
+      .filter((ts) => new Date(ts).getTime() >= cutoff)
+      .sort()
+      .slice(-DISMISSED_MAX_COUNT);
     localStorage.setItem(DISMISSED_KEY, JSON.stringify(pruned));
   } catch {
   }
