@@ -210,21 +210,46 @@ function usePushStatus() {
   const [dismissedTimestamps, setDismissedTimestamps] = useState<Set<string>>(getDismissedSet);
 
   useEffect(() => {
-    async function poll() {
-      try {
-        const res = await fetch("/api/push-status");
-        if (!res.ok) { setReachable(false); return; }
-        const data: PushStatus = await res.json();
-        setStatus(data);
-        setReachable(true);
-      } catch {
+    let es: EventSource | null = null;
+    let retryDelay = 1_000;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let unmounted = false;
+
+    function connect() {
+      if (unmounted) return;
+      es = new EventSource("/api/push-status/stream");
+
+      es.onmessage = (e) => {
+        retryDelay = 1_000;
+        try {
+          const data: PushStatus = JSON.parse(e.data as string);
+          setStatus(data);
+          setReachable(true);
+        } catch {
+          // ignore malformed events
+        }
+      };
+
+      es.onerror = () => {
         setReachable(false);
-      }
+        es?.close();
+        es = null;
+        if (!unmounted) {
+          retryTimer = setTimeout(() => {
+            retryDelay = Math.min(retryDelay * 2, 30_000);
+            connect();
+          }, retryDelay);
+        }
+      };
     }
 
-    poll();
-    const id = setInterval(poll, 30_000);
-    return () => clearInterval(id);
+    connect();
+
+    return () => {
+      unmounted = true;
+      if (retryTimer) clearTimeout(retryTimer);
+      es?.close();
+    };
   }, []);
 
   const failedAt = status?.failedAt ?? null;
