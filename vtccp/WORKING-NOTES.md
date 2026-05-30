@@ -6,6 +6,68 @@
 
 ---
 
+## Active investigation: Image missing from TC/DMST screen post-verification
+
+**Status**: PROBE WRITTEN — awaiting device results.
+
+**Symptom**: After a verification scan, the DMST TC screen and DMST verification panel
+show no barcode image. HTML report still contains the image. Push XML `JpegImageBase64`
+also confirmed populated (v1.36 scan #16). This is a result-channel delivery failure,
+not a capture failure.
+
+**Root-cause candidate (documented in DmccCommand.cs)**: The Cognex SDK's
+`SetResultTypes()` internally calls `COM.DMCC-SAVE`, which **persists** `DATA.IMAGE-TYPE`
+to a value that strips images from the result-delivery channel. This condition survives
+disconnect and power-cycle. It is only cleared by `COM.DMCC-RESET` (or physical reboot).
+`LIVEIMG.MODE` corruption is a secondary candidate.
+
+---
+
+### Probe — Telnet to port 23 on device IP (10.10.10.7)
+
+Run each `GET` command in sequence. Record the actual response against the expected value.
+
+```
+GET LIVEIMG.MODE
+GET DATA.IMAGE-TYPE
+GET DATA.RESULT-TYPE
+GET DATA.RESULT-ENCODING
+GET DATA.RESULT-ALWAYSSEND
+GET IMAGE.FORMAT
+GET IMAGE.SIZE
+```
+
+**Expected values (known-good state):**
+
+| Command | Expected | Notes |
+|---|---|---|
+| `GET LIVEIMG.MODE` | `2` | Send image with each result. Any other value → no image in TC panel. |
+| `GET DATA.IMAGE-TYPE` | `0` (or firmware default) | If non-zero, SDK has persisted an image-strip value via COM.DMCC-SAVE. |
+| `GET DATA.RESULT-TYPE` | `0` | Default DMCC result type. |
+| `GET DATA.RESULT-ENCODING` | `0` | Default encoding. |
+| `GET DATA.RESULT-ALWAYSSEND` | `1` | Results sent on every trigger. |
+| `GET IMAGE.FORMAT` | `1` | JPEG. |
+| `GET IMAGE.SIZE` | `0` | Full resolution. |
+
+**If any value is wrong**, the corrective sequence (in order):
+
+```
+COM.DMCC-RESET
+SET LIVEIMG.MODE 2
+SET IMAGE.FORMAT 1
+SET IMAGE.SIZE 0
+CONFIG.SAVE
+```
+
+`COM.DMCC-RESET` resets all DMCC session settings (`DATA.IMAGE-TYPE`, `DATA.RESULT-TYPE`,
+`DATA.RESULT-ENCODING`, `DATA.RESULT-ALWAYSSEND`, `COM.DMCC-RESPONSE`, `COM.DMCC-CHECKSUM`,
+`COM.DMCC-HEADER`) back to firmware defaults in one command. Run it first; it likely clears
+the image-strip condition in a single step. Then verify LIVEIMG.MODE and IMAGE.* separately.
+
+`CONFIG.SAVE` persists the restored settings to flash so a power cycle doesn't revert them.
+
+---
+
 ## Active investigation: Trigger reset / DMST TC recovery
 
 **Status**: PARKED — plan written, no code changed. Awaiting user to restart.
