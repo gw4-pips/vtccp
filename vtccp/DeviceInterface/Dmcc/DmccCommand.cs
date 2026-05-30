@@ -22,6 +22,26 @@ namespace DeviceInterface.Dmcc;
 /// </summary>
 public static class DmccCommand
 {
+    // ── Port constants ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Raw DMCC text interface (classic Telnet/DMCC port).
+    /// <c>||&gt;COMMAND\r\n</c> works here.  Confirmed on DM475V fw 6.1.16_sr4.
+    /// Use this port for any transient raw-TCP DMCC session (e.g. COM.DMCC-RESET,
+    /// TRIGGER ON) — the device accepts and ACKs commands on this port.
+    /// </summary>
+    public const int RawDmccPort = 23;
+
+    /// <summary>
+    /// DataMan SDK / HTTP event-subscription port.
+    /// Multiplexes the Cognex SDK binary protocol and HTTP pub-sub
+    /// (GET /events?enable → PUT /codes.xml).
+    /// Bare TCP connections sending <c>||&gt;COMMAND\r\n</c> on this port are
+    /// silently ignored — the device does not recognise them as DMCC sessions
+    /// and returns zero bytes.  Do NOT send raw DMCC text here.
+    /// </summary>
+    public const int SdkHttpPort = 44_444;
+
     // ── System / device identity ───────────────────────────────────────────────
 
     /// <summary>Returns the device model string, e.g. "DM475V". ALL platforms.</summary>

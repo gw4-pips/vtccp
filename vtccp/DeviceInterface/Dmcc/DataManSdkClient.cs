@@ -103,12 +103,19 @@ public sealed class DataManSdkClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// Sends <c>COM.DMCC-RESET</c> via a transient raw TCP connection on <c>_cfg.Port</c>.
+    /// Sends <c>COM.DMCC-RESET</c> via a transient raw TCP connection on port 23
+    /// (the raw DMCC text / Telnet port).
     ///
     /// Why raw TCP:  The Cognex SDK's <c>SendCommand()</c> validates command names against
     /// an internal whitelist before sending them to the device.  <c>COM.DMCC-RESET</c> is
     /// not in that list, so it throws <c>InvalidCommandException</c> and never reaches the
     /// wire.  A raw TCP connection bypasses the SDK entirely.
+    ///
+    /// Why port 23 (not _cfg.Port / 44444):  Port 44444 multiplexes the SDK binary protocol
+    /// and HTTP pub-sub.  Bare TCP connections sending <c>||&gt;COMMAND\r\n</c> on port 44444
+    /// are silently ignored — the device returns zero bytes and does NOT execute the command.
+    /// Port 23 is the classic DMCC Telnet interface; <c>||&gt;COMMAND\r\n</c> is executed there.
+    /// Confirmed on DM475V fw 6.1.16_sr4.
     ///
     /// What COM.DMCC-RESET does on the device (DMCC Reference, ALL platforms, v4.4.0):
     /// Resets the following settings back to firmware defaults for ALL future connections:
@@ -125,7 +132,8 @@ public sealed class DataManSdkClient : IAsyncDisposable
         {
             using var tcp    = new TcpClient();
             using var outerCts = new CancellationTokenSource(2_000);
-            await tcp.ConnectAsync(_cfg.Host, _cfg.Port, outerCts.Token);
+            // Port 23 = raw DMCC text interface. Port 44444 silently drops bare TCP.
+            await tcp.ConnectAsync(_cfg.Host, DmccCommand.RawDmccPort, outerCts.Token);
             var stream = tcp.GetStream();
 
             // Drain welcome banner (~100 B sent by device on raw TCP connect).
@@ -338,7 +346,8 @@ public sealed class DataManSdkClient : IAsyncDisposable
             {
                 using var tcp = new TcpClient();
                 tcp.ReceiveTimeout = timeoutMs + 5_000;
-                await tcp.ConnectAsync(_cfg.Host, _cfg.Port, ct);
+                // Port 23 = raw DMCC text interface. Port 44444 silently drops bare TCP.
+                await tcp.ConnectAsync(_cfg.Host, DmccCommand.RawDmccPort, ct);
                 using var stream = tcp.GetStream();
 
                 // Drain the device welcome banner.
@@ -769,7 +778,8 @@ public sealed class DataManSdkClient : IAsyncDisposable
         {
             using var tcp = new TcpClient();
             tcp.ReceiveBufferSize = 1 << 20;  // 1 MB receive buffer
-            await tcp.ConnectAsync(_cfg.Host, _cfg.Port, ct);
+            // Port 23 = raw DMCC text interface. Port 44444 silently drops bare TCP.
+            await tcp.ConnectAsync(_cfg.Host, DmccCommand.RawDmccPort, ct);
             using var stream = tcp.GetStream();
 
             // Drain welcome banner.
@@ -922,7 +932,8 @@ public sealed class DataManSdkClient : IAsyncDisposable
         try
         {
             using var tcp = new TcpClient();
-            await tcp.ConnectAsync(_cfg.Host, _cfg.Port, ct);
+            // Port 23 = raw DMCC text interface. Port 44444 silently drops bare TCP.
+            await tcp.ConnectAsync(_cfg.Host, DmccCommand.RawDmccPort, ct);
             using var stream = tcp.GetStream();
 
             // Drain welcome banner (device sends ~100 bytes on connect).
