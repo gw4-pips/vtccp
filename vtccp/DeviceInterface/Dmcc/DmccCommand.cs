@@ -343,6 +343,39 @@ public static class DmccCommand
     /// <summary>Reboot the device. Use with caution in production.</summary>
     public const string Reboot = "REBOOT";
 
+    // ── DMCC session settings ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Resets DMCC connection settings back to firmware defaults for all future
+    /// connections.  Affected settings: COM.DMCC-RESPONSE, COM.DMCC-CHECKSUM,
+    /// COM.DMCC-HEADER, DATA.RESULT-TYPE, DATA.RESULT-ENCODING,
+    /// DATA.RESULT-ALWAYSSEND, DATA.IMAGE-TYPE.
+    ///
+    /// VTCCP sends this command during DisconnectAsync() to ensure no DMCC
+    /// configuration change from a prior session persists on the device and
+    /// blanks DMST's image panel or otherwise affects other clients.
+    ///
+    /// Root-cause note: the Cognex SDK's SetResultTypes() internally calls
+    /// COM.DMCC-SAVE, which persists DATA.IMAGE-TYPE to a value that strips
+    /// images from the result-delivery channel.  This condition survives
+    /// disconnect and is only cleared by a physical reboot — or by this command.
+    ///
+    /// Platforms: ALL. Version: 4.4.0.
+    /// </summary>
+    public const string DmccReset = "COM.DMCC-RESET";
+
+    /// <summary>
+    /// Saves the current DMCC connection settings as the defaults for all future
+    /// connections (same set of settings as DmccReset restores).
+    ///
+    /// NOT called by VTCCP — documented here for reference. The SDK may call this
+    /// internally when SetResultTypes() is used, which is why SetResultTypes() is
+    /// intentionally avoided in DataManSdkClient.
+    ///
+    /// Platforms: ALL. Version: 4.4.0.
+    /// </summary>
+    public const string DmccSave  = "COM.DMCC-SAVE";
+
     // ── Sanitization ──────────────────────────────────────────────────────────
 
     /// <summary>

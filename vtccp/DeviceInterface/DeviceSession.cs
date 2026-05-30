@@ -89,7 +89,8 @@ public sealed class DeviceSession : IAsyncDisposable
             }
         }
 
-        // Result format is set via SDK's SetResultTypes() in DataManSdkClient.ConnectAsync.
+        // SetResultTypes() is intentionally NOT called (see DataManSdkClient class comment).
+        // VTCCP receives all results via HttpEventSubscriber — not the DMCC result channel.
 
         // Query device identity info.
         // FirmwareVersion is read from the SDK's native property first (avoids

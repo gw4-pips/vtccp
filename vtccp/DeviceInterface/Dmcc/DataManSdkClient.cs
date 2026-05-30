@@ -20,7 +20,12 @@ using CognexSdk = Cognex.DataMan.SDK;
 ///     validation layer (firmware 6.1.16_sr4 / SDK v25 mismatch). Bypassed via
 ///     raw TCP on _cfg.Port; SDK connection kept alive for XmlResultArrived.
 ///   - "GET SYMBOL.RESULT" → InvalidCommandException; use XmlResultArrived event.
-///   - SetResultTypes() uses ResultTypes.ReadXml (= 2), not XmlResult.
+///   - SetResultTypes() is intentionally NOT called. Calling it sends DMCC
+///     DATA.IMAGE-TYPE / DATA.RESULT-TYPE commands that the SDK persists via
+///     COM.DMCC-SAVE, stripping image data from the device's result-delivery
+///     channel and blanking DMST's image panel until device reboot.
+///     VTCCP uses HttpEventSubscriber for all result delivery — not the DMCC
+///     result channel — so SetResultTypes() provides no benefit.
 /// </summary>
 public sealed class DataManSdkClient : IAsyncDisposable
 {
@@ -58,18 +63,10 @@ public sealed class DataManSdkClient : IAsyncDisposable
             _system.Connect(_cfg.ConnectTimeoutMs);
             _isConnected = true;
 
-            try
-            {
-                _system.SetResultTypes(CognexSdk.ResultTypes.ReadXml);
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SDK] Connected to {_cfg.Host}.  " +
-                    $"FW={_system.FirmwareVersion}  SetResultTypes(ReadXml) OK.");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SDK] Connected to {_cfg.Host}.  SetResultTypes failed: {ex.Message}");
-            }
+            // SetResultTypes() is intentionally NOT called here.
+            // See class-level comment for the full explanation.
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SDK] Connected to {_cfg.Host}.  FW={_system.FirmwareVersion}");
         }, ct);
     }
 
@@ -79,6 +76,23 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
         await Task.Run(() =>
         {
+            // Issue COM.DMCC-RESET before closing the connection.
+            // This restores DATA.RESULT-TYPE, DATA.IMAGE-TYPE, COM.DMCC-RESPONSE, and
+            // related settings back to firmware defaults for all future connections,
+            // preventing any DMCC configuration change made during this session from
+            // persisting on the device and affecting DMST or other clients.
+            try
+            {
+                _system?.SendCommand(DmccCommand.DmccReset);
+                System.Diagnostics.Debug.WriteLine(
+                    "[VTCCP-SDK] COM.DMCC-RESET sent — result-delivery defaults restored.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SDK] COM.DMCC-RESET failed (benign): {ex.Message}");
+            }
+
             try
             {
                 _system?.Disconnect();
