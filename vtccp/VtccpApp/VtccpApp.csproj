@@ -30,4 +30,11 @@
     <Resource Include="Assets\**\*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\OcrEngine\tessdata\eng.traineddata">
+      <Link>tessdata\eng.traineddata</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
