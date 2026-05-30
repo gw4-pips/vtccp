@@ -45,8 +45,8 @@ public sealed class DualEngineOcrRunner
         OcrImageSource    imageSource = OcrImageSource.BarcodeCrop,
         CancellationToken ct         = default)
     {
-        var (winText, winConf) = (string?)null, (double?)null;
-        var (tessText, tessConf) = (string?)null, (double?)null;
+        var (winText, winConf)   = ((string?)null, (double?)null);
+        var (tessText, tessConf) = ((string?)null, (double?)null);
 
         var winTask  = _windowsEngine.RecognizeAsync(jpegBytes, ct);
         var tessTask = _tesseractEngine.RecognizeAsync(jpegBytes, ct);
