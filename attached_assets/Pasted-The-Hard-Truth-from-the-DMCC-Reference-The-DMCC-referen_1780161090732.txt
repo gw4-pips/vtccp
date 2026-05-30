@@ -1,0 +1,42 @@
+The Hard Truth from the DMCC Reference
+The DMCC reference does not expose the tightly-cropped symbol image that the TruCheck window displays as a retrievable image object. There is no command like TRUCHECK.GET-IMAGE or IMAGEBUFFER.GET-CROPPED. The tight crop in the TC window and report is generated internally by the TruCheck grading engine and only surfaces in the HTML/PDF report — specifically as the CODE_IMAGE section controlled by TRUCHECK.REPORT-SECTION "CODE_IMAGE".
+This is a fundamental architectural constraint. The DMCC image retrieval path gives you exactly one image: IMAGE.SEND returns the last acquired full-frame image (at your chosen IMAGE.SIZE scale). That's the only image the reader exposes over the DMCC channel.
+
+What IS Available and How to Get ROI for OCR
+You have three practical paths, each with real tradeoffs:
+Path 1 — Software Crop of IMAGE.SEND Output (Best Option)
+This is the right approach and it's fully achievable:
+# After TRIGGER ON completes:
+||>GET DECODER.ROI\r\n       # → left right top bottom (pixel coords)
+||>SET IMAGE.FORMAT 1\r\n    # JPEG
+||>SET IMAGE.SIZE 0\r\n      # Full frame
+||>IMAGE.SEND\r\n            # → byte_count\r\n<image bytes>
+You receive the full frame JPEG. In your app you then crop it to the DECODER.ROI coordinates. Those coordinates are relative to the upper-left of the displayed image — which at IMAGE.SIZE=0 (Full) means the full sensor frame. The crop gives you exactly the ROI rectangle the user drew, which contains the barcode and all surrounding human-readable text, lot numbers, expiry dates, etc. Feed that crop to your OCR engine.
+The critical point: DECODER.ROI coordinates are stable — they don't change between triggers unless the user redraws the box. So you can GET them once on connect, cache them, and apply the same crop to every IMAGE.SEND result.
+Path 2 — Set CAMERA.FOV = ROI (Pre-crop at Sensor Level)
+||>GET DECODER.ROI\r\n                    # get current ROI bounds
+||>SET CAMERA.FOV left right top bottom\r\n  # set FOV = ROI
+||>SET CAMERA.FOV-ENABLED ON\r\n          # activate custom FOV
+||>TRIGGER ON\r\n
+||>IMAGE.SEND\r\n                         # now returns only FOV area
+CAMERA.FOV sets the actual sensor acquisition region — the camera physically only captures that area, so IMAGE.SEND returns just that region. This is a true hardware pre-crop. However: it only works in Single, Burst, and Continuous trigger modes (CAMERA.FOV-ENABLED explicitly states this), and you'd need to restore the full FOV afterward. Also, aligning FOV exactly to the DECODER.ROI requires care since both use multiples of 8 (horizontal) and 4 (vertical) for pixel alignment.
+Path 3 — Extract the CODE_IMAGE from the HTML/PDF Report
+The TruCheck report contains the tight symbol crop as the CODE_IMAGE section. After a verification trigger you can:
+||>GET TRUCHECK.REPORT-SECTION "CODE_IMAGE"\r\n   # confirm it's enabled
+Then retrieve the HTML report (via FTP if configured), parse it, and extract the embedded base64 image. This gives you the tight symbol crop but not the wider ROI context — so it's only useful if you specifically need the symbol crop rather than the full label area for OCR.
+
+Recommended Implementation
+For your OCR use case — reading human-readable text, lot numbers, expiry dates surrounding the barcode — Path 1 is the right answer:
+On connect:
+  GET DECODER.ROI  →  cache {left, right, top, bottom}
+  SET IMAGE.FORMAT 1  (JPEG)
+  SET IMAGE.SIZE 0    (Full frame)
+  SET IMAGE.QUALITY 85
+
+After each TRIGGER ON:
+  IMAGE.SEND  →  receive full frame JPEG bytes
+  Decode JPEG → bitmap
+  Crop to cached DECODER.ROI coordinates
+  Store: full frame (audit trail) + ROI crop (OCR input)
+  Feed ROI crop → OCR engine
+The ROI the user drew in DMST or your app is exactly the region containing everything relevant to OCR. You're not losing anything by doing the crop in software — you gain the ability to store both the full frame and the crop independently, which is actually better than a hardware-side crop for audit purposes.
