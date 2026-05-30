@@ -46,11 +46,10 @@ public sealed class WindowsOcrEngine : IOcrEngine
                 .ToList();
 
             string text = string.Join(" ", allWords.Select(w => w.Text));
-            double avgConf = allWords.Count > 0
-                ? allWords.Average(w => w.Confidence)
-                : 0.0;
 
-            return (text.Trim(), avgConf * 100.0);
+            // Windows.Media.Ocr.OcrWord exposes Text and BoundingRect only —
+            // no per-word or per-result confidence score is available in this API.
+            return (text.Trim(), null);
         }
         catch
         {
