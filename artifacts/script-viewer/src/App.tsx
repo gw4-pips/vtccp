@@ -198,16 +198,19 @@ function saveDismissedSet(set: Set<string>) {
 
 function usePushStatus() {
   const [status, setStatus] = useState<PushStatus | null>(null);
+  const [reachable, setReachable] = useState<boolean | null>(null);
   const [dismissedTimestamps, setDismissedTimestamps] = useState<Set<string>>(getDismissedSet);
 
   useEffect(() => {
     async function poll() {
       try {
         const res = await fetch("/api/push-status");
-        if (!res.ok) return;
+        if (!res.ok) { setReachable(false); return; }
         const data: PushStatus = await res.json();
         setStatus(data);
+        setReachable(true);
       } catch {
+        setReachable(false);
       }
     }
 
@@ -229,7 +232,74 @@ function usePushStatus() {
     });
   }
 
-  return { status, dismissed, dismiss };
+  return { status, reachable, dismissed, dismiss };
+}
+
+function SyncBadge({ status, reachable, onClick }: {
+  status: PushStatus | null;
+  reachable: boolean | null;
+  onClick: () => void;
+}) {
+  let dotColor: string;
+  let label: string;
+  let sublabel: string | null = null;
+
+  if (reachable === null) {
+    dotColor = "#484f58";
+    label = "Checking…";
+  } else if (!reachable || status === null) {
+    dotColor = "#484f58";
+    label = "API unreachable";
+  } else if (status.failed) {
+    dotColor = "#f85149";
+    label = "Push failed";
+    sublabel = status.failedAt ?? null;
+  } else {
+    dotColor = "#3fb950";
+    label = "GitHub ✓";
+    if (status.lastStatusLine) {
+      const ts = status.lastStatusLine.replace(/^.*?(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?).*$/, "$1");
+      sublabel = ts !== status.lastStatusLine ? ts : status.lastStatusLine.slice(0, 40);
+    }
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      title="View push log"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        background: "transparent",
+        border: "1px solid #30363d",
+        borderRadius: 6,
+        padding: "4px 10px",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        color: "#e6edf3",
+        textAlign: "left",
+        transition: "border-color 0.15s",
+      }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = "#58a6ff")}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = "#30363d")}
+    >
+      <span style={{
+        width: 8,
+        height: 8,
+        borderRadius: "50%",
+        background: dotColor,
+        flexShrink: 0,
+        boxShadow: reachable && status && !status.failed ? `0 0 6px ${dotColor}88` : undefined,
+      }} />
+      <span style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.3 }}>{label}</span>
+        {sublabel && (
+          <span style={{ fontSize: 10, color: "#8b949e", lineHeight: 1.2 }}>{sublabel}</span>
+        )}
+      </span>
+    </button>
+  );
 }
 
 function PushFailureBanner({ status, onDismiss }: { status: PushStatus; onDismiss: () => void }) {
@@ -283,7 +353,7 @@ function PushFailureBanner({ status, onDismiss }: { status: PushStatus; onDismis
 function App() {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<"script" | "push-log">("script");
-  const { status, dismissed, dismiss } = usePushStatus();
+  const { status, reachable, dismissed, dismiss } = usePushStatus();
   const showBanner = status?.failed === true && !dismissed;
 
   const copy = async () => {
@@ -355,6 +425,11 @@ function App() {
           {LINE_COUNT.toLocaleString()} lines · {(BYTE_COUNT / 1024).toFixed(1)} KB · production build · probe campaign complete · 2026-05-25
         </div>
         <div style={{ flex: 1 }} />
+        <SyncBadge
+          status={status}
+          reachable={reachable}
+          onClick={() => setActiveTab("push-log")}
+        />
         {activeTab === "script" && (
           <>
             <button
