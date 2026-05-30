@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import scriptText from "./v134.txt?raw";
+import scriptText from "./v135.txt?raw";
 
 const LINE_COUNT = scriptText.split("\n").length;
 const BYTE_COUNT = new Blob([scriptText]).size;
@@ -446,7 +446,7 @@ function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "DmstPushScript_v1.34.txt";
+    a.download = "DmstPushScript_v1.35.txt";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -487,10 +487,10 @@ function App() {
         zIndex: 10,
       }}>
         <div style={{ fontWeight: 600, fontSize: 14, color: "#7ee787" }}>
-          DmstPushScript v1.34
+          DmstPushScript v1.35
         </div>
         <div style={{ fontSize: 12, color: "#8b949e" }}>
-          {LINE_COUNT.toLocaleString()} lines · {(BYTE_COUNT / 1024).toFixed(1)} KB · production build · probe campaign complete · 2026-05-25
+          {LINE_COUNT.toLocaleString()} lines · {(BYTE_COUNT / 1024).toFixed(1)} KB · production build · probes: RoI/FoV/barcodeAssignment · 2026-05-30
         </div>
         <div style={{ flex: 1 }} />
         <SyncBadge
@@ -565,7 +565,7 @@ function App() {
             color: "#8b949e",
             lineHeight: 1.5,
           }}>
-            <strong style={{ color: "#e6edf3" }}>Install:</strong> DMST → Format Data → Scripting tab → Open Script → paste → Save → Write Settings to verifier. Confirm <code style={{ color: "#7ee787" }}>&lt;PushScriptDiag&gt;v1.34 q=r.trucheck m=found&lt;/PushScriptDiag&gt;</code> appears in the next scan output.
+            <strong style={{ color: "#e6edf3" }}>Install:</strong> DMST → Format Data → Scripting tab → Open Script → paste → Save → Write Settings to verifier. Confirm <code style={{ color: "#7ee787" }}>&lt;PushScriptDiag&gt;v1.35 q=r.trucheck m=found&lt;/PushScriptDiag&gt;</code> appears in the next scan output.
           </div>
 
           <pre style={{
