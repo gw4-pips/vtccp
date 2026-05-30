@@ -23,6 +23,34 @@ steps must happen first.
 
 ## Parked issues
 
+### Excel live-view via COM automation (Method D)
+
+**Status**: PARKED — implement when user directs.
+
+Webscan TruCheck Excel uses Excel COM automation (`Microsoft.Office.Interop.Excel`)
+to push each row directly into the already-open workbook in memory. No file write,
+no lock contention, rows appear instantly as scans arrive — the Excel file stays open
+throughout the session.
+
+VTCCP's current per-record `_writer.Save()` (EPPlus `SaveAs`) cannot update an
+XLSX that Excel has locked. The sidecar JSON always writes correctly; the XLSX only
+reflects new records after the session is closed (CloseSession finalises the file).
+
+**Implementation path when approved**:
+- Add `ExcelEngine.Adapters.ComExcelAdapter` implementing `IExcelAdapter`
+- Uses `Microsoft.Office.Interop.Excel` (COM, no NuGet — present on any machine with Excel installed)
+- On `AddRecord`: `_worksheet.Rows[nextRow].Value = rowData` — writes directly to
+  the live workbook object in the running Excel process; no SaveAs required
+- `Save()` on the COM adapter becomes a no-op (or `_workbook.Save()` at CloseSession)
+- Fallback: if Excel is not running / COM binding fails, fall back to current EPPlus path
+- VtccpApp.csproj: add `<COMReference>` for `Microsoft.Office.Interop.Excel` or use
+  dynamic binding to avoid a hard compile-time dependency on the interop assembly
+
+**Blocked by**: User approval + decision on whether to require Excel to be open at session
+start, or lazily bind on first record.
+
+---
+
 ### GS1 `<F1>` formatter — ]d1 vs ]d2
 
 **Status**: PARKED at user request, 2026-05-29.
