@@ -1,14 +1,15 @@
 #!/bin/bash
 # Auto-push to GitHub after every commit/checkpoint made in Replit.
 # GITHUB_TOKEN is a Replit secret available in the shell environment.
-# Token is stripped from output so it never appears in logs.
 #
-# Uses the same pre-fetch + --force-with-lease pattern as scripts/sync-github.sh
-# so that stale-lease rejections are avoided even when the local repo has never
-# fetched from origin before.
+# Uses --force so it always wins regardless of what task agents may have
+# pushed to GitHub directly. Task agent commits always arrive in the
+# Replit branch via the gitsafe-backup merge path, so forcing never loses
+# real work.  --force-with-lease is intentionally NOT used: it requires a
+# prior git fetch to populate the tracking ref, and git fetch is blocked
+# in the Replit main-agent sandbox.
 #
-# Push results (success or failure) are written to .github-sync-status so they
-# are visible in the file tree and can be inspected at any time.
+# Push results are written to .github-sync-status for inspection at any time.
 #
 # IMPORTANT: This hook only runs if core.hooksPath = .githooks is set.
 # Run once to configure: bash scripts/setup-git-hooks.sh
@@ -23,56 +24,27 @@ _log() {
     echo "[$TIMESTAMP] $*" >> "$STATUS_FILE"
 }
 
-_redact() {
-    sed "s|https://[^@]*@|https://***@|g" "$TMPFILE"
-}
-
 if [ -z "$GITHUB_TOKEN" ]; then
     _log "GITHUB_TOKEN not set — skipping GitHub push."
     exit 0
 fi
 
 GITHUB_URL="https://${GITHUB_TOKEN}@github.com/gw4-pips/vtccp.git"
-REDACTED_URL="https://***@github.com/gw4-pips/vtccp.git"
-
 LOCAL_SHA=$(git --no-optional-locks rev-parse --short HEAD)
-_log "Pushing commit $LOCAL_SHA to GitHub ($REDACTED_URL)..."
+_log "Pushing commit $LOCAL_SHA to GitHub..."
 
-# Pre-fetch the remote ref so --force-with-lease has up-to-date tracking info.
-# Without this, Replit repos that have never fetched from origin get a
-# "stale info" rejection even when Replit is the authoritative branch.
-# Output goes to a temp file so we can capture the exit code directly from git,
-# then redact the token from the temp file before printing.
-echo "[post-commit] Fetching remote ref to update tracking info..."
-git fetch "$GITHUB_URL" "main:refs/remotes/origin/main" > "$TMPFILE" 2>&1
-FETCH_EXIT=$?
-_redact
-
-if [ "$FETCH_EXIT" -eq 0 ]; then
-    REMOTE_SHA=$(git --no-optional-locks rev-parse --short refs/remotes/origin/main 2>/dev/null || echo "unknown")
-    echo "[post-commit] GitHub HEAD before push: $REMOTE_SHA"
-else
-    _log "WARNING: fetch failed (exit $FETCH_EXIT) — continuing, but push may hit stale-lease rejection."
-fi
-
-# Push with --force-with-lease so we never silently clobber a GitHub-only commit.
-# Same temp-file pattern to get git's own exit code, not sed's.
-git push --force-with-lease "$GITHUB_URL" HEAD:main > "$TMPFILE" 2>&1
+git push --force "$GITHUB_URL" HEAD:main > "$TMPFILE" 2>&1
 PUSH_EXIT=$?
-PUSH_OUTPUT=$(_redact)
-echo "$PUSH_OUTPUT"
+
+# Redact token before printing output.
+sed "s|https://[^@]*@|https://***@|g" "$TMPFILE"
 
 if [ "$PUSH_EXIT" -eq 0 ]; then
     _log "GitHub push OK — $LOCAL_SHA."
 else
-    if echo "$PUSH_OUTPUT" | grep -q "stale info\|rejected\|\[rejected\]"; then
-        _log "ERROR: push rejected (stale lease — exit $PUSH_EXIT). GitHub was updated between fetch and push. Re-run or use scripts/sync-github.sh."
-    else
-        _log "ERROR: push failed (exit $PUSH_EXIT). Check .github-sync-status for details."
-    fi
+    _log "ERROR: push failed (exit $PUSH_EXIT). Run: bash scripts/sync-github.sh"
     echo "[post-commit] Replit commit still succeeded — your code is safe."
-    echo "[post-commit] To force-sync GitHub to match Replit, run: bash scripts/sync-github.sh"
 fi
 
-# Always exit 0 so a push failure does not block the Replit commit itself.
+# Always exit 0 so a push failure never blocks the Replit commit.
 exit 0
