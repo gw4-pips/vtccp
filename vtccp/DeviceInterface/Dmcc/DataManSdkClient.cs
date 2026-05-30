@@ -26,6 +26,11 @@ using CognexSdk = Cognex.DataMan.SDK;
 ///     channel and blanking DMST's image panel until device reboot.
 ///     VTCCP uses HttpEventSubscriber for all result delivery — not the DMCC
 ///     result channel — so SetResultTypes() provides no benefit.
+///   - SDK command-name validation: SendCommand() validates command names against
+///     an internal list BEFORE sending to the device. Commands not in that list
+///     (e.g. "GET FIRMWARE.VER", "GET SYMBOL.RESULT", "COM.DMCC-RESET") throw
+///     InvalidCommandException and never reach the wire. Any command that must
+///     bypass this gate must use a raw TCP connection instead (see SendDmccResetViaRawTcpAsync).
 /// </summary>
 public sealed class DataManSdkClient : IAsyncDisposable
 {
@@ -74,25 +79,14 @@ public sealed class DataManSdkClient : IAsyncDisposable
     {
         _isConnected = false;
 
+        // Send COM.DMCC-RESET via raw TCP BEFORE closing the SDK connection.
+        // Must be raw TCP — the SDK's SendCommand() validation layer rejects this
+        // command with InvalidCommandException before it reaches the wire (same
+        // behaviour as "GET FIRMWARE.VER" and "GET SYMBOL.RESULT").
+        await SendDmccResetViaRawTcpAsync();
+
         await Task.Run(() =>
         {
-            // Issue COM.DMCC-RESET before closing the connection.
-            // This restores DATA.RESULT-TYPE, DATA.IMAGE-TYPE, COM.DMCC-RESPONSE, and
-            // related settings back to firmware defaults for all future connections,
-            // preventing any DMCC configuration change made during this session from
-            // persisting on the device and affecting DMST or other clients.
-            try
-            {
-                _system?.SendCommand(DmccCommand.DmccReset);
-                System.Diagnostics.Debug.WriteLine(
-                    "[VTCCP-SDK] COM.DMCC-RESET sent — result-delivery defaults restored.");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SDK] COM.DMCC-RESET failed (benign): {ex.Message}");
-            }
-
             try
             {
                 _system?.Disconnect();
@@ -106,6 +100,71 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
         _system    = null;
         _connector = null;
+    }
+
+    /// <summary>
+    /// Sends <c>COM.DMCC-RESET</c> via a transient raw TCP connection on <c>_cfg.Port</c>.
+    ///
+    /// Why raw TCP:  The Cognex SDK's <c>SendCommand()</c> validates command names against
+    /// an internal whitelist before sending them to the device.  <c>COM.DMCC-RESET</c> is
+    /// not in that list, so it throws <c>InvalidCommandException</c> and never reaches the
+    /// wire.  A raw TCP connection bypasses the SDK entirely.
+    ///
+    /// What COM.DMCC-RESET does on the device (DMCC Reference, ALL platforms, v4.4.0):
+    /// Resets the following settings back to firmware defaults for ALL future connections:
+    ///   DATA.IMAGE-TYPE, DATA.RESULT-TYPE, DATA.RESULT-ENCODING, DATA.RESULT-ALWAYSSEND,
+    ///   COM.DMCC-RESPONSE, COM.DMCC-CHECKSUM, COM.DMCC-HEADER.
+    ///
+    /// Without this reset, any session that called SetResultTypes() (which the SDK
+    /// persists via COM.DMCC-SAVE) leaves DATA.IMAGE-TYPE in a state that strips
+    /// images from result delivery, blanking DMST's image panel until device reboot.
+    /// </summary>
+    private async Task SendDmccResetViaRawTcpAsync()
+    {
+        try
+        {
+            using var tcp    = new TcpClient();
+            using var outerCts = new CancellationTokenSource(2_000);
+            await tcp.ConnectAsync(_cfg.Host, _cfg.Port, outerCts.Token);
+            var stream = tcp.GetStream();
+
+            // Drain welcome banner (~100 B sent by device on raw TCP connect).
+            try
+            {
+                using var bannerCts = new CancellationTokenSource(400);
+                await stream.ReadAsync(new byte[512], bannerCts.Token);
+            }
+            catch (OperationCanceledException) { /* no banner or timed out — OK */ }
+            catch { }
+
+            // Send COM.DMCC-RESET with the bare DMCC wire header (||>command\r\n).
+            byte[] cmd = Encoding.ASCII.GetBytes(
+                $"{DmccCommand.WireHeader}{DmccCommand.DmccReset}\r\n");
+            await stream.WriteAsync(cmd, outerCts.Token);
+
+            // Read ACK (best-effort — device is in silent mode by default so may
+            // send nothing; the command is still executed regardless).
+            try
+            {
+                using var ackCts = new CancellationTokenSource(600);
+                byte[] ack = new byte[32];
+                int n = await stream.ReadAsync(ack, ackCts.Token);
+                if (n > 0)
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SDK] COM.DMCC-RESET ack ({n}B): " +
+                        $"'{Encoding.ASCII.GetString(ack, 0, n).Trim()}'");
+            }
+            catch (OperationCanceledException) { /* silent mode — expected */ }
+            catch { }
+
+            System.Diagnostics.Debug.WriteLine(
+                "[VTCCP-SDK] COM.DMCC-RESET sent via raw TCP — DATA.IMAGE-TYPE restored to firmware default.");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SDK] COM.DMCC-RESET raw TCP failed: {ex.GetType().Name}: {ex.Message}");
+        }
     }
 
     // ── Command exchange ──────────────────────────────────────────────────────
