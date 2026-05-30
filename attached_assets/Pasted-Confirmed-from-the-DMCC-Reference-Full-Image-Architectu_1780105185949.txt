@@ -1,0 +1,124 @@
+Confirmed from the DMCC Reference — Full Image Architecture
+The Three Image Frames — Confirmed and Clarified
+Your three-frame model is correct, but the DMCC reference reveals the precise mechanism:
+Frame 1 — Full sensor frame. IMAGE.SIZE = 0 (Full). The complete imager field of view.
+Frame 2 — Scaled-down versions. IMAGE.SIZE values are 0=Full, 1=1/4, 2=1/16, 3=1/64 — these are fractional scales of the full frame, NOT ROI crops. This is an important correction to the earlier inference. The ROI (DECODER.ROI) controls what the decoder examines, but IMAGE.SIZE controls the resolution of the image sent to the client. They are orthogonal settings.
+Frame 3 — Symbol-cropped (TruCheck window). This is what IMAGEBUFFER.IMAGE-TYPE controls at the buffer level, and what appears in the verification report.
+
+The ROI Picture — DECODER.ROI
+||>GET DECODER.ROI\r\n     → returns: left right top bottom
+||>SET DECODER.ROI left right top bottom\r\n
+Pixel coordinates relative to upper-left of the displayed image. Values must stay within CAMERA.FOV bounds. This defines what the decoder analyzes — but the captured image returned by IMAGE.SEND is the full frame (at whatever IMAGE.SIZE scale you set), not cropped to the ROI. You will need to crop the returned image yourself in software using the known ROI coordinates.
+
+The Critical Image Retrieval Workflow
+IMAGE.SEND — the primary image retrieval command:
+||>IMAGE.SEND\r\n
+Response format:
+<number of bytes>\r\n<raw image data>
+It returns the last acquired image at whatever IMAGE.SIZE, IMAGE.FORMAT, and IMAGE.QUALITY you've previously set. No arguments — you configure first, then call.
+Configuration commands before calling IMAGE.SEND:
+||>SET IMAGE.FORMAT 1\r\n     # 0=Bitmap, 1=JPEG, 2=PNG
+||>SET IMAGE.SIZE 0\r\n       # 0=Full, 1=1/4, 2=1/16, 3=1/64
+||>SET IMAGE.QUALITY 85\r\n   # JPEG quality 10-90
+||>IMAGE.SEND\r\n             # retrieve image
+LIVEIMG.MODE — for the live display loop:
+||>SET LIVEIMG.MODE 2\r\n     # 0=Disable, 2=Enable
+LIVEIMG.SEND exists but is only used when LIVEIMG.MODE = 3 (a special PC-request mode).
+
+Trigger Command — Now Fully Confirmed
+TRIGGER.TYPE enum [0-5]:
+  0 = Single (external)     ← 475V default
+  1 = Presentation (internal)
+  2 = Manual (button)
+  3 = Burst (external)
+  4 = Self (internal)
+  5 = Continuous (external)
+For your single-shot fire:
+||>TRIGGER ON\r\n
+That's it. No type change needed. TRIGGER-ON and TRIGGER-OFF are the serial trigger string SET/GET properties (custom strings the reader watches for on the serial port) — they are not the DMCC trigger action command. The action command is simply TRIGGER ON.
+
+IMAGEBUFFER for Post-Trigger Capture
+IMAGEBUFFER.IMAGE-TYPE values:
+
+0 = All images up to max
+1 = Same as result (matches IMAGEBUFFER.RECORD-TYPE)
+2 = Auto (intelligent selection)
+And more up to 7
+
+IMAGEBUFFER.SIZE: 0=Full, 1=1/4, 2=1/16, 3=1/64 — same scale enum as IMAGE.SIZE.
+IMAGEBUFFER.FORMAT: 0=Bitmap, 1=JPEG, 2=PNG
+IMAGEBUFFER.TRANSFER-MODE: 0=On Request, 1=Auto FTP
+
+Recommended Workflow for Trigger → ROI Image → OCR
+# 1. One-time setup on connect:
+||>SET COM.DMCC-RESPONSE 2\r\n       # enable ACKs
+||>SET IMAGE.FORMAT 1\r\n            # JPEG
+||>SET IMAGE.SIZE 0\r\n              # Full frame
+||>SET IMAGE.QUALITY 85\r\n          # good quality
+
+# 2. Read current ROI (to use for software crop):
+||>GET DECODER.ROI\r\n               # → left right top bottom
+
+# 3. Fire trigger:
+||>TRIGGER ON\r\n                    # → decoded data or no-read
+
+# 4. Retrieve image immediately after:
+||>IMAGE.SEND\r\n                    # → byte count \r\n image bytes
+
+# 5. In your app:
+#    - Decode the JPEG bytes into a bitmap
+#    - Crop to DECODER.ROI coordinates
+#    - Feed cropped ROI image to OCR engine
+#    - Store both full and cropped images
+The key insight is that you get the full frame from IMAGE.SEND and do the ROI crop in software — the reader doesn't deliver a pre-cropped ROI image over DMCC. This actually gives you more flexibility since you can store both.You said: Here's a fundamental question.Here's a fundamental question.  The trucheck app within DMST opens when the connect button on DMST is pressed, focus having beens set by the user on the specific DataMan (verifier) reader among allDM readers visible to DMST.  AT this juncture the DMST Image Panel is static and gray and the reader LEDs are not immuminated.  No image is being captured or transmitted.  When Go Live is invoked on the TC app, the reader begins to steadily transmit images at the at of 120-160 per min (hard to say exactly).  During this time the user positions the symbol ad adjusts the heith of the reader (some models) to attain focus.  Once focus is achieved the user presses Verify.  TH elds stop flashing thenafter a very brief pause flashes once and the image is transmitted for analysis.  Evidence ocnfirms the reader startis and we beleive stays in mode 0.  can you discern what controls the 120-160x cycling and that the trigger is for the image capture.  How is the rader left after that trigger (dark.  And it returns to 120-160x live transmit mode when the user clicks on Go LOIve.Show more9:23 PMClaude responded: This is a great systems-level question.This is a great systems-level question. Let me reason through it carefully using everything we now have confirmed from the DMCC reference plus your behavioral observations.
+
+What Controls the 120-160 Images/Min Live Cycling
+120-160 images per minute = 2.0–2.7 images per second, or one image every 375–500ms.
+This is not the reader running in Presentation or Self mode. You've confirmed it stays in TRIGGER.TYPE = 0 (Single external) throughout. So something on the client side (DMST/TruCheck) is firing repeated software TRIGGER ON commands at that interval — approximately every 400ms. This is a polling loop entirely implemented in DMST, not a reader firmware mode change.
+The LIVEIMG.MODE = 2 command likely runs alongside this to enable the image push channel, but the pacing of acquisitions is driven by DMST firing TRIGGER ON repeatedly on a timer. The reader in Single mode simply responds to each one, acquires an image, and sends it. The LEDs flash with each acquisition, which matches your observation of steady flashing during Go Live.
+The ~400ms interval is almost certainly chosen deliberately — slow enough that image transfer completes before the next trigger fires (at full resolution over Ethernet), fast enough to feel like a live view to the user.
+
+What Happens at Verify
+Your observation is precise and revealing:
+
+"LEDs stop flashing, then after a very brief pause, flash once, and the image is transmitted for analysis."
+
+Breaking that down:
+Step 1 — LEDs stop flashing. DMST stops the polling loop. No more repeated TRIGGER ON commands. The reader goes idle but stays in Single mode, LEDs off.
+Step 2 — Brief pause. This is DMST waiting for any in-flight image transfer to complete and the reader to return to ready state (TriggerReady = true in hardware terms, or simply the prior acquisition cycle finishing).
+Step 3 — Single flash, image transmitted. DMST fires exactly one TRIGGER ON. The reader acquires one image, the LEDs fire once (the illumination strobe), and the result image is transmitted. This is the verification acquisition — the one that goes to the TruCheck grading engine.
+Step 4 — Reader goes dark. After that single trigger, DMST does not restart the polling loop. The reader returns to idle in Single mode. No more triggers, LEDs dark. This matches TRIGGER.TYPE = 0 — it's externally triggered, so without another software trigger it simply waits.
+
+The State Machine
+CONNECT
+  └─► Reader: TRIGGER.TYPE=0 (Single), LIVEIMG.MODE=0 (off)
+      DMST: static gray — no triggers fired, no images
+
+GO LIVE
+  └─► DMST sends: SET LIVEIMG.MODE 2
+      DMST starts polling loop: TRIGGER ON every ~400ms
+      Reader: acquires+transmits each time, LEDs flash
+      User positions symbol, adjusts height/focus
+
+VERIFY (user clicks)
+  └─► DMST stops polling loop
+      DMST waits for clean idle
+      DMST sends: TRIGGER ON  (exactly once)
+      Reader: acquires verification image, LEDs fire once
+      Image → TruCheck grading engine
+      Reader: returns to idle, dark
+
+CANCEL LIVE / after VERIFY
+  └─► Reader: still TRIGGER.TYPE=0, idle, dark
+      DMST: no polling loop running
+      Image Panel: static (last image held or gray)
+
+GO LIVE again
+  └─► DMST restarts polling loop
+      Cycle repeats
+
+Key Implications for Your App
+Replicating Go Live: Start a timer loop firing TRIGGER ON every ~400ms. Also send SET LIVEIMG.MODE 2 on connect so images push through. Display each returned image in your preview panel.
+Replicating Verify: Stop the loop, wait one cycle (~400ms) for clean idle, fire one TRIGGER ON, capture the response image, pass to TruCheck grading via GET TRUCHECK.* commands.
+Replicating Cancel Live: Simply stop the loop. No command needed to the reader — it goes dark on its own once triggers stop.
+The reader is never reconfigured. TRIGGER.TYPE stays 0 throughout all three states. All the mode switching is purely client-side loop control. This is the critical architectural insight your Replit code was getting wrong by trying to SET TRIGGER.TYPE 1 — that change was both unnecessary and harmful.Want to be notified when Claude responds?Notify
