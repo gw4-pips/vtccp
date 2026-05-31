@@ -137,9 +137,53 @@ These are not reset operations — they are the normal persistence mechanism.
 | Field calibration | **Yes** | Full calibration procedure required (NIST card) |
 | DEVICE.NAME label | **Yes** | `SET DEVICE.NAME "DM475-63530E-PIPS-Verif-Lab"` |
 | COM.DMCC-RESPONSE | Resets to 0 | `SET COM.DMCC-RESPONSE 1`; `DMCC.SAVE` |
+| Symbology enables (10 enabled) | **Yes** | See DMCC restore block below |
+| Image mirroring (H+V both ON) | **Yes** | `SET CAMERA.MIRROR-HORIZONTAL ON` + `SET CAMERA.MIRROR-VERTICAL ON` |
+| Company name | **Yes** | `SET TRUCHECK.COMPANY-NAME Product Identification and Processing Systems, Inc.` |
+| Timezone | **Yes** | `SET DEVICE.TIMEZONE America/New_York` |
+| NTP | **Yes** | `SET NTP.ENABLE ON` + `SET NTP.SERVER1 time.nist.gov` |
 
 **Total restore time after factory reset with a .dcf backup:** ~5 minutes (load file, write,
 save settings). Without a backup: 30–60 minutes to manually reconfigure + recalibration.
+
+---
+
+## PIPS-Verif-Lab complete DMCC restore sequence (post-CONFIG.DEFAULT)
+
+Observed state 2026-05-30, fw 6.1.16_sr4, DM475-63530E-PIPS-Verif-Lab.
+Run in Telnet (port 23) after CONFIG.DEFAULT + REBOOT + reconnect.
+Send `SET COM.DMCC-RESPONSE 2` first to get ACKs. Finish with CONFIG.SAVE.
+
+```
+||>SET COM.DMCC-RESPONSE 2
+
+||>SET TRAIN.AUTO-DISABLE ON
+
+||>SET SYMBOL.DATAMATRIX ON
+||>SET SYMBOL.QR ON
+||>SET SYMBOL.C128 ON
+||>SET SYMBOL.C93 ON
+||>SET SYMBOL.C39 ON
+||>SET SYMBOL.CODABAR ON
+||>SET SYMBOL.I2O5 ON
+||>SET SYMBOL.UPC-EAN ON
+||>SET SYMBOL.PDF417 ON
+||>SET SYMBOL.DATABAR ON
+
+||>SET CAMERA.MIRROR-HORIZONTAL ON
+||>SET CAMERA.MIRROR-VERTICAL ON
+
+||>SET DEVICE.TIMEZONE America/New_York
+||>SET NTP.ENABLE ON
+||>SET NTP.SERVER1 time.nist.gov
+
+||>SET TRUCHECK.COMPANY-NAME Product Identification and Processing Systems, Inc.
+
+||>CONFIG.SAVE
+```
+
+Then restore from .dcf backup in DMST (covers push script, network client, aperture,
+grading standard, application standard, trigger mode — everything else).
 
 ---
 

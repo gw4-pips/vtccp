@@ -236,6 +236,156 @@ public static class DmccCommand
     public static string SetUpcEanSupplemental(int mode) =>
         $"SET UPC-EAN.SUPPLEMENT {mode}";
 
+    // ── Symbologies ───────────────────────────────────────────────────────────
+    //
+    // All SYMBOL.* keys are SET/GET, ON/OFF. Platforms: ALL (except specialised
+    // postal / 4-state keys which exclude DM150QL/DM260QL etc.).
+    //
+    // PIPS-Verif-Lab restore state (observed 2026-05-30, fw 6.1.16_sr4):
+    //   ON : DATAMATRIX, QR, C128, C93, C39, CODABAR, I2O5, UPC-EAN, PDF417, DATABAR
+    //   OFF: MAXICODE, AZTECCODE, DOTCODE, C25, MSI, POSTNET, PLANET,
+    //        4STATE-JAP, 4STATE-UPU, 4STATE-AUS, 4STATE-IMB, 4STATE-CBC, 4STATE-POSTI
+    //   Global flag: TRAIN.AUTO-DISABLE ON ("Disable Untrained Symbologies" checked)
+    //
+    // Post-CONFIG.DEFAULT restore sequence — send all 10 ON lines + the global flag:
+    //   SET TRAIN.AUTO-DISABLE ON
+    //   SET SYMBOL.DATAMATRIX ON  / SET SYMBOL.QR ON
+    //   SET SYMBOL.C128 ON  / SET SYMBOL.C93 ON  / SET SYMBOL.C39 ON
+    //   SET SYMBOL.CODABAR ON  / SET SYMBOL.I2O5 ON  / SET SYMBOL.UPC-EAN ON
+    //   SET SYMBOL.PDF417 ON  / SET SYMBOL.DATABAR ON
+    //   CONFIG.SAVE
+
+    /// <summary>Global flag — "Disable Untrained Symbologies" checkbox in DMST Basic tab.
+    /// SET/GET. ON = untrained symbologies disabled; OFF = all attempted.
+    /// Platforms: Fixed mount readers (DM475V qualifies). Version: 3.2.0.
+    /// PIPS-Verif-Lab state: ON. Restore after CONFIG.DEFAULT.</summary>
+    public const string GetDisableUntrained  = "GET TRAIN.AUTO-DISABLE";
+    public const string SetDisableUntrainedOn  = "SET TRAIN.AUTO-DISABLE ON";
+    public const string SetDisableUntrainedOff = "SET TRAIN.AUTO-DISABLE OFF";
+
+    // 2D
+    /// <summary>Data Matrix. PIPS state: ON. Version 3.0.0.</summary>
+    public const string GetSymbolDataMatrix  = "GET SYMBOL.DATAMATRIX";
+    public const string SetSymbolDataMatrixOn  = "SET SYMBOL.DATAMATRIX ON";
+    public const string SetSymbolDataMatrixOff = "SET SYMBOL.DATAMATRIX OFF";
+
+    /// <summary>QR Code. PIPS state: ON. Version 3.0.0.</summary>
+    public const string GetSymbolQr  = "GET SYMBOL.QR";
+    public const string SetSymbolQrOn  = "SET SYMBOL.QR ON";
+    public const string SetSymbolQrOff = "SET SYMBOL.QR OFF";
+
+    /// <summary>MaxiCode. PIPS state: OFF. Version 4.5.0.</summary>
+    public const string GetSymbolMaxiCode  = "GET SYMBOL.MAXICODE";
+    public const string SetSymbolMaxiCodeOn  = "SET SYMBOL.MAXICODE ON";
+    public const string SetSymbolMaxiCodeOff = "SET SYMBOL.MAXICODE OFF";
+
+    /// <summary>Aztec Code. PIPS state: OFF. Version 5.0.0.</summary>
+    public const string GetSymbolAztecCode  = "GET SYMBOL.AZTECCODE";
+    public const string SetSymbolAztecCodeOn  = "SET SYMBOL.AZTECCODE ON";
+    public const string SetSymbolAztecCodeOff = "SET SYMBOL.AZTECCODE OFF";
+
+    /// <summary>DotCode. PIPS state: OFF. Version 5.0.0.</summary>
+    public const string GetSymbolDotCode  = "GET SYMBOL.DOTCODE";
+    public const string SetSymbolDotCodeOn  = "SET SYMBOL.DOTCODE ON";
+    public const string SetSymbolDotCodeOff = "SET SYMBOL.DOTCODE OFF";
+
+    // 1D
+    /// <summary>Code 128. PIPS state: ON. Version 3.0.0.</summary>
+    public const string GetSymbolCode128  = "GET SYMBOL.C128";
+    public const string SetSymbolCode128On  = "SET SYMBOL.C128 ON";
+    public const string SetSymbolCode128Off = "SET SYMBOL.C128 OFF";
+
+    /// <summary>Code 25. PIPS state: OFF. Version 5.5.2.</summary>
+    public const string GetSymbolCode25  = "GET SYMBOL.C25";
+    public const string SetSymbolCode25On  = "SET SYMBOL.C25 ON";
+    public const string SetSymbolCode25Off = "SET SYMBOL.C25 OFF";
+
+    /// <summary>Code 93. PIPS state: ON. Version 3.0.0.</summary>
+    public const string GetSymbolCode93  = "GET SYMBOL.C93";
+    public const string SetSymbolCode93On  = "SET SYMBOL.C93 ON";
+    public const string SetSymbolCode93Off = "SET SYMBOL.C93 OFF";
+
+    /// <summary>Code 39. PIPS state: ON. Version 3.0.0.</summary>
+    public const string GetSymbolCode39  = "GET SYMBOL.C39";
+    public const string SetSymbolCode39On  = "SET SYMBOL.C39 ON";
+    public const string SetSymbolCode39Off = "SET SYMBOL.C39 OFF";
+
+    /// <summary>Codabar. PIPS state: ON. Version 3.0.0.</summary>
+    public const string GetSymbolCodabar  = "GET SYMBOL.CODABAR";
+    public const string SetSymbolCodabarOn  = "SET SYMBOL.CODABAR ON";
+    public const string SetSymbolCodabarOff = "SET SYMBOL.CODABAR OFF";
+
+    /// <summary>Interleaved 2 of 5. PIPS state: ON. Version 3.0.0.</summary>
+    public const string GetSymbolI2of5  = "GET SYMBOL.I2O5";
+    public const string SetSymbolI2of5On  = "SET SYMBOL.I2O5 ON";
+    public const string SetSymbolI2of5Off = "SET SYMBOL.I2O5 OFF";
+
+    /// <summary>UPC/EAN (all UPC-A, UPC-E, EAN-8, EAN-13 variants).
+    /// PIPS state: ON. Version 3.0.0. Use UPC-EAN.* sub-keys for variant control.</summary>
+    public const string GetSymbolUpcEan  = "GET SYMBOL.UPC-EAN";
+    public const string SetSymbolUpcEanOn  = "SET SYMBOL.UPC-EAN ON";
+    public const string SetSymbolUpcEanOff = "SET SYMBOL.UPC-EAN OFF";
+
+    /// <summary>MSI Plessey. PIPS state: OFF. Version 5.0.0.</summary>
+    public const string GetSymbolMsi  = "GET SYMBOL.MSI";
+    public const string SetSymbolMsiOn  = "SET SYMBOL.MSI ON";
+    public const string SetSymbolMsiOff = "SET SYMBOL.MSI OFF";
+
+    // Stacked
+    /// <summary>PDF417. PIPS state: ON. Version 3.0.0.</summary>
+    public const string GetSymbolPdf417  = "GET SYMBOL.PDF417";
+    public const string SetSymbolPdf417On  = "SET SYMBOL.PDF417 ON";
+    public const string SetSymbolPdf417Off = "SET SYMBOL.PDF417 OFF";
+
+    /// <summary>GS1 DataBar (all variants — Omnidirectional, Expanded, Limited, Group).
+    /// Use DATABAR.EXPANDED / DATABAR.LIMITED / DATABAR.GROUP for sub-variant control.
+    /// PIPS state: ON. Version 3.4.0.</summary>
+    public const string GetSymbolDataBar  = "GET SYMBOL.DATABAR";
+    public const string SetSymbolDataBarOn  = "SET SYMBOL.DATABAR ON";
+    public const string SetSymbolDataBarOff = "SET SYMBOL.DATABAR OFF";
+
+    // Postal
+    /// <summary>POSTNET. PIPS state: OFF. Version 3.0.0.</summary>
+    public const string GetSymbolPostnet  = "GET SYMBOL.POSTNET";
+    public const string SetSymbolPostnetOn  = "SET SYMBOL.POSTNET ON";
+    public const string SetSymbolPostnetOff = "SET SYMBOL.POSTNET OFF";
+
+    /// <summary>PLANET. PIPS state: OFF. Version 3.0.0.</summary>
+    public const string GetSymbolPlanet  = "GET SYMBOL.PLANET";
+    public const string SetSymbolPlanetOn  = "SET SYMBOL.PLANET ON";
+    public const string SetSymbolPlanetOff = "SET SYMBOL.PLANET OFF";
+
+    // 4-State
+    /// <summary>Japan Post 4-State. PIPS state: OFF. Version 3.0.0.</summary>
+    public const string GetSymbol4StateJapan  = "GET SYMBOL.4STATE-JAP";
+    public const string SetSymbol4StateJapanOn  = "SET SYMBOL.4STATE-JAP ON";
+    public const string SetSymbol4StateJapanOff = "SET SYMBOL.4STATE-JAP OFF";
+
+    /// <summary>UPU 4-State. PIPS state: OFF. Version 3.0.0.</summary>
+    public const string GetSymbol4StateUpu  = "GET SYMBOL.4STATE-UPU";
+    public const string SetSymbol4StateUpuOn  = "SET SYMBOL.4STATE-UPU ON";
+    public const string SetSymbol4StateUpuOff = "SET SYMBOL.4STATE-UPU OFF";
+
+    /// <summary>Australia Post 4-State. PIPS state: OFF. Version 3.0.0.</summary>
+    public const string GetSymbol4StateAustralia  = "GET SYMBOL.4STATE-AUS";
+    public const string SetSymbol4StateAustraliaOn  = "SET SYMBOL.4STATE-AUS ON";
+    public const string SetSymbol4StateAustraliaOff = "SET SYMBOL.4STATE-AUS OFF";
+
+    /// <summary>Intelligent Mail Barcode (IMB / OneCode). PIPS state: OFF. Version 3.4.0.</summary>
+    public const string GetSymbol4StateIMB  = "GET SYMBOL.4STATE-IMB";
+    public const string SetSymbol4StateIMBOn  = "SET SYMBOL.4STATE-IMB ON";
+    public const string SetSymbol4StateIMBOff = "SET SYMBOL.4STATE-IMB OFF";
+
+    /// <summary>CBC (Customer Barcode). PIPS state: OFF.</summary>
+    public const string GetSymbol4StateCbc  = "GET SYMBOL.4STATE-CBC";
+    public const string SetSymbol4StateCbcOn  = "SET SYMBOL.4STATE-CBC ON";
+    public const string SetSymbol4StateCbcOff = "SET SYMBOL.4STATE-CBC OFF";
+
+    /// <summary>Posti (Finnish postal). PIPS state: OFF. Version 6.3.2.</summary>
+    public const string GetSymbol4StatePosti  = "GET SYMBOL.4STATE-POSTI";
+    public const string SetSymbol4StatePostiOn  = "SET SYMBOL.4STATE-POSTI ON";
+    public const string SetSymbol4StatePostiOff = "SET SYMBOL.4STATE-POSTI OFF";
+
     // ── TruCheck — application standard & grading ────────────────────────────
     // All TRUCHECK.* commands below: DM475V + DM8072V only. Version: 6.1.10.
 
