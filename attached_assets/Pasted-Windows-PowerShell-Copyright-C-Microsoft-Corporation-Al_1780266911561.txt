@@ -1,0 +1,48 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\Administrator> powershell -ExecutionPolicy Bypass -File "C:\Users\Administrator\Desktop\VTCCP-Reset.ps1"
+
+=== PHASE 1: reading current values then issuing CONFIG.DEFAULT ===
+  Current DATA.RESULT-TYPE       = ||:::5[0]513
+  Current DATA.RESULT-ALWAYSSEND = ||:::5[0]513
+
+  Issuing CONFIG.DEFAULT + CONFIG.SAVE + REBOOT...
+  Device rebooting â€ waiting 38 seconds... -ForegroundColor Cyan
+for ( = 38;  -gt 0; --) {
+  s remaining... oNewline
+    Start-Sleep -Seconds 1
+}
+Write-Host "
+
+# =============================================================================
+# PHASE 2  â€ reconnect capture factory defaults apply DMCC restore block
+
+=== PHASE 2: reconnect + read factory defaults + restore symbologies ===
+  Factory DATA.RESULT-TYPE       = 513
+  Factory DATA.RESULT-ALWAYSSEND = 513
+  (These will be re-stamped after the .dmb load in Phase 4)
+
+  Applying DMCC restore block (symbologies / mirror / NTP / timezone)...
+    SET TRAIN.AUTO-DISABLE ON  -->  ||:::2[0]
+    SET SYMBOL.DATAMATRIX ON  -->  ||:::2[0]
+    SET SYMBOL.QR ON  -->  ||:::2[0]
+    SET SYMBOL.C128 ON  -->
+Exception calling "WriteLine" with "1" argument(s): "Unable to write data to the transport connection: An established
+connection was aborted by the software in your host machine."
+At C:\Users\Administrator\Desktop\VTCCP-Reset.ps1:31 char:5
++     $conn.W.WriteLine("||>$cmd")
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
+    + FullyQualifiedErrorId : IOException
+
+    SET SYMBOL.C93 ON  -->
+Exception calling "WriteLine" with "1" argument(s): "Unable to write data to the transport connection: An established
+connection was aborted by the software in your host machine."
+At C:\Users\Administrator\Desktop\VTCCP-Reset.ps1:31 char:5
++     $conn.W.WriteLine("||>$cmd")
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
+    + FullyQualifiedErrorId : IOException

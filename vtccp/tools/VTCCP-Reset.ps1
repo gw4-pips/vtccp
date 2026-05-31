@@ -1,29 +1,34 @@
 # VTCCP-Reset.ps1
-# Factory-reset the DM475-63530E-PIPS-Verif-Lab and restore all settings,
-# while capturing the post-reset factory values for DATA.RESULT-TYPE and
-# DATA.RESULT-ALWAYSSEND BEFORE the .dmb backup overwrites them.
+# Factory-reset DM475-63530E-PIPS-Verif-Lab and restore all settings.
 #
 # Run from PowerShell (Administrator) on the verifier PC:
 #   powershell -ExecutionPolicy Bypass -File VTCCP-Reset.ps1
 #
-# BEFORE RUNNING:
-#   - Close DMST completely (it holds port 23)
-#   - Have your .dmb backup ready (DMST File -> Save Settings)
+# BEFORE RUNNING: close DMST completely so it does not hold port 23.
 
 $DeviceIp      = "10.10.10.7"
 $DevicePort    = 23
-$RebootWaitSec = 38     # increase to 45 if Phase 2 reconnect fails
+$RebootWaitSec = 45
 
-# ── helpers ───────────────────────────────────────────────────────────────────
+# ---------- helpers ----------------------------------------------------------
 
 function Connect-Device {
-    $c = New-Object System.Net.Sockets.TcpClient
-    $c.Connect($DeviceIp, $DevicePort)
-    $s = $c.GetStream()
-    $s.ReadTimeout = 3000
-    $w = New-Object System.IO.StreamWriter($s)
-    $w.AutoFlush = $true
-    return @{ C = $c; S = $s; W = $w }
+    param([int]$TimeoutSec = 10)
+    $deadline = (Get-Date).AddSeconds($TimeoutSec)
+    while ((Get-Date) -lt $deadline) {
+        try {
+            $c = New-Object System.Net.Sockets.TcpClient
+            $c.Connect($DeviceIp, $DevicePort)
+            $s = $c.GetStream()
+            $s.ReadTimeout = 3000
+            $w = New-Object System.IO.StreamWriter($s)
+            $w.AutoFlush = $true
+            return @{ C = $c; S = $s; W = $w }
+        } catch {
+            Start-Sleep -Seconds 1
+        }
+    }
+    throw "Could not connect to $DeviceIp`:$DevicePort after $TimeoutSec seconds."
 }
 
 function Send-Dmcc {
@@ -43,9 +48,8 @@ function Send-Dmcc {
 
 function Extract-Value {
     param([string]$ack)
-    # ACK format:  ||:::1[0]<value>  — strip everything up to and including [0]
     if ($ack -match '\[0\](.+)') { return $Matches[1].Trim() }
-    return $ack   # fallback: return raw if format unexpected
+    return $ack
 }
 
 function Close-Device {
@@ -54,9 +58,11 @@ function Close-Device {
 }
 
 # =============================================================================
-# PHASE 1  —  read current (corrupted) values, then factory-reset + reboot
+# PHASE 1 -- read current values, issue CONFIG.DEFAULT + REBOOT
 # =============================================================================
-Write-Host "`n=== PHASE 1: reading current values then issuing CONFIG.DEFAULT ===" -ForegroundColor Cyan
+
+Write-Host ""
+Write-Host "=== PHASE 1: read current values then CONFIG.DEFAULT ===" -ForegroundColor Cyan
 
 $conn = Connect-Device
 Start-Sleep -Milliseconds 600
@@ -67,38 +73,41 @@ $curAlways = Send-Dmcc $conn "GET DATA.RESULT-ALWAYSSEND" 500
 Write-Host "  Current DATA.RESULT-TYPE       = $curType"   -ForegroundColor Yellow
 Write-Host "  Current DATA.RESULT-ALWAYSSEND = $curAlways" -ForegroundColor Yellow
 
-Write-Host "`n  Issuing CONFIG.DEFAULT + CONFIG.SAVE + REBOOT..." -ForegroundColor Red
-Send-Dmcc $conn "CONFIG.DEFAULT" 1200 | Out-Null
-Send-Dmcc $conn "CONFIG.SAVE"    1200 | Out-Null
-Send-Dmcc $conn "REBOOT"          500 | Out-Null
+Write-Host ""
+Write-Host "  Issuing CONFIG.DEFAULT + CONFIG.SAVE + REBOOT..." -ForegroundColor Red
+Send-Dmcc $conn "CONFIG.DEFAULT" 2000 | Out-Null
+Send-Dmcc $conn "CONFIG.SAVE"    2000 | Out-Null
+Send-Dmcc $conn "REBOOT"         1000 | Out-Null
 Close-Device $conn
 
-Write-Host "  Device rebooting — waiting $RebootWaitSec seconds..." -ForegroundColor Cyan
-for ($i = $RebootWaitSec; $i -gt 0; $i--) {
-    Write-Host -NoNewline "`r  $i s remaining...   "
-    Start-Sleep -Seconds 1
-}
+Write-Host "  Waiting $RebootWaitSec seconds for device to reboot..." -ForegroundColor Cyan
+Start-Sleep -Seconds $RebootWaitSec
+Write-Host "  Wait complete."
+
+# =============================================================================
+# PHASE 2 -- reconnect (with retry), capture factory defaults, restore block
+# =============================================================================
+
 Write-Host ""
+Write-Host "=== PHASE 2: reconnect + factory defaults + symbology restore ===" -ForegroundColor Cyan
+Write-Host "  Connecting (will retry for up to 30 seconds)..."
 
-# =============================================================================
-# PHASE 2  —  reconnect, capture factory defaults, apply DMCC restore block
-# =============================================================================
-Write-Host "`n=== PHASE 2: reconnect + read factory defaults + restore symbologies ===" -ForegroundColor Cyan
+$conn = Connect-Device -TimeoutSec 30
+Start-Sleep -Milliseconds 800
+Send-Dmcc $conn "SET COM.DMCC-RESPONSE 2" 800 | Out-Null
 
-$conn = Connect-Device
-Start-Sleep -Milliseconds 600
-Send-Dmcc $conn "SET COM.DMCC-RESPONSE 2" 600 | Out-Null
-
-$factTypeAck   = Send-Dmcc $conn "GET DATA.RESULT-TYPE"       500
-$factAlwaysAck = Send-Dmcc $conn "GET DATA.RESULT-ALWAYSSEND" 500
+$factTypeAck   = Send-Dmcc $conn "GET DATA.RESULT-TYPE"       600
+$factAlwaysAck = Send-Dmcc $conn "GET DATA.RESULT-ALWAYSSEND" 600
 $factTypeVal   = Extract-Value $factTypeAck
 $factAlwaysVal = Extract-Value $factAlwaysAck
 
 Write-Host "  Factory DATA.RESULT-TYPE       = $factTypeVal"   -ForegroundColor Green
 Write-Host "  Factory DATA.RESULT-ALWAYSSEND = $factAlwaysVal" -ForegroundColor Green
-Write-Host "  (These will be re-stamped after the .dmb load in Phase 4)" -ForegroundColor DarkGray
+Write-Host "  (Will be re-stamped after the .dmb load in Phase 4)" -ForegroundColor DarkGray
 
-Write-Host "`n  Applying DMCC restore block (symbologies / mirror / NTP / timezone)..."
+Write-Host ""
+Write-Host "  Applying DMCC restore block..."
+
 $restoreBlock = @(
     "SET TRAIN.AUTO-DISABLE ON",
     "SET SYMBOL.DATAMATRIX ON",
@@ -118,65 +127,65 @@ $restoreBlock = @(
     "SET NTP.SERVER1 time.nist.gov",
     "SET TRUCHECK.COMPANY-NAME Product Identification and Processing Systems, Inc."
 )
+
 foreach ($cmd in $restoreBlock) {
-    $ack = Send-Dmcc $conn $cmd 400
+    $ack = Send-Dmcc $conn $cmd 500
     Write-Host "    $cmd  -->  $ack"
 }
 
-Send-Dmcc $conn "CONFIG.SAVE" 1200 | Out-Null
+Send-Dmcc $conn "CONFIG.SAVE" 2000 | Out-Null
 Write-Host "  DMCC restore block saved." -ForegroundColor Green
 Close-Device $conn
 
 # =============================================================================
-# PHASE 3  —  human step: load .dmb in DMST
+# PHASE 3 -- manual: load .dmb in DMST
 # =============================================================================
-Write-Host @"
 
-=== PHASE 3: MANUAL STEP — load your .dmb backup in DMST ================
-
-  1. Open DMST and let it connect to the device
-  2. File  ->  Open Settings...  ->  browse to your .dmb file:
-       C:\Users\Administrator\Documents\DM475-63530E-PIPS-Verif-Lab\Settings Backups\6353OE Settings, 2026-05-31-1822.dmb
-  3. Click  Write Settings to Verifier  (blue arrow toolbar button)
-  4. Click  the floppy disk icon  (CONFIG.SAVE)
-  5. Wait for DMST to confirm the write is complete
-  6. Close DMST again before pressing Enter below
-
-"@ -ForegroundColor Yellow
-
-Read-Host "Press Enter when DMST has finished writing the .dmb and you have closed DMST"
+Write-Host ""
+Write-Host "=== PHASE 3: MANUAL STEP -- load the .dmb backup in DMST ===" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "  1. Open DMST and let it connect to the device"
+Write-Host "  2. File -> Open Settings..."
+Write-Host "     File: C:\Users\Administrator\Documents\DM475-63530E-PIPS-Verif-Lab\Settings Backups\6353OE Settings, 2026-05-31-1822.dmb"
+Write-Host "  3. Click  Write Settings to Verifier  (blue arrow toolbar button)"
+Write-Host "  4. Click  the floppy disk icon  (CONFIG.SAVE)"
+Write-Host "  5. Wait for DMST to confirm the write is complete"
+Write-Host "  6. CLOSE DMST before pressing Enter"
+Write-Host ""
+Read-Host "Press Enter when DMST has finished writing and you have closed DMST"
 
 # =============================================================================
-# PHASE 4  —  reconnect and stamp factory DATA.RESULT values back over .dmb residue
+# PHASE 4 -- re-stamp factory DATA.RESULT values over .dmb residue
 # =============================================================================
-Write-Host "`n=== PHASE 4: re-applying factory DATA.RESULT values ===" -ForegroundColor Cyan
 
-$conn = Connect-Device
+Write-Host ""
+Write-Host "=== PHASE 4: re-applying factory DATA.RESULT values ===" -ForegroundColor Cyan
+Write-Host "  Connecting..."
+
+$conn = Connect-Device -TimeoutSec 15
 Start-Sleep -Milliseconds 600
 Send-Dmcc $conn "SET COM.DMCC-RESPONSE 2" 600 | Out-Null
 
-$a1 = Send-Dmcc $conn "SET DATA.RESULT-TYPE $factTypeVal"       500
-$a2 = Send-Dmcc $conn "SET DATA.RESULT-ALWAYSSEND $factAlwaysVal" 500
-$a3 = Send-Dmcc $conn "CONFIG.SAVE" 1200
+$a1 = Send-Dmcc $conn "SET DATA.RESULT-TYPE $factTypeVal"        600
+$a2 = Send-Dmcc $conn "SET DATA.RESULT-ALWAYSSEND $factAlwaysVal" 600
+$a3 = Send-Dmcc $conn "CONFIG.SAVE" 2000
 
-Write-Host "  SET DATA.RESULT-TYPE $factTypeVal          -->  $a1"
-Write-Host "  SET DATA.RESULT-ALWAYSSEND $factAlwaysVal  -->  $a2"
-Write-Host "  CONFIG.SAVE                                -->  $a3"
+Write-Host "  SET DATA.RESULT-TYPE $factTypeVal       --> $a1"
+Write-Host "  SET DATA.RESULT-ALWAYSSEND $factAlwaysVal --> $a2"
+Write-Host "  CONFIG.SAVE                             --> $a3"
 
 Close-Device $conn
 
-Write-Host @"
-
-=== DONE ====================================================================
-
-  Open DMST and trigger a scan. Watch the TC panel — the image should
-  persist after the scan completes.
-
-  KEY FINDINGS — record these:
-    DATA.RESULT-TYPE       (factory) = $factTypeVal
-    DATA.RESULT-ALWAYSSEND (factory) = $factAlwaysVal
-
-  If the image persists: root cause confirmed — SDK residue in those two keys.
-  If the image still disappears: report the factory values above and we diagnose further.
-
-"@ -ForegroundColor Green
+Write-Host ""
+Write-Host "=== DONE ===" -ForegroundColor Green
+Write-Host ""
+Write-Host "  Open DMST and trigger a scan."
+Write-Host "  Watch the TC panel -- the image should persist after the scan completes."
+Write-Host ""
+Write-Host "  KEY FINDINGS -- record these:"
+Write-Host "    DATA.RESULT-TYPE       (factory) = $factTypeVal"
+Write-Host "    DATA.RESULT-ALWAYSSEND (factory) = $factAlwaysVal"
+Write-Host ""
+Write-Host "  If the image persists: root cause confirmed -- SDK residue in those two keys."
+Write-Host "  If the image still disappears: report the factory values above for further diagnosis."
+Write-Host ""
