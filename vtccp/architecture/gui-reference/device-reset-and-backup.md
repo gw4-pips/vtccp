@@ -31,11 +31,11 @@ In DMST:
 1. Connect to the DM475V and confirm it is in its current (desired-to-preserve) state.
 2. Menu: **File → Save Settings to File…** (may also appear as **Manage Settings → Save**)
 3. Save as a `.dcf` file (DataMan Configuration File — XML-based). Name it with a timestamp:
-   `DM475-63530E-PIPS-Verif-Lab_2026-05-25.dcf`
+   `DM475-63530E-PIPS-Verif-Lab_2026-05-25.dmb`
 4. Keep this file in a known location.
 
 To restore from this checkpoint:
-- **File → Load Settings from File…** → select your `.dcf` → "Write to Verifier" → CONFIG.SAVE
+- **File → Load Settings from File…** → select your `.dmb` → "Write to Verifier" → CONFIG.SAVE
 
 ### Method B: DMCC commands (command-line / VTCCP)
 
@@ -143,7 +143,7 @@ These are not reset operations — they are the normal persistence mechanism.
 | Timezone | **Yes** | `SET DEVICE.TIMEZONE America/New_York` |
 | NTP | **Yes** | `SET NTP.ENABLE ON` + `SET NTP.SERVER1 time.nist.gov` |
 
-**Total restore time after factory reset with a .dcf backup:** ~5 minutes (load file, write,
+**Total restore time after factory reset with a .dmb backup:** ~5 minutes (load file, write,
 save settings). Without a backup: 30–60 minutes to manually reconfigure + recalibration.
 
 ---
@@ -182,7 +182,7 @@ Send `SET COM.DMCC-RESPONSE 2` first to get ACKs. Finish with CONFIG.SAVE.
 ||>CONFIG.SAVE
 ```
 
-Then restore from .dcf backup in DMST (covers push script, network client, aperture,
+Then restore from .dmb backup in DMST (covers push script, network client, aperture,
 grading standard, application standard, trigger mode — everything else).
 
 ---
@@ -209,8 +209,8 @@ scan completes. It was previously working and stopped after a DMST restart. Cand
    a full factory reset.
 
 **Recommended sequence before considering factory reset:**
-1. Save a .dcf checkpoint (Step 1 above) from the current state.
+1. Save a .dmb checkpoint (Step 1 above) from the current state.
 2. Try `CONFIG.RESTORE` (reverts volatile layer to last flash save — may undo the bad change).
 3. If not resolved, check `GET LIVEIMG.MODE` value and compare against a working device.
 4. Check DMST's own View / display preferences for the live-view toggle.
-5. Only if all else fails: factory reset with the .dcf as your restore point.
+5. Only if all else fails: factory reset with the .dmb as your restore point.
