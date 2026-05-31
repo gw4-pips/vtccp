@@ -66,3 +66,9 @@ id = "Jc4Ox6gnFqJwYsMt4B_a9"
 uri = "file://references/samples/live-scans/qr_guid_v129_inject.jpg"
 type = "image"
 title = "QR GUID Grade A — v1.29 live scan JPEG (IMAGE.LOAD inject)"
+
+[[outputs]]
+id = "G-YIgAw_Y3QV2D9Rgxjsh"
+uri = "file://artifacts/script-viewer/public/vtccp-fix.zip"
+type = "unspecified"
+title = "DataManSdkClient.cs (image fix)"
