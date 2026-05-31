@@ -133,8 +133,18 @@ foreach ($cmd in $restoreBlock) {
     Write-Host "    $cmd  -->  $ack"
 }
 
+# Explicitly stamp the factory DATA.RESULT values now, before the .dmb can
+# overwrite them. Phase 4 will do this again after the .dmb load -- this is
+# the safety net in case something goes wrong between here and Phase 4.
+$x1 = Send-Dmcc $conn "SET DATA.RESULT-TYPE $factTypeVal"        600
+$x2 = Send-Dmcc $conn "SET DATA.RESULT-ALWAYSSEND $factAlwaysVal" 600
+Write-Host "  SET DATA.RESULT-TYPE $factTypeVal       --> $x1"
+Write-Host "  SET DATA.RESULT-ALWAYSSEND $factAlwaysVal --> $x2"
+
 Send-Dmcc $conn "CONFIG.SAVE" 2000 | Out-Null
-Write-Host "  DMCC restore block saved." -ForegroundColor Green
+Write-Host "  Phase 2 complete and saved." -ForegroundColor Green
+Write-Host "  NOTE: the .dmb load in Phase 3 will overwrite DATA.RESULT-TYPE" -ForegroundColor DarkGray
+Write-Host "        and DATA.RESULT-ALWAYSSEND back to 513. Phase 4 fixes that." -ForegroundColor DarkGray
 Close-Device $conn
 
 # =============================================================================
