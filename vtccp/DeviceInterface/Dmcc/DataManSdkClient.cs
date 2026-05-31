@@ -83,6 +83,21 @@ public sealed class DataManSdkClient : IAsyncDisposable
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-SDK] Connected to {_cfg.Host}.  FW={_system.FirmwareVersion}");
         }, ct);
+
+        // Post-connect restore: undo the DATA.IMAGE-TYPE / COM.DMCC-* damage the SDK just
+        // inflicted during _system.Connect() above.  The SDK's Connect() writes its own
+        // communication params (including DATA.IMAGE-TYPE, which suppresses image delivery)
+        // and persists them via an internal COM.DMCC-SAVE.  Those values cause DMST's TC
+        // panel image to disappear after every scan for the duration of the VTCCP session.
+        //
+        // This restore runs AFTER Connect() so it overwrites the SDK's bad NVRAM values
+        // with firmware defaults before any scan can occur.  Safe because VTCCP uses
+        // HttpEventSubscriber for all result delivery — not the SDK's result channel —
+        // so the SDK never needs its custom DATA.IMAGE-TYPE value to be active.
+        //
+        // Pre-connect restore (above) still runs to repair damage from the previous
+        // VTCCP session in case post-disconnect restore was skipped (e.g. crash).
+        await SendDmccRestoreAsync(label: "post-connect");
     }
 
     public async Task DisconnectAsync()

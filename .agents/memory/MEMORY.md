@@ -7,4 +7,5 @@
 - [VTCCP Working Rules](vtccp-working-rules.md) — DO NOT BUILD WITHOUT ASKING; assume less / prove more; one variable at a time
 - [Trigger Reset & DMST Recovery Plan](trigger-reset-plan.md) — restore TRIGGER.TYPE to live-feed mode on exit; restore point commit f474fa7; Manual vs Push cleanup paths differ
 - [DMST blank image — COM.DMCC-SAVE required](dmcc-save-required.md) — COM.DMCC-RESET alone is insufficient; must follow with COM.DMCC-SAVE to persist defaults to NVRAM
+- [DMST TC panel image blank — root cause and fix](dmst-image-blank-root-cause.md) — SDK Connect() corrupts DATA.IMAGE-TYPE in NVRAM; fix is post-connect SendDmccRestoreAsync in DataManSdkClient
 - [OCR-1 wiring](ocr-wiring.md) — OCR runs in AcceptRecordInnerAsync; _ocrEnabled defaults true; UI toggle is a TODO; tessdata bundled in project
