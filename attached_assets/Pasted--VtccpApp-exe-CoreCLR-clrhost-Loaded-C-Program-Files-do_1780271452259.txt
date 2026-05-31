@@ -1,0 +1,16 @@
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Net.Sockets.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] Subscribed to 10.10.10.7:44444/events. Receive loop starting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Encoding.CodePages.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.FileExtensions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Json.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Physical.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.IO.RecyclableMemoryStream.dll'. 
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Drawing.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'F:\Users\GW4\github\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\EPPlus.Interfaces.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Security.Cryptography.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.StackTrace.dll'. Symbol loading disabled by Include/Exclude setting.
