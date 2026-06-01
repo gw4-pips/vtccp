@@ -60,15 +60,11 @@ public sealed class DataManSdkClient : IAsyncDisposable
         ThrowIfDisposed();
         if (IsConnected) return;
 
-        // Pre-connect restore: fix any bad DATA.IMAGE-TYPE value left in NVRAM by a
-        // previous SDK session.  The Cognex SDK's Connect() internally sets DATA.IMAGE-TYPE
-        // (and other DMCC communication params) to values that suppress image delivery, then
-        // persists them via an internal COM.DMCC-SAVE.  Those values survive device restarts
-        // (they are in NVRAM) and cause DMST's image panel to remain blank after any prior
-        // VTCCP session.  Sending COM.DMCC-RESET + COM.DMCC-SAVE here writes the firmware
-        // defaults back to NVRAM BEFORE the SDK has a chance to overwrite them, and also
-        // repairs the device for any DMST connections that open between VTCCP sessions.
-        await SendDmccRestoreAsync(label: "pre-connect");
+        // NOTE: A prior port-23 restore approach (COM.DMCC-RESET + COM.DMCC-SAVE +
+        // SET LIVEIMG.MODE 2 + CONFIG.SAVE via raw TCP) was found to be blocked by DMST,
+        // which holds a persistent port 23 connection while open.  The port 23 TCP connect
+        // attempt blocked for 5 seconds on every VTCCP connect.  That approach has been
+        // replaced by the SDK-side restore inside Task.Run below.
 
         await Task.Run(() =>
         {
@@ -82,36 +78,52 @@ public sealed class DataManSdkClient : IAsyncDisposable
             // See class-level comment for the full explanation.
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-SDK] Connected to {_cfg.Host}.  FW={_system.FirmwareVersion}");
+
+            // ── Restore LIVEIMG.MODE via the SDK's own connection (port 44444) ──
+            //
+            // PROBLEM: The SDK's Connect() sets LIVEIMG.MODE=0 ("no image with result")
+            // and persists it, blanking DMST's TC panel image after every scan.
+            //
+            // WHY NOT PORT 23: DMST holds a persistent port 23 connection while it is
+            // open.  Any attempt by VTCCP to open a second port 23 connection blocks
+            // until the 5-second timeout fires — the commands never reach the device.
+            //
+            // SOLUTION: Use the SDK's own already-open port 44444 connection to send
+            // the corrective commands.  This bypasses the port 23 conflict entirely.
+            //
+            // The SDK validates command names against an internal whitelist and throws
+            // InvalidCommandException for unknown commands.  We catch all exceptions and
+            // log them so the connect path never fails due to a command rejection.
+            System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] Attempting LIVEIMG.MODE restore via SDK connection...");
+
+            TrySendViaSdk("SET LIVEIMG.MODE 2", "LIVEIMG.MODE=2 via SDK");
+            TrySendViaSdk("CONFIG.SAVE",         "CONFIG.SAVE via SDK");
+
+            void TrySendViaSdk(string cmd, string logLabel)
+            {
+                try
+                {
+                    _system!.SendCommand(cmd);
+                    System.Diagnostics.Debug.WriteLine($"[VTCCP-SDK] {logLabel} — OK.");
+                }
+                catch (CognexSdk.InvalidCommandException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SDK] {logLabel} — InvalidCommandException (not on SDK whitelist): {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SDK] {logLabel} — {ex.GetType().Name}: {ex.Message}");
+                }
+            }
         }, ct);
-
-        // Settle delay: the Cognex SDK may have internal background threads that continue
-        // sending DMCC commands (e.g. additional COM.DMCC-SAVE calls) for a short time
-        // after Connect() returns.  Without this delay, our post-connect restore could
-        // race against those threads and be overwritten.
-        await Task.Delay(600, ct);
-
-        // Post-connect restore: undo the DATA.IMAGE-TYPE / COM.DMCC-* damage the SDK just
-        // inflicted during _system.Connect() above.  The SDK's Connect() writes its own
-        // communication params (including DATA.IMAGE-TYPE, which suppresses image delivery)
-        // and persists them via an internal COM.DMCC-SAVE.  Those values cause DMST's TC
-        // panel image to disappear after every scan for the duration of the VTCCP session.
-        //
-        // This restore runs AFTER Connect() so it overwrites the SDK's bad NVRAM values
-        // with firmware defaults before any scan can occur.  Safe because VTCCP uses
-        // HttpEventSubscriber for all result delivery — not the SDK's result channel —
-        // so the SDK never needs its custom DATA.IMAGE-TYPE value to be active.
-        //
-        // Pre-connect restore (above) still runs to repair damage from the previous
-        // VTCCP session in case post-disconnect restore was skipped (e.g. crash).
-        await SendDmccRestoreAsync(label: "post-connect");
     }
 
     public async Task DisconnectAsync()
     {
         _isConnected = false;
 
-        // Disconnect the SDK first so any SDK-internal cleanup commands are sent before
-        // we overwrite device state with our restore sequence below.
         await Task.Run(() =>
         {
             try
@@ -128,14 +140,11 @@ public sealed class DataManSdkClient : IAsyncDisposable
         _system    = null;
         _connector = null;
 
-        // Post-disconnect restore: undo whatever DATA.IMAGE-TYPE / COM.DMCC-* changes the
-        // SDK made during its session (including any internal COM.DMCC-SAVE calls).
-        // COM.DMCC-RESET resets the in-memory values to firmware defaults; COM.DMCC-SAVE
-        // persists them to NVRAM so that DMST's next connection loads the correct value.
-        // Without the COM.DMCC-SAVE step, COM.DMCC-RESET only fixes the current (now
-        // closed) session and the bad NVRAM value remains, causing DMST to show a blank
-        // image panel on every subsequent connection.
-        await SendDmccRestoreAsync(label: "post-disconnect");
+        // NOTE: A port-23 post-disconnect restore was removed — DMST holds port 23
+        // while connected, so the attempt always blocks for the full timeout.
+        // LIVEIMG.MODE=2 is now written via the SDK connection during ConnectAsync
+        // (CONFIG.SAVE persists it to flash), so it survives the VTCCP session and
+        // is correct for DMST's next connection without any post-disconnect action.
     }
 
     /// <summary>

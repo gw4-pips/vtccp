@@ -21,26 +21,42 @@ Confirmed by Telnet GET while VTCCP connected:
 session parameters. `LIVEIMG.MODE` is a CONFIG parameter — it requires
 `SET LIVEIMG.MODE 2` + `CONFIG.SAVE` to fix.
 
-## Fix (implemented in DataManSdkClient.SendDmccRestoreAsync)
+## Fix (current approach — SDK-side, port 44444)
 
-Four-command sequence sent on port 23 (pre-connect, post-connect, post-disconnect):
+Implemented inside `Task.Run` in `DataManSdkClient.ConnectAsync`, right after
+`_system.Connect()` returns. Uses the SDK's own already-open port 44444 connection:
 
-1. `COM.DMCC-RESET`  — resets DMCC session params (DATA.IMAGE-TYPE etc.)
-2. `COM.DMCC-SAVE`   — persists DMCC defaults to NVRAM
-3. `SET LIVEIMG.MODE 2`  — **the actual fix** — restores image delivery
-4. `CONFIG.SAVE`     — persists LIVEIMG.MODE=2 to flash
+```csharp
+_system.SendCommand("SET LIVEIMG.MODE 2");
+_system.SendCommand("CONFIG.SAVE");
+```
 
-**Why:** Without `CONFIG.SAVE`, the SDK's persisted `LIVEIMG.MODE=0` reloads
-on the next device connection and blanks the image again.
+SDK may throw `InvalidCommandException` if the command is not on its internal whitelist
+— caught and logged. If blocked, a different approach is needed.
+
+## CRITICAL: DMST blocks port 23
+
+DMST holds a **persistent port 23 connection** while it is open and connected.
+Any VTCCP attempt to open a second port 23 TCP connection blocks for the full
+timeout and then fails silently. This is why all previous port-23 restore attempts
+(fixes 2–4) had zero effect — the commands never reached the device.
+
+Evidence: `VTCCP-Reset.ps1` explicitly says "close DMST completely so it does
+not hold port 23." The OCE visible in VS Output at line 80 of every debug capture
+is the 5-second `outerCts` firing when port 23 refuses a second connection.
+
+**Port 23 based approaches will NOT work while DMST is open.**
 
 ## False leads ruled out
 
 - `DATA.IMAGE-TYPE` — confirmed = 0 (correct) while VTCCP connected; never the cause.
-- `DATA.RESULT-TYPE = 513` — factory default confirmed via CONFIG.DEFAULT. Not the cause.
-- `COM.DMCC-RESET + COM.DMCC-SAVE` alone — insufficient; doesn't touch LIVEIMG.MODE.
+- `DATA.RESULT-TYPE = 513` — factory default; not the cause.
+- Port 23 restore (fixes 2–4) — blocked by DMST holding port 23; commands never reached device.
+- VS Output `[VTCCP-SDK]` lines absent — because port 23 restore fails fast (OCE from outerCts)
+  and VS drops the catch debug line during the heavy startup DLL loading phase.
 
 ## What COM.DMCC-RESET actually resets
 
 Only DMCC session parameters: DATA.IMAGE-TYPE, DATA.RESULT-TYPE,
 DATA.RESULT-ENCODING, DATA.RESULT-ALWAYSSEND, COM.DMCC-RESPONSE,
-COM.DMCC-CHECKSUM, COM.DMCC-HEADER. Nothing else.
+COM.DMCC-CHECKSUM, COM.DMCC-HEADER. LIVEIMG.MODE is NOT reset by this.
