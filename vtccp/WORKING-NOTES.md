@@ -6,20 +6,31 @@
 
 ---
 
-## Active investigation: Image missing from TC/DMST screen post-verification
+## RESOLVED: Image missing from TC/DMST screen post-verification
 
-**Status**: PROBE WRITTEN — awaiting device results.
+**Status**: ROOT CAUSE CONFIRMED 2026-05-31 — fix deployed in DataManSdkClient.cs.
 
 **Symptom**: After a verification scan, the DMST TC screen and DMST verification panel
 show no barcode image. HTML report still contains the image. Push XML `JpegImageBase64`
 also confirmed populated (v1.36 scan #16). This is a result-channel delivery failure,
 not a capture failure.
 
-**Root-cause candidate (documented in DmccCommand.cs)**: The Cognex SDK's
-`SetResultTypes()` internally calls `COM.DMCC-SAVE`, which **persists** `DATA.IMAGE-TYPE`
-to a value that strips images from the result-delivery channel. This condition survives
-disconnect and power-cycle. It is only cleared by `COM.DMCC-RESET` (or physical reboot).
-`LIVEIMG.MODE` corruption is a secondary candidate.
+**Confirmed root cause**: `LIVEIMG.MODE = 0` while VTCCP is connected.
+The Cognex SDK's `Connect()` sets `LIVEIMG.MODE` to `0` ("no image with result")
+and persists it. `LIVEIMG.MODE = 2` means "send image with each result."
+`COM.DMCC-RESET` does NOT restore this — it is a CONFIG parameter, not a DMCC
+session parameter. `DATA.IMAGE-TYPE` was confirmed correct (= 0) and was never the cause.
+
+**Fix**: `SendDmccRestoreAsync` now sends four commands on port 23 after every
+connect and on disconnect:
+1. `COM.DMCC-RESET` — clears SDK-corrupted DMCC session params
+2. `COM.DMCC-SAVE` — persists them to NVRAM
+3. `SET LIVEIMG.MODE 2` — restores image delivery ← the actual fix
+4. `CONFIG.SAVE` — persists LIVEIMG.MODE to flash
+
+**False leads ruled out**:
+- `DATA.IMAGE-TYPE` — confirmed = 0 (correct) while VTCCP connected; never the cause
+- `DATA.RESULT-TYPE = 513` — factory default; not the cause
 
 ---
 

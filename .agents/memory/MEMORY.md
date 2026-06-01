@@ -6,6 +6,5 @@
 - [DMCC raw TCP wire protocol](dmcc-wire-protocol.md) — port 23 (not 44444) for raw DMCC text; TRIGGER ON works at TRIGGER.TYPE=0; ACK format is ||:::2[0]\r\n on port-23 connections
 - [VTCCP Working Rules](vtccp-working-rules.md) — DO NOT BUILD WITHOUT ASKING; assume less / prove more; one variable at a time
 - [Trigger Reset & DMST Recovery Plan](trigger-reset-plan.md) — restore TRIGGER.TYPE to live-feed mode on exit; restore point commit f474fa7; Manual vs Push cleanup paths differ
-- [DMST blank image — COM.DMCC-SAVE required](dmcc-save-required.md) — COM.DMCC-RESET alone is insufficient; must follow with COM.DMCC-SAVE to persist defaults to NVRAM
-- [DMST TC panel image blank — root cause and fix](dmst-image-blank-root-cause.md) — SDK Connect() corrupts DATA.IMAGE-TYPE in NVRAM; fix is post-connect SendDmccRestoreAsync in DataManSdkClient
+- [DMST TC panel image blank — confirmed root cause](dmst-image-blank-root-cause.md) — LIVEIMG.MODE=0 (not DATA.IMAGE-TYPE) is the actual SDK damage; fix is SET LIVEIMG.MODE 2 + CONFIG.SAVE in restore sequence
 - [OCR-1 wiring](ocr-wiring.md) — OCR runs in AcceptRecordInnerAsync; _ocrEnabled defaults true; UI toggle is a TODO; tessdata bundled in project

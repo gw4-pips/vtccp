@@ -78,3 +78,9 @@ id = "zbTxh-6vBvD8WMIGCAydS"
 uri = "file://artifacts/script-viewer/public/Get-DmSettings.zip"
 type = "unspecified"
 title = "Get-DmSettings.ps1 (settings dump script)"
+
+[[outputs]]
+id = "oXdSUdAY0DX3eVSaZ8qeR"
+uri = "file://artifacts/script-viewer/public/vtccp-fix2.zip"
+type = "unspecified"
+title = "DataManSdkClient.cs — LIVEIMG.MODE fix"

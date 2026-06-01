@@ -1,43 +1,46 @@
 ---
-name: DMST TC panel image blank — root cause and fix
+name: DMST TC panel image blank — confirmed root cause and fix
 description: Why DMST's TC panel image disappears post-scan when VTCCP is connected, and the confirmed fix.
 ---
 
-## Root cause
+## Root cause — CONFIRMED 2026-05-31
 
-The Cognex DataMan SDK's `Connect()` internally writes `DATA.IMAGE-TYPE` (and other
-communication params) to values that suppress image delivery from the device's result
-channel, then persists them via an internal `COM.DMCC-SAVE`. Those NVRAM values
-survive for the duration of the VTCCP session and cause every post-scan result
-delivered to DMST to arrive without image data — blanking the TC panel.
+**`LIVEIMG.MODE = 0`** is the actual root cause. Not `DATA.IMAGE-TYPE`.
 
-Key confirmed facts:
-- `DATA.RESULT-TYPE=513` and `DATA.RESULT-ALWAYSSEND=513` are FACTORY DEFAULTS
-  (confirmed via CONFIG.DEFAULT + GET). They are NOT the cause.
-- `DATA.IMAGE-TYPE` is the key the SDK corrupts. Its factory default is unknown
-  but COM.DMCC-RESET restores it correctly.
-- The problem is ONLY present when VTCCP is connected. DMST alone: always fine.
-- The live camera feed before a scan is unaffected (LIVEIMG is separate).
-  Only the post-scan result image in the TC panel disappears.
+The Cognex DataMan SDK's `Connect()` sets `LIVEIMG.MODE` to `0`
+("no image with result") and persists it via its internal config-save mechanism.
+`LIVEIMG.MODE = 2` means "send image with each result" — the correct value for
+DMST's TC panel to display the post-scan barcode image.
 
-## Fix (implemented in DataManSdkClient.ConnectAsync)
+Confirmed by Telnet GET while VTCCP connected:
+- `GET LIVEIMG.MODE` → `0`  (wrong — should be 2)
+- `GET DATA.IMAGE-TYPE` → `0`  (correct — was never the cause)
+- `GET DATA.RESULT-TYPE` → `513`  (factory default — never the cause)
 
-`SendDmccRestoreAsync` (COM.DMCC-RESET + COM.DMCC-SAVE) already existed but was
-called only PRE-connect — immediately overwritten by the SDK's own Connect().
+`COM.DMCC-RESET` does NOT restore `LIVEIMG.MODE`. It only resets DMCC
+session parameters. `LIVEIMG.MODE` is a CONFIG parameter — it requires
+`SET LIVEIMG.MODE 2` + `CONFIG.SAVE` to fix.
 
-Fix: added a POST-connect call to `SendDmccRestoreAsync` that runs AFTER
-`_system.Connect()` completes, undoing the SDK's NVRAM damage before any scan.
-Safe because VTCCP uses HttpEventSubscriber for results, not the SDK result channel.
+## Fix (implemented in DataManSdkClient.SendDmccRestoreAsync)
 
-Three-phase restore sequence in DataManSdkClient:
-  pre-connect  restore  →  _system.Connect()  →  post-connect restore
+Four-command sequence sent on port 23 (pre-connect, post-connect, post-disconnect):
 
-**Why:** pre-connect cleans up damage from the previous VTCCP session (crash recovery).
-Post-connect cleans up damage from the current SDK Connect() call.
+1. `COM.DMCC-RESET`  — resets DMCC session params (DATA.IMAGE-TYPE etc.)
+2. `COM.DMCC-SAVE`   — persists DMCC defaults to NVRAM
+3. `SET LIVEIMG.MODE 2`  — **the actual fix** — restores image delivery
+4. `CONFIG.SAVE`     — persists LIVEIMG.MODE=2 to flash
 
-## What NOT to do
+**Why:** Without `CONFIG.SAVE`, the SDK's persisted `LIVEIMG.MODE=0` reloads
+on the next device connection and blanks the image again.
 
-- Do NOT call CONFIG.DEFAULT to fix this — DATA.RESULT-TYPE=513 is factory default.
-- Do NOT set DATA.RESULT-TYPE or DATA.RESULT-ALWAYSSEND — they are already correct.
-- COM.DMCC-RESET alone (without COM.DMCC-SAVE) only fixes the current session;
-  bad NVRAM value survives and DMST reloads it on next connection.
+## False leads ruled out
+
+- `DATA.IMAGE-TYPE` — confirmed = 0 (correct) while VTCCP connected; never the cause.
+- `DATA.RESULT-TYPE = 513` — factory default confirmed via CONFIG.DEFAULT. Not the cause.
+- `COM.DMCC-RESET + COM.DMCC-SAVE` alone — insufficient; doesn't touch LIVEIMG.MODE.
+
+## What COM.DMCC-RESET actually resets
+
+Only DMCC session parameters: DATA.IMAGE-TYPE, DATA.RESULT-TYPE,
+DATA.RESULT-ENCODING, DATA.RESULT-ALWAYSSEND, COM.DMCC-RESPONSE,
+COM.DMCC-CHECKSUM, COM.DMCC-HEADER. Nothing else.
