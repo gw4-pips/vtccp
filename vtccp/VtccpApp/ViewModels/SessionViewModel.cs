@@ -689,10 +689,22 @@ public sealed class SessionViewModel : ViewModelBase
         {
             try
             {
-                byte[]    jpegBytes = Convert.FromBase64String(b64);
+                byte[] jpegBytes = Convert.FromBase64String(b64);
+
+                // UPC-A and EAN-13/EAN-8 are the canonical L1 OCR use cases:
+                // the HRI digits are part of the barcode symbol and visible in
+                // the barcode crop JPEG.  Pass the hint so DualEngineOcrRunner
+                // applies BarcodeHriParser pattern extraction to both engines.
+                bool isUpcEan = record.Symbology is { } sym &&
+                    (sym.StartsWith("UPC", StringComparison.OrdinalIgnoreCase) ||
+                     sym.StartsWith("EAN", StringComparison.OrdinalIgnoreCase));
+                HriSymbologyHint hint = isUpcEan
+                    ? HriSymbologyHint.UpcEan
+                    : HriSymbologyHint.None;
+
                 OcrResult ocrResult = await _ocrRunner.RunAsync(
-                    jpegBytes, OcrImageSource.BarcodeCrop);
-                record = record with { OcrResult = ToOcrDto(ocrResult) };
+                    jpegBytes, OcrImageSource.BarcodeCrop, hint);
+                record = record with { OcrResult = ToOcrDto(ocrResult, record.DecodedData) };
             }
             catch { /* OCR failure must never block record acceptance */ }
         }
@@ -724,8 +736,21 @@ public sealed class SessionViewModel : ViewModelBase
             StatusMessage = $"⚠ Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}  [file open in Excel — close Excel before ending session]";
     }
 
-    private static ExcelEngine.Models.OcrResultDto ToOcrDto(OcrResult r) =>
-        new()
+    private static ExcelEngine.Models.OcrResultDto ToOcrDto(OcrResult r, string? encodedData)
+    {
+        // Compute OCR-vs-encoded-data match for UPC/EAN records.
+        // Both sides are stripped to digits only so spaces, dashes, and the EAN
+        // right-margin '>' do not cause false mismatches.
+        string? match = null;
+        if (r.ParsedDigits is { Length: > 0 } ocrDigits && encodedData is { Length: > 0 })
+        {
+            string encDigits = BarcodeHriParser.ExtractDigits(encodedData);
+            if (encDigits.Length > 0)
+                match = string.Equals(ocrDigits, encDigits, StringComparison.Ordinal)
+                    ? "MATCH" : "MISMATCH";
+        }
+
+        return new ExcelEngine.Models.OcrResultDto
         {
             AgreedText          = r.AgreedText,
             Tier                = r.Tier.ToString(),
@@ -734,8 +759,9 @@ public sealed class SessionViewModel : ViewModelBase
             TesseractText       = r.TesseractText,
             TesseractConfidence = r.TesseractConfidence,
             EditDistance        = r.EditDistance,
-            ImageSource         = r.ImageSource.ToString(),
+            EncodedDataMatch    = match,
         };
+    }
 
     // ── UPC/EAN Supplemental read / write ─────────────────────────────────────
 

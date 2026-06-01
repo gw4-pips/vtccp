@@ -213,7 +213,7 @@ public static class DataMatrix2DMapper
         d["OcrTier"]    = r.OcrResult?.Tier;
         d["OcrWinText"] = r.OcrResult?.WindowsText;
         d["OcrTessText"]= r.OcrResult?.TesseractText;
-        d["OcrSource"]  = r.OcrResult?.ImageSource;
+        d["OcrMatch"]   = r.OcrResult?.EncodedDataMatch;
 
         return d;
     }

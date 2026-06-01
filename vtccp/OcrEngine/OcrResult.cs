@@ -13,10 +13,11 @@ public sealed record OcrResult
     /// Agreed text to report in the Excel row and on the D1 verification report.
     ///
     /// Derivation:
-    ///   HIGH / MEDIUM  → Windows engine text (primary; higher accuracy on clean label stock)
-    ///   LOW            → Windows engine text with a flag that both readings are included
-    ///   SINGLE         → text from whichever engine succeeded
-    ///   UNREADABLE     → null
+    ///   UPC/EAN + parseable output → canonical digit string (spaces and '>' stripped)
+    ///   HIGH / MEDIUM             → Windows engine text (primary)
+    ///   LOW                       → Windows engine text (flagged by tier)
+    ///   SINGLE                    → text from whichever engine succeeded
+    ///   UNREADABLE                → null
     /// </summary>
     public string? AgreedText { get; init; }
 
@@ -47,7 +48,8 @@ public sealed record OcrResult
     public double? TesseractConfidence { get; init; }
 
     /// <summary>
-    /// Character-level edit distance between the two engine outputs.
+    /// Character-level edit distance between the two engine primary outputs.
+    /// For UPC/EAN this is computed on the digit-extracted strings, not raw text.
     /// Null when fewer than two engines produced a result.
     /// </summary>
     public int? EditDistance { get; init; }
@@ -56,6 +58,19 @@ public sealed record OcrResult
     /// Which image level the OCR was applied to.
     /// </summary>
     public OcrImageSource ImageSource { get; init; }
+
+    /// <summary>
+    /// Digit-only string extracted from the OCR output by <see cref="BarcodeHriParser"/>.
+    /// Populated only for UPC-A (12 digits), EAN-13 (13 digits), and EAN-8 (8 digits) scans.
+    /// Null for all other symbologies or when the OCR output contained fewer than 6 digits.
+    /// </summary>
+    public string? ParsedDigits { get; init; }
+
+    /// <summary>
+    /// True when the GS1 modulo-10 check digit of <see cref="ParsedDigits"/> is valid.
+    /// Null when <see cref="ParsedDigits"/> is null or the digit count is unrecognised.
+    /// </summary>
+    public bool? CheckDigitValid { get; init; }
 }
 
 /// <summary>

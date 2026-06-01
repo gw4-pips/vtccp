@@ -251,7 +251,7 @@ public static class TruCheckCompatibleSchema
         cols.Add(Col("OcrTier",    "OCR Tier",    8, SymbologyGroup.Universal));
         cols.Add(Col("OcrWinText", "OCR Win",    30, SymbologyGroup.Universal));
         cols.Add(Col("OcrTessText","OCR Tess",   30, SymbologyGroup.Universal));
-        cols.Add(Col("OcrSource",  "OCR Source", 12, SymbologyGroup.Universal));
+        cols.Add(Col("OcrMatch",   "OCR Match",  10, SymbologyGroup.Universal));
 
         return cols;
     }

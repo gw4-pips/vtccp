@@ -14,7 +14,9 @@ public sealed record OcrResultDto
 {
     /// <summary>
     /// Text to report in the Excel row.
-    /// Derived from the higher-confidence engine; null when both engines fail.
+    /// For UPC/EAN: canonical digit string (spaces and '>' stripped).
+    /// For other symbologies: normalised raw OCR text from the higher-confidence engine.
+    /// Null when both engines fail (Unreadable tier).
     /// </summary>
     public string? AgreedText { get; init; }
 
@@ -24,7 +26,7 @@ public sealed record OcrResultDto
     public string? Tier { get; init; }
 
     /// <summary>
-    /// Raw text from the Windows.Media.Ocr engine.  Null if engine was not run or failed.
+    /// Raw text returned by the Windows.Media.Ocr engine.  Null if engine was not run or failed.
     /// </summary>
     public string? WindowsText { get; init; }
 
@@ -34,7 +36,7 @@ public sealed record OcrResultDto
     public double? WindowsConfidence { get; init; }
 
     /// <summary>
-    /// Raw text from the Tesseract engine.  Null if engine was not run or failed.
+    /// Raw text returned by the Tesseract engine.  Null if engine was not run or failed.
     /// </summary>
     public string? TesseractText { get; init; }
 
@@ -44,13 +46,16 @@ public sealed record OcrResultDto
     public double? TesseractConfidence { get; init; }
 
     /// <summary>
-    /// Levenshtein edit distance between the two engine outputs.
+    /// Levenshtein edit distance between the two engine primary outputs.
+    /// For UPC/EAN this is computed on the extracted digit strings.
     /// Null when fewer than two engines succeeded.
     /// </summary>
     public int? EditDistance { get; init; }
 
     /// <summary>
-    /// Image level the OCR was applied to: "BarcodeCrop", "RoiFrame", or "FullSensorFrame".
+    /// "MATCH" when the OCR-extracted digits (spaces and '>' stripped) equal the
+    /// encoded barcode data digit-for-digit.  "MISMATCH" when they differ.
+    /// Null for non-UPC/EAN symbologies, or when OCR produced no usable digit string.
     /// </summary>
-    public string? ImageSource { get; init; }
+    public string? EncodedDataMatch { get; init; }
 }
