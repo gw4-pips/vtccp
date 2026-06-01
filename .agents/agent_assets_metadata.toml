@@ -72,3 +72,9 @@ id = "G-YIgAw_Y3QV2D9Rgxjsh"
 uri = "file://artifacts/script-viewer/public/vtccp-fix.zip"
 type = "unspecified"
 title = "DataManSdkClient.cs (image fix)"
+
+[[outputs]]
+id = "zbTxh-6vBvD8WMIGCAydS"
+uri = "file://artifacts/script-viewer/public/Get-DmSettings.zip"
+type = "unspecified"
+title = "Get-DmSettings.ps1 (settings dump script)"
