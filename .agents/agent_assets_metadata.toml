@@ -102,3 +102,9 @@ id = "gxD5UtVCKfZ-Gkj-lLBgf"
 uri = "file://artifacts/script-viewer/public/vtccp-fix5.zip"
 type = "unspecified"
 title = "vtccp-fix5.zip — DataManSdkClient.cs (SDK-side restore, bypasses port 23)"
+
+[[outputs]]
+id = "DFGiZnFHoGKCj0-YR-4a3"
+uri = "file://artifacts/script-viewer/public/vtccp-handoff.zip"
+type = "unspecified"
+title = "vtccp-handoff.zip — Problem analysis + all source files"
