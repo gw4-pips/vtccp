@@ -90,3 +90,9 @@ id = "dDOp6uZLlbq6QseovJexN"
 uri = "file://artifacts/script-viewer/public/vtccp-fix3.zip"
 type = "unspecified"
 title = "vtccp-fix3.zip — DataManSdkClient.cs (banner drain fix)"
+
+[[outputs]]
+id = "IvKDqkn2WOsWO5tEU7P9X"
+uri = "file://artifacts/script-viewer/public/vtccp-fix4.zip"
+type = "unspecified"
+title = "vtccp-fix4.zip — DataManSdkClient.cs (full diagnostics)"
