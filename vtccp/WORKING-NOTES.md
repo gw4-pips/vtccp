@@ -8,29 +8,44 @@
 
 ## RESOLVED: Image missing from TC/DMST screen post-verification
 
-**Status**: ROOT CAUSE CONFIRMED 2026-05-31 — fix deployed in DataManSdkClient.cs.
+**Status**: FULLY RESOLVED 2026-05-31 — `CONFIG.DEFAULT + CONFIG.SAVE + REBOOT` on the device.
+No code change needed; `DataManSdkClient.cs` no longer touches LIVEIMG.MODE.
 
 **Symptom**: After a verification scan, the DMST TC screen and DMST verification panel
 show no barcode image. HTML report still contains the image. Push XML `JpegImageBase64`
-also confirmed populated (v1.36 scan #16). This is a result-channel delivery failure,
-not a capture failure.
+also confirmed populated. This is a result-channel delivery failure, not a capture failure.
 
-**Confirmed root cause**: `LIVEIMG.MODE = 0` while VTCCP is connected.
-The Cognex SDK's `Connect()` sets `LIVEIMG.MODE` to `0` ("no image with result")
-and persists it. `LIVEIMG.MODE = 2` means "send image with each result."
-`COM.DMCC-RESET` does NOT restore this — it is a CONFIG parameter, not a DMCC
-session parameter. `DATA.IMAGE-TYPE` was confirmed correct (= 0) and was never the cause.
+**Confirmed root cause** (2026-05-31): One or more NVRAM parameters were corrupted by an
+earlier VTCCP session that called the SDK's own `COM.DMCC-SAVE` mechanism (via
+`SetResultTypes()` before that call was removed). `CONFIG.DEFAULT` resets all config
+parameters to firmware factory defaults; `CONFIG.SAVE` persists them; `REBOOT` applies them.
+The exact corrupted parameter was not identified — the fix is a full config reset.
 
-**Fix**: `SendDmccRestoreAsync` now sends four commands on port 23 after every
-connect and on disconnect:
-1. `COM.DMCC-RESET` — clears SDK-corrupted DMCC session params
-2. `COM.DMCC-SAVE` — persists them to NVRAM
-3. `SET LIVEIMG.MODE 2` — restores image delivery ← the actual fix
-4. `CONFIG.SAVE` — persists LIVEIMG.MODE to flash
+**CRITICAL — correct known-good state** (confirmed from DM-KnownGood-Snapshot_2026-05-31):
+- `LIVEIMG.MODE = 0` ← this is CORRECT; it is NOT 2
+- `DATA.IMAGE-TYPE = 0` ← correct
+- `DATA.RESULT-TYPE = 513` ← factory default for DM475V
+- `TRIGGER.TYPE = 0` ← external single trigger
+- `IMAGE.SIZE = 1`
 
-**False leads ruled out**:
-- `DATA.IMAGE-TYPE` — confirmed = 0 (correct) while VTCCP connected; never the cause
-- `DATA.RESULT-TYPE = 513` — factory default; not the cause
+**All prior LIVEIMG.MODE theories were wrong.**  
+The SDK's `Connect()` does NOT set LIVEIMG.MODE to any value that causes image loss.
+The root cause was a different NVRAM parameter written by a prior `COM.DMCC-SAVE`.
+`LIVEIMG.MODE = 0` with the TC panel image working has been device-confirmed.
+
+**False leads definitively ruled out**:
+- LIVEIMG.MODE — value is 0 in known-good state; setting it to 2 achieves nothing
+- `DATA.IMAGE-TYPE` — confirmed = 0 (correct) in known-good state; never the cause
+- SDK `Connect()` setting LIVEIMG.MODE — CONFIRMED FALSE; no such effect observed on fw 6.1.16_sr4
+- Port 23 blocked by DMST — CONFIRMED FALSE; VTCCP trigger on port 23 works while DMST is open;
+  both can use port 23 simultaneously
+
+**Recovery procedure** (if image disappears again):
+1. Open Telnet/DMCC to device port 23
+2. `CONFIG.DEFAULT` — resets all config to factory
+3. `CONFIG.SAVE` — persists to NVRAM
+4. `REBOOT` — applies the reset
+5. After reboot: restore any custom config (TRIGGER.TYPE, aperture, lighting, etc.)
 
 ---
 
@@ -48,34 +63,20 @@ GET IMAGE.FORMAT
 GET IMAGE.SIZE
 ```
 
-**Expected values (known-good state):**
+**Expected values (known-good state — confirmed 2026-05-31):**
 
 | Command | Expected | Notes |
 |---|---|---|
-| `GET LIVEIMG.MODE` | `2` | Send image with each result. Any other value → no image in TC panel. |
-| `GET DATA.IMAGE-TYPE` | `0` (or firmware default) | If non-zero, SDK has persisted an image-strip value via COM.DMCC-SAVE. |
-| `GET DATA.RESULT-TYPE` | `0` | Default DMCC result type. |
+| `GET LIVEIMG.MODE` | `0` | Correct known-good value; NOT 2. TC panel image works with LIVEIMG.MODE=0. |
+| `GET DATA.IMAGE-TYPE` | `0` | Correct. If non-zero, SDK has persisted via COM.DMCC-SAVE. |
+| `GET DATA.RESULT-TYPE` | `513` | DM475V factory default; not 0. |
 | `GET DATA.RESULT-ENCODING` | `0` | Default encoding. |
 | `GET DATA.RESULT-ALWAYSSEND` | `1` | Results sent on every trigger. |
 | `GET IMAGE.FORMAT` | `1` | JPEG. |
-| `GET IMAGE.SIZE` | `0` | Full resolution. |
+| `GET IMAGE.SIZE` | `1` | Confirmed in known-good snapshot. |
 
-**If any value is wrong**, the corrective sequence (in order):
-
-```
-COM.DMCC-RESET
-SET LIVEIMG.MODE 2
-SET IMAGE.FORMAT 1
-SET IMAGE.SIZE 0
-CONFIG.SAVE
-```
-
-`COM.DMCC-RESET` resets all DMCC session settings (`DATA.IMAGE-TYPE`, `DATA.RESULT-TYPE`,
-`DATA.RESULT-ENCODING`, `DATA.RESULT-ALWAYSSEND`, `COM.DMCC-RESPONSE`, `COM.DMCC-CHECKSUM`,
-`COM.DMCC-HEADER`) back to firmware defaults in one command. Run it first; it likely clears
-the image-strip condition in a single step. Then verify LIVEIMG.MODE and IMAGE.* separately.
-
-`CONFIG.SAVE` persists the restored settings to flash so a power cycle doesn't revert them.
+**If image panel goes blank again**, use the CONFIG.DEFAULT recovery procedure above.
+Do NOT set LIVEIMG.MODE to 2 — this is not the fix.
 
 ---
 
@@ -98,29 +99,26 @@ steps must happen first.
 
 ### Excel live-view via COM automation (Method D)
 
-**Status**: PARKED — implement when user directs.
+**Status**: IMPLEMENTED — `ExcelEngine.Adapters.ComExcelAdapter` — 2026-06-01.
 
-Webscan TruCheck Excel uses Excel COM automation (`Microsoft.Office.Interop.Excel`)
-to push each row directly into the already-open workbook in memory. No file write,
-no lock contention, rows appear instantly as scans arrive — the Excel file stays open
-throughout the session.
+`ComExcelAdapter` uses late-bound COM (`dynamic` + `Marshal.GetActiveObject`) to write
+rows directly into a running Excel process holding the output XLSX.  No file I/O; no lock
+contention; rows appear in the spreadsheet immediately as scans arrive.
 
-VTCCP's current per-record `_writer.Save()` (EPPlus `SaveAs`) cannot update an
-XLSX that Excel has locked. The sidecar JSON always writes correctly; the XLSX only
-reflects new records after the session is closed (CloseSession finalises the file).
+**Behaviour at session start**:
+- `SessionManager.StartSession` calls `ComExcelAdapter.TryAttach(outputPath)`.
+- If Excel is running and has `outputPath` open: COM adapter selected → `[VTCCP-EXCEL] Adapter: COM (live Excel)` in debug output.
+- If Excel is not running, file not open, or OS is non-Windows: falls back to EPPlus → `[VTCCP-EXCEL] Adapter: EPPlus (file-based)`.
 
-**Implementation path when approved**:
-- Add `ExcelEngine.Adapters.ComExcelAdapter` implementing `IExcelAdapter`
-- Uses `Microsoft.Office.Interop.Excel` (COM, no NuGet — present on any machine with Excel installed)
-- On `AddRecord`: `_worksheet.Rows[nextRow].Value = rowData` — writes directly to
-  the live workbook object in the running Excel process; no SaveAs required
-- `Save()` on the COM adapter becomes a no-op (or `_workbook.Save()` at CloseSession)
-- Fallback: if Excel is not running / COM binding fails, fall back to current EPPlus path
-- VtccpApp.csproj: add `<COMReference>` for `Microsoft.Office.Interop.Excel` or use
-  dynamic binding to avoid a hard compile-time dependency on the interop assembly
+**Key design decisions**:
+- Late binding (`dynamic`) — no compile-time dependency on `Microsoft.Office.Interop.Excel`.
+- `[SupportedOSPlatform("windows")]` on the class; caller guards with `OperatingSystem.IsWindows()`.
+- `Save()` calls `_workbook.Save()` (Excel saves itself — no file lock issue).
+- `Dispose()` does NOT close the workbook — the operator keeps Excel open.
+- `WriteEmbeddedImage` / `WriteLogoImage`: write to temp file, `Shapes.AddPicture`, delete temp.
+- `ExcelFileManager.CheckFileLocked` at session start still fires for new sessions (file does not yet exist); no conflict.
 
-**Blocked by**: User approval + decision on whether to require Excel to be open at session
-start, or lazily bind on first record.
+**Fallback**: if COM attach fails for any reason (TryAttach returns null), EPPlus takes over transparently.  The `[VTCCP-EXCEL] Adapter:` log line confirms which path was selected.
 
 ---
 
@@ -137,9 +135,8 @@ current JS push script. Targeted at advanced application repair without needing 
 1. Open a brief raw TCP connection to port 23 (same path as Push-mode trigger)
 2. Issue DMCC SET commands to restore all required TruCheck settings to VCCS baseline:
    - `SET TRIGGER.TYPE 0` (external / single, VCCS baseline)
-   - `SET LIVEIMG.MODE 2` (image delivered with each result — required for TruCheck)
    - `SET IMAGE.FORMAT 1` (JPEG)
-   - `SET IMAGE.SIZE 0` (full resolution)
+   - `SET IMAGE.SIZE 1` (confirmed known-good value — do NOT set LIVEIMG.MODE; known-good = 0)
    - All grading standard, aperture, wavelength, lighting, application standard params
      (list TBD — requires TC config screenshots per the VCCS Command Pilot feature plan)
 3. Write the current production JS push script to the device via DMCC

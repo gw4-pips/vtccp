@@ -30,7 +30,7 @@ using CognexSdk = Cognex.DataMan.SDK;
 ///     an internal list BEFORE sending to the device. Commands not in that list
 ///     (e.g. "GET FIRMWARE.VER", "GET SYMBOL.RESULT", "COM.DMCC-RESET") throw
 ///     InvalidCommandException and never reach the wire. Any command that must
-///     bypass this gate must use a raw TCP connection instead (see SendDmccRestoreAsync).
+///     bypass this gate must use a raw TCP connection on port 23 directly.
 /// </summary>
 public sealed class DataManSdkClient : IAsyncDisposable
 {
@@ -60,12 +60,6 @@ public sealed class DataManSdkClient : IAsyncDisposable
         ThrowIfDisposed();
         if (IsConnected) return;
 
-        // NOTE: A prior port-23 restore approach (COM.DMCC-RESET + COM.DMCC-SAVE +
-        // SET LIVEIMG.MODE 2 + CONFIG.SAVE via raw TCP) was found to be blocked by DMST,
-        // which holds a persistent port 23 connection while open.  The port 23 TCP connect
-        // attempt blocked for 5 seconds on every VTCCP connect.  That approach has been
-        // replaced by the SDK-side restore inside Task.Run below.
-
         await Task.Run(() =>
         {
             var ip     = IPAddress.Parse(_cfg.Host);
@@ -78,45 +72,6 @@ public sealed class DataManSdkClient : IAsyncDisposable
             // See class-level comment for the full explanation.
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-SDK] Connected to {_cfg.Host}.  FW={_system.FirmwareVersion}");
-
-            // ── Restore LIVEIMG.MODE via the SDK's own connection (port 44444) ──
-            //
-            // PROBLEM: The SDK's Connect() sets LIVEIMG.MODE=0 ("no image with result")
-            // and persists it, blanking DMST's TC panel image after every scan.
-            //
-            // WHY NOT PORT 23: DMST holds a persistent port 23 connection while it is
-            // open.  Any attempt by VTCCP to open a second port 23 connection blocks
-            // until the 5-second timeout fires — the commands never reach the device.
-            //
-            // SOLUTION: Use the SDK's own already-open port 44444 connection to send
-            // the corrective commands.  This bypasses the port 23 conflict entirely.
-            //
-            // The SDK validates command names against an internal whitelist and throws
-            // InvalidCommandException for unknown commands.  We catch all exceptions and
-            // log them so the connect path never fails due to a command rejection.
-            System.Diagnostics.Debug.WriteLine("[VTCCP-SDK] Attempting LIVEIMG.MODE restore via SDK connection...");
-
-            TrySendViaSdk("SET LIVEIMG.MODE 2", "LIVEIMG.MODE=2 via SDK");
-            TrySendViaSdk("CONFIG.SAVE",         "CONFIG.SAVE via SDK");
-
-            void TrySendViaSdk(string cmd, string logLabel)
-            {
-                try
-                {
-                    _system!.SendCommand(cmd);
-                    System.Diagnostics.Debug.WriteLine($"[VTCCP-SDK] {logLabel} — OK.");
-                }
-                catch (CognexSdk.InvalidCommandException ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-SDK] {logLabel} — InvalidCommandException (not on SDK whitelist): {ex.Message}");
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-SDK] {logLabel} — {ex.GetType().Name}: {ex.Message}");
-                }
-            }
         }, ct);
     }
 
@@ -139,130 +94,6 @@ public sealed class DataManSdkClient : IAsyncDisposable
 
         _system    = null;
         _connector = null;
-
-        // NOTE: A port-23 post-disconnect restore was removed — DMST holds port 23
-        // while connected, so the attempt always blocks for the full timeout.
-        // LIVEIMG.MODE=2 is now written via the SDK connection during ConnectAsync
-        // (CONFIG.SAVE persists it to flash), so it survives the VTCCP session and
-        // is correct for DMST's next connection without any post-disconnect action.
-    }
-
-    /// <summary>
-    /// Sends <c>COM.DMCC-RESET</c> followed immediately by <c>COM.DMCC-SAVE</c> via a
-    /// transient raw TCP connection on port 23 (the raw DMCC Telnet interface).
-    ///
-    /// Why both commands are required:
-    ///   COM.DMCC-RESET  — resets DATA.IMAGE-TYPE, DATA.RESULT-TYPE, DATA.RESULT-ENCODING,
-    ///                     DATA.RESULT-ALWAYSSEND, COM.DMCC-RESPONSE, COM.DMCC-CHECKSUM,
-    ///                     COM.DMCC-HEADER to their firmware defaults for the current session.
-    ///   COM.DMCC-SAVE   — persists those defaults to NVRAM so every future TCP connection
-    ///                     (including DMST reconnects) loads the correct values.
-    ///
-    ///   Without COM.DMCC-SAVE the RESET only fixes the current (now-closed) session.
-    ///   The bad value the Cognex SDK wrote to NVRAM during its own Connect() call survives,
-    ///   and DMST loads it on the next connection → image panel stays blank.
-    ///
-    /// Why port 23 (not 44444):
-    ///   Port 44444 is the SDK / HTTP-event port.  Bare TCP connections sending
-    ///   <c>||&gt;COMMAND\r\n</c> on port 44444 are silently dropped — zero bytes returned,
-    ///   command never executed.  Port 23 is the Telnet/DMCC text interface; confirmed
-    ///   working on DM475V fw 6.1.16_sr4.
-    ///
-    /// Why raw TCP (not SDK SendCommand):
-    ///   The SDK validates command names against an internal whitelist.  COM.DMCC-RESET
-    ///   and COM.DMCC-SAVE are not on the list; calling them via the SDK throws
-    ///   InvalidCommandException before anything reaches the wire.
-    /// </summary>
-    private async Task SendDmccRestoreAsync(string label = "")
-    {
-        var tag = string.IsNullOrEmpty(label) ? "" : $" [{label}]";
-        try
-        {
-            using var tcp      = new TcpClient();
-            using var outerCts = new CancellationTokenSource(8_000);
-            await tcp.ConnectAsync(_cfg.Host, DmccCommand.RawDmccPort, outerCts.Token);
-            var stream = tcp.GetStream();
-
-            // Drain welcome banner using ReadTimeout, NOT a CancellationToken.
-            // A cancelled ReadAsync aborts the socket's IO completion port on Windows/.NET 8,
-            // causing every subsequent WriteAsync on the same stream to throw silently.
-            stream.ReadTimeout = 200;
-            try   { _ = stream.Read(new byte[64], 0, 64); }
-            catch { /* no banner on DM475V fw 6.1.16_sr4 — timeout is expected */ }
-            stream.ReadTimeout = System.Threading.Timeout.Infinite;
-
-            // Enable Extended response mode so the device ACKs every command.
-            // Default (Silent, mode 0) sends no ACK — we cannot tell if commands landed.
-            // Note: COM.DMCC-RESET will reset this back to silent, so we must re-enable
-            // after the reset if we want ACKs for subsequent commands.
-            byte[] extMode = Encoding.ASCII.GetBytes($"{DmccCommand.WireHeader}SET COM.DMCC-RESPONSE 2\r\n");
-            await stream.WriteAsync(extMode, outerCts.Token);
-            await Task.Delay(100);
-
-            // Helper: send a command and read + log its ACK response.
-            async Task<string> SendAndRead(string cmd, string logLabel)
-            {
-                byte[] b = Encoding.ASCII.GetBytes($"{DmccCommand.WireHeader}{cmd}\r\n");
-                await stream.WriteAsync(b, outerCts.Token);
-                await Task.Delay(150);
-
-                string ack = "";
-                stream.ReadTimeout = 600;
-                try
-                {
-                    byte[] buf = new byte[256];
-                    int n = stream.Read(buf, 0, buf.Length);
-                    ack = n > 0 ? Encoding.ASCII.GetString(buf, 0, n).Trim() : "(no ack)";
-                }
-                catch { ack = "(no ack)"; }
-                stream.ReadTimeout = System.Threading.Timeout.Infinite;
-
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SDK]{tag} {logLabel}  ack='{ack}'");
-                return ack;
-            }
-
-            // ── Diagnostic: read LIVEIMG.MODE before any changes ─────────────────
-            await SendAndRead("GET LIVEIMG.MODE", "GET LIVEIMG.MODE (before)");
-
-            // ── Step 1: COM.DMCC-RESET ────────────────────────────────────────────
-            // Resets DMCC session params to firmware defaults.  Note: this also resets
-            // COM.DMCC-RESPONSE back to 0 (silent), so ACKs will stop after this point
-            // until we re-enable extended mode.
-            await SendAndRead(DmccCommand.DmccReset, "COM.DMCC-RESET");
-
-            // Re-enable extended ACKs (COM.DMCC-RESET set it back to 0).
-            await stream.WriteAsync(extMode, outerCts.Token);
-            await Task.Delay(100);
-
-            // ── Step 2: COM.DMCC-SAVE ─────────────────────────────────────────────
-            await SendAndRead(DmccCommand.DmccSave, "COM.DMCC-SAVE");
-
-            // ── Step 3: SET LIVEIMG.MODE 2 ────────────────────────────────────────
-            // Root cause (confirmed 2026-05-31): SDK Connect() sets LIVEIMG.MODE=0 and
-            // persists it.  This strips the image from every result delivered to DMST.
-            // LIVEIMG.MODE is a CONFIG parameter — COM.DMCC-RESET does NOT restore it.
-            await SendAndRead("SET LIVEIMG.MODE 2", "SET LIVEIMG.MODE 2");
-
-            // ── Diagnostic: read LIVEIMG.MODE back immediately after SET ──────────
-            // If this reads 0, the SDK has a background thread overwriting us.
-            // If this reads 2, the SET succeeded but CONFIG.SAVE or something else undoes it.
-            await SendAndRead("GET LIVEIMG.MODE", "GET LIVEIMG.MODE (after SET, before CONFIG.SAVE)");
-
-            // ── Step 4: CONFIG.SAVE ───────────────────────────────────────────────
-            await SendAndRead("CONFIG.SAVE", "CONFIG.SAVE");
-
-            // ── Diagnostic: read LIVEIMG.MODE after CONFIG.SAVE ──────────────────
-            await SendAndRead("GET LIVEIMG.MODE", "GET LIVEIMG.MODE (after CONFIG.SAVE)");
-
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-SDK]{tag} Restore sequence complete.");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-SDK]{tag} Restore FAILED: {ex.GetType().Name}: {ex.Message}");
-        }
     }
 
     // ── Command exchange ──────────────────────────────────────────────────────

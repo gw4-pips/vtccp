@@ -202,16 +202,19 @@ already implements this via the Cognex SDK `ResultsReceived` event subscription.
 
 ### LIVEIMG.MODE and the Main tab image bug
 
-From the "Retrieving configuration" step, DMST would read `GET LIVEIMG.MODE`. The
+> **⚠ CORRECTION 2026-06-01** — The analysis below was based on a false theory.
+> Device-confirmed known-good state (DM-KnownGood-Snapshot_2026-05-31): `LIVEIMG.MODE = 0`
+> with the TC panel image fully working. `LIVEIMG.MODE = 0` is CORRECT. Setting it to 2
+> is NOT the fix. The actual root cause was NVRAM corruption from a prior `COM.DMCC-SAVE`
+> call; fixed by `CONFIG.DEFAULT + CONFIG.SAVE + REBOOT`.
+> See `WORKING-NOTES.md §RESOLVED: Image missing` for the confirmed fix.
+
+~~From the "Retrieving configuration" step, DMST would read `GET LIVEIMG.MODE`. The
 expected value is **2** (send image data with each result). If `LIVEIMG.MODE=0` or 1,
-the image stops appearing in the DMST TC Main tab. The post-scan gray image bug
-(documented in prior session) is likely `LIVEIMG.MODE` being set incorrectly — either
-the device reset it, or DMST's local display preference overrode it.
+the image stops appearing in the DMST TC Main tab.~~
 
-**Diagnostic command**: `GET LIVEIMG.MODE` — expected response: `2`
-**Corrective command**: `SET LIVEIMG.MODE 2` — restores image delivery with results
-
-This should be checked before any factory reset of the device.
+**Diagnostic command**: `GET LIVEIMG.MODE` — confirmed known-good response: `0` (not 2)
+**If blank image appears**: use `CONFIG.DEFAULT + CONFIG.SAVE + REBOOT` (not SET LIVEIMG.MODE)
 
 ---
 

@@ -134,9 +134,28 @@ public sealed class SessionManager : IDisposable
         }
 
         // ── Open / create the Excel file ─────────────────────────────────────
-        _adapter = state.OutputFormat == OutputFormat.Xls
-            ? new XlsAdapter()
-            : new XlsxAdapter();
+        //
+        // Try COM automation first: if Excel is running with the target file open,
+        // attach to it so rows are written directly into Excel's live workbook.
+        // This eliminates the file-lock conflict that EPPlus SaveAs() hits when
+        // Excel has the file open.  Falls back to the library-based adapter when
+        // Excel is not running or does not have the file open.
+        if (state.OutputFormat != OutputFormat.Xls)
+        {
+            // On Windows: try COM first so rows appear live in an open Excel workbook.
+            // On non-Windows (or if Excel is not running / file not open): use EPPlus.
+            ComExcelAdapter? comAdapter = null;
+            if (OperatingSystem.IsWindows())
+                comAdapter = ComExcelAdapter.TryAttach(_outputPath!);
+
+            _adapter = comAdapter ?? (IExcelAdapter)new XlsxAdapter();
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-EXCEL] Adapter: {(comAdapter is not null ? "COM (live Excel)" : "EPPlus (file-based)")}");
+        }
+        else
+        {
+            _adapter = new XlsAdapter();
+        }
 
         _writer = new ExcelWriter(_adapter, _schema, state);
         _writer.Open(_outputPath);

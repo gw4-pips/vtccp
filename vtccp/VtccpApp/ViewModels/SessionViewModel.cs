@@ -679,6 +679,9 @@ public sealed class SessionViewModel : ViewModelBase
     {
         if (_sessionMgr is null) return;
 
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-WRITER] AcceptRecordInnerAsync: symbology={record.Symbology}  grade={record.OverallGrade?.LetterGradeString}");
+
         // ── OCR pass (L1 barcode-crop image) ─────────────────────────────────
         // TODO: replace _ocrEnabled with a per-session UI toggle (checkbox in
         //       SessionView) before shipping.  Defaulting true for dev/testing.
@@ -694,7 +697,22 @@ public sealed class SessionViewModel : ViewModelBase
             catch { /* OCR failure must never block record acceptance */ }
         }
 
-        bool savedToDisk = await Task.Run(() => _sessionMgr.AddRecord(record));
+        // AddRecord is kept in a try/catch so that a Save failure (e.g. Excel
+        // file locked, or session not yet fully started) never silently drops the
+        // record from the history and UI.  savedToDisk controls the status message.
+        bool savedToDisk = false;
+        try
+        {
+            savedToDisk = await Task.Run(() => _sessionMgr.AddRecord(record));
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-WRITER] AddRecord complete.  savedToDisk={savedToDisk}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-WRITER] AddRecord threw {ex.GetType().Name}: {ex.Message}");
+        }
+
         _history.AddRecord(record);
         _recordCount++; OnPropertyChanged(nameof(RecordCount));
         string grade     = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";

@@ -1,62 +1,62 @@
 ---
 name: DMST TC panel image blank — confirmed root cause and fix
-description: Why DMST's TC panel image disappears post-scan when VTCCP is connected, and the confirmed fix.
+description: Why DMST's TC panel image disappears post-scan when VTCCP was connected, the confirmed fix, and all false leads.
 ---
 
 ## Root cause — CONFIRMED 2026-05-31
 
-**`LIVEIMG.MODE = 0`** is the actual root cause. Not `DATA.IMAGE-TYPE`.
+**NVRAM corruption** from a prior SDK `COM.DMCC-SAVE` call (via `SetResultTypes()`).
+The exact parameter was not identified. `CONFIG.DEFAULT + CONFIG.SAVE + REBOOT` cleared it.
 
-The Cognex DataMan SDK's `Connect()` sets `LIVEIMG.MODE` to `0`
-("no image with result") and persists it via its internal config-save mechanism.
-`LIVEIMG.MODE = 2` means "send image with each result" — the correct value for
-DMST's TC panel to display the post-scan barcode image.
+This was a **one-time fix**. The image has been working since.
 
-Confirmed by Telnet GET while VTCCP connected:
-- `GET LIVEIMG.MODE` → `0`  (wrong — should be 2)
-- `GET DATA.IMAGE-TYPE` → `0`  (correct — was never the cause)
-- `GET DATA.RESULT-TYPE` → `513`  (factory default — never the cause)
+## CRITICAL — correct known-good values (device-confirmed 2026-05-31)
 
-`COM.DMCC-RESET` does NOT restore `LIVEIMG.MODE`. It only resets DMCC
-session parameters. `LIVEIMG.MODE` is a CONFIG parameter — it requires
-`SET LIVEIMG.MODE 2` + `CONFIG.SAVE` to fix.
+| Parameter | Known-good value | Notes |
+|---|---|---|
+| `LIVEIMG.MODE` | **0** | NOT 2 — TC panel image works with 0 |
+| `DATA.IMAGE-TYPE` | 0 | Correct SDK default |
+| `DATA.RESULT-TYPE` | 513 | DM475V factory default |
+| `TRIGGER.TYPE` | 0 | External single trigger |
+| `IMAGE.SIZE` | 1 | Confirmed from snapshot |
 
-## Fix (current approach — SDK-side, port 44444)
+## All prior theories were WRONG
 
-Implemented inside `Task.Run` in `DataManSdkClient.ConnectAsync`, right after
-`_system.Connect()` returns. Uses the SDK's own already-open port 44444 connection:
+### Wrong theory 1: LIVEIMG.MODE = 0 is the cause
+- **FALSE.** The known-good snapshot (2026-05-31 224936) shows LIVEIMG.MODE=0 with the
+  TC panel image fully working. LIVEIMG.MODE=0 is the CORRECT value.
+- All code that set LIVEIMG.MODE=2 has been removed from DataManSdkClient.cs.
+- `SendDmccRestoreAsync` was removed entirely (no callers, wrong logic).
 
-```csharp
-_system.SendCommand("SET LIVEIMG.MODE 2");
-_system.SendCommand("CONFIG.SAVE");
-```
+### Wrong theory 2: DMST holds port 23 exclusively
+- **FALSE.** VTCCP's TRIGGER ON fires via a raw TCP connection to port 23, and this
+  works correctly while DMST is open. Both VTCCP (trigger) and DMST can use port 23
+  simultaneously. No conflict was observed.
+- OCE visible at VS Output line 80 is the SDK's own internal exception from
+  `_system.Connect()` — it is benign and always present. NOT from port 23 failures.
 
-SDK may throw `InvalidCommandException` if the command is not on its internal whitelist
-— caught and logged. If blocked, a different approach is needed.
+### Wrong theory 3: SDK Connect() sets LIVEIMG.MODE to 0
+- **FALSE on fw 6.1.16_sr4.** No such effect was observed in the known-good state.
+  The NVRAM corruption came from `SetResultTypes()` triggering `COM.DMCC-SAVE`, not
+  from the SDK's Connect() overwriting LIVEIMG.MODE.
 
-## CRITICAL: DMST blocks port 23
+## Fix implemented
 
-DMST holds a **persistent port 23 connection** while it is open and connected.
-Any VTCCP attempt to open a second port 23 TCP connection blocks for the full
-timeout and then fails silently. This is why all previous port-23 restore attempts
-(fixes 2–4) had zero effect — the commands never reached the device.
+1. Removed `SetResultTypes()` call from DataManSdkClient (prevents future corruption).
+2. Removed all LIVEIMG.MODE restore code from `ConnectAsync` and `DisconnectAsync`.
+3. Removed `SendDmccRestoreAsync` (dead code with wrong logic).
+4. Applied `CONFIG.DEFAULT + CONFIG.SAVE + REBOOT` on the device (one-time fix).
 
-Evidence: `VTCCP-Reset.ps1` explicitly says "close DMST completely so it does
-not hold port 23." The OCE visible in VS Output at line 80 of every debug capture
-is the 5-second `outerCts` firing when port 23 refuses a second connection.
+## Recovery if image disappears again
 
-**Port 23 based approaches will NOT work while DMST is open.**
+1. Telnet to port 23
+2. `CONFIG.DEFAULT`
+3. `CONFIG.SAVE`
+4. `REBOOT`
+5. Restore custom config (TRIGGER.TYPE, TruCheck settings, etc.)
 
-## False leads ruled out
+Do NOT set LIVEIMG.MODE to 2.
 
-- `DATA.IMAGE-TYPE` — confirmed = 0 (correct) while VTCCP connected; never the cause.
-- `DATA.RESULT-TYPE = 513` — factory default; not the cause.
-- Port 23 restore (fixes 2–4) — blocked by DMST holding port 23; commands never reached device.
-- VS Output `[VTCCP-SDK]` lines absent — because port 23 restore fails fast (OCE from outerCts)
-  and VS drops the catch debug line during the heavy startup DLL loading phase.
-
-## What COM.DMCC-RESET actually resets
-
-Only DMCC session parameters: DATA.IMAGE-TYPE, DATA.RESULT-TYPE,
-DATA.RESULT-ENCODING, DATA.RESULT-ALWAYSSEND, COM.DMCC-RESPONSE,
-COM.DMCC-CHECKSUM, COM.DMCC-HEADER. LIVEIMG.MODE is NOT reset by this.
+**Why:** `SetResultTypes()` was the only call that triggered `COM.DMCC-SAVE`. With it
+removed, the SDK no longer writes to NVRAM on connect. Future connections will not
+corrupt the device config.

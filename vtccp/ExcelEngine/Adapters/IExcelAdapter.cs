@@ -2,7 +2,11 @@ namespace ExcelEngine.Adapters;
 
 /// <summary>
 /// Abstracts format-specific Excel I/O so the engine core (ExcelWriter) is format-agnostic.
-/// Two implementations: XlsxAdapter (EPPlus / .xlsx) and XlsAdapter (NPOI HSSF / .xls).
+/// Three implementations:
+///   XlsxAdapter   — EPPlus / .xlsx (file-based; fails when file is open in Excel).
+///   XlsAdapter    — NPOI HSSF / .xls (file-based; legacy format).
+///   ComExcelAdapter — COM automation (Windows only); writes directly into a running Excel
+///                     process; no file lock issues; rows appear live as scans arrive.
 /// </summary>
 public interface IExcelAdapter : IDisposable
 {

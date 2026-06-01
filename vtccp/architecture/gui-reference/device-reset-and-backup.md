@@ -192,10 +192,10 @@ grading standard, application standard, trigger mode — everything else).
 This is a DMST setting that controls whether the live camera feed resumes after a verification
 scan completes. It was previously working and stopped after a DMST restart. Candidates:
 
-1. **LIVEIMG.MODE setting** — `SET LIVEIMG.MODE 2` enables continuous live image polling.
-   If this was reverted (e.g., by a volatile-only change that was not CONFIG.SAVEd and then
-   the device power-cycled, or by a DMST session that wrote a different value), the live
-   preview would stop returning. Check via `GET LIVEIMG.MODE` — expected value: 2.
+1. **LIVEIMG.MODE setting** — ~~`SET LIVEIMG.MODE 2`~~ **⚠ CORRECTION 2026-06-01**:
+   confirmed known-good value is **0** (not 2). The TC panel image works correctly at
+   `LIVEIMG.MODE=0` (device-confirmed 2026-05-31). Do NOT set LIVEIMG.MODE to 2.
+   If image disappears: use `CONFIG.DEFAULT + CONFIG.SAVE + REBOOT` (NVRAM corruption fix).
 
 2. **DMST Application preference** — DMST has a display preference for whether the image
    pane stays in live-preview mode after a scan result, or drops to static. This lives in
