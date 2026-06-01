@@ -169,14 +169,15 @@ public sealed class DataManSdkClient : IAsyncDisposable
             await tcp.ConnectAsync(_cfg.Host, DmccCommand.RawDmccPort, outerCts.Token);
             var stream = tcp.GetStream();
 
-            // Drain welcome banner — DM475V sends none on port 23, but drain defensively.
-            try
-            {
-                using var bannerCts = new CancellationTokenSource(300);
-                await stream.ReadAsync(new byte[256], bannerCts.Token);
-            }
-            catch (OperationCanceledException) { }
-            catch { }
+            // Drain welcome banner — DM475V fw 6.1.16_sr4 sends no banner on port 23.
+            // Use ReadTimeout instead of a CancellationToken so that a timeout does NOT
+            // fault the underlying socket.  A cancelled ReadAsync token can abort the
+            // socket's IO completion port and cause every subsequent WriteAsync on the
+            // same stream to throw — silently swallowing all restore commands.
+            stream.ReadTimeout = 200;
+            try   { _ = stream.Read(new byte[64], 0, 64); }
+            catch { /* timeout = no banner, expected */ }
+            stream.ReadTimeout = System.Threading.Timeout.Infinite;
 
             // Helper: send one DMCC line and pause briefly for the device to process it.
             async Task Send(string cmd, string logLabel)

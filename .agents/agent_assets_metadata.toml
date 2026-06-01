@@ -84,3 +84,9 @@ id = "oXdSUdAY0DX3eVSaZ8qeR"
 uri = "file://artifacts/script-viewer/public/vtccp-fix2.zip"
 type = "unspecified"
 title = "DataManSdkClient.cs — LIVEIMG.MODE fix"
+
+[[outputs]]
+id = "dDOp6uZLlbq6QseovJexN"
+uri = "file://artifacts/script-viewer/public/vtccp-fix3.zip"
+type = "unspecified"
+title = "vtccp-fix3.zip — DataManSdkClient.cs (banner drain fix)"
