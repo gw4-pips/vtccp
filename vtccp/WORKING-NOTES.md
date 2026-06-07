@@ -252,6 +252,93 @@ timing, or code correctness until they do. Do not revisit until user reopens.
 
 ---
 
+## FEATURE DESIGN — Cursor-Aware Insert (WTC-style Excel mode)
+
+**Logged**: 2026-06-07  
+**Status**: Design only — not yet scoped for implementation  
+**Prerequisite**: COM adapter fully working (needed for `ActiveCell` access)
+
+---
+
+### Background
+
+The WTC (Webscan TruCheck) Excel file stores a **next-available-row pointer** at
+**col 111, Excel row 2** (the visible header row). In the template file this reads `3`
+(first data row). The macro increments it by 1 after every scan. This is a dumb append
+pointer — Webscan never went further.
+
+PIPS OptiDoc (the original, conceived by VCCS, built by Viktor) implemented a
+**cursor-aware insert** that Webscan never replicated. VTCCP will implement this as
+a first-class feature when the WTC-style Excel mode is built.
+
+---
+
+### Feature: Cursor-Aware Insert
+
+**Normal operation (append mode):**
+- On each scan result, write to the row indicated by the stored pointer (col 111, row 2).
+- Increment the pointer by 1.
+- Store the updated pointer back to col 111, row 2.
+
+**Correction mode (operator-initiated):**
+1. Operator decides a previously captured row needs to be re-scanned (bad barcode,
+   wrong sample, etc.).
+2. Operator deletes the contents of that row in Excel (clearing the cells).
+   - Design decision (retained from OptiDoc): **require explicit delete** rather than
+     silent overwrite. Forces conscious intent. Silent overwrite was considered and
+     rejected — keeps the operator accountable.
+3. Operator positions the Excel cursor (ActiveCell) on that now-empty row.
+4. Next scan: VTCCP detects that `ActiveCell.Row` ≠ pointer row AND that
+   `ActiveCell` row is empty → writes to `ActiveCell.Row` instead.
+5. **The stored pointer is NOT modified** during correction mode. It retains the
+   "resume" position (the next row that would have been written in normal sequence).
+
+**Multiple consecutive corrections:**
+- After writing a correction scan, VTCCP checks the new `ActiveCell.Row`:
+  - If the new ActiveCell row is **empty** → still in correction mode, write there next.
+  - If the new ActiveCell row is **non-empty** (operator moved cursor back into data,
+    or to the pointer row) → exit correction mode, revert to stored pointer.
+- This allows the operator to make several delete/re-scan corrections in sequence
+  before returning to normal capture — all without touching the pointer.
+
+**Resuming normal capture:**
+- When cursor moves off an empty correction row (or operator does nothing and the
+  next scan fires normally), VTCCP detects `ActiveCell` is at the stored pointer row
+  (or is non-empty) and reverts to append mode automatically.
+- No explicit "exit correction mode" button needed.
+
+**Open design question:**
+- Should "require delete" be a session-level setting (default ON) or always enforced?
+  Overwrite-without-delete is simpler but removes the intentional friction.
+  Decision deferred until implementation is scoped.
+
+---
+
+### Implementation sketch (COM path only)
+
+```
+ExcelApplication app = GetActiveObject("Excel.Application");
+Worksheet ws = app.ActiveSheet;
+int pointerRow = (int)ws.Cells[2, 112].Value;   // col 111 = Excel col 112 (1-indexed)
+int cursorRow  = app.ActiveCell.Row;
+
+bool cursorEmpty = IsCellRowEmpty(ws, cursorRow);  // check key data columns
+
+int targetRow;
+if (cursorRow >= 3 && cursorEmpty && cursorRow != pointerRow)
+{
+    targetRow = cursorRow;   // correction mode — write here, don't touch pointer
+}
+else
+{
+    targetRow = pointerRow;  // append mode — write here, increment pointer
+    ws.Cells[2, 112].Value = pointerRow + 1;
+}
+WriteRecordToRow(ws, targetRow, record);
+```
+
+---
+
 ## Key code locations (reference only — do not edit without instruction)
 
 | Topic | File | Lines |
