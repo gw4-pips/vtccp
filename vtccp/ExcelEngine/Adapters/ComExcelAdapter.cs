@@ -217,6 +217,31 @@ public sealed class ComExcelAdapter : IExcelAdapter
         _worksheet.Cells[row, col].Font.Bold = true;
     }
 
+    public void SetRowOutlineLevel(int row, int level)
+    {
+        _worksheet.Rows[row].OutlineLevel = level;
+    }
+
+    public void SetRowHidden(int row, bool hidden)
+    {
+        _worksheet.Rows[row].Hidden = hidden;
+    }
+
+    public void ScheduleRowHide(int row, TimeSpan delay)
+    {
+        // COM calls must happen on an STA thread.  Task.Run uses MTA thread-pool threads,
+        // so we spin a dedicated STA background thread for the deferred hide.
+        var thread = new Thread(() =>
+        {
+            Thread.Sleep((int)Math.Max(0, delay.TotalMilliseconds));
+            try { _worksheet.Rows[row].Hidden = true; }
+            catch { /* workbook may have been closed between schedule and fire */ }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.IsBackground = true;
+        thread.Start();
+    }
+
     public void SetCellBackground(int row, int col, uint argbColor)
     {
         _worksheet.Cells[row, col].Interior.Color = ArgbToOleColor(argbColor);

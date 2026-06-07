@@ -95,6 +95,18 @@ public sealed class XlsxAdapter : IExcelAdapter
         _ws!.Cells[row, 1, row, colCount].Style.WrapText = true;
     }
 
+    public void SetRowOutlineLevel(int row, int level)
+    {
+        _ws!.Row(row).OutlineLevel = level;
+    }
+
+    public void SetRowHidden(int row, bool hidden)
+    {
+        _ws!.Row(row).Hidden = hidden;
+    }
+
+    public void ScheduleRowHide(int row, TimeSpan delay) { /* no-op: file written in full at Save() */ }
+
     public void SetCellBold(int row, int col)
     {
         _ws!.Cells[row, col].Style.Font.Bold = true;

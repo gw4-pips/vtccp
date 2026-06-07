@@ -50,6 +50,13 @@ using ExcelEngine.Writer;
 /// </summary>
 public sealed class SessionManager : IDisposable
 {
+    /// <summary>
+    /// How long after writing a parse-detail child row before the COM adapter auto-hides it.
+    /// File-based adapters ignore this; the row is written hidden at save time instead.
+    /// Default: 20 seconds — long enough to read the AIs, short enough not to clutter the sheet.
+    /// </summary>
+    public static readonly TimeSpan ParseDetailHideDelay = TimeSpan.FromSeconds(20);
+
     private readonly ColumnSchema _schema;
     private SessionState? _currentSession;
     private IExcelAdapter? _adapter;
@@ -202,6 +209,13 @@ public sealed class SessionManager : IDisposable
         }
 
         _writer!.AppendRecord(record, batchOverride);
+
+        // COM live mode: auto-collapse the parse-detail child row after a short delay so
+        // the operator sees the AI breakdown briefly, then it folds away cleanly.
+        // File-based adapters: ScheduleRowHide is a no-op, so this branch is always safe.
+        if (_writer.LastParseDetailRow.HasValue)
+            _adapter!.ScheduleRowHide(_writer.LastParseDetailRow.Value, ParseDetailHideDelay);
+
         _currentSession!.RecordCount++;
         SaveSidecar(_sidecarPath!, _currentSession!);
 

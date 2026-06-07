@@ -157,6 +157,20 @@ public sealed class XlsAdapter : IExcelAdapter
         ApplyStyleToRow(row, colCount, style);
     }
 
+    public void SetRowOutlineLevel(int row, int level)
+    {
+        // NPOI IRow.OutlineLevel is read-only in this NPOI build.
+        // Outline grouping is not supported for the legacy .xls format;
+        // parse-detail rows are written and visible without a formal outline group.
+    }
+
+    public void SetRowHidden(int row, bool hidden)
+    {
+        GetOrCreateRow(row - 1).ZeroHeight = hidden;
+    }
+
+    public void ScheduleRowHide(int row, TimeSpan delay) { /* no-op: file written in full at Save() */ }
+
     public void SetCellBold(int row, int col)
     {
         // Uses a shared workbook-scoped bold style (cached in _rowStyleMap at the sentinel key -1).

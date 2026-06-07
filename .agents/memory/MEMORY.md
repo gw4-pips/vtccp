@@ -8,3 +8,4 @@
 - [Trigger Reset & DMST Recovery Plan](trigger-reset-plan.md) — restore TRIGGER.TYPE to live-feed mode on exit; restore point commit f474fa7; Manual vs Push cleanup paths differ
 - [DMST TC panel image blank — confirmed root cause](dmst-image-blank-root-cause.md) — LIVEIMG.MODE=0 is CORRECT known-good value (NOT 2); real fix was CONFIG.DEFAULT+REBOOT (NVRAM corruption from prior COM.DMCC-SAVE); port 23 NOT blocked by DMST
 - [OCR-1 wiring](ocr-wiring.md) — OCR runs in AcceptRecordInnerAsync; _ocrEnabled defaults true; UI toggle is a TODO; tessdata bundled in project
+- [NPOI IRow.OutlineLevel read-only](npoi-row-outline.md) — no setter on IRow interface; XlsAdapter.SetRowOutlineLevel is a no-op; use HSSFRow cast or GroupRow() if grouping ever required on .xls

@@ -28,11 +28,12 @@ public sealed class ExcelWriter : IDisposable
     private readonly ColumnSchema _schema;
     private readonly SessionState _session;
     private readonly string _sheetName;
-    private readonly ElementWidthsWriter  _ewWriter;
-    private readonly ImagesSheetWriter   _imagesWriter;
-    private readonly PerScanTableWriter  _perScanWriter;
-    private readonly ModValuesSheetWriter _modValWriter;
-    private readonly CwValuesSheetWriter  _cwValWriter;
+    private readonly ElementWidthsWriter   _ewWriter;
+    private readonly ImagesSheetWriter    _imagesWriter;
+    private readonly PerScanTableWriter   _perScanWriter;
+    private readonly ParseDetailRowWriter _parseDetailWriter;
+    private readonly ModValuesSheetWriter  _modValWriter;
+    private readonly CwValuesSheetWriter   _cwValWriter;
 
     private int _nextDataRow;
     private int _dataRowCount;
@@ -41,17 +42,25 @@ public sealed class ExcelWriter : IDisposable
     /// <summary>Number of data rows written so far (not counting title/header rows).</summary>
     public int DataRowCount => _dataRowCount;
 
+    /// <summary>
+    /// Row index (1-based) of the parse-detail child row written during the most recent
+    /// <see cref="AppendRecord"/> call, or <c>null</c> if no parse-detail row was written.
+    /// SessionManager reads this after each call to schedule the COM auto-collapse timer.
+    /// </summary>
+    public int? LastParseDetailRow { get; private set; }
+
     public ExcelWriter(IExcelAdapter adapter, ColumnSchema schema, SessionState session, string sheetName = "Main")
     {
         _adapter = adapter;
         _schema = schema;
         _session = session;
         _sheetName = sheetName;
-        _ewWriter      = new ElementWidthsWriter(adapter);
-        _imagesWriter  = new ImagesSheetWriter(adapter);
-        _perScanWriter = new PerScanTableWriter(adapter, schema);
-        _modValWriter  = new ModValuesSheetWriter(adapter);
-        _cwValWriter   = new CwValuesSheetWriter(adapter);
+        _ewWriter          = new ElementWidthsWriter(adapter);
+        _imagesWriter      = new ImagesSheetWriter(adapter);
+        _perScanWriter     = new PerScanTableWriter(adapter, schema);
+        _parseDetailWriter = new ParseDetailRowWriter(adapter, schema);
+        _modValWriter      = new ModValuesSheetWriter(adapter);
+        _cwValWriter       = new CwValuesSheetWriter(adapter);
     }
 
     /// <summary>
@@ -102,6 +111,7 @@ public sealed class ExcelWriter : IDisposable
     public void AppendRecord(VerificationRecord record, string? batchOverride = null)
     {
         CheckRowLimit();
+        LastParseDetailRow = null;
 
         if (!_headersWritten)
         {
@@ -124,9 +134,19 @@ public sealed class ExcelWriter : IDisposable
         if (record.DataFormatCheck is not null)
             WriteDfcColumns(_nextDataRow, record.DataFormatCheck);
 
-        // Advance past the summary row.
+        // Advance past the summary (Level-0) row.
         _nextDataRow++;
         _dataRowCount++;
+
+        // Level-1 parse-detail child row — immediately below the summary row.
+        // Written whenever a GS1 / ISO 15434 / MIL-STD-130 data format check is present.
+        // OutlineLevel=1, starts visible; COM timer will auto-collapse via LastParseDetailRow.
+        if (record.DataFormatCheck is not null)
+        {
+            _parseDetailWriter.WriteParseDetailRow(_nextDataRow, record.DataFormatCheck);
+            LastParseDetailRow = _nextDataRow;
+            _nextDataRow++;
+        }
 
         // For 1D records: write per-scan sub-table rows immediately below the summary row.
         // Per-scan rows are auxiliary (not counted in _dataRowCount), but _nextDataRow and

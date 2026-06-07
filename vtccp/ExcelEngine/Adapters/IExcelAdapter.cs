@@ -49,6 +49,19 @@ public interface IExcelAdapter : IDisposable
     /// <summary>Enable word-wrap on every cell in the given row.</summary>
     void SetRowWrapText(int row, int colCount);
 
+    /// <summary>Set the Excel outline (grouping) level for a row (0 = top level, 1 = first child, …).</summary>
+    void SetRowOutlineLevel(int row, int level);
+
+    /// <summary>Show or hide a row (used for parse-detail child rows in COM live mode).</summary>
+    void SetRowHidden(int row, bool hidden);
+
+    /// <summary>
+    /// Schedule a row to be hidden after <paramref name="delay"/> has elapsed.
+    /// COM adapter: fires on a background STA thread so the live workbook updates without blocking.
+    /// File-based adapters (XlsxAdapter, XlsAdapter): no-op — row visibility is set at save time.
+    /// </summary>
+    void ScheduleRowHide(int row, TimeSpan delay);
+
     /// <summary>Apply bold formatting to a single cell.</summary>
     void SetCellBold(int row, int col);
 

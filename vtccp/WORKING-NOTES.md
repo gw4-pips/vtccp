@@ -394,6 +394,36 @@ also supports resuming an existing file ("Open Job" equivalent not yet built).
 
 ## FEATURE DESIGN — Three-Level Excel Row Structure (2026-06-07)
 
+> **STATUS — Level 1 IMPLEMENTED (2026-06-07, v1.2.2)**
+>
+> Files changed:
+> - `IExcelAdapter.cs` — added `SetRowOutlineLevel`, `SetRowHidden`, `ScheduleRowHide`
+> - `ComExcelAdapter.cs` — implemented all three; `ScheduleRowHide` spins a background STA thread
+> - `XlsxAdapter.cs` — implemented all three; `ScheduleRowHide` is a no-op (file-based)
+> - `XlsAdapter.cs` — `SetRowOutlineLevel` is a no-op (NPOI `IRow.OutlineLevel` read-only in this
+>   NPOI build); `SetRowHidden` uses `ZeroHeight`; `ScheduleRowHide` no-op
+> - `ParseDetailRowWriter.cs` — new class; writes sentinel "↳" + HRI string from `DataFormatCheckResult.Rows`
+> - `ExcelWriter.cs` — added `ParseDetailRowWriter`, `LastParseDetailRow` property;
+>   Level-1 row inserted after parent `_nextDataRow++` / before per-scan rows
+> - `SessionManager.cs` — checks `LastParseDetailRow` after each `AppendRecord`; calls
+>   `ScheduleRowHide` with `ParseDetailHideDelay = 20 s` (static field, easy to make configurable)
+>
+> **Actual HRI format** (from `DataFormatCheckResult.Rows` — uses existing parsed DFC data):
+> `[GS1 Application Data Format]  GS1 Header: <F1> | AI:GTIN: 01 | GTIN: 0123456789012 | ...`
+>
+> **Deviation from design**: The design called for GS1 syntax engine `HRI` property
+> (giving `"GTIN (01) 00355513710213"` format with AI number in parens). The implementation
+> instead reads `DataFormatCheckResult.Rows[].Name` + `.Data` directly, because the DFC
+> result is already parsed into that model by the time `AppendRecord` is called. The GS1
+> engine re-parse path would require the raw `DecodedData` and the engine instance, which
+> are not available at the write layer. The current format is readable; if the AI-code-in-
+> parens format is needed later, add an `AiCode?` field to `DataFormatCheckRow` and populate
+> it from the HTML scraper's DFC table.
+>
+> **Level 2 (per-scan-line) outline level**: NOT yet set; `PerScanTableWriter` still writes
+> rows without `OutlineLevel`. Wire `SetRowOutlineLevel(row, 2)` + `SetRowHidden(row, true)`
+> inside `PerScanTableWriter.WriteScans()` loop — one-liner, unblocked, do on request.
+
 ### Concept origin
 OptiDoc (PIPS/Viktor) was the only tool to put per-scan-line data into the
 spreadsheet as hidden child rows beneath the summary parent. Webscan/WTC never
