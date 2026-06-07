@@ -1,0 +1,179 @@
+# VTCCP — Handoff to Replit
+## Session Date: 2026-06-07
+## Prepared by: Claude (Anthropic) working with George
+
+---
+
+## 1. PROBLEM REPORTED AT SESSION START
+
+The TC panel post-verification image was blank (gray) after a power cycle of the
+reader. The reader had been powered off with DMST closed and restored from saved
+NVRAM on boot. The problem appeared identical to the one investigated in the
+previous session (2026-05-31).
+
+---
+
+## 2. DIAGNOSTIC PROCESS
+
+### Step 1 — Snapshot of broken state
+DM-Snapshot-Now.ps1 was run immediately on session start (reader broken, DMST
+closed). Two anomalous parameters were identified vs factory default:
+
+```
+IMAGE.SIZE  = 1   (factory default = 1 — later confirmed NOT anomalous)
+LIVEIMG.MODE = 2  (set dynamically by DMST on connect — confirmed normal)
+```
+
+### Step 2 — IMAGE.SIZE investigation
+IMAGE.SIZE was initially suspected as the cause and corrected to 0. This was
+subsequently confirmed to be WRONG — IMAGE.SIZE=1 (Quarter) IS the factory
+default and the correct operating value. Setting it to 0 was an error.
+
+### Step 3 — CONFIG.DEFAULT + full restore
+CONFIG.DEFAULT + CONFIG.SAVE + REBOOT was performed. Settings were restored
+one at a time via DMST UI with TC panel verification after each addition:
+
+  - CAMERA.MIRROR-HORIZONTAL = ON       ✓ no effect on TC panel
+  - CAMERA.MIRROR-VERTICAL = ON         ✓ no effect on TC panel
+  - NTP.ENABLE + servers + timezone     ✓ no effect on TC panel
+  - TRUCHECK.COMPANY-NAME (full name)   ✓ no effect on TC panel
+  - TRUCHECK.OPERATOR-NAME = GW4        ✓ no effect on TC panel
+  - TRUCHECK.CUSTOM-NOTE                ✓ no effect on TC panel
+  - TRUCHECK.APPLICATION-STANDARD = 4  ✓ no effect on TC panel
+  - TRUCHECK.APERTURE = 0               ✓ no effect on TC panel
+  - TRUCHECK.APERTURE-SIZE = 80         ✓ no effect on TC panel
+  - DECODER.ROI = 368 1968 604 1308     ✓ no effect on TC panel
+  - SYMBOL.QR = ON                      ✓ no effect on TC panel
+  - All other symbologies               ✓ no effect on TC panel
+  - Push script v1.36 loaded            ✓ no effect on TC panel
+
+TC panel image remained present throughout all additions.
+
+### Step 4 — VTCCP connect test (no scan)
+VTCCP connected. Snapshot run immediately after connect.
+Result: ZERO parameter changes. SDK Connect() writes nothing to the reader.
+
+### Step 5 — VTCCP trigger test
+VTCCP triggered a scan. Snapshot run immediately after.
+Result: ZERO parameter changes. IMAGE.SIZE remained 1. IMAGE.FORMAT remained 1.
+The current VTCCP build does NOT corrupt any reader parameter during
+connect, trigger, or disconnect.
+
+### Step 6 — Software reboot test
+REBOOT command issued via DMCC. Reader restored from NVRAM.
+Snapshot confirmed all parameters intact after reboot.
+TC panel image confirmed working after reboot with DMST open.
+
+---
+
+## 3. CONFIRMED FACTS
+
+| Fact | Status |
+|------|--------|
+| IMAGE.SIZE=1 is factory default (Quarter size) | CONFIRMED |
+| IMAGE.SIZE=0 is NOT correct — earlier fix was wrong | CONFIRMED |
+| LIVEIMG.MODE=2 set dynamically by DMST on connect | CONFIRMED NORMAL |
+| Current VTCCP build writes zero parameters on connect | CONFIRMED |
+| Current VTCCP build writes zero parameters on trigger | CONFIRMED |
+| TC panel image works with current build and current config | CONFIRMED |
+| Config survives software reboot (NVRAM stable) | CONFIRMED |
+| Push script v1.36 has no effect on TC panel | CONFIRMED |
+| vs.cfg (160B) pushed by reader after verify scan | NOTED — unknown content |
+
+---
+
+## 4. NEW OBSERVATION — vs.cfg
+
+A previously unobserved push event appeared in the VTCCP debug output:
+
+```
+[VTCCP-HTTP-SUB] PUT /vs.cfg HTTP/1.1 (160 B)
+```
+
+This appeared immediately after the verify trigger, before pcm_report.html.
+VTCCP currently receives it silently with no processing. Content unknown.
+Worth investigating what this file contains and whether it's relevant.
+
+---
+
+## 5. OUTSTANDING ISSUES
+
+### 5a. TC Panel Image — Power Cycle Test Pending
+A hardware power cycle (as opposed to software REBOOT) has not yet been
+performed — remote boot device is purchased but not yet installed. The software
+REBOOT test passed. Hardware power cycle should be tested when possible.
+
+### 5b. Record Not Written / CP Window Not Updating
+This issue was not addressed in this session. From the previous session:
+The VTCCP trigger fires successfully, full push data received, but the CP window
+does not update with the verification result. 5 validation discrepancies reported:
+
+```
+EncodedCharacters : Push=31,   Html=49
+GNU%              : Push=35.3, Html=0.4   ← likely units mismatch
+ErrorsCorrected   : Push=3,    Html=null
+ErrCapUsed        : Push=6,    Html=null
+ImagePolarity     : Push=null, Html=White on black
+```
+
+Questions for Replit:
+1. Do validation discrepancies block the record write path?
+2. Is the CP window update triggered before or after validation?
+3. GNU% discrepancy (35.3 vs 0.4) — is this a raw vs percentage units mismatch?
+4. ImagePolarity — is q.general.polarity the correct path for this firmware?
+
+### 5c. Calibration
+Reader shows TRUCHECK.CALIBRATION-DATE = Not Calibrated.
+Cannot calibrate remotely. Post-calibration, ApertureRef in push XML should
+change from "**" to the actual aperture value. TRUCHECK.APERTURE=0 with
+TRUCHECK.APERTURE-SIZE=80 means User Set at 80% of X dimension.
+
+---
+
+## 6. CURRENT KNOWN-GOOD READER STATE
+
+```
+IMAGE.SIZE                    = 1   (Quarter — factory default, DO NOT CHANGE)
+IMAGE.FORMAT                  = 1   (JPEG)
+IMAGE.QUALITY                 = 50
+LIVEIMG.MODE                  = 0   (set to 2 dynamically by DMST — normal)
+TRIGGER.TYPE                  = 0   (Single external)
+CAMERA.MIRROR-HORIZONTAL      = ON
+CAMERA.MIRROR-VERTICAL        = ON
+DECODER.ROI                   = 368 1968 604 1308
+TRUCHECK.APPLICATION-STANDARD = 4
+TRUCHECK.GRADING-STANDARD     = 0
+TRUCHECK.APERTURE             = 0   (User Set)
+TRUCHECK.APERTURE-SIZE        = 80  (80% of X dimension)
+TRUCHECK.OPERATOR-NAME        = GW4
+TRUCHECK.COMPANY-NAME         = Product Identification and Processing Systems, Inc.
+TRUCHECK.CUSTOM-NOTE          = CUSTOM NOTE
+TRUCHECK.ISO15415-VERSION     = 1
+TRUCHECK.ISO15416-VERSION     = 1
+TRUCHECK.ISO29158-VERSION     = 2
+TRUCHECK.CALIBRATION-DATE     = Not Calibrated
+SYMBOL.QR                     = ON  (all major symbologies ON)
+NTP.ENABLE                    = ON
+NTP.SERVER1                   = time.nist.gov
+NTP.SERVER2                   = 132.163.96.1
+DEVICE.TIMEZONE               = America/New_York
+Push script v1.36             = loaded and active
+```
+
+---
+
+## 7. DIAGNOSTIC TOOLS AVAILABLE
+
+**DM-Snapshot-Now.ps1** — captures all 95 reader parameters to timestamped
+text file. Run from PowerShell:
+```
+powershell -ExecutionPolicy Bypass -File "C:\Users\Administrator\Downloads\DM-Snapshot-Now.ps1"
+```
+Output saves to Desktop\DM-Baseline\
+
+**DM-BaselineCompare-Enhanced.ps1** — full CONFIG.DEFAULT → baseline → VTCCP
+connect → diff workflow. Use if TC panel image problem recurs.
+
+---
+
+*End of handoff. George to continue with record write / CP window issue.*
