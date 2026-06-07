@@ -268,8 +268,17 @@ public sealed class SessionViewModel : ViewModelBase
         foreach (var d in _repo.Devices)   AvailableDevices.Add(d);
         foreach (var t in _repo.Templates) AvailableTemplates.Add(t);
 
-        if (SelectedDevice is null)   SelectedDevice   = _repo.DefaultDevice;
-        if (SelectedTemplate is null) SelectedTemplate = _repo.DefaultTemplate;
+        if (SelectedDevice is null) SelectedDevice = _repo.DefaultDevice;
+
+        // Keep the current template if it still exists in the repo (id-based
+        // lookup survives edits to template properties).  Reset to the default
+        // when the selection is gone or was never set — this fires correctly
+        // after the user changes which template is marked as the default.
+        var currentId = _selectedTemplate?.Id;
+        SelectedTemplate = (currentId is not null
+            ? AvailableTemplates.FirstOrDefault(t => t.Id == currentId)
+            : null)
+            ?? _repo.DefaultTemplate;
 
         // Pre-fill Operator ID with the value typed at the last session start.
         // The user can clear or change it before each session; the new value is

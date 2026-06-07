@@ -160,6 +160,13 @@ public sealed class SessionManager : IDisposable
         _writer = new ExcelWriter(_adapter, _schema, state);
         _writer.Open(_outputPath);
 
+        // Flush to disk immediately for file-based adapters so the .xlsx / .xls
+        // appears in the output folder as soon as the session starts (not waiting
+        // for the first scan record).  COM adapter is excluded — the workbook
+        // already exists on disk and flushing would overwrite user data in Excel.
+        if (_adapter is not ComExcelAdapter)
+            _writer.Save();
+
         // ── Persist sidecar immediately ───────────────────────────────────────
         SaveSidecar(_sidecarPath!, state);
 
