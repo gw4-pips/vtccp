@@ -420,6 +420,31 @@ also supports resuming an existing file ("Open Job" equivalent not yet built).
 > parens format is needed later, add an `AiCode?` field to `DataFormatCheckRow` and populate
 > it from the HTML scraper's DFC table.
 >
+> **DESIGN DECISION LOGGED (2026-06-07)** — HTML report as primary DFC source:
+> The DMST `pcm_report.html` contains the full Data Format Check table as rendered by
+> Cognex TruCheck itself — AI descriptions, AI codes, encoded data, and pass/fail status,
+> in the exact format the operator sees on screen. The preferred architecture is:
+>
+> 1. **Primary** — extend `DmstHtmlScraper.ParseHtml()` to scrape the DFC table directly
+>    from the HTML report. This gives us the official Cognex-rendered AI names + codes
+>    (solving the `AiCode` gap) with no dependency on the GS1 syntax engine or push XML
+>    DFC schema. Cognex's own parser is authoritative for their symbology stack.
+> 2. **Backup / corroboration** — existing native `DataFormatCheckResult` from push XML
+>    (via `DmstResultParser`) remains in place. If the HTML report arrives before the
+>    record is written, HTML data wins; otherwise the push XML data is used.
+>
+> **Implementation note**: The `DmstHtmlScraper` currently merges HTML fields into a
+> `VerificationRecord` via `TryMergeAsync()`. The DFC table scrape would populate
+> `record.DataFormatCheck.Rows` (or a new `HtmlDfcRows` parallel field) at merge time,
+> before `ExcelWriter.AppendRecord()` is called. `ParseDetailRowWriter` then reads
+> whichever is present — no change needed to the write layer.
+>
+> **HTML DFC table structure** (from `pcm_report.html` inspection):
+> The `pcm_report.html` / `codes.xml` General Characteristics block contains the full
+> DFC result. The exact HTML table structure needs one live HTML capture with a GS1 symbol
+> to confirm the `<td>` layout before implementing the scraper extension.
+> *(Not yet implemented — unblocked, do on request.)*
+>
 > **Level 2 (per-scan-line) outline level**: NOT yet set; `PerScanTableWriter` still writes
 > rows without `OutlineLevel`. Wire `SetRowOutlineLevel(row, 2)` + `SetRowHidden(row, true)`
 > inside `PerScanTableWriter.WriteScans()` loop — one-liner, unblocked, do on request.
