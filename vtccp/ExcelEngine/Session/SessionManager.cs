@@ -160,11 +160,14 @@ public sealed class SessionManager : IDisposable
         _writer = new ExcelWriter(_adapter, _schema, state);
         _writer.Open(_outputPath);
 
-        // Flush to disk immediately for file-based adapters so the .xlsx / .xls
-        // appears in the output folder as soon as the session starts (not waiting
-        // for the first scan record).  COM adapter is excluded — the workbook
-        // already exists on disk and flushing would overwrite user data in Excel.
-        if (_adapter is not ComExcelAdapter)
+        // Flush to disk immediately for NEW file-based sessions so the .xlsx / .xls
+        // appears in the output folder as soon as the session starts rather than
+        // waiting for the first scan record.
+        //   - Skipped for COM adapter: workbook already exists on disk.
+        //   - Skipped when resuming an existing file: already on disk, and
+        //     flushing would throw IOException if Excel currently has it open.
+        bool isNewFile = !File.Exists(_outputPath!);
+        if (_adapter is not ComExcelAdapter && isNewFile)
             _writer.Save();
 
         // ── Persist sidecar immediately ───────────────────────────────────────
