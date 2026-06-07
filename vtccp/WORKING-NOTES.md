@@ -314,12 +314,30 @@ a first-class feature when the WTC-style Excel mode is built.
 
 ---
 
+### Pointer cell location (VTCCP convention)
+
+**VTCCP will use Col A (column 1), hidden row 2.**
+
+- WTC used col 111 (far right, obscure). VTCCP moves it to col A for predictability.
+- Row 2 is hidden — not visible to the operator during normal use, but trivially
+  unhide-able in Excel if manual inspection or reset is needed.
+- A small read-only indicator in the VTCCP UI will show the current pointer value
+  (e.g. "Next row: 47") so the operator never needs to dig into the spreadsheet.
+- A "Reset Row Counter" button in VTCCP (exact placement TBD) resets col A / row 2
+  to the first data row (row 3) — useful when starting a new pass on the same file.
+
+**Open**: whether the counter lives only in the Excel cell or is mirrored in the
+session sidecar JSON. Mirroring in JSON allows VTCCP to recover the pointer if the
+Excel file is closed/reopened mid-session. Decision deferred.
+
+---
+
 ### Implementation sketch (COM path only)
 
 ```
 ExcelApplication app = GetActiveObject("Excel.Application");
 Worksheet ws = app.ActiveSheet;
-int pointerRow = (int)ws.Cells[2, 112].Value;   // col 111 = Excel col 112 (1-indexed)
+int pointerRow = (int)ws.Cells[2, 1].Value;   // Col A (1-indexed), hidden row 2
 int cursorRow  = app.ActiveCell.Row;
 
 bool cursorEmpty = IsCellRowEmpty(ws, cursorRow);  // check key data columns
@@ -336,6 +354,41 @@ else
 }
 WriteRecordToRow(ws, targetRow, record);
 ```
+
+---
+
+## WTC UI Reference — Screenshots Logged 2026-06-07
+
+Screenshots archived in `attached_assets/` (image_1780846508356, image_1780850312245).
+
+### "Webscan Excel Spreadsheet Functions" main dialog
+
+| State | Display |
+|---|---|
+| No job open | "No Job is Open" / "No Operator is defined" |
+| Job active | Job Name, Operator Name/Number, Roll Number shown |
+
+**Buttons**: New Job · Open Job · Close Job · Reclaim / Archive Job · Close and Archive Job ·
+Modify Template Spreadsheet · Set New Operator/Roll · Close Window · **Go Live**
+
+"Go Live" is the WTC equivalent of VTCCP's **Start Session** — activates real-time
+Excel capture. "Modify Template Spreadsheet" opens the blank template for layout editing.
+
+### "New Job" dialog
+
+Fields:
+- Job Name / Number (free text)
+- Operator Name / Number (free text)
+- Roll Number (free text)
+
+Button: **Create Spreadsheet** (creates the session Excel file from the template, opens it).
+
+**VTCCP mapping**: New Job ≈ Start Session. Fields map 1:1 to our existing
+`JobName`, `OperatorId`, `RollNumber` session fields. "Create Spreadsheet" ≈
+`SessionManager.StartSession()` → file creation + COM open.
+
+Key difference: WTC always creates a new file from template on "New Job". VTCCP
+also supports resuming an existing file ("Open Job" equivalent not yet built).
 
 ---
 
