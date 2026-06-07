@@ -20,9 +20,10 @@
             <TextBlock DockPanel.Dock="Right"
                        Text="{Binding BuildLabel}"
                        VerticalAlignment="Bottom"
-                       FontSize="11"
-                       Foreground="#888888"
-                       Margin="0,0,0,4" />
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="#4A90D9"
+                       Margin="0,0,0,6" />
         </DockPanel>
 
         <!-- ── Setup card ──────────────────────────────────────────── -->
