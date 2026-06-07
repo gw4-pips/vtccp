@@ -408,12 +408,14 @@ Level 0  ── Parent row (always visible)
              Summary scan result: grade columns, decoded data, overall grade.
              Identical to what VTCCP writes today.
 
-Level 1  ── Parse-detail child row (collapsed by default; expand at will)
+Level 1  ── Parse-detail child row (OPEN by default; auto-collapses via COM timer)
              One row per scan. Present for ALL parsed symbols (GS1-DM, GS1-QR,
              GS1 Code 128, etc.) whenever a DFC parse result exists.
              "Free-form" — indented label/value pairs, color-coded.
              Does NOT need to align to parent column headings.
-             Stays expanded until operator manually collapses it.
+             Written as Hidden=false (visible). COM timer collapses it after
+             user-configurable interval. Operator can expand/collapse freely
+             at any time via Excel outline buttons.
 
 Level 2  ── Per-scan-line child rows (further collapsed inside Level 1 group)
              One row per scan-line pass. Present for 1D symbols only.
@@ -424,22 +426,57 @@ Level 2  ── Per-scan-line child rows (further collapsed inside Level 1 group
 
 ### Visual treatment
 
-| Level | Outline level | Hidden? | Fill color | Indentation |
+| Level | Outline level | Hidden at write? | Fill color | Indentation |
 |---|---|---|---|---|
 | 0 — Parent | 0 | No | White / alternating | None |
-| 1 — Parse detail | 1 | Yes (collapsed) | Pale amber | One indent (col A label) |
+| 1 — Parse detail | 1 | **No (open)** → COM timer collapses | Pale amber | One indent (col A label) |
 | 2 — Scan-line passes | 2 | Yes (further collapsed) | Pale blue | None — align to parent cols |
 
 ### Level 1 — Parse-detail row format
 
-Uses option 3 (indent/label): column A gets a text label `"  → AI (10)"` or
-similar. Subsequent columns carry the AI values. All grade columns left blank.
-The header labels are intentionally "wrong" for these rows — color coding is
-the signal to the reader that this row has different semantics.
+Column A contains the sentinel label `"↳ Ignore Col Labels"` (or similar) in
+italic/gray, signaling to any reader that this row's column semantics differ
+from parent rows. Color coding (pale amber fill) is the second visual signal.
 
-**Alternative**: dedicated far-right columns that are always blank on parent and
-Level-2 rows — clean separation, no header mismatch. Decision deferred to
-implementation.
+**Content**: the GS1 syntax engine `HRI` property with `IncludeDataTitlesInHRI=true`
+returns one string per AI, e.g.:
+
+```
+GTIN (01) 00355513710213
+BATCH/LOT (10) A1234
+USE BY or EXPIRY (17) 261231
+SERIAL (21) SN-98765
+```
+
+These are joined with `" | "` and written as a single cell value starting at
+column B (or a dedicated parse column), in encoded data order:
+
+```
+GTIN (01) 00355513710213 | BATCH/LOT (10) A1234 | USE BY or EXPIRY (17) 261231 | SERIAL (21) SN-98765
+```
+
+The GS1 syntax engine dictionary (2026-01-27 release, bundled at
+`vtccp/lib/gs1-syntax-engine/`) contains all current GS1 AI short titles —
+no separate AI table needed.
+
+### Level 1 — COM auto-collapse timer
+
+Because VTCCP holds a live COM connection to the open Excel instance during a
+session, the "timer" lives entirely in C# — no VBA macro in the file needed:
+
+1. Row written with `Hidden = false` (open/visible at scan time)
+2. VTCCP starts a `System.Timers.Timer` (or `Task.Delay`) for the configured interval
+3. On elapsed: COM call → `ws.Rows[rowIndex].Hidden = true` → row collapses
+4. Operator can re-expand at any time via Excel's `+` outline button
+5. Interval is a VTCCP session setting (default TBD — suggest 10–30 seconds)
+
+If COM is not attached (EPPlus-only session, e.g. file not open in Excel),
+the row stays open indefinitely — no auto-collapse. This is acceptable because
+EPPlus sessions imply no live operator view.
+
+**Why COM is the right tool here**: The timer behavior is an interactive UX
+feature — it only makes sense when a human is watching the sheet in real time.
+That is exactly the scenario where COM is already attached.
 
 ### Level 2 — Scan-line row format
 
