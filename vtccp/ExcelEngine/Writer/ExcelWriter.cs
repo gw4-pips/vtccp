@@ -143,7 +143,7 @@ public sealed class ExcelWriter : IDisposable
         // OutlineLevel=1, starts visible; COM timer will auto-collapse via LastParseDetailRow.
         if (record.DataFormatCheck is not null)
         {
-            _parseDetailWriter.WriteParseDetailRow(_nextDataRow, record.DataFormatCheck);
+            _parseDetailWriter.WriteParseDetailRow(_nextDataRow, record.DataFormatCheck, record.SymbologyId);
             LastParseDetailRow = _nextDataRow;
             _nextDataRow++;
         }

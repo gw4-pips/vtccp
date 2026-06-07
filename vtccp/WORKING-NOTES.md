@@ -408,8 +408,16 @@ also supports resuming an existing file ("Open Job" equivalent not yet built).
 > - `SessionManager.cs` — checks `LastParseDetailRow` after each `AppendRecord`; calls
 >   `ScheduleRowHide` with `ParseDetailHideDelay = 20 s` (static field, easy to make configurable)
 >
-> **Actual HRI format** (from `DataFormatCheckResult.Rows` — uses existing parsed DFC data):
-> `[GS1 Application Data Format]  GS1 Header: <F1> | AI:GTIN: 01 | GTIN: 0123456789012 | ...`
+> **Actual HRI format** (revised 2026-06-07 — brevity-first):
+> `]d1 | GS1 | Header | GTIN: 0123456789012 | BatchLot: A1234`
+>
+> Format rules:
+> - Lead with AIM ID (`record.SymbologyId`), e.g. `]d2`
+> - Abbreviated standard: "GS1 Application Data Format" → "GS1", "MIL-STD-130" → "MIL-130"
+> - `AI:*` rows skipped (redundant AI code numbers)
+> - `Chk Digit` row skipped (internal GS1 decomposition)
+> - `GS1 Header` emitted as bare `Header` token, no `<F1>` data value (encoding artifact)
+> - All other rows → `{Name}: {Data}`, pipe-separated
 >
 > **Deviation from design**: The design called for GS1 syntax engine `HRI` property
 > (giving `"GTIN (01) 00355513710213"` format with AI number in parens). The implementation
