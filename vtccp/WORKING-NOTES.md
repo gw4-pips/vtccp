@@ -453,6 +453,36 @@ also supports resuming an existing file ("Open Job" equivalent not yet built).
 > to confirm the `<td>` layout before implementing the scraper extension.
 > *(Not yet implemented — unblocked, do on request.)*
 >
+> ---
+> **DESIGN DECISION LOGGED (2026-06-07) — Parse-detail HRI format + source hierarchy**
+>
+> **Confirmed cell format** (Symbology ID omitted — it is already prominent in the parent row):
+> ```
+> GS1 | HEADER: <F1> | GTIN (01) 00355513710213 | SERIAL (21) 100003289347 | [GS] | USE BY (17) 280331 | BATCH/LOT (10) 1197170
+> ```
+> Rules:
+> - Lead with abbreviated standard (`GS1` / `MIL-130` / `ISO-15434`)
+> - `HEADER: <F1>` — include the GS1 Header row with its `<F1>` data value (not suppressed)
+> - GS1 HRI style: `TITLE (AI) value` for each AI element
+> - `| [GS] |` appears as its own pipe-delimited segment wherever a GS separator (`0x1D`) occurs in the encoded data
+> - Symbology ID (`]d2` etc.) is NOT included — it is shown in the parent verification row
+>
+> **Source hierarchy for parse-detail content:**
+> 1. **PRIMARY — `DmstHtmlScraper` HTML report** (`pcm_report.html`): The DMST TruCheck
+>    report is the authoritative source. It contains not only the DFC AI table but also
+>    TruCheck-specific warnings, quality notes, and other data that are ONLY available
+>    in the HTML report and cannot be obtained from push XML or `DecodedData` alone.
+>    The scraper extension to parse the DFC/AI section of the HTML is the correct path.
+> 2. **FALLBACK — hand-parse of `VerificationRecord.DecodedData`**: Pure C#, no native
+>    DLL, builds on all platforms. Split on `0x1D`, extract AI codes, look up titles from
+>    the bundled `gs1-syntax-dictionary.txt`. Use only when HTML report data is absent.
+>    The GS1 syntax engine DLL is NOT to be referenced from ExcelEngine (breaks Linux build).
+>
+> **Not yet resolved — deferred:**
+> - Operator UI choices (how to surface warnings, what to show/hide)
+> - Exact HTML `<td>` layout for the DFC/AI table in `pcm_report.html` — requires one
+>   live HTML capture from a GS1 symbol scan to confirm before implementing the scraper extension
+>
 > **Level 2 (per-scan-line) outline level**: NOT yet set; `PerScanTableWriter` still writes
 > rows without `OutlineLevel`. Wire `SetRowOutlineLevel(row, 2)` + `SetRowHidden(row, true)`
 > inside `PerScanTableWriter.WriteScans()` loop — one-liner, unblocked, do on request.
