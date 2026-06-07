@@ -22,6 +22,13 @@ using VtccpApp.Commands;
 /// </summary>
 public sealed class SessionViewModel : ViewModelBase
 {
+    // ── Build label ───────────────────────────────────────────────────────────
+
+    public static string BuildLabel =>
+        "Build: " + (System.Reflection.Assembly
+            .GetExecutingAssembly()
+            .GetName().Version?.ToString(3) ?? "?");
+
     // ── Scan mode ─────────────────────────────────────────────────────────────
 
     public enum ScanMode { Manual, AutoPoll, Push }

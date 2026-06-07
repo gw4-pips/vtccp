@@ -14,8 +14,16 @@
         </Grid.RowDefinitions>
 
         <!-- ── Page header ─────────────────────────────────────────── -->
-        <TextBlock Grid.Row="0" Text="Session Launcher"
-                   Style="{StaticResource SectionHeader}" />
+        <DockPanel Grid.Row="0" LastChildFill="False">
+            <TextBlock Text="Session Launcher"
+                       Style="{StaticResource SectionHeader}" />
+            <TextBlock DockPanel.Dock="Right"
+                       Text="{Binding BuildLabel}"
+                       VerticalAlignment="Bottom"
+                       FontSize="11"
+                       Foreground="#888888"
+                       Margin="0,0,0,4" />
+        </DockPanel>
 
         <!-- ── Setup card ──────────────────────────────────────────── -->
         <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,10">
