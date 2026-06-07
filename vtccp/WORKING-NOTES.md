@@ -392,6 +392,101 @@ also supports resuming an existing file ("Open Job" equivalent not yet built).
 
 ---
 
+## FEATURE DESIGN — Three-Level Excel Row Structure (2026-06-07)
+
+### Concept origin
+OptiDoc (PIPS/Viktor) was the only tool to put per-scan-line data into the
+spreadsheet as hidden child rows beneath the summary parent. Webscan/WTC never
+did this. VTCCP will implement and extend the concept to cover both scan-line
+children AND parse-detail children, using Excel's native outline/grouping to
+create a three-level hierarchy.
+
+### Three-level row hierarchy
+
+```
+Level 0  ── Parent row (always visible)
+             Summary scan result: grade columns, decoded data, overall grade.
+             Identical to what VTCCP writes today.
+
+Level 1  ── Parse-detail child row (collapsed by default; expand at will)
+             One row per scan. Present for ALL parsed symbols (GS1-DM, GS1-QR,
+             GS1 Code 128, etc.) whenever a DFC parse result exists.
+             "Free-form" — indented label/value pairs, color-coded.
+             Does NOT need to align to parent column headings.
+             Stays expanded until operator manually collapses it.
+
+Level 2  ── Per-scan-line child rows (further collapsed inside Level 1 group)
+             One row per scan-line pass. Present for 1D symbols only.
+             Data IS aligned to parent column headings (same grade columns).
+             Count is variable — read from firmware data, never hardcoded.
+             (Default in DMST is 10, but configurable.)
+```
+
+### Visual treatment
+
+| Level | Outline level | Hidden? | Fill color | Indentation |
+|---|---|---|---|---|
+| 0 — Parent | 0 | No | White / alternating | None |
+| 1 — Parse detail | 1 | Yes (collapsed) | Pale amber | One indent (col A label) |
+| 2 — Scan-line passes | 2 | Yes (further collapsed) | Pale blue | None — align to parent cols |
+
+### Level 1 — Parse-detail row format
+
+Uses option 3 (indent/label): column A gets a text label `"  → AI (10)"` or
+similar. Subsequent columns carry the AI values. All grade columns left blank.
+The header labels are intentionally "wrong" for these rows — color coding is
+the signal to the reader that this row has different semantics.
+
+**Alternative**: dedicated far-right columns that are always blank on parent and
+Level-2 rows — clean separation, no header mismatch. Decision deferred to
+implementation.
+
+### Level 2 — Scan-line row format
+
+Columns exactly match parent grade columns. Parent holds the summary
+(average or minimum, per ISO 15416). Each Level-2 child holds the per-pass
+individual measurement. Identity columns (Date, Time, Operator, etc.) are blank
+on child rows — they inherit context from the parent above.
+
+### Applicability by symbol type
+
+| Symbol type | Level 1 (parse) | Level 2 (scan lines) |
+|---|---|---|
+| GS1 DM / GS1 QR | Yes (if DFC result present) | No (2D per-module data on separate sheets) |
+| GS1 Code 128 / EAN / UPC | Yes | Yes (N scan-line passes) |
+| Plain DM / QR (no GS1 parse) | No | No |
+| Plain 1D (no GS1 parse) | No | Yes |
+
+### Excel mechanics
+
+- `row.OutlineLevel = 1` + `row.Hidden = true` → Level 1 (EPPlus / NPOI both support)
+- `row.OutlineLevel = 2` + `row.Hidden = true` → Level 2
+- `sheet.SetRowGroupCollapsed(rowIndex, true)` → collapsed by default
+- Operator uses Excel's native `+`/`−` outline buttons to expand/collapse
+- No macro required — all set at file-creation time
+
+### Row pointer interaction (cursor-aware insert)
+
+The row pointer (Col A, hidden row 2) must advance past ALL child rows of the
+previous parent — not just `+1`. On each new scan, VTCCP must:
+1. Read pointer (first empty parent slot)
+2. Write parent row at pointer
+3. Write Level 1 child row at pointer+1 (if parse data present)
+4. Write Level 2 children at pointer+2 … pointer+1+N (if scan lines present)
+5. Advance pointer to pointer + 1 + (1 if parse) + N_scan_lines
+
+### Open questions
+
+- Where does per-scan-line grade data come from for 1D? Push XML sub-table,
+  or DmstHtmlScraper? Check `PerScanTableWriter.cs` — it writes a separate sheet
+  today; determine if that data should also feed Level-2 child rows on main sheet.
+- Level 1 column layout: dedicated far-right cols vs. repurposed left cols with
+  color signal — decide at implementation time.
+- Should Level-2 rows carry the Formal Grade / Overall Letter columns populated,
+  or only the raw per-parameter values?
+
+---
+
 ## Key code locations (reference only — do not edit without instruction)
 
 | Topic | File | Lines |
