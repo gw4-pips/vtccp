@@ -11,6 +11,7 @@ using ExcelEngine.Schema;
 using ExcelEngine.Session;
 using OcrEngine;
 using VtccpApp.Commands;
+using VtccpApp.Views;
 
 /// <summary>
 /// Drives the Session Launcher page.
@@ -48,6 +49,7 @@ public sealed class SessionViewModel : ViewModelBase
     private bool                                _isRunning;
     private string                              _statusMessage = "Ready.";
     private int                                 _recordCount;
+    private LiveFeedWindow?                     _liveFeedWindow;
 
     // ── OCR ───────────────────────────────────────────────────────────────────
 
@@ -231,6 +233,7 @@ public sealed class SessionViewModel : ViewModelBase
     public RelayCommand SetPushCommand          { get; }
     public RelayCommand ReadSupplementalCommand  { get; }
     public RelayCommand WriteSupplementalCommand { get; }
+    public RelayCommand OpenLiveFeedCommand      { get; }
 
     public SessionViewModel(ConfigRepository repo, HistoryViewModel history)
     {
@@ -255,6 +258,10 @@ public sealed class SessionViewModel : ViewModelBase
         WriteSupplementalCommand = new RelayCommand(
             async () => await OnWriteSupplementalAsync(),
             () => SelectedDevice is not null && !_isApplyingSupplemental);
+
+        OpenLiveFeedCommand = new RelayCommand(
+            OnOpenLiveFeed,
+            () => SelectedDevice is not null);
 
         Reload();
     }
@@ -781,11 +788,32 @@ public sealed class SessionViewModel : ViewModelBase
 
     // ── UPC/EAN Supplemental read / write ─────────────────────────────────────
 
+    // ── Live Feed window ──────────────────────────────────────────────────────
+
     /// <summary>
-    /// Opens a short-lived DMCC connection to read the current supplemental mode
-    /// from firmware and update the radio button selection to match.
-    /// Works independently of whether a session is running.
+    /// Opens the Live Feed window for the currently selected device.
+    /// If a window is already open for this device, brings it to the front instead
+    /// of opening a second instance.
     /// </summary>
+    private void OnOpenLiveFeed()
+    {
+        if (SelectedDevice is null) return;
+
+        if (_liveFeedWindow is not null)
+        {
+            _liveFeedWindow.Activate();
+            return;
+        }
+
+        var vm     = new LiveFeedViewModel(SelectedDevice.Host, SelectedDevice.Port);
+        var window = new LiveFeedWindow(vm) { Owner = Application.Current.MainWindow };
+        _liveFeedWindow = window;
+        window.Closed += (_, _) => _liveFeedWindow = null;
+        window.Show();
+    }
+
+    // ── Supplemental commands ─────────────────────────────────────────────────
+
     private async Task OnReadSupplementalAsync()
     {
         if (SelectedDevice is null) return;

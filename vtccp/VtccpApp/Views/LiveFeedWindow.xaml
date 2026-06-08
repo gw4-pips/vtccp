@@ -1,0 +1,85 @@
+<Window x:Class="VtccpApp.Views.LiveFeedWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Live View"
+        Width="920" Height="700"
+        MinWidth="580" MinHeight="460"
+        Background="{StaticResource SurfaceBrush}"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />   <!-- header -->
+            <RowDefinition Height="*"    />   <!-- image panel -->
+            <RowDefinition Height="Auto" />   <!-- status bar -->
+            <RowDefinition Height="Auto" />   <!-- button bar -->
+        </Grid.RowDefinitions>
+
+        <!-- ── Header ────────────────────────────────────────────────────── -->
+        <TextBlock Grid.Row="0"
+                   Text="Live View"
+                   Style="{StaticResource SectionHeader}"
+                   Margin="0,0,0,12" />
+
+        <!-- ── Image panel ───────────────────────────────────────────────── -->
+        <Border Grid.Row="1"
+                Style="{StaticResource Card}"
+                Margin="0,0,0,10"
+                Padding="0">
+            <Grid>
+                <!-- Camera image -->
+                <Image Source="{Binding LiveImage}"
+                       Stretch="Uniform"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+
+                <!-- Placeholder shown until the first IMAGE.SEND frame arrives -->
+                <TextBlock Text="No image — press Go Live to start the camera feed."
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="14"
+                           Foreground="{StaticResource TextSecondaryBrush}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding LiveImage}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </Border>
+
+        <!-- ── Status bar ────────────────────────────────────────────────── -->
+        <Border Grid.Row="2"
+                Style="{StaticResource Card}"
+                Margin="0,0,0,10"
+                Padding="10,7">
+            <TextBlock Text="{Binding StatusText}"
+                       FontSize="13"
+                       FontStyle="Italic"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       TextTrimming="CharacterEllipsis" />
+        </Border>
+
+        <!-- ── Button bar ─────────────────────────────────────────────────── -->
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button Content="{Binding GoLiveVerifyLabel}"
+                    Style="{StaticResource PrimaryButton}"
+                    Command="{Binding GoLiveVerifyCommand}"
+                    Padding="20,8"
+                    Margin="0,0,10,0"
+                    MinWidth="110" />
+            <Button Content="Cancel Live Feed"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding CancelCommand}"
+                    Padding="16,8"
+                    MinWidth="140" />
+        </StackPanel>
+    </Grid>
+</Window>

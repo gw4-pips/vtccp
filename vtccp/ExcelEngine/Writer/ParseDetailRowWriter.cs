@@ -26,7 +26,7 @@ using ExcelEngine.Schema;
 /// Row properties:
 ///   OutlineLevel = 1  (Level-1 child of Level-0 parent)
 ///   Hidden       = false (visible by default)
-///   Background   = pale amber (#FFF2CC)
+///   Background   = very pale blue (#DCF1F8)
 ///
 /// For COM live mode, ExcelWriter exposes LastParseDetailRow so SessionManager can
 /// call IExcelAdapter.ScheduleRowHide() to auto-collapse the row after a configurable
@@ -34,7 +34,7 @@ using ExcelEngine.Schema;
 /// </summary>
 public sealed class ParseDetailRowWriter
 {
-    private const uint   AmberFill = 0xFFFFF2CC;
+    private const uint   PaleBlueFill = 0xFFDCF1F8;
     private const string Sentinel  = "↳";
 
     private readonly IExcelAdapter _adapter;
@@ -61,7 +61,7 @@ public sealed class ParseDetailRowWriter
         if (!string.IsNullOrEmpty(hri))
             _adapter.WriteString(row, 2, hri);
 
-        _adapter.SetRowBackground(row, _colCount, AmberFill);
+        _adapter.SetRowBackground(row, _colCount, PaleBlueFill);
         _adapter.SetRowOutlineLevel(row, 1);
         // Starts visible; COM auto-collapse timer fires via SessionManager → ScheduleRowHide.
     }
