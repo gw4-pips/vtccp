@@ -15,9 +15,9 @@ using System.Text;
 ///      TRIGGER.TYPE is left at 0 (Single/External) throughout; the
 ///      polling loop is the only thing that changes the acquisition rate.
 ///   4. Waits <see cref="AcquireWaitMs"/> ms for the acquisition to complete.
-///   5. Sends IMAGE.SEND — retrieves the full camera frame at whatever
-///      IMAGE.SIZE / IMAGE.FORMAT / IMAGE.QUALITY the device currently has
-///      (clean-state: SIZE=1 = 1224×1024, FORMAT=1 = JPEG, QUALITY=50).
+///   5. Sends IMAGE.SEND — retrieves the full 2448×2048 sensor frame as a
+///      JPEG (IMAGE.FORMAT=1, IMAGE.QUALITY=50 at clean-state).
+///      IMAGE.SIZE does not downscale IMAGE.SEND output — device-confirmed.
 ///   6. Strips any DMCC text preamble by locating the JPEG SOI marker.
 ///
 /// Matches DMST Go Live behaviour: TRIGGER ON every ~400 ms, no
