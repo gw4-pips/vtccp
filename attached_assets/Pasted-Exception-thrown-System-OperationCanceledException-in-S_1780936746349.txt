@@ -1,0 +1,33 @@
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4628 B)
+[VTCCP-HTTP-SUB] PUT /vs.cfg HTTP/1.1 (192 B)
+[VTCCP-LIVEFEED] TRIGGER ACK: ||:::2[0]
+[VTCCP-LIVEFEED] TRIGGER ON sent via raw TCP.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120042 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (185842 B)
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] Push XML decoded: 21555 chars.
+[VTCCP-VALID] 5 discrepancy(s) — 12:37:59:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=35.4,Html=0.4
+  ErrorsCorrected:Push=2,Html=null
+  ErrCapUsed:Push=4,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (119049 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4632 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4632 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] Receive loop ended.
+[VTCCP-HTTP-SUB] Stopped.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] TRIGGER.TYPE set to 0.
+The thread 46788 has exited with code 0 (0x0).
+The thread '.NET TP Worker' (37896) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (44464) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (55844) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (16408) has exited with code 0 (0x0).
