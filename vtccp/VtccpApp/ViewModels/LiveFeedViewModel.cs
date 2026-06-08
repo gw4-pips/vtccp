@@ -99,6 +99,13 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     {
         StopSubscriber();
         StartSubscriber();
+
+        // Put the device in Continuous trigger mode so the image buffer is refreshed on
+        // every scan cycle — IMAGE.SEND then returns a live frame on each timer tick.
+        // The timer starts after the SET fires (fire-and-forget; first tick may be blank
+        // if the command hasn't completed yet, which is harmless).
+        _ = SetTriggerTypeAsync(5);
+
         StartTimer();
 
         _state = FeedState.Live;
@@ -110,7 +117,8 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     {
         StopTimer();
 
-        // Fire trigger on a background thread; UI state transitions to Frozen immediately.
+        // Restore Single trigger mode and fire TRIGGER ON in one TCP session so there
+        // is no race window where a stale Continuous result arrives between the two commands.
         _ = SendTriggerAsync();
 
         _state = FeedState.Frozen;
@@ -122,6 +130,9 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     {
         StopTimer();
         StopSubscriber();
+
+        // Restore Single trigger mode before leaving.
+        _ = SetTriggerTypeAsync(0);
 
         _state = FeedState.Idle;
         StatusText = LiveImage is null
@@ -185,18 +196,18 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
             }
             catch { }
 
-            // Switch to Extended ACK mode so TRIGGER ON gets a ||[0]\r\n response.
-            byte[] modeCmd = System.Text.Encoding.ASCII.GetBytes(
-                $"{DmccCommand.WireHeader}{DmccCommand.SetDmccResponseExtended}\r\n");
-            await stream.WriteAsync(modeCmd, totalCts.Token);
-            try
-            {
-                using var ac = new CancellationTokenSource(600);
-                await stream.ReadAsync(new byte[64], ac.Token);
-            }
-            catch { }
+            // Extended ACK mode.
+            await WriteAndDrainAsync(stream,
+                $"{DmccCommand.WireHeader}{DmccCommand.SetDmccResponseExtended}\r\n",
+                600, totalCts.Token);
 
-            // TRIGGER ON.
+            // Restore Single trigger mode (stops Continuous scanning) before firing
+            // the verification trigger so no stale Continuous result can race in.
+            await WriteAndDrainAsync(stream,
+                $"{DmccCommand.WireHeader}SET TRIGGER.TYPE 0\r\n",
+                800, totalCts.Token);
+
+            // TRIGGER ON — fires the TruCheck verification scan.
             byte[] trigCmd = System.Text.Encoding.ASCII.GetBytes(
                 $"{DmccCommand.WireHeader}{DmccCommand.TriggerOn}\r\n");
             await stream.WriteAsync(trigCmd, totalCts.Token);
@@ -229,6 +240,67 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
         }
     }
 
+    /// <summary>
+    /// Sends <c>SET TRIGGER.TYPE <paramref name="triggerType"/></c> via a short-lived
+    /// raw TCP connection on port 23.  Used to switch between Continuous (5) for live
+    /// polling and Single (0) for idle / post-verify restore.
+    /// </summary>
+    private async Task SetTriggerTypeAsync(int triggerType)
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(3_000);
+            using var tcp = new System.Net.Sockets.TcpClient();
+            await tcp.ConnectAsync(_host, DmccCommand.RawDmccPort, cts.Token);
+            using var stream = tcp.GetStream();
+
+            try
+            {
+                using var bc = new CancellationTokenSource(300);
+                await stream.ReadAsync(new byte[512], bc.Token);
+            }
+            catch { }
+
+            await WriteAndDrainAsync(stream,
+                $"{DmccCommand.WireHeader}{DmccCommand.SetDmccResponseExtended}\r\n",
+                600, cts.Token);
+
+            await WriteAndDrainAsync(stream,
+                $"{DmccCommand.WireHeader}SET TRIGGER.TYPE {triggerType}\r\n",
+                800, cts.Token);
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-LIVEFEED] TRIGGER.TYPE set to {triggerType}.");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-LIVEFEED] SetTriggerType({triggerType}) failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Writes an ASCII command to <paramref name="stream"/> then reads (and discards)
+    /// the ACK within <paramref name="drainMs"/> milliseconds.  Swallows all errors
+    /// so a missed ACK never blocks the caller.
+    /// </summary>
+    private static async Task WriteAndDrainAsync(
+        System.Net.Sockets.NetworkStream stream,
+        string                           command,
+        int                              drainMs,
+        CancellationToken                ct)
+    {
+        await stream.WriteAsync(
+            System.Text.Encoding.ASCII.GetBytes(command), ct);
+        try
+        {
+            using var drain = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            drain.CancelAfter(drainMs);
+            await stream.ReadAsync(new byte[64], drain.Token);
+        }
+        catch { }
+    }
+
     // ── HTTP result subscriber ────────────────────────────────────────────────
 
     private void StartSubscriber()
@@ -258,6 +330,10 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     /// </summary>
     private void OnResultReceived(VerificationRecord record)
     {
+        // In Continuous trigger mode (Live state) the subscriber fires on every scan cycle.
+        // Only process the result that was deliberately requested via Verify.
+        if (_state != FeedState.Frozen) return;
+
         System.Windows.Application.Current?.Dispatcher.Invoke(() =>
         {
             // Replace the frozen IMAGE.SEND frame with the barcode-crop JPEG from the result.
@@ -312,5 +388,8 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     {
         StopTimer();
         StopSubscriber();
+        // Always restore Single trigger mode so the device doesn't stay in Continuous
+        // after the window is closed (fire-and-forget — best effort on teardown).
+        _ = SetTriggerTypeAsync(0);
     }
 }
