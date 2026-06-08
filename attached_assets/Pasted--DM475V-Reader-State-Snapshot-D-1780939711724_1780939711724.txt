@@ -1,0 +1,118 @@
+=================================================================
+  DM475V Reader State Snapshot
+  Device  : 10.10.10.7:23
+  PC time : 2026-06-08 13:26:32
+  Output  : C:\Users\Administrator\Desktop\DM-Baseline\DM-KnownGood-Snapshot_2026-06-08_132632.txt
+=================================================================
+
+  Connected.
+
+  LIVEIMG.MODE                                            = 0
+  DATA.IMAGE-TYPE                                         = 0
+  DATA.RESULT-TYPE                                        = 513
+  DATA.RESULT-ENCODING                                    = 0
+  DATA.RESULT-ALWAYSSEND                                  = 513
+  COM.DMCC-RESPONSE                                       = 0
+  COM.DMCC-CHECKSUM                                       = 0
+  COM.DMCC-HEADER                                         = 0
+  COM.DMCC-TARGET                                         = (no response)
+  COM.DMCC-DEFAULT-TARGET                                 = (no response)
+  COM.BUFFER-MODE                                         = (no response)
+  COM.BUFFER-AUTO-FLUSH                                   = (no response)
+  COM.SCRIPT-ENABLED                                      = OFF
+  COM.PROTOCOL                                            = (no response)
+  IMAGEBUFFER.IMAGE-TYPE                                  = 0
+  IMAGEBUFFER.IMG-TYPE                                    = (no response)
+  IMAGEBUFFER.RECORD-TYPE                                 = 0
+  IMAGEBUFFER.FORMAT                                      = 0
+  IMAGEBUFFER.SIZE                                        = 0
+  IMAGEBUFFER.QUALITY                                     = 50
+  IMAGEBUFFER.MAX-NUM                                     = 6
+  IMAGEBUFFER.MAX-IMAGES-PER-RESULT                       = 0
+  IMAGEBUFFER.NUM                                         = 0
+  IMAGEBUFFER.ALLOW-OVERWRITE                             = ON
+  IMAGEBUFFER.DELETE-AFTER-TRANSFER                       = ON
+  IMAGEBUFFER.TRANSFER-MODE                               = 0
+  IMAGEBUFFER.OVERLAY                                     = OFF
+  IMAGEBUFFER.GOOD-IMAGE-MODE                             = 0
+  IMAGEBUFFER.NO-READ-IMAGE-NUMBER                        = 1
+  IMAGEBUFFER.NO-READ-IMAGE-PERIOD                        = 1
+  IMAGEBUFFER.RECORD                                      = (no response)
+  IMAGEBUFFER.SUPPRESS-GOOD-READ-IMAGES-NOT-IN-RESULT     = OFF
+  IMAGEBUFFER.SUPPRESS-IMAGES-WITH-NO-CODE                = OFF
+  IMG.MODE                                                = (no response)
+  IMAGE.FORMAT                                            = 1
+  IMAGE.SIZE                                              = 1
+  IMAGE.QUALITY                                           = 50
+  IMAGE.SERVER-TYPE                                       = (no response)
+  IMAGE.PORT                                              = (no response)
+  IMAGE.IDLE-TIME                                         = (no response)
+  IMAGE.IDLE-LIMIT                                        = (no response)
+  RESULT.ENABLE                                           = (no response)
+  RESULT.SERVER-TYPE                                      = (no response)
+  RESULT.PORT                                             = (no response)
+  RESULT.IDLE-TIME                                        = (no response)
+  RESULT.IDLE-LIMIT                                       = (no response)
+  RESULT.NO-READ-STRING                                   = (no response)
+  RESULT.APPEND                                           = (no response)
+  TRIGGER.TYPE                                            = 0
+  TRIGGER.POLARITY                                        = (no response)
+  TRIGGER.DELAY-TYPE                                      = 0
+  TRIGGER.DEBOUNCE-DELAY                                  = 2
+  CAMERA.FOV-ENABLED                                      = OFF
+  CAMERA.MIRROR-HORIZONTAL                                = ON
+  CAMERA.MIRROR-VERTICAL                                  = ON
+  CAMERA.AUTO-REGULATION                                  = ON
+  CAMERA.TARGET-BRIGHTNESS                                = (no response)
+  CAMERA.HDR-MODE                                         = 0
+  FOCUS.FEEDBACK                                          = OFF
+  HPIT.AUTOFOCUS-CONTROL-ENABLE                           = (no response)
+  DECODER.ROI                                             = 0 2448 0 2048
+  DECODER.REREAD-MODE                                     = 0
+  DECODER.TIMEOUT                                         = 2000
+  DECODER.NO-READ-FEEDBACK                                = (no response)
+  DECODER.DISPLAY-TARGET                                  = ON
+  TRUCHECK.APPLICATION-STANDARD                           = 4
+  TRUCHECK.GRADING-STANDARD                               = 0
+  TRUCHECK.APERTURE                                       = 0
+  TRUCHECK.APERTURE-SIZE                                  = 80
+  TRUCHECK.DOT-PEEN                                       = OFF
+  TRUCHECK.METRIC-UNITS                                   = OFF
+  TRUCHECK.APPLICATION-CUSTOM-PASS-GRADE                  = 15
+  TRUCHECK.APPLICATION-CUSTOM-MINIMUM-X-DIM               = 50
+  TRUCHECK.APPLICATION-CUSTOM-MAXIMUM-X-DIM               = 300
+  TRUCHECK.AUTO-BATCH                                     = OFF
+  TRUCHECK.BATCH-NUMBER                                   = (no response)
+  TRUCHECK.OPERATOR-NAME                                  = GW4
+  TRUCHECK.COMPANY-NAME                                   = Product Identification and Processing Systems, Inc.
+  TRUCHECK.CUSTOM-NOTE                                    = CUSTOM NOTE
+  TRUCHECK.ISO15415-VERSION                               = 1
+  TRUCHECK.ISO15416-VERSION                               = 1
+  TRUCHECK.ISO29158-VERSION                               = 2
+  TRUCHECK.CALIBRATION-DATE                               = 6/8/2026 5:25:23 PM
+  SYMBOL.DATAMATRIX                                       = ON
+  SYMBOL.QR                                               = ON
+  SYMBOL.C128                                             = ON
+  SYMBOL.C93                                              = ON
+  SYMBOL.C39                                              = ON
+  SYMBOL.CODABAR                                          = ON
+  SYMBOL.I2O5                                             = ON
+  SYMBOL.UPC-EAN                                          = ON
+  SYMBOL.PDF417                                           = OFF
+  SYMBOL.DATABAR                                          = OFF
+  UPC-EAN.SUPPLEMENT                                      = 0
+  TRAIN.AUTO-DISABLE                                      = ON
+  DEVICE.TYPE                                             = DM475
+  DEVICE.FIRMWARE-VER                                     = 6.1.16_sr4
+  DEVICE.NAME                                             = DM475-63530E-PIPS-Verif-Lab
+  DEVICE.SERIAL-NUMBER                                    = 1A1903PP010754
+  NTP.ENABLE                                              = ON
+  NTP.SERVER1                                             = time.nist.gov
+  NTP.SERVER2                                             = 132.163.96.1
+  DEVICE.TIMEZONE                                         = America/New_York
+
+=================================================================
+  Snapshot saved: C:\Users\Administrator\Desktop\DM-Baseline\DM-KnownGood-Snapshot_2026-06-08_132632.txt
+=================================================================
+
+PS C:\Users\Administrator>
