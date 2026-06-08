@@ -8,7 +8,7 @@ description: Three distinct image sources on DataMan DM475V/DM395V. Clean-state 
 | Level | Name | Source | Size | VTCCP status |
 |---|---|---|---|---|
 | 1 | Barcode crop | `r.trucheck.jpegImage` → `VerificationRecord.JpegImageBase64` | ~200–600 px (firmware bounding box) | COMPLETE |
-| 2 | Full camera frame | `IMAGE.SEND` via raw TCP port 23 | **2448×2048** (device-confirmed — IMAGE.SIZE does not downscale IMAGE.SEND) | IMPLEMENTED in LiveFeedClient |
+| 2 | Full camera scene | `IMAGE.SEND` via raw TCP port 23 | IMAGE.SIZE-dependent: at DMST default IMAGE.SIZE=1 (1/4 area) = **1224×1024**. Full sensor = 2448×2048 (IMAGE.SIZE=0). | IMPLEMENTED in LiveFeedClient |
 | 3 | Full sensor frame | `DataManSystem.GetLastReadImage()` SDK | 2448×2048 DM475V/DM395V | Not started |
 
 **Why:** DMST crops verification panel image to barcode symbol only (not full ROI). Confirmed by user 2026-05-26. HRI and surrounding label text (lot numbers, expiry dates, IUID strings) are OUTSIDE the barcode crop for all symbologies except UPC/EAN.
@@ -27,9 +27,9 @@ description: Three distinct image sources on DataMan DM475V/DM395V. Clean-state 
 | `TRIGGER.TYPE` | 0 | Single/External — **NEVER change this** |
 | `LIVEIMG.MODE` | 0 | Stay at 0; setting to 2 caused NVRAM corruption previously |
 | `IMAGE.FORMAT` | 1 | JPEG |
-| `IMAGE.SIZE` | 1 | DMST TruCheck default. Does NOT downscale IMAGE.SEND — device-confirmed that IMAGE.SEND returns full 2448×2048. IMAGE.SIZE may only affect IMAGEBUFFER storage. |
+| `IMAGE.SIZE` | 1 | DMST TruCheck default. DMCC: 0=Full(2448×2048), 1=1/4(1224×1024), 2=1/16, 3=1/64. IMAGE.SEND output is at this resolution. |
 | `IMAGE.QUALITY` | 50 | JPEG quality |
-| `DECODER.ROI` | 0 2448 0 2048 | Full sensor space — coordinates in 2448×2048 pixel space, 1:1 with IMAGE.SEND output |
+| `DECODER.ROI` | 0 2448 0 2048 | Sensor pixel space (0–2448, 0–2048). At IMAGE.SIZE=1, IMAGE.SEND is 1224×1024 → scale ROI coords by 0.5 to map to displayed image. |
 
 ## Go Live architecture (confirmed from DMST Wireshark + clean-state snapshot)
 

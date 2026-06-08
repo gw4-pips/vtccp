@@ -28,10 +28,10 @@ using VtccpApp.Commands;
 ///
 /// Image source
 /// ────────────
-/// Live frames come from IMAGE.SEND — full 2448×2048 sensor frame (JPEG).
-/// IMAGE.SIZE does not downscale IMAGE.SEND output (device-confirmed).
-/// The L1 barcode-crop JPEG from push XML JpegImageBase64 is deliberately
-/// NOT used to replace the live frame — the full camera image stays visible.
+/// Live frames come from IMAGE.SEND — the full camera scene (not barcode-
+/// cropped) at the current IMAGE.SIZE resolution.  At DMST default
+/// IMAGE.SIZE=1 (1/4 area) the output is 1224×1024 JPEG.
+/// The L1 barcode-crop from push XML JpegImageBase64 is not used here.
 /// </summary>
 public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
 {
