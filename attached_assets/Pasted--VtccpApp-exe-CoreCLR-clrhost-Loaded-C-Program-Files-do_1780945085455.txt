@@ -1,0 +1,180 @@
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\System.Windows.Controls.Ribbon.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\WindowsFormsIntegration.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'c:\program files\microsoft visual studio\18\community\common7\ide\commonextensions\microsoft\xamldiagnostics\Core\x64\Microsoft.VisualStudio.DesignTools.WpfTap.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.Tracing.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Threading.Tasks.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Serialization.Json.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.DataContractSerialization.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Serialization.Xml.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Serialization.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Resources.ResourceManager.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationUI.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Runtime.Serialization.Formatters.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Net.Sockets.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] Subscribed to 10.10.10.7:44444/events. Receive loop starting.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] Trigger OK — drained 11 B.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120192 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187566 B)
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] Push XML decoded: 21384 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:57:17:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=2,Html=null
+  ErrCapUsed:Push=4,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117352 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4642 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4642 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND: no JPEG SOI in 20872 B.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] Trigger OK — drained 11 B.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120291 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187750 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21483 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:57:18:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=2,Html=null
+  ErrCapUsed:Push=4,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117432 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND: no JPEG SOI in 20971 B.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] Trigger OK — drained 11 B.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120244 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187620 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21436 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:57:20:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=2,Html=null
+  ErrCapUsed:Push=4,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117390 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND: no JPEG SOI in 20924 B.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] Trigger OK — drained 11 B.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120260 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187821 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21451 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:57:21:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=2,Html=null
+  ErrCapUsed:Push=4,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117453 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND: no JPEG SOI in 20939 B.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] Trigger OK — drained 11 B.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120204 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187676 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21396 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:57:22:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=2,Html=null
+  ErrCapUsed:Push=4,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117420 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND: no JPEG SOI in 20884 B.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] Trigger OK — drained 11 B.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120308 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187841 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21500 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:57:23:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=2,Html=null
+  ErrCapUsed:Push=4,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117546 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND: no JPEG SOI in 20988 B.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] Trigger OK — drained 11 B.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationFramework-SystemXmlLinq.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120223 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187782 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21415 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:57:25:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=2,Html=null
+  ErrCapUsed:Push=4,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117384 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND: no JPEG SOI in 20903 B.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] TRIGGER ACK: ||:::2[0]
+[VTCCP-LIVEFEED] Verify TRIGGER ON sent.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120273 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (188180 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21466 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:57:26:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.9,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=2,Html=null
+  ErrCapUsed:Push=4,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117372 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4636 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] Receive loop ended.
+[VTCCP-HTTP-SUB] Stopped.

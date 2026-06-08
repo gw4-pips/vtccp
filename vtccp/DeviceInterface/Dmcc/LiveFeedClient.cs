@@ -5,34 +5,37 @@ using System.Net.Sockets;
 using System.Text;
 
 /// <summary>
-/// Fetches a fresh camera frame per timer tick using two dedicated TCP
-/// connections on port 23, operating completely independently of DMST.
+/// Fetches a fresh camera frame per timer tick on a single TCP port-23
+/// connection, operating completely independently of DMST.
 ///
-/// ── Phase 1 — trigger (connection A) ─────────────────────────────────────
-///   Enables extended ACK (COM.DMCC-RESPONSE=2), fires TRIGGER ON, then
-///   drains everything the device sends back.  With extended ACK the device
-///   delivers ||:::2[0]\r\n PLUS the full ~20 KB scan-result XML on that
-///   connection.  Keeping all of this data on connection A (which is closed
-///   before Phase 2) is the key invariant: no scan-result bytes can
-///   contaminate the IMAGE.SEND connection.
+/// Sequence:
+///   1. Connect, drain welcome banner.
+///   2. SET COM.DMCC-RESPONSE 0  — silent mode: TRIGGER ON fires a scan but
+///      the device sends NOTHING back on this connection.  The scan result
+///      travels only via the HTTP push channel (port 44444).  This is the
+///      key invariant: the TCP stream stays clean for IMAGE.SEND.
+///   3. TRIGGER ON — starts a TruCheck scan (TRIGGER.TYPE stays 0).
+///   4. Wait <see cref="ScanWaitMs"/> for the scan to complete.
+///      Typical scan time for a label in frame: 100–500 ms.
+///      DECODER.TIMEOUT (worst-case no-read): 2 000 ms.
+///      ScanWaitMs = 1 200 ms covers most reads; on a no-read the device
+///      has already given up at 2 000 ms and IMAGE.SEND returns the
+///      last good frame from the previous tick.
+///   5. IMAGE.SEND — returns last acquired frame as
+///      {byte_count}\r\n{binary JPEG}.
+///   6. FindJpegStart strips the text preamble and returns the JPEG bytes.
 ///
-/// ── Phase 2 — fetch (connection B) ───────────────────────────────────────
-///   Opens a fresh connection with NO extended ACK, issues IMAGE.SEND, and
-///   reads the binary JPEG response.  The stream is guaranteed clean.
-///
-/// TRIGGER.TYPE is never changed — stays at 0 throughout.
-/// IMAGE.SIZE controls output resolution (DMST default = 1 → 1224×1024).
+/// TRIGGER.TYPE is never changed.
+/// IMAGE.SIZE controls output resolution (default 1 = 1224×1024).
 /// </summary>
 public static class LiveFeedClient
 {
-    private const int ConnectTimeoutMs    = 2_000;
-    private const int TriggerAckTimeout  = 3_500;   // > DECODER.TIMEOUT (2 000 ms)
-    private const int IdleGapMs          = 200;
+    private const int ConnectTimeoutMs = 2_000;
+    private const int ScanWaitMs       = 1_200;   // wait after TRIGGER ON
+    private const int IdleGapMs        = 200;
 
     /// <summary>
-    /// Fires a software trigger on connection A (drains all result data there),
-    /// then retrieves the frame on fresh connection B.
-    /// Returns null on failure.
+    /// Returns a fresh JPEG frame, or null on failure.
     /// </summary>
     public static async Task<byte[]?> GetLiveImageAsync(
         string            host,
@@ -44,118 +47,52 @@ public static class LiveFeedClient
             using var totalCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             totalCts.CancelAfter(totalTimeoutMs);
 
-            // Phase 1 — trigger.  All scan-result XML stays on this connection.
-            await FireTriggerAndWaitAsync(host, totalCts.Token);
-
-            // Phase 2 — image.  Fresh connection, no XML contamination possible.
-            return await FetchFrameAsync(host, totalCts.Token);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-LIVEFEED] GetLiveImageAsync: {ex.GetType().Name}: {ex.Message}");
-            return null;
-        }
-    }
-
-    // ── Phase 1 ───────────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Dedicated trigger connection.  Enables extended ACK, fires TRIGGER ON,
-    /// drains the complete response (ACK + scan-result XML ≈ 20 KB), then
-    /// disposes the connection.  Returns when the stream has been idle for
-    /// IdleGapMs or the TriggerAckTimeout expires.
-    /// </summary>
-    private static async Task FireTriggerAndWaitAsync(
-        string host, CancellationToken ct)
-    {
-        try
-        {
             using var tcp = new TcpClient();
             using var connectCts =
-                CancellationTokenSource.CreateLinkedTokenSource(ct);
+                CancellationTokenSource.CreateLinkedTokenSource(totalCts.Token);
             connectCts.CancelAfter(ConnectTimeoutMs);
             await tcp.ConnectAsync(host, DmccCommand.RawDmccPort, connectCts.Token);
 
             using var stream = tcp.GetStream();
 
-            // Drain welcome banner.
+            // ── 1. Drain welcome banner ───────────────────────────────────────
             try
             {
                 using var bc =
-                    CancellationTokenSource.CreateLinkedTokenSource(ct);
-                bc.CancelAfter(300);
+                    CancellationTokenSource.CreateLinkedTokenSource(totalCts.Token);
+                bc.CancelAfter(400);
                 await stream.ReadAsync(new byte[512], bc.Token);
             }
             catch { }
 
-            // Extended ACK: TRIGGER ON will push ||:::2[0]\r\n + full XML here.
+            // ── 2. Silent mode: no response from device on this connection ────
+            //    Sends its own extended-ACK for this SET command (drain it),
+            //    then all subsequent commands — including TRIGGER ON — are
+            //    silent.  Scan result goes to HTTP push only.
             await WriteAndDrainAsync(stream,
-                $"{DmccCommand.WireHeader}{DmccCommand.SetDmccResponseExtended}\r\n",
-                300, ct);
+                $"{DmccCommand.WireHeader}SET COM.DMCC-RESPONSE 0\r\n",
+                400, totalCts.Token);
 
-            // Fire trigger (TRIGGER.TYPE stays 0 — never changed).
+            // ── 3. Fire trigger ───────────────────────────────────────────────
             await stream.WriteAsync(
                 Encoding.ASCII.GetBytes(
-                    $"{DmccCommand.WireHeader}{DmccCommand.TriggerOn}\r\n"), ct);
+                    $"{DmccCommand.WireHeader}{DmccCommand.TriggerOn}\r\n"),
+                totalCts.Token);
 
-            // Drain ALL response bytes:
-            //   • First byte arrives when scan completes (up to TriggerAckTimeout)
-            //   • Remainder (~20 KB XML) follows within IdleGapMs
-            byte[]? resp = await DrainTriggerResponseAsync(
-                stream, TriggerAckTimeout, ct);
-
-            if (resp is null)
-                System.Diagnostics.Debug.WriteLine(
-                    "[VTCCP-LIVEFEED] Trigger: no response (timeout / no-read).");
-            else
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-LIVEFEED] Trigger OK — drained {resp.Length} B.");
-
-            // Connection A is disposed here — scan-result bytes gone with it.
-        }
-        catch (Exception ex)
-        {
             System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-LIVEFEED] FireTrigger: {ex.GetType().Name}: {ex.Message}");
-        }
-    }
+                "[VTCCP-LIVEFEED] TRIGGER ON sent — waiting for scan.");
 
-    // ── Phase 2 ───────────────────────────────────────────────────────────────
+            // ── 4. Wait for scan completion ───────────────────────────────────
+            //    Stream is silent; we wait a fixed beat so the device finishes
+            //    the scan and has the JPEG ready before we request it.
+            await Task.Delay(ScanWaitMs, totalCts.Token);
 
-    /// <summary>
-    /// Fresh IMAGE.SEND connection.  No extended ACK — response is pure binary
-    /// JPEG (no text prefix).  Returns the JPEG bytes or null.
-    /// </summary>
-    private static async Task<byte[]?> FetchFrameAsync(
-        string host, CancellationToken ct)
-    {
-        try
-        {
-            using var tcp = new TcpClient();
-            using var connectCts =
-                CancellationTokenSource.CreateLinkedTokenSource(ct);
-            connectCts.CancelAfter(ConnectTimeoutMs);
-            await tcp.ConnectAsync(host, DmccCommand.RawDmccPort, connectCts.Token);
-
-            using var stream = tcp.GetStream();
-
-            // Drain welcome banner.
-            try
-            {
-                using var bc =
-                    CancellationTokenSource.CreateLinkedTokenSource(ct);
-                bc.CancelAfter(300);
-                await stream.ReadAsync(new byte[512], bc.Token);
-            }
-            catch { }
-
-            // Request the last acquired frame.
-            // No extended ACK on this connection — response is binary only.
+            // ── 5. Request image ──────────────────────────────────────────────
             await stream.WriteAsync(
-                Encoding.ASCII.GetBytes("IMAGE.SEND\r\n"), ct);
+                Encoding.ASCII.GetBytes("IMAGE.SEND\r\n"), totalCts.Token);
 
-            byte[]? raw = await ReadUntilIdleAsync(stream, ct);
+            byte[]? raw = await ReadUntilIdleAsync(stream, totalCts.Token);
+
             if (raw is null || raw.Length < 4)
             {
                 System.Diagnostics.Debug.WriteLine(
@@ -163,6 +100,17 @@ public static class LiveFeedClient
                 return null;
             }
 
+            // ── Diagnostic: show first bytes so we can confirm the format ─────
+            int diagLen = Math.Min(raw.Length, 32);
+            var diagHex = BitConverter.ToString(raw, 0, diagLen);
+            var diagAsc = Encoding.ASCII.GetString(
+                raw.Take(diagLen).Select(b => b is >= 32 and <= 126 ? b : (byte)'.').ToArray());
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-LIVEFEED] IMAGE.SEND first {diagLen} B  hex: {diagHex}");
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-LIVEFEED] IMAGE.SEND first {diagLen} B  asc: {diagAsc}");
+
+            // ── 6. Find JPEG SOI ──────────────────────────────────────────────
             int start = FindJpegStart(raw);
             if (start < 0)
             {
@@ -172,59 +120,19 @@ public static class LiveFeedClient
             }
 
             System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-LIVEFEED] Frame: {raw.Length - start} B JPEG.");
+                $"[VTCCP-LIVEFEED] Frame: {raw.Length - start} B JPEG (SOI at +{start}).");
             return raw[start..];
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-LIVEFEED] FetchFrame: {ex.GetType().Name}: {ex.Message}");
+                $"[VTCCP-LIVEFEED] GetLiveImageAsync: {ex.GetType().Name}: {ex.Message}");
             return null;
         }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Waits up to <paramref name="firstByteTimeoutMs"/> for the FIRST byte
-    /// (signals scan completion), then drains remaining bytes using IdleGapMs.
-    /// Returns null when no data arrives within the first-byte window.
-    /// </summary>
-    private static async Task<byte[]?> DrainTriggerResponseAsync(
-        NetworkStream     stream,
-        int               firstByteTimeoutMs,
-        CancellationToken ct)
-    {
-        using var ms    = new MemoryStream(32 * 1024);
-        byte[]    buf   = new byte[16 * 1024];
-        bool      first = true;
-
-        try
-        {
-            while (true)
-            {
-                int waitMs = first ? firstByteTimeoutMs : IdleGapMs;
-                using var timedCts =
-                    CancellationTokenSource.CreateLinkedTokenSource(ct);
-                timedCts.CancelAfter(waitMs);
-
-                int n;
-                try   { n = await stream.ReadAsync(buf, timedCts.Token); }
-                catch (OperationCanceledException) { break; }
-
-                if (n <= 0) break;
-                ms.Write(buf, 0, n);
-                first = false;
-            }
-        }
-        catch { }
-
-        return ms.Length == 0 ? null : ms.ToArray();
-    }
-
-    /// <summary>
-    /// Reads until the stream has been idle for IdleGapMs or ct fires.
-    /// </summary>
     private static async Task<byte[]?> ReadUntilIdleAsync(
         NetworkStream stream, CancellationToken ct)
     {
@@ -260,7 +168,7 @@ public static class LiveFeedClient
         {
             using var drain = CancellationTokenSource.CreateLinkedTokenSource(ct);
             drain.CancelAfter(drainMs);
-            await stream.ReadAsync(new byte[64], drain.Token);
+            await stream.ReadAsync(new byte[256], drain.Token);
         }
         catch { }
     }
