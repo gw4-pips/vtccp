@@ -27,7 +27,7 @@ description: Three distinct image sources on DataMan DM475V/DM395V. Clean-state 
 | `TRIGGER.TYPE` | 0 | Single/External — **NEVER change this** |
 | `LIVEIMG.MODE` | 0 | Stay at 0; setting to 2 caused NVRAM corruption previously |
 | `IMAGE.FORMAT` | 1 | JPEG |
-| `IMAGE.SIZE` | 1 | Quarter resolution → IMAGE.SEND returns 1224×1024 |
+| `IMAGE.SIZE` | 1 | **DMST TruCheck default** — quarter resolution → IMAGE.SEND returns 1224×1024 |
 | `IMAGE.QUALITY` | 50 | JPEG quality |
 | `DECODER.ROI` | 0 2448 0 2048 | **Full sensor** — L1 barcode crop is NOT from DECODER.ROI |
 
