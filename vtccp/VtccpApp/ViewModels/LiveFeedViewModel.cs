@@ -233,7 +233,7 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
 
     private void StartSubscriber()
     {
-        var ctx = new VerificationRecord { DeviceName = _host };
+        var ctx = new VerificationRecord { Symbology = string.Empty, DeviceName = _host };
         _subscriber = new HttpEventSubscriber(_host, _sdkPort, _xmlMap, ctx, OnResultReceived);
 
         _ = _subscriber.StartAsync().ContinueWith(t =>
