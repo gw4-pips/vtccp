@@ -1,0 +1,50 @@
+What Controls the 120-160 Images/Min Live Cycling
+120-160 images per minute = 2.0–2.7 images per second, or one image every 375–500ms.
+This is not the reader running in Presentation or Self mode. You've confirmed it stays in TRIGGER.TYPE = 0 (Single external) throughout. So something on the client side (DMST/TruCheck) is firing repeated software TRIGGER ON commands at that interval — approximately every 400ms. This is a polling loop entirely implemented in DMST, not a reader firmware mode change.
+The LIVEIMG.MODE = 2 command likely runs alongside this to enable the image push channel, but the pacing of acquisitions is driven by DMST firing TRIGGER ON repeatedly on a timer. The reader in Single mode simply responds to each one, acquires an image, and sends it. The LEDs flash with each acquisition, which matches your observation of steady flashing during Go Live.
+The ~400ms interval is almost certainly chosen deliberately — slow enough that image transfer completes before the next trigger fires (at full resolution over Ethernet), fast enough to feel like a live view to the user.
+
+What Happens at Verify
+Your observation is precise and revealing:
+
+"LEDs stop flashing, then after a very brief pause, flash once, and the image is transmitted for analysis."
+
+Breaking that down:
+Step 1 — LEDs stop flashing. DMST stops the polling loop. No more repeated TRIGGER ON commands. The reader goes idle but stays in Single mode, LEDs off.
+Step 2 — Brief pause. This is DMST waiting for any in-flight image transfer to complete and the reader to return to ready state (TriggerReady = true in hardware terms, or simply the prior acquisition cycle finishing).
+Step 3 — Single flash, image transmitted. DMST fires exactly one TRIGGER ON. The reader acquires one image, the LEDs fire once (the illumination strobe), and the result image is transmitted. This is the verification acquisition — the one that goes to the TruCheck grading engine.
+Step 4 — Reader goes dark. After that single trigger, DMST does not restart the polling loop. The reader returns to idle in Single mode. No more triggers, LEDs dark. This matches TRIGGER.TYPE = 0 — it's externally triggered, so without another software trigger it simply waits.
+
+The State Machine
+CONNECT
+  └─► Reader: TRIGGER.TYPE=0 (Single), LIVEIMG.MODE=0 (off)
+      DMST: static gray — no triggers fired, no images
+
+GO LIVE
+  └─► DMST sends: SET LIVEIMG.MODE 2
+      DMST starts polling loop: TRIGGER ON every ~400ms
+      Reader: acquires+transmits each time, LEDs flash
+      User positions symbol, adjusts height/focus
+
+VERIFY (user clicks)
+  └─► DMST stops polling loop
+      DMST waits for clean idle
+      DMST sends: TRIGGER ON  (exactly once)
+      Reader: acquires verification image, LEDs fire once
+      Image → TruCheck grading engine
+      Reader: returns to idle, dark
+
+CANCEL LIVE / after VERIFY
+  └─► Reader: still TRIGGER.TYPE=0, idle, dark
+      DMST: no polling loop running
+      Image Panel: static (last image held or gray)
+
+GO LIVE again
+  └─► DMST restarts polling loop
+      Cycle repeats
+
+Key Implications for Your App
+Replicating Go Live: Start a timer loop firing TRIGGER ON every ~400ms. Also send SET LIVEIMG.MODE 2 on connect so images push through. Display each returned image in your preview panel.
+Replicating Verify: Stop the loop, wait one cycle (~400ms) for clean idle, fire one TRIGGER ON, capture the response image, pass to TruCheck grading via GET TRUCHECK.* commands.
+Replicating Cancel Live: Simply stop the loop. No command needed to the reader — it goes dark on its own once triggers stop.
+The reader is never reconfigured. TRIGGER.TYPE stays 0 throughout all three states. All the mode switching is purely client-side loop control. This is the critical architectural insight your Replit code was getting wrong by trying to SET TRIGGER.TYPE 1 — that change was both unnecessary and harmful.
