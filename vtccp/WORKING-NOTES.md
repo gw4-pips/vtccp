@@ -486,6 +486,33 @@ also supports resuming an existing file ("Open Job" equivalent not yet built).
 > **Level 2 (per-scan-line) outline level**: NOT yet set; `PerScanTableWriter` still writes
 > rows without `OutlineLevel`. Wire `SetRowOutlineLevel(row, 2)` + `SetRowHidden(row, true)`
 > inside `PerScanTableWriter.WriteScans()` loop — one-liner, unblocked, do on request.
+>
+> ---
+> **ENHANCEMENT NOTE (2026-06-08) — AppData Valid. column (Col A)**
+>
+> Formal name: **"AppData Valid."** (two display lines in header cell).
+>
+> **Parent row (Level 0) behavior:**
+> - If application data validation is NOT configured/selected in the session: cell is white,
+>   content = `"Not Set"`
+> - If application data validation IS active: cell follows the same color/label rule as the
+>   child row (see below) — reflects the overall parse result for that scan
+>
+> **Level-1 parse-detail child row (Col A) behavior:**
+> - Background = **strong medium green** + content = `"Pass"` when parse result = Pass
+> - Background = **medium yellow** + content = `"Warning"` when parse result = Warning
+>   (e.g. non-fatal AI anomaly, deprecated AI, etc.)
+> - Background = **strong red** + content = `"Fail"` when parse result = Fail
+>   (e.g. data format check failure)
+>
+> Source for pass/fail/warning: `DataFormatCheckResult` / HTML report parse result.
+> Warning state is not currently exposed in push XML — may require HTML report scraper
+> to surface. Do not implement warning without confirming the source.
+>
+> Currently Col A of the Level-1 row holds the `"↳"` sentinel. This enhancement
+> replaces that sentinel with the colored Pass/Warning/Fail indicator.
+> `ParseDetailRowWriter.WriteParseDetailRow()` is the method to update.
+> **Note for next build — do not implement until instructed.**
 
 ### Concept origin
 OptiDoc (PIPS/Viktor) was the only tool to put per-scan-line data into the
