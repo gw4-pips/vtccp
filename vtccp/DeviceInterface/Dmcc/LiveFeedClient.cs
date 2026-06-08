@@ -106,9 +106,21 @@ public static class LiveFeedClient
                 // 6. Banner
                 await DrainBannerAsync(streamB, totalCts.Token);
 
-                // 7. Request image
+                // 7. Switch to extended ACK mode so IMAGE.SEND returns data.
+                //    Default COM.DMCC-RESPONSE on a fresh connection is 0 (silent).
+                //    The SET command itself has no response (was in mode 0 when sent);
+                //    no drain needed.
                 await streamB.WriteAsync(
-                    Encoding.ASCII.GetBytes("IMAGE.SEND\r\n"), totalCts.Token);
+                    Encoding.ASCII.GetBytes(
+                        $"{DmccCommand.WireHeader}SET COM.DMCC-RESPONSE 2\r\n"),
+                    totalCts.Token);
+
+                // 8. Request image — MUST include the "||>" wire header.
+                //    Bare "IMAGE.SEND\r\n" is silently ignored by the device.
+                await streamB.WriteAsync(
+                    Encoding.ASCII.GetBytes(
+                        $"{DmccCommand.WireHeader}{DmccCommand.ImageSend}\r\n"),
+                    totalCts.Token);
 
                 byte[]? raw = await ReadUntilIdleAsync(streamB, ImageIdleGapMs, totalCts.Token);
                 if (raw is null || raw.Length < 4)
