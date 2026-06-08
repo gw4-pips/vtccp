@@ -515,6 +515,26 @@ also supports resuming an existing file ("Open Job" equivalent not yet built).
 > **Note for next build — do not implement until instructed.**
 >
 > ---
+> **LIVE VIEW WINDOW — SCOPE NOTES (2026-06-08)**
+>
+> Separate WPF window for Phase I. Final UI to closely resemble WTC (Webscan TruCheck) model.
+>
+> **Image panel**: occupies 1/3 to 1/2 of the CP window (NOT most of screen).
+>
+> **Live feed FPS**: 3 fps default (closer to DMST behavior).
+>
+> **Verify behavior (CORRECTED)**: After a Verify scan, live feed does NOT resume automatically.
+> Image stays frozen on the result. Operator must click Go Live again to resume feed.
+> State machine: Idle → Live (Go Live) → Frozen/Result (Verify) → Live (Go Live again).
+>
+> **Button layout confirmed**:
+> - Go Live: connects if needed, starts IMAGE.SEND polling at 3 fps, label → "Verify"
+> - Verify: sends software trigger, displays result image, stops — stays frozen until Go Live
+> - Cancel Live Feed: stops polling, freezes last image, label → "Go Live"
+>
+> **IMAGE.SEND availability in DeviceSession**: TBD — user to confirm; check before implementing.
+>
+> ---
 > **ADJUSTMENT NOTES (2026-06-08)**
 >
 > **Level 1 fill color**: Change from pale amber (#FFF2CC) to **very pale blue**.
