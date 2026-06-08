@@ -513,6 +513,32 @@ also supports resuming an existing file ("Open Job" equivalent not yet built).
 > replaces that sentinel with the colored Pass/Warning/Fail indicator.
 > `ParseDetailRowWriter.WriteParseDetailRow()` is the method to update.
 > **Note for next build — do not implement until instructed.**
+>
+> ---
+> **ADJUSTMENT NOTES (2026-06-08)**
+>
+> **Level 1 fill color**: Change from pale amber (#FFF2CC) to **very pale blue**.
+> Rationale: amber risks visual confusion with the yellow "Warning" state of the
+> AppData Valid. indicator. Pale blue is neutral and unambiguous.
+> Target: `ParseDetailRowWriter.AmberFill` constant — rename and recolor.
+> **Do not implement until instructed.**
+>
+> **Level 1 auto-collapse — Phase II setting** (deferred):
+> Current default: auto-collapse ON, 20-second timer.
+> Phase II will expose a user-configurable setting with four options:
+>   - Off (row stays open indefinitely)
+>   - On (collapse immediately after a brief display)
+>   - On with timer (current default — collapse after N seconds)
+>   - Timer interval (user-set N, in seconds)
+> This will be a session/job template setting surfaced in the Settings or Session UI.
+> **Do not implement until instructed.**
+>
+> **Level 2 data capture — traceability emphasis** (adjustment note):
+> Level 2 rows should capture ALL available data in the corresponding scan-line pass,
+> with particular emphasis on traceability fields (decoded data, lot, serial, expiry
+> where present). Do not limit to grade columns only — surface whatever the firmware
+> provides per scan pass. Exact field list TBD when Level 2 is implemented.
+> **Do not implement until instructed.**
 
 ### Concept origin
 OptiDoc (PIPS/Viktor) was the only tool to put per-scan-line data into the
