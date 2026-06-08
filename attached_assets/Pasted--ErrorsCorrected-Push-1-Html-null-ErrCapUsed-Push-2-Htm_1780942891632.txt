@@ -1,0 +1,105 @@
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117445 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4624 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4624 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120248 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187060 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21443 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:20:21:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117345 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4626 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4626 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] Receive loop ended.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationFramework-SystemXmlLinq.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] Stopped.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] Subscribed to 10.10.10.7:44444/events. Receive loop starting.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120280 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187121 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21475 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:20:34:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117291 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4631 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4631 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120240 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187119 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21435 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:20:35:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117388 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] TRIGGER ACK: ||:::2[0]
+[VTCCP-LIVEFEED] Verify TRIGGER ON sent.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] PUT /vs.cfg HTTP/1.1 (160 B)
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120200 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187121 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21395 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:20:36:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117234 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120324 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187310 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21519 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:20:37:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=60.9,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117327 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] Receive loop ended.
+[VTCCP-HTTP-SUB] Stopped.
+The thread 21804 has exited with code 0 (0x0).
