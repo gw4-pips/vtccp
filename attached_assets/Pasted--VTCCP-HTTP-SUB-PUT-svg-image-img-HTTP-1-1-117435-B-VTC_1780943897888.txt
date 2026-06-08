@@ -1,0 +1,225 @@
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117435 B)
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120276 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4633 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4633 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] No JPEG SOI in 20789-byte response.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120300 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187414 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21495 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:37:17:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117492 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4633 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4633 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] TRIGGER ACK: ||:::2[0]
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND returned no data.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120256 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187384 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21451 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:37:18:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117501 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4633 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4633 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] TRIGGER ACK: ||:::2[0]
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND returned no data.
+[VTCCP-LIVEFEED] TRIGGER ACK: c>0</OverallGradeNumeric>
+<GradingStandard>ISO 15415:2024</GradingStandard>
+<ApplicationStandard>Custom</ApplicationStandard>
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120284 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187473 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21477 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:37:19:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117320 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4633 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4633 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] No JPEG SOI in 20795-byte response.
+[VTCCP-LIVEFEED] TRIGGER ACK: ic>0</OverallGradeNumeric>
+<GradingStandard>ISO 15415:2024</GradingStandard>
+<ApplicationStandard>Custom</ApplicationStandard>
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187467 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21454 chars.
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117509 B)
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120260 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4633 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4633 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] No JPEG SOI in 20772-byte response.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120292 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187505 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21487 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:37:20:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117433 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] TRIGGER ACK: ||:::2[0]
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND returned no data.
+[VTCCP-LIVEFEED] TRIGGER ACK: ic>0</OverallGradeNumeric>
+<GradingStandard>ISO 15415:2024</GradingStandard>
+<ApplicationStandard>Custom</ApplicationStandard>
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120296 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187533 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21490 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:37:21:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117436 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4628 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4628 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] No JPEG SOI in 20808-byte response.
+[VTCCP-LIVEFEED] TRIGGER ACK: ric>0</OverallGradeNumeric>
+<GradingStandard>ISO 15415:2024</GradingStandard>
+<ApplicationStandard>Custom</ApplicationStandard
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120280 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187444 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21475 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:37:22:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117447 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] No JPEG SOI in 20793-byte response.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120284 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187595 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21479 chars.
+[VTCCP-LIVEFEED] TRIGGER ACK: ric>0</OverallGradeNumeric>
+<GradingStandard>ISO 15415:2024</GradingStandard>
+<ApplicationStandard>Custom</ApplicationStandard
+[VTCCP-VALID] 6 discrepancy(s) — 14:37:22:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117559 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] No JPEG SOI in 20797-byte response.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120288 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187561 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21483 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:37:23:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117279 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] TRIGGER ACK: ||:::2[0]
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND returned no data.
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120212 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187487 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21407 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:37:24:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117490 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\PresentationFramework-SystemXmlLinq.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] TRIGGER ACK: ||:::2[0]
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-LIVEFEED] IMAGE.SEND returned no data.
+[VTCCP-LIVEFEED] TRIGGER ACK: ric>0</OverallGradeNumeric>
+<GradingStandard>ISO 15415:2024</Gr
+[VTCCP-LIVEFEED] Verify TRIGGER ON sent.
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187588 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21443 chars.
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117563 B)
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120248 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /pcm_report.html HTTP/1.1 (120284 B)
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=White on black DataCW=30 ECBudget=20 EncodedChars=49
+[VTCCP-HTTP-SUB] pcm_report.html parsed: ok=True polarity=White on black ECLevel=null DataCW=30
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (187722 B)
+[VTCCP-HTTP-SUB] Push XML decoded: 21479 chars.
+[VTCCP-VALID] 6 discrepancy(s) — 14:37:25:
+  EncodedCharacters:Push=31,Html=49
+  GNU%:Push=33.8,Html=0.3
+  SC%:Push=61.3,Html=61
+  ErrorsCorrected:Push=1,Html=null
+  ErrCapUsed:Push=2,Html=null
+  ImagePolarity:Push=null,Html=White on black
+[VTCCP-HTTP-SUB] PUT /svg_image.img HTTP/1.1 (117492 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4627 B)
+The thread 54168 has exited with code 0 (0x0).
