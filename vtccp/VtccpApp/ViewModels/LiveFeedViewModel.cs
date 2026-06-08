@@ -9,22 +9,29 @@ using ExcelEngine.Models;
 using VtccpApp.Commands;
 
 /// <summary>
-/// Drives the Live View window (Phase I — image feed + trigger only).
+/// Drives the Live View window (Phase I — full-frame image feed + trigger).
 ///
 /// State machine
 /// ─────────────
-///   Idle   → [Go Live]  → Live    IMAGE.SEND polling starts, HTTP subscriber opens
-///   Live   → [Verify]   → Frozen  TRIGGER ON fired, polling stops, last frame held
-///   Frozen → [Go Live]  → Live    polling restarts, subscriber reopened
-///   Live   → [Cancel]   → Idle    polling stops, subscriber closed
-///   Frozen → [Cancel]   → Idle    subscriber closed, last frame held
+///   Idle   → [Go Live]  → Live    TRIGGER ON polling starts every 400 ms,
+///                                 HTTP subscriber opens, live frames appear.
+///   Live   → [Verify]   → Frozen  Polling stops, Verify TRIGGER ON fired,
+///                                 last full frame held until result arrives.
+///   Frozen → [Go Live]  → Live    Polling restarts, subscriber reopened.
+///   Live   → [Cancel]   → Idle    Polling stops, subscriber closed.
+///   Frozen → [Cancel]   → Idle    Subscriber closed, last frame held.
 ///
-/// Verification result (HTTP subscriber)
-/// ──────────────────────────────────────
-/// When the device fires a TruCheck scan (origin="common" in codes.xml), the
-/// <c>JpegImageBase64</c> barcode-crop JPEG replaces the frozen IMAGE.SEND frame
-/// and the status bar shows the grade summary.  If the subscriber is not reachable
-/// (e.g. no SDK port open), the last IMAGE.SEND frame simply stays frozen.
+/// TRIGGER.TYPE invariant
+/// ──────────────────────
+/// TRIGGER.TYPE is NEVER changed — it stays at 0 (Single/External) throughout
+/// all states, exactly as DMST does.  The polling loop is purely client-side.
+///
+/// Image source
+/// ────────────
+/// Live frames come from IMAGE.SEND (full camera frame, 1224×1024 at
+/// IMAGE.SIZE=1).  The L1 barcode-crop JPEG from push XML JpegImageBase64
+/// is deliberately NOT used to replace the live frame — we keep the full
+/// camera image visible at all times.
 /// </summary>
 public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
 {
@@ -100,12 +107,8 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
         StopSubscriber();
         StartSubscriber();
 
-        // Put the device in Continuous trigger mode so the image buffer is refreshed on
-        // every scan cycle — IMAGE.SEND then returns a live frame on each timer tick.
-        // The timer starts after the SET fires (fire-and-forget; first tick may be blank
-        // if the command hasn't completed yet, which is harmless).
-        _ = SetTriggerTypeAsync(5);
-
+        // Start client-side polling loop: TRIGGER ON + IMAGE.SEND every 400 ms.
+        // TRIGGER.TYPE stays 0 — no device configuration is changed.
         StartTimer();
 
         _state = FeedState.Live;
@@ -117,8 +120,9 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     {
         StopTimer();
 
-        // Restore Single trigger mode and fire TRIGGER ON in one TCP session so there
-        // is no race window where a stale Continuous result arrives between the two commands.
+        // Fire one verification trigger on a background thread.
+        // A 400 ms delay inside SendTriggerAsync lets any in-flight poll
+        // complete before the verification trigger is sent.
         _ = SendTriggerAsync();
 
         _state = FeedState.Frozen;
@@ -131,9 +135,8 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
         StopTimer();
         StopSubscriber();
 
-        // Restore Single trigger mode before leaving.
-        _ = SetTriggerTypeAsync(0);
-
+        // No device command needed — TRIGGER.TYPE is already 0 and the reader
+        // returns to idle as soon as polling stops.
         _state = FeedState.Idle;
         StatusText = LiveImage is null
             ? "Feed stopped. Press Go Live to restart."
@@ -145,7 +148,9 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
 
     private void StartTimer()
     {
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(333) };
+        // 400 ms matches DMST's polling interval; each tick fires TRIGGER ON
+        // then IMAGE.SEND — see LiveFeedClient.GetLiveImageAsync.
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
         _timer.Tick += OnTimerTick;
         _timer.Start();
     }
@@ -177,12 +182,16 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
         }
     }
 
-    // ── Software trigger ──────────────────────────────────────────────────────
+    // ── Software trigger (Verify) ─────────────────────────────────────────────
 
     private async Task SendTriggerAsync()
     {
         try
         {
+            // Wait for any in-flight poll cycle to finish before sending the
+            // verification trigger (~400 ms = one full poll interval).
+            await Task.Delay(400);
+
             using var totalCts = new CancellationTokenSource(4_000);
             using var tcp      = new System.Net.Sockets.TcpClient();
             await tcp.ConnectAsync(_host, DmccCommand.RawDmccPort, totalCts.Token);
@@ -191,7 +200,7 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
             // Drain welcome banner.
             try
             {
-                using var bc = new CancellationTokenSource(400);
+                using var bc = new CancellationTokenSource(300);
                 await stream.ReadAsync(new byte[512], bc.Token);
             }
             catch { }
@@ -199,15 +208,10 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
             // Extended ACK mode.
             await WriteAndDrainAsync(stream,
                 $"{DmccCommand.WireHeader}{DmccCommand.SetDmccResponseExtended}\r\n",
-                600, totalCts.Token);
-
-            // Restore Single trigger mode (stops Continuous scanning) before firing
-            // the verification trigger so no stale Continuous result can race in.
-            await WriteAndDrainAsync(stream,
-                $"{DmccCommand.WireHeader}SET TRIGGER.TYPE 0\r\n",
-                800, totalCts.Token);
+                300, totalCts.Token);
 
             // TRIGGER ON — fires the TruCheck verification scan.
+            // TRIGGER.TYPE is already 0; no mode change required.
             byte[] trigCmd = System.Text.Encoding.ASCII.GetBytes(
                 $"{DmccCommand.WireHeader}{DmccCommand.TriggerOn}\r\n");
             await stream.WriteAsync(trigCmd, totalCts.Token);
@@ -215,7 +219,7 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
             // Read ACK.
             try
             {
-                using var tc = new CancellationTokenSource(1_500);
+                using var tc  = new CancellationTokenSource(1_500);
                 byte[] ackBuf = new byte[64];
                 int n = await stream.ReadAsync(ackBuf, tc.Token);
                 if (n > 0)
@@ -225,7 +229,7 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
             }
             catch { }
 
-            System.Diagnostics.Debug.WriteLine("[VTCCP-LIVEFEED] TRIGGER ON sent via raw TCP.");
+            System.Diagnostics.Debug.WriteLine("[VTCCP-LIVEFEED] Verify TRIGGER ON sent.");
         }
         catch (Exception ex)
         {
@@ -241,48 +245,8 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Sends <c>SET TRIGGER.TYPE <paramref name="triggerType"/></c> via a short-lived
-    /// raw TCP connection on port 23.  Used to switch between Continuous (5) for live
-    /// polling and Single (0) for idle / post-verify restore.
-    /// </summary>
-    private async Task SetTriggerTypeAsync(int triggerType)
-    {
-        try
-        {
-            using var cts = new CancellationTokenSource(3_000);
-            using var tcp = new System.Net.Sockets.TcpClient();
-            await tcp.ConnectAsync(_host, DmccCommand.RawDmccPort, cts.Token);
-            using var stream = tcp.GetStream();
-
-            try
-            {
-                using var bc = new CancellationTokenSource(300);
-                await stream.ReadAsync(new byte[512], bc.Token);
-            }
-            catch { }
-
-            await WriteAndDrainAsync(stream,
-                $"{DmccCommand.WireHeader}{DmccCommand.SetDmccResponseExtended}\r\n",
-                600, cts.Token);
-
-            await WriteAndDrainAsync(stream,
-                $"{DmccCommand.WireHeader}SET TRIGGER.TYPE {triggerType}\r\n",
-                800, cts.Token);
-
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-LIVEFEED] TRIGGER.TYPE set to {triggerType}.");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-LIVEFEED] SetTriggerType({triggerType}) failed: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Writes an ASCII command to <paramref name="stream"/> then reads (and discards)
-    /// the ACK within <paramref name="drainMs"/> milliseconds.  Swallows all errors
-    /// so a missed ACK never blocks the caller.
+    /// Writes an ASCII command to <paramref name="stream"/> then reads (and
+    /// discards) the ACK within <paramref name="drainMs"/> ms.
     /// </summary>
     private static async Task WriteAndDrainAsync(
         System.Net.Sockets.NetworkStream stream,
@@ -325,32 +289,18 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// Called from the HttpEventSubscriber thread-pool thread when a codes.xml
-    /// origin="common" result arrives.  Dispatches UI updates to the UI thread.
+    /// Called when a codes.xml origin="common" result arrives.
+    /// Updates the status bar with grade + symbology.  The live IMAGE.SEND
+    /// frame is kept — the L1 barcode-crop from JpegImageBase64 is not shown.
     /// </summary>
     private void OnResultReceived(VerificationRecord record)
     {
-        // In Continuous trigger mode (Live state) the subscriber fires on every scan cycle.
         // Only process the result that was deliberately requested via Verify.
+        // The subscriber may also fire on background monitor scans; ignore those.
         if (_state != FeedState.Frozen) return;
 
         System.Windows.Application.Current?.Dispatcher.Invoke(() =>
         {
-            // Replace the frozen IMAGE.SEND frame with the barcode-crop JPEG from the result.
-            if (!string.IsNullOrEmpty(record.JpegImageBase64))
-            {
-                try
-                {
-                    byte[] jpeg = Convert.FromBase64String(record.JpegImageBase64);
-                    LiveImage = BytesToBitmapImage(jpeg);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-LIVEFEED] Result JPEG decode failed: {ex.Message}");
-                }
-            }
-
             string grade = record.OverallGrade?.LetterGradeString is { Length: > 0 } g
                            ? g : "?";
             string symb  = record.Symbology is { Length: > 0 } s ? s : "?";
@@ -371,7 +321,7 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
         bmp.CacheOption  = BitmapCacheOption.OnLoad;
         bmp.StreamSource = ms;
         bmp.EndInit();
-        bmp.Freeze();   // Required for safe hand-off to the WPF render thread.
+        bmp.Freeze();
         return bmp;
     }
 
@@ -388,8 +338,6 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     {
         StopTimer();
         StopSubscriber();
-        // Always restore Single trigger mode so the device doesn't stay in Continuous
-        // after the window is closed (fire-and-forget — best effort on teardown).
-        _ = SetTriggerTypeAsync(0);
+        // TRIGGER.TYPE was never changed — no restore command needed on close.
     }
 }

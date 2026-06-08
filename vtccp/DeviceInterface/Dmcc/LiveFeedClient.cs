@@ -5,96 +5,130 @@ using System.Net.Sockets;
 using System.Text;
 
 /// <summary>
-/// Fetches live camera images from the device via raw TCP IMAGE.SEND on port 23.
-/// Each call opens a fresh TCP connection, issues the command, reads the binary
-/// JPEG response, strips any DMCC text header by finding the JPEG SOI marker, and
-/// closes the connection.
+/// Fetches live camera images from the device via raw TCP on port 23.
 ///
-/// Designed for 3-fps polling (333 ms interval): a fresh connection per frame is
-/// acceptable at this rate because the device readily accepts short-lived port-23
-/// sessions.
+/// Each call opens one TCP session that:
+///   1. Drains the welcome banner.
+///   2. Enables extended ACK mode (COM.DMCC-RESPONSE 2) so TRIGGER ON
+///      returns a text ACK.
+///   3. Sends TRIGGER ON — causes the device to acquire a new frame.
+///      TRIGGER.TYPE is left at 0 (Single/External) throughout; the
+///      polling loop is the only thing that changes the acquisition rate.
+///   4. Waits <see cref="AcquireWaitMs"/> ms for the acquisition to complete.
+///   5. Sends IMAGE.SEND — retrieves the full camera frame at whatever
+///      IMAGE.SIZE / IMAGE.FORMAT / IMAGE.QUALITY the device currently has
+///      (clean-state: SIZE=1 = 1224×1024, FORMAT=1 = JPEG, QUALITY=50).
+///   6. Strips any DMCC text preamble by locating the JPEG SOI marker.
 ///
-/// IMAGE.SEND is sent without the ||&gt; WireHeader prefix — binary commands on
-/// port 23 do not require framing, and the device returns the JPEG payload directly
-/// (any DMCC text preamble is stripped by locating 0xFF 0xD8).
+/// Matches DMST Go Live behaviour: TRIGGER ON every ~400 ms, no
+/// TRIGGER.TYPE or LIVEIMG.MODE changes, pull via IMAGE.SEND.
 /// </summary>
 public static class LiveFeedClient
 {
     private const int ConnectTimeoutMs = 2_000;
-    private const int IdleGapMs        = 300;
+    private const int AcquireWaitMs    = 150;   // wait after TRIGGER ON for sensor readout
+    private const int IdleGapMs        = 200;   // stream-idle gap that terminates the read loop
 
     /// <summary>
-    /// Connects to <paramref name="host"/> on port 23, sends <c>IMAGE.SEND\r\n</c>,
-    /// reads the binary response until the idle gap expires, then returns the JPEG
-    /// payload (everything from the first 0xFF 0xD8 SOI marker onwards).
-    ///
-    /// Returns null if the connection fails, the device returns no data, or no valid
-    /// JPEG SOI marker is found in the response.
+    /// Fires a software trigger and retrieves the resulting image frame.
+    /// Returns null if the connection fails, the device returns no data,
+    /// or no valid JPEG SOI marker is found in the response.
     /// </summary>
     public static async Task<byte[]?> GetLiveImageAsync(
         string            host,
-        int               totalTimeoutMs = 2_500,
+        int               totalTimeoutMs = 3_000,
         CancellationToken ct             = default)
     {
         try
         {
-            using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            connectCts.CancelAfter(ConnectTimeoutMs);
+            using var totalCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            totalCts.CancelAfter(totalTimeoutMs);
 
             using var tcp = new TcpClient();
-            await tcp.ConnectAsync(host, DmccCommand.RawDmccPort, connectCts.Token);
+            await tcp.ConnectAsync(host, DmccCommand.RawDmccPort, totalCts.Token);
             using var stream = tcp.GetStream();
 
-            // Drain welcome banner (~100 B on first port-23 connect).
+            // Drain welcome banner — typically < 10 ms on LAN.
             try
             {
-                using var bannerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                using var bannerCts =
+                    CancellationTokenSource.CreateLinkedTokenSource(totalCts.Token);
                 bannerCts.CancelAfter(300);
                 await stream.ReadAsync(new byte[512], bannerCts.Token);
             }
-            catch (OperationCanceledException) { }
             catch { }
 
-            // Send IMAGE.SEND without WireHeader prefix (binary command — no text ACK follows).
-            await stream.WriteAsync(Encoding.ASCII.GetBytes("IMAGE.SEND\r\n"), ct);
+            // Enable extended ACK so TRIGGER ON returns ||:::2[0]\r\n.
+            await WriteAndDrainAsync(stream,
+                $"{DmccCommand.WireHeader}{DmccCommand.SetDmccResponseExtended}\r\n",
+                300, totalCts.Token);
 
-            // Read all bytes until idle gap or total timeout.
-            byte[]? raw = await ReadUntilIdleAsync(stream, totalTimeoutMs, ct);
+            // Fire software trigger — device opens shutter and captures a frame.
+            // TRIGGER.TYPE remains 0 (Single/External) — no mode change needed.
+            await WriteAndDrainAsync(stream,
+                $"{DmccCommand.WireHeader}{DmccCommand.TriggerOn}\r\n",
+                500, totalCts.Token);
+
+            // Give the sensor time to finish readout before requesting the image.
+            await Task.Delay(AcquireWaitMs, totalCts.Token);
+
+            // IMAGE.SEND — returns {byte_count}\r\n{binary JPEG}.
+            // Sent without WireHeader prefix (binary response, no text ACK).
+            await stream.WriteAsync(
+                Encoding.ASCII.GetBytes("IMAGE.SEND\r\n"), totalCts.Token);
+
+            // Read until the stream goes idle.
+            byte[]? raw = await ReadUntilIdleAsync(stream, totalCts.Token);
             if (raw is null || raw.Length < 4) return null;
 
-            // Locate the JPEG SOI marker (0xFF 0xD8) — strips any DMCC text preamble.
+            // FindJpegStart strips any DMCC text preamble before the SOI marker.
             int start = FindJpegStart(raw);
             return start >= 0 ? raw[start..] : null;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-LIVEFEED] IMAGE.SEND error: {ex.GetType().Name}: {ex.Message}");
+                $"[VTCCP-LIVEFEED] GetLiveImageAsync error: {ex.GetType().Name}: {ex.Message}");
             return null;
         }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static async Task<byte[]?> ReadUntilIdleAsync(
+    /// <summary>
+    /// Writes an ASCII command then reads (and discards) the response within
+    /// <paramref name="drainMs"/> ms.  Swallows all errors — a missed ACK
+    /// must never block the caller.
+    /// </summary>
+    private static async Task WriteAndDrainAsync(
         NetworkStream     stream,
-        int               totalTimeoutMs,
+        string            command,
+        int               drainMs,
         CancellationToken ct)
     {
-        using var ms  = new MemoryStream(64 * 1024);
-        byte[]    buf = new byte[16 * 1024];
+        await stream.WriteAsync(Encoding.ASCII.GetBytes(command), ct);
+        try
+        {
+            using var drain = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            drain.CancelAfter(drainMs);
+            await stream.ReadAsync(new byte[64], drain.Token);
+        }
+        catch { }
+    }
 
-        using var totalCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        totalCts.CancelAfter(totalTimeoutMs);
+    private static async Task<byte[]?> ReadUntilIdleAsync(
+        NetworkStream     stream,
+        CancellationToken ct)
+    {
+        using var ms  = new MemoryStream(256 * 1024);
+        byte[]    buf = new byte[16 * 1024];
 
         try
         {
             while (true)
             {
-                // Inner idle-gap cancellation — breaks out when the stream goes quiet.
-                // Outer totalCts fires when the overall budget is exhausted.
                 using var idleCts =
-                    CancellationTokenSource.CreateLinkedTokenSource(totalCts.Token);
+                    CancellationTokenSource.CreateLinkedTokenSource(ct);
                 idleCts.CancelAfter(IdleGapMs);
 
                 int n;
