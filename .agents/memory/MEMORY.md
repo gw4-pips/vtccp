@@ -10,3 +10,4 @@
 - [OCR-1 wiring](ocr-wiring.md) — OCR runs in AcceptRecordInnerAsync; _ocrEnabled defaults true; UI toggle is a TODO; tessdata bundled in project
 - [NPOI IRow.OutlineLevel read-only](npoi-row-outline.md) — no setter on IRow interface; XlsAdapter.SetRowOutlineLevel is a no-op; use HSSFRow cast or GroupRow() if grouping ever required on .xls
 - [Version bump rule](version-bump-rule.md) — always bump VtccpApp.csproj <Version> with every code-change commit; user cannot confirm a rebuild without it
+- [Cognex strategy intel 2026-06-08](cognex-strategy-intel-pointer.md) — 475V EOL/frozen; 395V fw7 = new standard; browser migration underway; no CNX Excel capture; supps = business decision not tech; PIPS gets first 395V OMNI in weeks
