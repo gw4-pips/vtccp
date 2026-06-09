@@ -93,15 +93,50 @@
 
 ---
 
-## 7. Recommended Near-Term Actions (Priority Order)
+## 7. Engineering Scope Decisions — 2026-06-09
+
+Firm decisions from follow-up conversation. These narrow the device matrix and simplify
+the multi-model architecture significantly.
+
+### USB Connection — Eliminated Across the Board
+- USB (USB-COM and USB-Ethernet adapter) is **not a supported connection interface** for VTCCP.
+- **Decision basis**: business and engineering resource triage — not a technical limitation.
+- **Impact**: no `SerialDmccTransport` needed; no USB-COM session setup path; no USB variant
+  testing required. All device support is GigE (Ethernet) only.
+- All connection medium logic in `DeviceConfig.ResolvedConnectionMedium()` can treat USB-Ethernet
+  as a GigE variant (same port-23/44444 behaviour) and USB-COM as out of scope.
+
+### DMV-8072V — Nice-to-Have, Not Essential
+- **Firmware**: firmware 5 (one major version behind DM475V fw6; two behind DM395V fw7).
+- **Priority**: deprioritized — nice to have, not on the critical path.
+- **Impact on architecture**: do NOT pre-engineer `IDmccCommandSet` abstraction layers for
+  8072V now. Design for 475V + 395V; add 8072V when/if it becomes a real customer requirement.
+  Engineering the abstraction speculatively before confirming 8072V's actual DMCC surface would
+  be wasted effort — assume less, prove more.
+- 8072V fw5 DMCC command surface is unconfirmed. Log what is known (DPM primary use case,
+  more limited DMCC set) and revisit when a unit is available.
+
+### Development Priority Order — Confirmed
+1. **Finish DM475V** (fw6 / GigE) — complete all outstanding features including IMAGE.SEND
+   live view, D1 report, supplemental probe, and any remaining v1.30 bug fixes.
+2. **Explore DM395V** (fw7 / GigE) when first unit arrives — run probe campaign,
+   confirm connection protocol, push schema, IMAGE.SEND, and DMCC key differences.
+3. **Plan enhancements/necessary changes** based on 395V probe results before any 395V build.
+4. **DMV-8072V** — revisit only when a real customer or use-case demand materialises.
+
+---
+
+## 8. Recommended Near-Term Actions (Priority Order)
 
 1. **Complete 475V IMAGE.SEND debugging** — get the live view working on current hardware
    before the firmware freezes.
-2. **Define 395V probe campaign** — document all probes needed on first 395V contact
-   (connection protocol, push schema, firmware 7 DMCC keys, IMAGE.SEND behaviour).
-3. **Run supplemental activation probe** on 475V — determine (a) vs (b) above.
-4. **D1 HTML/XML report** — move up in priority relative to additional Excel investment;
+2. **Run supplemental activation probe** on 475V — determine firmware-suppressed vs
+   output-ignored.
+3. **D1 HTML/XML report** — move up in priority relative to additional Excel investment;
    aligns with CNX output direction.
+4. **Define 395V probe campaign** — document all probes needed on first 395V contact
+   (connection protocol, push schema, firmware 7 DMCC keys, IMAGE.SEND behaviour).
 5. **395V browser interface exploration** — when first unit arrives, document the browser
    UI thoroughly before making browser migration architectural decisions.
 6. **PM engagement at Cognex** — supplemental activatability ask for 395V.
+7. **DMV-8072V** — defer until real customer demand; revisit fw5 DMCC surface at that time.
