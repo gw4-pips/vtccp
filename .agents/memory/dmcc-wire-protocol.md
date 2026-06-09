@@ -10,6 +10,23 @@ description: Port, command format, ACK format, and trigger sequence for raw DMCC
 
 **Why:** Port 44444 multiplexes SDK binary sessions and HTTP event subscription (GET /events?enable). It does NOT accept raw DMCC text commands from new TCP connections. Port 23 is the classic DMCC Telnet interface.
 
+## ★★★ MANDATORY PREFIX — NEVER OMIT ★★★
+
+**EVERY raw DMCC command on port 23 MUST begin with `||>` — no exceptions.**
+
+```
+||>COMMAND\r\n       ← CORRECT
+COMMAND\r\n          ← SILENTLY IGNORED — device returns zero bytes, no error
+IMAGE.SEND\r\n       ← SILENTLY IGNORED — this is how the IMAGE.SEND bug went undetected
+```
+
+The device does NOT reject bare commands with an error code — it simply does nothing.
+This has caused multiple debugging sessions of false leads. The `||>` prefix is mandatory
+for every single command, every time, on every connection. `DmccCommand.WireHeader = "||>"`.
+
+**How to apply**: Before writing any DMCC send call, confirm the string starts with
+`DmccCommand.WireHeader` or the literal `||>`. Never send a bare command name.
+
 ## Command format
 
 ```
