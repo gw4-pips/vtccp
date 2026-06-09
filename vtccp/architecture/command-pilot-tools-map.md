@@ -121,6 +121,14 @@ After each scan, the device pushes results via HTTP PUT to all subscribers.
   (values here are correct where the push script XML gives wrong/empty values)
 - Decoded barcode data, symbology, scan timestamps
 - JPEG image (base64-encoded) — the same ROI crop shown in DMST's verification panel
+- **GS1 Application Standard validation block** (when GS1 parser is enabled on device):
+  - `<ApplicationStandard>` — e.g. "GS1", "Custom"
+  - `<ApplicationPass>` — e.g. "Pass", "Fail (Data Format)", "Fail (Quality)"
+  - `<ApplicationPassReason>` — e.g. "Data Format", "Quality"
+  - Confirmed in codes.xml (Wireshark capture) and in HTML report
+  - Design rule: `ApplicationPass` is **informational only** — `OverallGrade` (ISO) is always
+    the operative grade; ApplicationPass never overrides it. Wired: `DmstResultParser` →
+    `VerificationRecord.ApplicationStandard/Pass/PassReason` → Excel.
 
 **This is the PRIMARY result delivery path.** All scan records flow through here.
 
@@ -204,6 +212,7 @@ in `DecodedData`, route to `encoder.DataStr`).
 | Decoded barcode data (raw) | | | ✓ | | |
 | Verification JPEG (ROI crop) | | | ✓ | | |
 | Scan timestamps | | | ✓ | | |
+| GS1 ApplicationStandard/Pass/Reason | | | ✓ | also in HTML | |
 | **EncodedCharacters (correct)** | | | **HTML only** | ✓ | |
 | **DataCodewords (correct)** | | | **HTML only** | ✓ | |
 | **ErrorCorrectionBudget (correct)** | | | **HTML only** | ✓ | |
