@@ -164,6 +164,20 @@ computed by firmware, not by us). Clinical severity: low (grade is right; displa
 
 ## Parser / Schema
 
+### PARSE-4 — ECC200 lookup table: add 22×22 outer row (20×20 data region)
+**Confirmed by**: Scan #21 (2026-06-10, 22×22 outer, Grade C)  
+**From HTML**: TotalCW=50, DataCW=30, ECCW=20  
+**Add**: `{matrixOuter: "22x22", dataCW: 30, eccCW: 20, totalCW: 50}`
+
+Note: This is the 22×22 OUTER symbol (20×20 data region). It is DISTINCT from the entry
+documented for scans #17/#18, which has a **24×24 outer** symbol with a 22×22 DATA region.
+Push XML `<MatrixSize>22x22</MatrixSize>` vs `<MatrixSize>24x24</MatrixSize>` — do not conflate.
+The existing comment in PARSE-1 ("has 22×22 entry — 30 data, 20 ECC") refers to THIS entry,
+not the 24×24 entry. Verify that the C# table already has `"22x22"` → 30/20 and that PARSE-1
+adds `"24x24"` → 36/24 as a separate row.
+
+---
+
 ### PARSE-3 — ECC200 lookup table: add 12×36 row (rectangular USPS postage DM)
 **Confirmed by**: Scan #20 (2026-06-09, USPS 12×36 DM, Grade A)  
 **From HTML**: TotalCW=40, DataCW=22, ECCW=18  
@@ -243,6 +257,66 @@ treat as binary. The USPS example has NUL (0x00), STX (0x02) as clear indicators
 **Note**: The Encodation Analysis table in the HTML report (`ErrorCorrectionType` field)
 will show `ECC 200` for both binary and text DM. The mode switch is codeword 231 (Base256)
 in the Codewords table — not currently accessible from push XML.
+
+---
+
+### GS1-IMP-1 — Implied FNC1 parser (missing-FNC1 `]d1` DM with GS1-structured data)
+**Confirmed by**: Scan #21 (2026-06-10, `]d1` DM, data `011065316030393010201703209017190831`)
+**Context**: One of the most common GS1 DM production defects. The symbol encodes correct
+GS1 AI data but the FNC1 first-position codeword was omitted. DMST TC fails immediately
+("Application Header is Expected") and shows no AI parse at all. VTCCP should do better.
+
+**What VTCCP should do**:
+When a `]d1` (non-GS1) DM result arrives and `ApplicationPass=Fail(Data Format)`:
+1. Check if `DecodedData` is all-printable ASCII (not binary — gate on DM-BIN-1 check first)
+2. Check if `DecodedData` starts with a 2-4 digit string that is a known GS1 primary key AI
+   (01, 00, 414, 417, 8004, etc.) — see gs1-syntax-engine AI table
+3. If yes → run the **implied-FNC1 backtracking parser**:
+   - Use the GS1 AI length table to identify fixed-length AIs unambiguously
+   - For variable-length AIs (10, 21, 30, etc.) try each possible length, check if
+     remainder starts with a valid AI, recurse
+   - Collect ALL complete parses (no unmatched remainder)
+4. Report:
+   - If exactly 1 valid parse → show AIs with label **"⚠ Implied GS1 (FNC1 missing)"**
+   - If 2+ valid parses → show all candidates with label **"⚠ Ambiguous — FNC1 missing"**
+   - If 0 valid parses → not GS1, show raw data only
+5. Always surface `ApplicationPass=Fail(Data Format)` — implied parse is supplemental info,
+   NOT a pass override. The symbol is still a GS1 format failure.
+
+**Scan #21 parse result — TWO valid parses (ambiguous)**:
+
+Parse A (4 AIs):
+```
+AI 01  GTIN-14   10653160303930  (check digit ✓)
+AI 10  Lot       201703
+AI 20  Variant   90
+AI 17  Expiry    190831  →  2019-08-31
+```
+
+Parse B (3 AIs):
+```
+AI 01  GTIN-14   10653160303930  (check digit ✓)
+AI 10  Lot       2017032090
+AI 17  Expiry    190831  →  2019-08-31
+```
+
+Both consume all 36 characters exactly. Both pass AI lint rules. Cannot be resolved
+without additional context (knowledge of whether AI 20 is expected in this product's label).
+
+**Implementation approach**:
+- The gs1-syntax-engine v1.4.0 (`vtccp/lib/`) has an AI table and lint validators.
+  Use it for AI recognition and value validation.
+- The backtracking parser is a small recursive function — roughly 50–100 lines in C#.
+  Input: the decoded string (with implied FNC1 prepended as `\x1D`). Output: list of
+  `List<GS1FieldResult>` parse candidates.
+- This is independent of `applicationStdArray` (which the firmware doesn't populate for
+  `]d1` missing-FNC1 scans — confirmed len=1 with only the failure row on scan #21).
+
+**ANU note from scan #21**:
+On this scan, push XML `ANUPercent=2` matched DMST `2.0%` exactly (1:1). Prior DM scans
+with larger ANU values (11.5, 7.4, 59.5) all showed large mismatches. Suggests the
+mismatch is non-linear — small ANU values agree; large values diverge. This narrows the
+GS1-2 investigation (see that item).
 
 ---
 
