@@ -53,22 +53,49 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     private readonly VerificationXmlMap _xmlMap = new();
 
     // ── ROI overlay ───────────────────────────────────────────────────────────
+    //
+    // The operator draws a free-form ROI rectangle by left-click-dragging anywhere
+    // in the image panel.  Code-behind handles the rubber-band visuals; the VM
+    // stores the finalized rectangle in normalised coordinates (each component
+    // in [0, 1] relative to the image-panel's render size at the moment of mouse-up).
+    //
+    // The normalised rect is the authoritative value for downstream use (e.g.
+    // IMAGE.LOAD ROI, report overlay).  Right-click anywhere in the panel clears it.
 
-    private bool _roiVisible = true;
+    private System.Windows.Rect? _roiNormalized;
 
     /// <summary>
-    /// True while the ROI guide rectangle is shown over the live image.
-    /// Set to false when the operator clicks anywhere in the image panel.
-    /// Resets to true each time Go Live is pressed.
+    /// The operator-defined ROI in normalised panel coordinates ([0,1] × [0,1]).
+    /// Null when no ROI has been drawn.
+    /// Code-behind (LiveFeedWindow.xaml.cs) sets this via <see cref="SetRoi"/>.
     /// </summary>
-    public bool RoiVisible
+    public System.Windows.Rect? RoiNormalized
     {
-        get => _roiVisible;
-        private set => Set(ref _roiVisible, value);
+        get => _roiNormalized;
+        private set
+        {
+            if (Set(ref _roiNormalized, value))
+                OnPropertyChanged(nameof(HasRoi));
+        }
     }
 
-    /// <summary>Called from code-behind when the operator clicks in the image panel.</summary>
-    public void DismissRoi() => RoiVisible = false;
+    /// <summary>True when an operator-defined ROI is stored.</summary>
+    public bool HasRoi => _roiNormalized.HasValue;
+
+    /// <summary>
+    /// Called from code-behind when the operator finishes dragging an ROI rectangle.
+    /// <paramref name="normalizedRect"/> components are in [0, 1] relative to the
+    /// image-panel render size at mouse-up time.
+    /// Rectangles smaller than 4 × 4 device-independent units are ignored (accidental clicks).
+    /// </summary>
+    public void SetRoi(System.Windows.Rect normalizedRect)
+    {
+        if (normalizedRect.Width < 0.005 || normalizedRect.Height < 0.005) return;
+        RoiNormalized = normalizedRect;
+    }
+
+    /// <summary>Called from code-behind on right-click to erase the ROI.</summary>
+    public void ClearRoi() => RoiNormalized = null;
 
     // ── Bindable properties ───────────────────────────────────────────────────
 
@@ -129,7 +156,6 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
         // TRIGGER.TYPE stays 0 — no device configuration is changed.
         StartTimer();
 
-        RoiVisible = true;
         _state = FeedState.Live;
         StatusText = "Live feed active — press Verify to trigger a scan.";
         NotifyStateChanged();

@@ -22,12 +22,25 @@
                    Style="{StaticResource SectionHeader}"
                    Margin="0,0,0,12" />
 
-        <!-- Image panel -->
+        <!-- ── Image panel ──────────────────────────────────────────────── -->
+        <!--
+            Left-click + drag  : draw a free-form ROI rectangle.
+            Right-click        : clear the current ROI.
+            The rubber-band and finalized ROI rectangle are rendered on a Canvas
+            overlay (IsHitTestVisible=False) inside this Grid so they never
+            interfere with mouse capture on the outer Grid.
+        -->
         <Border Grid.Row="1"
                 Style="{StaticResource Card}"
                 Margin="0,0,0,10"
                 Padding="0">
-            <Grid MouseDown="OnImagePanelClick">
+            <Grid x:Name="ImagePanel"
+                  Cursor="Crosshair"
+                  MouseLeftButtonDown="OnPanelLeftDown"
+                  MouseMove="OnPanelMouseMove"
+                  MouseLeftButtonUp="OnPanelLeftUp"
+                  MouseLeave="OnPanelMouseLeave"
+                  MouseRightButtonUp="OnPanelRightUp">
 
                 <!-- Camera image -->
                 <Image Source="{Binding LiveImage}"
@@ -39,7 +52,8 @@
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            FontSize="14"
-                           Foreground="{StaticResource TextSecondaryBrush}">
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           IsHitTestVisible="False">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />
@@ -52,35 +66,46 @@
                     </TextBlock.Style>
                 </TextBlock>
 
-                <!-- ROI guide — ~67% of frame, dashed amber border.
-                     Click anywhere in the frame to dismiss. -->
-                <Grid IsHitTestVisible="False"
-                      Visibility="{Binding RoiVisible, Converter={StaticResource BoolToVisibility}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="4*" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="4*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Rectangle Grid.Row="1" Grid.Column="1"
-                               Stroke="#C0FFA020"
+                <!-- Overlay canvas — ROI rubber-band + finalized ROI rectangle.
+                     IsHitTestVisible=False so mouse events pass through to the Grid. -->
+                <Canvas x:Name="RoiCanvas" IsHitTestVisible="False">
+                    <!-- Rubber-band / finalized ROI rectangle.
+                         Positioned by code-behind via Canvas.Left/Top + Width/Height. -->
+                    <Rectangle x:Name="RoiBand"
+                               Stroke="#E0FFA020"
                                StrokeThickness="1.5"
                                StrokeDashArray="6 3"
-                               Fill="Transparent" />
-                </Grid>
+                               Fill="#14FFA020"
+                               Visibility="Collapsed" />
 
-                <!-- Crosshair — fixed center, always visible, no hit test -->
+                    <!-- ROI cleared label (shown briefly on right-click clear) -->
+                    <Border x:Name="RoiClearedHint"
+                            Background="#CC1A1A1A"
+                            CornerRadius="3"
+                            Padding="8,4"
+                            Visibility="Collapsed">
+                        <TextBlock Text="ROI cleared"
+                                   FontSize="11"
+                                   Foreground="#BDFFA020" />
+                    </Border>
+                </Canvas>
+
+                <!-- Crosshair — 1.5 px solid lines, centred, full-span, no hit test -->
                 <Grid IsHitTestVisible="False">
-                    <Rectangle Width="1"
+                    <Rectangle Width="1.5"
                                HorizontalAlignment="Center"
-                               Fill="#80FF3030" />
-                    <Rectangle Height="1"
+                               SnapsToDevicePixels="True"
+                               Fill="#A0FF3030" />
+                    <Rectangle Height="1.5"
                                VerticalAlignment="Center"
-                               Fill="#80FF3030" />
+                               SnapsToDevicePixels="True"
+                               Fill="#A0FF3030" />
+                    <!-- Small centre dot for precise aim point -->
+                    <Ellipse Width="5" Height="5"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Fill="#FFFF3030"
+                             SnapsToDevicePixels="True" />
                 </Grid>
 
             </Grid>
