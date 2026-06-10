@@ -1,0 +1,49 @@
+PS C:\Users\Administrator\Downloads> powershell.exe -ExecutionPolicy Bypass -File .\Test-LiveImgSend.ps1 -DeviceHost 10.10.10.7 -Port 23
+At C:\Users\Administrator\Downloads\Test-LiveImgSend.ps1:121 char:109
++ ... ays 'mode 3' â€” will try that next if needed)" -ForegroundColor Gray
++                                                                          ~
+Missing closing ')' in expression.
+At C:\Users\Administrator\Downloads\Test-LiveImgSend.ps1:126 char:3
++ } finally {
++   ~~~~~~~
+Unexpected token 'finally' in expression or statement.
+At C:\Users\Administrator\Downloads\Test-LiveImgSend.ps1:135 char:17
++         } catch {
++                 ~
+Missing closing '}' in statement block or type definition.
+At C:\Users\Administrator\Downloads\Test-LiveImgSend.ps1:128 char:48
++     if ($stream -ne $null -and $tcp.Connected) {
++                                                ~
+Missing closing '}' in statement block or type definition.
+At C:\Users\Administrator\Downloads\Test-LiveImgSend.ps1:126 char:11
++ } finally {
++           ~
+Missing closing '}' in statement block or type definition.
+At C:\Users\Administrator\Downloads\Test-LiveImgSend.ps1:69 char:5
++ try {
++     ~
+Missing closing '}' in statement block or type definition.
+At C:\Users\Administrator\Downloads\Test-LiveImgSend.ps1:136 char:76
++ ... ite-Host "  (restore failed â€” device may have already reset)" -Fore ...
++                                                                  ~
+The Try statement is missing its Catch or Finally block.
+At C:\Users\Administrator\Downloads\Test-LiveImgSend.ps1:136 char:76
++ ... te-Host "  (restore failed â€” device may have already reset)" -Foreg ...
++                                                                 ~
+Unexpected token ')' in expression or statement.
+At C:\Users\Administrator\Downloads\Test-LiveImgSend.ps1:140 char:21
++         Write-Host "Disconnected."
++                     ~~~~~~~~~~~~~~
+Unexpected token 'Disconnected."
+    }
+    Write-Host ""
+    Write-Host "===' in expression or statement.
+At C:\Users\Administrator\Downloads\Test-LiveImgSend.ps1:143 char:29
++     Write-Host "=== Done ===" -ForegroundColor Cyan
++                             ~~~~~~~~~~~~~~~~~~~~~~~
+The string is missing the terminator: ".
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordExcept
+   ion
+    + FullyQualifiedErrorId : MissingEndParenthesisInExpression
+
+PS C:\Users\Administrator\Downloads>
