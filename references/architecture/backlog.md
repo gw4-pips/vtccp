@@ -88,6 +88,96 @@ field represents vs DMST's DFPD row.
 
 ---
 
+## Trigger / Result Capture
+
+### TRIG-1 — Pending-trigger correlation flag (filter external trigger results)
+**Problem**: The HTTP subscriber captures ALL verification results regardless of trigger source.
+When the production line is live and its external hardware trigger fires the DM475V, VTCCP
+currently intercepts and records those results — which is undesirable. VTCCP must only record
+scans that it explicitly initiated.
+
+**Fix (advice, not yet implemented)**:
+- Add `bool _pendingVerification` flag to `DeviceSession`, default `false`.
+- When VTCCP sends a trigger command → set `_pendingVerification = true`.
+- On result arrival in HTTP subscriber:
+  - `_pendingVerification == true` → process + clear flag.
+  - `_pendingVerification == false` → silently discard.
+- Add a timeout (e.g. 5 s) that auto-clears the flag if no result arrives — prevents a stale
+  `true` from capturing the next production scan after a trigger failure.
+- No DMCC, firmware, or TRIGGER.TYPE changes required. Filter lives entirely in VTCCP.
+
+---
+
+### TRIG-2 — Passive capture / audit mode (possible future feature)
+**Concept**: VTCCP operates as a silent observer while the production line runs — capturing
+every hardware-triggered verification result without operator action. Useful for compliance
+audit trails, batch quality records, or remote monitoring.
+
+**Status**: POSSIBLE FUTURE FEATURE. NOT a default or normal ops mode. Must be an explicitly
+toggled mode, clearly labelled, never active unless the operator enables it.
+
+**Open design questions** (do not resolve yet):
+- Where in the UI does the operator enable/disable audit mode?
+- Does audit mode write to a separate session/file from operator-triggered verification?
+- What happens to the pending-trigger flag (TRIG-1) when audit mode is active?
+
+---
+
+### TRIG-3 — Dual live mode conflict (VTCCP live + DMST live simultaneously)
+**Observed**: When both VTCCP's live view and DMST's live view are open at the same time,
+both are polling the device and both are receiving results. Conflicts observed include:
+result interception, possible frame contention.
+
+**Open question (do not resolve yet)**: Who has control when both are open?
+- Does DMST's `GET /svg_image.img` polling interfere with VTCCP's `GET /events?enable`
+  subscription? (Likely no — they are separate connections.)
+- Does a scan triggered from either side get captured by both? (Very likely yes — both
+  subscribers will receive it.)
+- Can VTCCP detect that DMST is connected? (Unknown — no DMCC query for active connections.)
+
+**Note only**: This conflict needs a defined policy before dual-mode use is allowed.
+Do not design VTCCP assuming it is the sole client of the device.
+
+---
+
+## Live View (VTCCP Camera Panel)
+
+### LV-1 — ROI setting in VTCCP live view
+**Context**: `r.image.RoI` (left/top/right/bottom in sensor pixels) is already returned per scan
+in push XML (DebugRImageRoI confirmed this). The device's `DECODER.ROI` DMCC parameter
+controls the active decode region.
+
+**Feature**: Allow the operator to set the ROI directly from within VTCCP's live view panel —
+e.g. drag a rectangle on the live image, or enter pixel coordinates — and have VTCCP issue a
+`DMCC SET DECODER.ROI` to the device.
+
+**Why**: When both VTCCP and DMST live modes were observed open simultaneously, it became
+apparent that VTCCP's live view needs the same framing capability DMST has. Without ROI
+control, VTCCP cannot direct the decoder to a specific region of the field of view.
+
+**Prerequisite**: Software trigger must be working (TRIG-1 resolved) and live view image
+delivery path must be confirmed. This is a D4-scope feature.
+
+---
+
+### LV-2 — Centered crosshair superimposed on live view at all times
+**Feature**: A fixed centered crosshair (X-pattern, full-width horizontal + full-height
+vertical lines intersecting at image center) rendered over the live view image at all times,
+regardless of zoom or ROI.
+
+**Purpose**: Alignment aid — operator can position the symbol under the verifier by centering
+it on the crosshair before triggering a scan. Standard practice in optical verification setups.
+
+**"At all times"**: Crosshair is always visible — not toggled, not hidden during scan, not
+dependent on any scan state. It is a permanent overlay on the live camera feed.
+
+**Implementation note (advice only)**: In WPF, render as a `Canvas` overlay on top of the
+`Image` control. Two `Line` elements — horizontal center and vertical center — with a
+contrasting color (e.g. semi-transparent red or green) and thin stroke. Scales automatically
+with the Image control's layout bounds regardless of image resolution.
+
+---
+
 ## Reference Catalog
 
 ### CAT-1 — Scan catalog index update
