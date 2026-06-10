@@ -274,8 +274,14 @@ scans. All grade fields will be X or F; numeric values will be empty, 0, or -1; 
 be absent or malformed. The UI must degrade gracefully — do not throw or leave the display
 in an indeterminate state on a total-fail result.
 
-**Device recovery**: Saved config restore confirmed successful. No permanent device damage.
+**Device recovery**: Saved config restore confirmed successful (2026-06-10). Post-verify image
+restored and DMST TC stable. No permanent device damage.
 **Do not debug DMST further** — it is not VTCCP's component.
+
+**TRIG-0 implication**: After the config restore the device is back to a known-good baseline.
+If triggers resume normally from this point, it confirms the instability (and possibly the
+silent subscriber) was a transient state from the dual-live-mode / QR-fail session, not a
+persistent configuration problem.
 
 ---
 
