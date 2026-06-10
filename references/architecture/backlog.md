@@ -55,6 +55,13 @@ client-side library — the firmware offers no per-field data.
 
 **If (C) is wrong** and a passing DL QR gives len>0 → revise to hypothesis (A).
 
+**New evidence from scan #20 (2026-06-10)**: USPS DataMatrix (`]d1`, non-GS1, Grade A) gave
+`len=1` — a single applicationStdArray element for the "FNC1 Required" check row that failed.
+This rules out "non-GS1 symbology" as a cause of len=0. The `]d1` non-GS1 DM IS processed
+by the GS1 parser and CAN produce non-zero applicationStdArray. Therefore, the DL QR's
+len=0 is specifically due to Grade F (hypothesis A) OR the DL pipeline not generating
+per-field rows (hypotheses B/C). The non-GS1 DM result does not distinguish between these.
+
 **Impact on GS1-1**: GS1-1 scoped to `applicationStdArray` on traditional GS1 (FNC1 / `]d2` DM).
 GS1 DL on fw6 needs a separate client-side extraction path. Do NOT block GS1-1 on this.
 
@@ -81,8 +88,10 @@ In practice the gs1-syntax-engine checks that:
   in the correct position (first non-stem path segment pair)
 - Subsequent path segments follow valid GS1 AI structure
 
-`ApplicationStandard=Custom` is a secondary confirming signal but cannot be used alone —
-it is also set on GS1 DM (`]d2`) and is absent (or different) on non-GS1 QR.
+`ApplicationStandard=Custom` **cannot be used as a GS1 indicator at all.**
+Scan #20 (USPS `]d1` non-GS1 DM) confirmed `ApplicationStandard=Custom` is set whenever
+the GS1 application parser is active — regardless of whether the symbol is GS1 or not.
+It reflects "GS1 parser ran" not "symbol is GS1 format".
 
 **AIs extracted from scan #19 DL URI** (`https://id.gs1.org/01/09506000164960/22/80/10/ABC`):
 - AI 01 = GTIN-14: `09506000164960`
@@ -95,17 +104,21 @@ of what the firmware's own GS1 parser does.
 
 ---
 
-### GS1-DL-3 — FormalGrade two-token format on total fail (C# parser gap)
-**Observed**: Scan #19: `FormalGrade=0/F` (2 tokens).  
-All prior grading scans: `FormalGrade=2.3/C` or (per Wireshark) `1.0/16/660/45Q` (4 tokens).
+### GS1-DL-3 — FormalGrade push XML is ALWAYS 2-token (not a fail anomaly)
+**Revised by**: Scan #20 (Grade A USPS DM): `FormalGrade=3.5/A` — also 2 tokens.
 
-**Problem**: Current C# parser may assume a fixed token count for FormalGrade. Total-fail
-scans return only 2 tokens (numericGrade/letterGrade). Parser must handle both:
-- 2-token: `0/F` → numericGrade=0, letterGrade=F, aperture/wavelength/lighting=null
-- Standard: `2.3/C` or `1.0/08/660/45Q`
+**Confirmed pattern** across all scans:
+- `3.5/A` — Grade A, scan #20
+- `2.3/C` / `2.4/C` — Grade C, scans #17/#18
+- `0/F` — Grade F, scan #19
 
-**Work required**: Defensive split on `/` in `FormalGrade` parsing; handle 2-token case
-without throwing or silently truncating.
+Push XML FormalGrade format is ALWAYS `numericGrade/letterGrade` (2 tokens).
+The 4-token format (`3.5/08/660/45Q` with aperture/wavelength/lighting) appears only in
+the HTML report and the Wireshark codes.xml HTTP channel — NOT in push XML.
+
+**Work required**: C# parser must always treat push XML FormalGrade as 2-token.
+Aperture, wavelength, and lighting are NOT in push XML FormalGrade — they are separate
+push XML elements (`ApertureRef`, `Wavelength`, `Lighting`).
 
 ---
 
@@ -123,8 +136,12 @@ heuristic that is wrong for DM ANU.
 - If only `.raw` exists → the conversion formula is device-specific and must be reverse-engineered
   from more scans (ANU raw vs DMST percent pairs across range).
 
-**Impact**: ANUPercent in Excel is currently wrong on DM scans. ANUGrade is correct (grade computed
-by firmware, not by us). Clinical severity: low (grade is right; display value is wrong).
+**Scope extended by scan #20**: ANUPercent mismatch also occurs on rectangular DM (`]d1`, 12×36
+USPS symbol) — push=59.5, DMST=0.6%. This is not limited to GS1 DM (`]d2`). Affects ALL DM
+symbology variants on fw 6.1.16_sr4.
+
+**Impact**: ANUPercent in Excel is currently wrong on all DM scans. ANUGrade is correct (grade
+computed by firmware, not by us). Clinical severity: low (grade is right; display value is wrong).
 
 ---
 
@@ -147,11 +164,85 @@ by firmware, not by us). Clinical severity: low (grade is right; display value i
 
 ## Parser / Schema
 
+### PARSE-3 — ECC200 lookup table: add 12×36 row (rectangular USPS postage DM)
+**Confirmed by**: Scan #20 (2026-06-09, USPS 12×36 DM, Grade A)  
+**From HTML**: TotalCW=40, DataCW=22, ECCW=18  
+**Add**: `{matrixOuter: "12x36", dataCW: 22, eccCW: 18, totalCW: 40}`  
+Note: rectangular DM sizes use both dimensions — key lookup must handle `NxM` format,
+not just a single integer. The C# table must index on the full string `"12x36"` (from
+push XML `<MatrixSize>12x36</MatrixSize>`).
+
+---
+
 ### PARSE-1 — ECC200 lookup table: add 24×24 row
 **Confirmed by**: Scan #17/#18 (24×24 outer, 22×22 data region, 36 data CW, 24 ECC CW)  
 **Current table**: has 22×22 entry (30 data, 20 ECC).  
 **Add**: `{matrixOuter: 24, matrixData: 22, dataCW: 36, eccCW: 24}`  
 Note: push XML `<MatrixSize>24x24</MatrixSize>` = outer dimension. Key lookup must use outer dim.
+
+---
+
+### DM-RECT-1 — Rectangular DM: 12 grade parameters not emitted by push XML
+**Confirmed by**: Scan #20 (12×36 USPS DM, Grade A). Push XML emits all rectangular-specific
+grade fields as empty; HTML report has all 12 as Grade A.
+
+**Parameters missing from push XML (rectangular DM only)**:
+
+| HTML row | Parameter | Push XML field |
+|---|---|---|
+| 11a | Upper Left Quiet Zone (ULQZ) | `ULQZGrade` — empty |
+| 11b | Upper Right Quiet Zone (URQZ) | `URQZGrade` — empty |
+| 12a | Right Upper Quiet Zone (RUQZ) | `RUQZGrade` — empty |
+| 12b | Right Lower Quiet Zone (RLQZ) | `RLQZGrade` — empty |
+| 13a | Left Top Transition Ratio (LQTTR) | `ULQTTRGrade` / `ULQTTRPercent` — empty |
+| 13b | Right Top Transition Ratio (RQTTR) | `URQTTRGrade` / `URQTTRPercent` — empty |
+| 14a | Left Right Transition Ratio (LQRTR) | `LLQRTRGrade` / `LLQRTRPercent` — empty |
+| 14b | Right Right Transition Ratio (RQRTR) | `LRQRTRGrade` / `LRQRTRPercent` — empty |
+| 15a | Left Top Clock Track (LQTCT) | `ULQTCTGrade` — empty |
+| 15b | Right Top Clock Track (RQTCT) | `URQTCTGrade` — empty |
+| 16a | Left Right Clock Track (LQRCT) | `LLQRCTGrade` — empty |
+| 16b | Right Right Clock Track (RQRCT) | `LRQRCTGrade` — empty |
+
+**Also**: `TQZGrade` and `RQZGrade` emit `X` on rectangular DM — these are square-DM
+fields (top/right quiet zone for L-shaped finder pattern) that do not apply to rectangular
+symbols. Do NOT treat `X` as a letter grade in this context.
+
+**Additionally**: `DDGrade=X` on Grade A rectangular DM while HTML shows DFPD=A — same
+mystery as PARSE-2, now confirmed to occur on rectangular DM as well.
+
+**Work required**:
+- Future push script version must probe rectangular-DM-specific sub-keys from
+  `q.trucheck` or the grade object to extract these 12 parameters.
+- The push XML fields are already declared (they exist as empty elements); the probe
+  script just needs to populate them from the appropriate JS paths.
+- VTCCP parser and Excel sheet must accept and display all 12 rectangular-specific fields.
+- Parser must guard: if symbol is rectangular DM → render ULQZ/URQZ etc. in results;
+  if square DM → render TQZ/RQZ; never display `X` as a printed grade for inapplicable fields.
+
+---
+
+### DM-BIN-1 — Binary DecodedData (Base256 encoding) — safe handling required
+**Confirmed by**: Scan #20 (USPS DM, Base256 encoding, codeword 231 = switch to Base256)
+
+**Problem**: When the DM symbol uses Base256 encoding, `DecodedData` contains raw binary
+bytes (values 0x00–0xFF). These are not printable UTF-8 strings. VTCCP must handle
+this gracefully in:
+1. **XML serialization**: Binary bytes in a push XML `<DecodedData>` element can corrupt
+   the XML parser (NUL bytes are illegal in XML 1.0). The current push XML delivery
+   already contains these — the parser must tolerate them.
+2. **C# string representation**: Do not expose raw binary as a `string` to Excel or report
+   writers. Either hex-dump, escape as `<xNN>`, or detect and flag as binary content.
+3. **GS1 parsing**: Do NOT attempt GS1 AI parsing on binary `DecodedData`. Gate on
+   `ErrorCorrectionType=ECC200` AND `SymbologyId=]d1`/`]d2` AND content is printable.
+4. **Display in VTCCP UI**: Show a safe representation — e.g. `[Binary data: 20 bytes]`
+   followed by a hex preview of the first N bytes, then the printable suffix `000524`.
+
+**Detection heuristic**: If `DecodedData` contains bytes < 0x20 (other than tab/CR/LF),
+treat as binary. The USPS example has NUL (0x00), STX (0x02) as clear indicators.
+
+**Note**: The Encodation Analysis table in the HTML report (`ErrorCorrectionType` field)
+will show `ECC 200` for both binary and text DM. The mode switch is codeword 231 (Base256)
+in the Codewords table — not currently accessible from push XML.
 
 ---
 
@@ -168,6 +259,25 @@ field represents vs DMST's DFPD row.
 ---
 
 ## Trigger / Result Capture
+
+### DMST-1 — DMST TC instability after Grade F QR scan (post-verify image lost)
+**Observed**: 2026-06-10. After scanning the Grade F GS1 DL QR (scan #19), DMST TruCheck
+became visually unstable — the post-verify image panel was lost / failed to render.
+User restored from a saved good device configuration to recover.
+
+**Hypothesis**: The total-fail QR scan (all parameters X/F, possibly malformed image data
+or unusual push XML content) triggered an edge case in DMST's image display pipeline.
+This is a DMST software issue, not a DM475V firmware issue.
+
+**Note for VTCCP**: VTCCP's result display pipeline must be hardened against Grade F / total-fail
+scans. All grade fields will be X or F; numeric values will be empty, 0, or -1; image data may
+be absent or malformed. The UI must degrade gracefully — do not throw or leave the display
+in an indeterminate state on a total-fail result.
+
+**Device recovery**: Saved config restore confirmed successful. No permanent device damage.
+**Do not debug DMST further** — it is not VTCCP's component.
+
+---
 
 ### TRIG-0 — ★ ACTIVE BUG — Trigger results not arriving (CP trigger AND TC trigger both dead)
 **Observed**: 2026-06-10. Neither VTCCP (CP) software trigger nor DMST (TC) Verify button
