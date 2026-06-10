@@ -108,3 +108,9 @@ id = "DFGiZnFHoGKCj0-YR-4a3"
 uri = "file://artifacts/script-viewer/public/vtccp-handoff.zip"
 type = "unspecified"
 title = "vtccp-handoff.zip — Problem analysis + all source files"
+
+[[outputs]]
+id = "KaY3YV29hZ_U_oesabfdt"
+uri = "file://vtccp-synthesis-docs.zip"
+type = "unspecified"
+title = "VTCCP Synthesis Docs (Feature Summary + HTML Report Template)"
