@@ -30,6 +30,68 @@ Order within each section = rough priority (top = sooner).
 
 ---
 
+### GS1-DL-1 — applicationStdArray behavior on GS1 Digital Link QR (len=0 — unresolved)
+**Observed**: Scan #19 (2026-06-09, GS1 DL QR, Grade F). `DebugApplicationStdArray: len=0`.  
+Contrast: Scan #18 (pharma GS1 DM, Grade C): `len=13`.
+
+**Open question**: Is len=0 because:
+- **(A) Grade F suppresses it** — firmware cannot walk field-by-field AI checks without a
+  decoded codeword stream (DECODE=X). GS1 parser bails before populating the array.
+- **(B) GS1 Digital Link uses a different pipeline** — DL URIs are parsed at the URL level,
+  not as FNC1 AI streams. The DL parser recognizes the format as valid GS1 (hence
+  `ApplicationPass=Fail(Quality)`, not `Fail(Data Format)`) but does not produce a
+  row-per-field `applicationStdArray`.
+
+**Evidence for (A)**: `ApplicationPassReason=Quality` means GS1 format was recognized — if
+the codeword stream was undecodable, how did the firmware determine the format was good?
+**Evidence for (B)**: The `https://id.gs1.org/` URL could be pattern-matched at the string
+level without needing full GS1 AI parsing — explaining both `len=0` and the Quality fail reason.
+
+**Resolution**: Scan a passing or near-passing GS1 Digital Link QR.
+- If len>0 → Grade F is the cause. DL populates array like pharma DM.
+- If len=0 → DL uses a different pipeline. No per-field array available from push XML.
+
+**Impact on GS1-1**: GS1-1 assumes applicationStdArray can be relied upon for all GS1 symbols.
+If DL QR never populates it, a separate `DecodedData`-based path via gs1-syntax-engine is needed
+for DL AI extraction.
+
+---
+
+### GS1-DL-2 — VTCCP GS1 Digital Link routing (DecodedData https:// prefix detection)
+**Confirmed by**: Scan #19 (GS1 DL QR, `]Q1`, `DecodedData=https://id.gs1.org/...`)
+
+**Finding**: GS1 Digital Link QR codes carry `SymbologyId=]Q1` — the same AIM ID as non-GS1
+QR. There is NO symbology-layer distinction between DL QR and plain QR. The ONLY indicators
+that a QR result is GS1 Digital Link are:
+1. `DecodedData` starts with a GS1 DL domain (`https://id.gs1.org/`, or any resolver domain)
+2. `ApplicationStandard=Custom` (present on all GS1 symbols)
+
+**VTCCP parser action**: Route `DecodedData` through the gs1-syntax-engine Digital Link path
+(`gs1-syntax-engine` v1.4.0 is already in `vtccp/lib/`) when `DecodedData` starts with `https://`.
+The library handles DL URI → AI extraction. This complements the existing FNC1 path used for
+GS1 DataMatrix (`]d2`).
+
+**AIs extracted from scan #19 DL URI**:
+- AI 01 = GTIN-14: `09506000164960`
+- AI 22 = Internal Product Variant: `80`
+- AI 10 = Batch/Lot: `ABC`
+
+---
+
+### GS1-DL-3 — FormalGrade two-token format on total fail (C# parser gap)
+**Observed**: Scan #19: `FormalGrade=0/F` (2 tokens).  
+All prior grading scans: `FormalGrade=2.3/C` or (per Wireshark) `1.0/16/660/45Q` (4 tokens).
+
+**Problem**: Current C# parser may assume a fixed token count for FormalGrade. Total-fail
+scans return only 2 tokens (numericGrade/letterGrade). Parser must handle both:
+- 2-token: `0/F` → numericGrade=0, letterGrade=F, aperture/wavelength/lighting=null
+- Standard: `2.3/C` or `1.0/08/660/45Q`
+
+**Work required**: Defensive split on `/` in `FormalGrade` parsing; handle 2-token case
+without throwing or silently truncating.
+
+---
+
 ### GS1-2 — ANU raw unit formula (DM scans)
 **Confirmed by**: Scans #17/#18 (2026-06-09) — push=11.5/7.4, DMST=0.1%  
 **Prior**: Scan #10 (grade-D QR) push=3.9, DMST=3.9% (1:1).  
