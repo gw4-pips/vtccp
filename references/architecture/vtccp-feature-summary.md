@@ -1,6 +1,6 @@
 # VTCCP — Feature Summary
 
-> Status as of 2026-06-10.  "Shipped" = code complete + device-confirmed or test-confirmed.
+> v1.1 — 2026-06-10 · "Shipped" = code complete + device-confirmed or test-confirmed.
 
 ---
 
@@ -140,6 +140,8 @@
 | Read/write `UPC-EAN.SUPPLEMENT` via DMCC | Shipped | 5 modes: Ignore / Required / Required-2 / Required-5 / Not-Required |
 | Session UI — Device Configuration card | Shipped | 6 radio buttons (5 modes + header); Read / Apply buttons |
 | **SUPP-1 — Proprietary supplement bar/space decoder + ISO grader** | **Planned** | Cognex does not expose supplement quality grades (2-digit / 5-digit add-ons for UPC/EAN). VTCCP plan: extract the supplement bar/space sequence from the verification JPEG using an edge-detection bar/space decoder operating on the image provided by the device; grade the physical quality parameters per ISO 15416 and the UPC/EAN symbology specification — Decodability principally, plus Edge Contrast, Modulation, and Defects where the image resolution permits. Results caveated explicitly as **"VTCCP Proprietary — not DMST TruCheck grade"** so the qualification boundary is unambiguous. Implemented and surfaced whenever a supplement is present and the device supplement mode is not Ignore. |
+| **SUPP-2 — Middle Margin (inter-character gap) validation** | **Planned** | The space between the rightmost bar of the main EAN/UPC symbol and the leftmost bar of the supplement start pattern has **both a minimum AND a maximum** prescribed width per the GS1 General Specifications — unlike ordinary quiet zones, which carry only a minimum. Too narrow: the scanner reads the supplement bars as a continuation of the main symbol guard pattern. Too wide: the scanner fails to associate the supplement with the main symbol at all. Axicon (barcode quality instruments) uses the term **"Middle Margin"** for this space; the same term appears in their EPS (Electronic Point-of-Sale) symbol encoding software, where they are the specification authority because they build the encoding side as well as the verification side. VTCCP plan: measure Middle Margin width from the verification JPEG, compare both bounds against the applicable GS1/symbology spec, and report as a separate named parameter with pass/warn/fail outcome and the measured vs. specified range. |
+| **SUPP-3 — Left / Right Quiet Zone grading (independent, image-based)** | **Planned** | ISO 15416:2016 Table 1 lists Quiet Zone as a **single combined grade parameter** — the standard defines it as a pass/fail against the symbology specification minimum width, covering both sides, with no requirement to report them separately. Cognex TruCheck has always reported a single QZ grade (user has requested independent L/R reporting over a period spanning two decades; no change has ever been made). VTCCP plan: extract bar/space widths from the verification JPEG for the quiet zone region on each side independently, compute measured width in modules (X-dimensions), compare each side against the symbology specification minimum, cross-validate our measurements against the TruCheck combined QZ value to calibrate the image-based measurement, and report **LQZGrade** and **RQZGrade** as separate proprietary parameters. Each grade indicates pass or fail for that side, so an operator can immediately see which edge is deficient. Labelled "VTCCP Proprietary" — beyond the single-parameter scope of ISO 15416 and beyond what any Cognex verifier currently reports. Applicable to all linear symbologies: EAN-13, EAN-8, UPC-A, UPC-E, Code 128, ITF, Code 39, Codabar, etc. |
 
 ---
 
@@ -213,6 +215,8 @@ independent; failures are non-fatal and surfaced as informational fields, never 
 | **D3 — QR Code full parity** | ECLevel / DataMaskPattern / ECI via ParseHtml() extension; DebugRSymbology v1.34 |
 | **D4 — Full IMAGE.LOAD implementation** | Unblocked; sidecar XML archival; full-frame archive optional |
 | **SUPP-1 — Supplement bar/space decoder + ISO grader** | Proprietary; see §9 and §11d; unblocked pending test images |
+| **SUPP-2 — Middle Margin validation** | Min AND max prescribed by GS1; Axicon EPS terminology; see §9 |
+| **SUPP-3 — Independent L/R Quiet Zone grading** | ISO 15416 defines QZ as a single combined grade; Cognex has never split it; VTCCP to measure each side from JPEG and report LQZGrade + RQZGrade separately; calibrate against TC combined value; labelled VTCCP Proprietary; see §9 |
 | **STITCH-1 Phase 2 — clock-track alignment** | See §7; 2D DataMatrix alignment via clock tracks + L-pattern test |
 | **Excel 1D 10-scan child rows** | ISO 15416 per-height sub-records; see §3 |
 | **Excel column outline grouping** | Collapse/expand column groups; design decision on group boundaries pending |
