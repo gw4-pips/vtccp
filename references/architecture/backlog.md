@@ -485,6 +485,40 @@ with the Image control's layout bounds regardless of image resolution.
 
 ---
 
+## Aperture / Optics
+
+### AP-1 — Aperture selection guidance and grade sensitivity logging
+**Confirmed by**: Scans #21/#22/#23 (2026-06-10, same 22×22 DM symbol, aperture 16 vs 08)
+
+**Finding**: Aperture selection has an outsized effect on grade outcome — same symbol, same
+firmware, same session:
+- Aperture 16 → Grade C (1.8), MOD=C limiting
+- Aperture 08 → Grade A (3.8), SC=3.8 limiting
+
+**Root cause**: ISO 15415 requires the aperture to match the nominal X-dimension of the
+symbol. For this symbol NominalXDim ≈ 19–23 mil:
+- Aperture 08 = 8 mil → roughly 1/3–1/2 the module size → better MOD sampling
+- Aperture 16 = 16 mil → approaches or exceeds the module size → MOD oversaturated
+
+**VTCCP implication (two areas)**:
+1. **Grade display**: always surface `ApertureRef` prominently alongside the grade — a
+   Grade C result at aperture 16 means something very different from Grade C at aperture 08.
+   The ISO formal grade notation already includes aperture: `1.8/16/660/45Q` vs `3.8/08/660/45Q`.
+   Make sure the full formal notation is always shown, never just the letter grade.
+
+2. **Future advisory feature (D-scope)**: VTCCP could check whether the reported aperture is
+   within the ISO-recommended range for the measured NominalXDim, and flag a warning if not.
+   ISO 15415 Table 1 defines aperture selection criteria. This would require the ISO 15415
+   document — do not implement until C1/C2 materials are available.
+
+**Aperture → nominal X guidance (from prior reference materials)**:
+The ISO rule is aperture ≤ 80% of the minimum X-dimension of the symbol being tested.
+For ~20 mil modules, the correct aperture is ≤ 16 mil — but in practice 08 mil performed
+better on this specific symbol. The verifier's configured aperture is the operator's
+responsibility; VTCCP echoes it.
+
+---
+
 ## Competitive Intelligence
 
 ### COMP-1 — OMRON LVS-950 Symbol Stitching (concept log, no action required)
