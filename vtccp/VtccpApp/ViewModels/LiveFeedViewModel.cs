@@ -148,9 +148,10 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
 
     private void StartTimer()
     {
-        // 300 ms ≈ 3 fps — matches DMST live view cadence.
-        // Each tick calls GetFrameAsync (IMAGE.SEND only, no trigger/scan).
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        // 100 ms tick — fires frequently, but _fetchInProgress guard ensures only
+        // one GetFreshFrameAsync runs at a time.  Effective rate is determined by
+        // scan time (~400–650 ms), not by this interval.
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         _timer.Tick += OnTimerTick;
         _timer.Start();
     }
@@ -167,7 +168,7 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
         _fetchInProgress = true;
         try
         {
-            byte[]? jpeg = await LiveFeedClient.GetFrameAsync(_host);
+            byte[]? jpeg = await LiveFeedClient.GetFreshFrameAsync(_host);
             if (jpeg is not null)
                 LiveImage = BytesToBitmapImage(jpeg);
         }
