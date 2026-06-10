@@ -98,13 +98,17 @@ trigger results are arriving on the HTTP subscriber. Both paths are silent.
 (that was the problem TRIG-1 was written to solve). Now neither external nor software triggers
 produce results on the subscriber.
 
-**Possible causes** (do not debug yet):
+**Most likely cause (2026-06-10 update)**: Dual live mode interference — DMST and VTCCP
+were both open simultaneously. DMST may have opened its own `GET /events?enable` subscription,
+intercepting the result stream before VTCCP received it, OR one client's connection displaced
+the other on the device side. When VTCCP was closed and only DMST was open (or vice versa),
+results may have resumed normally.
+
+**Other possible causes**:
 - HTTP subscriber connection dropped or was not re-established after a mode change
-- TRIGGER.TYPE left in a non-standard state from a prior session (e.g. still set to
-  Presentation mode or a raw-TCP trigger mode from prior DMCC experiments)
+- TRIGGER.TYPE left in a non-standard state from a prior session
 - Device reboot or config reset cleared push XML script or subscriber state
 - Port 44444 connection saturation (too many open connections from dual live mode)
-- The `_pendingVerification` filter from TRIG-1 implemented incorrectly — discarding ALL results
 
 **First things to check when revisiting**:
 1. Is the HTTP subscriber connection still alive? (Send a keepalive or reconnect)
