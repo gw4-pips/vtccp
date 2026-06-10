@@ -485,6 +485,33 @@ with the Image control's layout bounds regardless of image resolution.
 
 ---
 
+## Competitive Intelligence
+
+### COMP-1 — OMRON LVS-950 Symbol Stitching (concept log, no action required)
+**Logged**: 2026-06-10  
+**Source**: User observation — Code 128 FX label too wide for DM475V-LBL field of view
+
+**Concept**: The OMRON LVS-950 barcode verifier supports a "Symbol Stitching" feature for
+1D symbols (e.g. Code 128) that exceed the camera's field of view. The operator scans the
+symbol in two overlapping passes. The verifier:
+1. De-skews each image independently (rotation correction only — no other transform)
+2. Overlays the two de-skewed images using the overlapping region as an alignment anchor
+3. Decodes and grades the composite as a single complete symbol
+
+**Cognex status**: No equivalent feature exists in DMST TruCheck or the DM475V firmware.
+Unlikely to be added — Cognex's verification product line does not appear to prioritize
+this use case. DM475V-LBL has a fixed FOV; wide symbols must be physically repositioned
+or a wider-FOV unit (DMV-8072V or a custom setup) used.
+
+**VTCCP relevance**: None for v1. Log for competitive awareness only.
+If Cognex ever exposes a multi-image stitching API or IMAGE.STITCH DMCC command in a
+future firmware, revisit. Do not design for this today.
+
+**Supporting images**: Two PNG images of a Code 128 FX label (too wide for DM475V-LBL FOV)
+were referenced by user but not yet received. Add to `references/samples/` if provided.
+
+---
+
 ## Reference Catalog
 
 ### CAT-1 — Scan catalog index update
