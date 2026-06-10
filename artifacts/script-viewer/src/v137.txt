@@ -1,0 +1,272 @@
+// VCCS — VTCCP Push Script  v1.37
+// © 2026 Verifier Calibration & Conformance Solutions, LLC
+// CONFIDENTIAL AND PROPRIETARY — ALL RIGHTS RESERVED.
+// Trade secret protected under 18 U.S.C. § 1836. Unauthorized use or disclosure
+// prohibited. Authorized use: VTCCP-licensed installations only. legal@vccs.llc
+//
+// Install: DMST → Format Data → Script-Based Formatting → Scripting tab
+//          → paste entire script → Save Settings → Write to device
+//
+// v1.37: DebugApplicationStdArray — enumerate q.applicationStdArray elements.
+//        v1.36 DebugQTopKeys reported applicationStdArray=[arr.13] on the GS1
+//        4-AI pharma scan (scan #16).  13 entries for 4 GS1 AIs suggests
+//        per-AI result objects with multiple sub-fields each.
+//
+//        DebugApplicationStdArray — reports:
+//          len=N       total element count
+//          [i]=<ekv>   sub-key dump of each element (first 6 shown)
+//        Hypothesis: each element has keys like ai, value, pass, standard, etc.
+//        This unlocks per-AI GS1 validation results currently unreachable from
+//        the main output (ApplicationPass only gives overall pass/fail string).
+//
+//        Carries forward DebugBarcodeAssignment (r.barcodeAssignment still unprobed).
+//        v1.36 probes (JpegDiag, QTopKeys, RTopKeys) and v1.35 RoI/FoV dropped.
+//        ECMAScript 5 only.
+//
+// Confirm: <PushScriptDiag>v1.37 q=r.trucheck m=found</PushScriptDiag>
+
+function onResult(decodeResults,readerProperties,outputResults){
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function s(v){return(v===undefined||v===null)?"":String(v);}
+function prop(o,k){if(!o)return"";var v=o[k];return(v===undefined||v===null)?"":String(v);}
+function esc(v){return s(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");}
+function elem(t,v){return"<"+t+">"+esc(v)+"</"+t+">\r\n";}
+function isoNow(){var d=new Date(),p=function(n){return n<10?"0"+n:String(n);};return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"T"+p(d.getHours())+":"+p(d.getMinutes())+":"+p(d.getSeconds());}
+function pk(o,k){if(!o)return null;var v=o[k];return(typeof v!=="undefined"&&v!==null)?v:null;}
+function tg(t){return(t&&typeof t.grade!=="undefined")?s(t.grade):"";}
+function tn(t){return(t&&typeof t.numericGrade!=="undefined")?s(t.numericGrade):"";}
+function mv(t){if(!t)return"";var v=t.raw;return(typeof v==="undefined"||v===null||v===-1||v==="-1")?"":s(v);}
+function mpa(t){if(!t)return"";var v=t.raw;if(typeof v==="undefined"||v===null||v===-1)return"";var n=parseFloat(v);return isNaN(n)?"":s(Math.round((n>1?n:n*100)*10)/10);}
+function rn(x){if(x===null||typeof x==="undefined")return NaN;if(typeof x==="number")return x;if(typeof x==="object"&&typeof x.raw!=="undefined")return parseFloat(x.raw);return parseFloat(x);}
+function rpc(v){return(v>1)?v:(v*100);}
+function ekv(o,l){if(!o)return"("+l+" null)";if(typeof o!=="object")return"("+l+" "+(typeof o)+"="+String(o).substring(0,30)+")";var x="";for(var k in o){var v=o[k];x+=k+"="+((typeof v==="object"&&v!==null)?((typeof v.length!=="undefined")?"[arr."+v.length+"]":"[obj]"):(typeof v==="string"?"str.len="+v.length:String(v).substring(0,40)))+";";}return x||"("+l+" empty)";}
+
+// ── Inputs ────────────────────────────────────────────────────────────────────
+var r=decodeResults[0],rp=readerProperties;
+
+// ── Quality-object discovery ──────────────────────────────────────────────────
+var q=null,_qs="none";
+var _rc=["trucheck","metrics","quality","verificationResult","symbolVerificationResult","symVerResult","verificationResults","qualityResult","gradeResult","isoResult","truCheckResult","verResult","isoVerResult","verificationData","gradeData","verification","grade","gradeInfo","result","data"];
+for(var _i=0;_i<_rc.length;_i++){var _rv=pk(r,_rc[_i]);if(_rv!==null){q=_rv;_qs="r."+_rc[_i];break;}}
+if(q===null){var _rpc=["quality","verificationResult","symbolVerificationResult","symVerResult","qualityResult","verificationData","truCheckResult","isoResult","gradeResult","verResult","gradeData","verification"];for(var _j=0;_j<_rpc.length;_j++){var _pv=pk(rp,_rpc[_j]);if(_pv!==null){q=_pv;_qs="rp."+_rpc[_j];break;}}}
+if(q===null){var _ac=["quality","verificationResult","qualityResult","gradeResult"];for(var _k=0;_k<_ac.length;_k++){var _av=pk(decodeResults,_ac[_k]);if(_av!==null){q=_av;_qs="decodeResults."+_ac[_k];break;}}}
+if(q===null&&pk(r,"result")!==null){var _rr=pk(r,"result"),_sk=["quality","verificationResult","gradeResult","isoResult"];for(var _l=0;_l<_sk.length;_l++){var _ssv=pk(_rr,_sk[_l]);if(_ssv!==null){q=_ssv;_qs="r.result."+_sk[_l];break;}}}
+
+// ── XML assembly ──────────────────────────────────────────────────────────────
+var o='<?xml version="1.0" encoding="UTF-8"?>\r\n<DMCCResponse>\r\n<DMSymVerResponse>\r\n';
+
+// ── Symbology / identity ──────────────────────────────────────────────────────
+var _sy=(r&&r.symbology&&typeof r.symbology==="object")?r.symbology:null;
+var _ai=_sy?s(_sy.id):"";
+var _qr=(_ai.length>=2&&_ai.charAt(1)==="Q");
+var _dm=(_ai.length>=2&&_ai.charAt(1)==="d");
+var _sb="";
+if(r){if(typeof r.symbologyName==="string"&&r.symbologyName){_sb=r.symbologyName;}else if(typeof r.symbology==="string"&&r.symbology){_sb=r.symbology;}else if(r.symbology&&r.symbology.name){_sb=String(r.symbology.name);}else{_sb=s(r.symbology);}}
+o+=elem("DateTime",isoNow());
+o+=elem("SymbologyName",_sb);
+
+var _ds=(r&&r.decoded)?(r.content||""):"";
+if(_qr&&_ai.length>=3){var _am=_ai.charAt(2);if(_am==="2"||_am==="4"||_am==="6"){if(_ds.length>=3&&_ds.charCodeAt(0)===0&&_ds.charCodeAt(1)===0&&_ds.charCodeAt(2)===38){_ds=_ds.substring(3);}}}
+o+=elem("DecodedData",_ds);
+o+=elem("SymbologyId",_sy?s(_sy.id):"");
+o+=elem("SymbolQuality",_sy?s(_sy.quality):"");
+o+=elem("SymbolAngle",_sy?s(_sy.angle):"");
+o+=elem("ModuleSizePx",_sy?s(_sy.moduleSize):"");
+
+var m=pk(r,"metrics");
+o+=elem("PushScriptDiag","v1.37 q="+_qs+" m="+(m?"found":"null"));
+o+=elem("Source",s(r&&typeof r.source==="string"?r.source:""));
+
+// ── Grade emission ────────────────────────────────────────────────────────────
+if(q){
+
+var qo=pk(q,"overall"),qn=pk(q,"general");
+function op(k){return qo?prop(qo,k):"";}
+function gp(k){return qn?prop(qn,k):"";}
+
+var _uec=pk(q,"unusedErrorCorrection"),_sc=pk(q,"symbolContrast"),_cc=pk(q,"cellContrast");
+var _mod=pk(q,"modulation"),_cm=pk(q,"cellModulation");
+var _rm=pk(q,"reflectanceMargin"),_anu=pk(q,"axialNonuniformity"),_gnu=pk(q,"gridNonuniformity");
+var _fpd=pk(q,"fixedPatternDamage"),_lls=pk(q,"leftLSide"),_bls=pk(q,"bottomLSide");
+var _lqz=pk(q,"leftQuietZone"),_bqz=pk(q,"bottomQuietZone"),_rqz=pk(q,"rightQuietZone"),_tqz=pk(q,"topQuietZone");
+var _tct=pk(q,"topClockTrack"),_rct=pk(q,"rightClockTrack");
+var _ttr=pk(q,"topTransitionRatio"),_rtr=pk(q,"rightTransitionRatio"),_dec=pk(q,"decode");
+var _gs=op("gradingStandard"),_ii=(_gs.indexOf("ISO 15415")===0);
+var _scs=_ii?_sc:_cc,_mds=_ii?_mod:_cm;
+
+o+=elem("FormalGrade",(op("gradeLetter"))?(op("gradeValue")+"/"+op("gradeLetter")):"");
+o+=elem("OverallGrade",op("gradeLetter"));
+o+=elem("OverallGradeNumeric",op("gradeValue"));
+o+=elem("GradingStandard",_gs);
+o+=elem("ApplicationStandard",op("applicationStandardName"));
+o+=elem("ApplicationPass",op("applicationStandardPass"));
+var _aps=op("applicationStandardPass"),_apx=_aps.indexOf(" (");
+o+=elem("ApplicationPassReason",(_apx!==-1&&_aps.charAt(_aps.length-1)===")")?_aps.substring(_apx+2,_aps.length-1):"");
+o+=elem("ApertureRef",op("aperture")||op("apertureRef")||prop(m,"aperture"));
+o+=elem("Wavelength",op("wavelength")||op("waveLength")||prop(m,"wavelength"));
+o+=elem("Lighting",op("lighting")||op("lightingType")||prop(m,"lighting"));
+o+=elem("Standard",_gs||prop(m,"standard"));
+
+o+=elem("UECPercent",mpa(_uec));
+o+=elem("UECGrade",tg(_uec));
+
+var _rl=rn(pk(q,"reflectanceLight")),_rd=rn(pk(q,"reflectanceDark"));
+var _rli=(!isNaN(_rl)&&_rl!==-1)?String(Math.round(rpc(_rl))):"";
+var _rdi=(!isNaN(_rd)&&_rd!==-1)?String(Math.round(rpc(_rd))):"";
+o+=elem("SCPercent",mpa(_scs));
+o+=elem("SCRlRd",(_rli&&_rdi)?(_rli+"/"+_rdi):"");
+o+=elem("SCGrade",tg(_scs));
+o+=elem("MinReflectance",(_rd!==-1&&!isNaN(_rd))?String(Math.round(rpc(_rd))):"");
+o+=elem("MODGrade",tg(_mds));
+o+=elem("RMGrade",tg(_rm));
+o+=elem("ANUPercent",_qr?s(mv(_anu)):mpa(_anu));
+o+=elem("ANUGrade",tg(_anu));
+o+=elem("GNUPercent",mpa(_gnu));
+o+=elem("GNUGrade",tg(_gnu));
+o+=elem("FPDValue",mv(_fpd));
+o+=elem("FPDGrade",tg(_fpd));
+o+=elem("DecodeGrade",tg(_dec));
+
+var _ma=pk(q,"modulationArray"),_ml=(_ma&&typeof _ma.length!=="undefined")?_ma.length:0;
+var _msd=(_ml>0)?Math.sqrt(_ml):0,_qzo=_qr?8:2;
+var _mss=(_msd===Math.floor(_msd)&&_msd>2)?(_msd-_qzo):0;
+var _msz=(_mss>0)?(_mss+"x"+_mss):"";
+if(!_msz&&_ml>0){var _rmap={"200":"8x18","340":"8x32","392":"12x26","532":"12x36","684":"16x36","900":"16x48"};var _rh=_rmap[String(_ml)];if(_rh){_msz=_rh;}}
+
+var _ca=pk(q,"codewordArray"),_cl=(_ca&&typeof _ca.length!=="undefined")?_ca.length:0,_ec=0;
+if(_ca&&_cl>0){for(var _ci=0;_ci<_cl;_ci++){var _cw=_ca[_ci];if(_cw&&_cw.isCorrected){_ec++;}}}
+
+var _eaA=pk(q,"encodationAnalysisArray"),_el=(_eaA&&typeof _eaA.length!=="undefined")?_eaA.length:0;
+var _encC=gp("encodedCharacters");
+if(!_encC&&_el>0){_encC=s(_el);}
+
+o+=elem("MatrixSize",_msz);
+o+=elem("HorizontalBWG",gp("horizontalBWG"));
+o+=elem("VerticalBWG",gp("verticalBWG"));
+o+=elem("EncodedCharacters",_encC);
+o+=elem("TotalCodewords",_cl>0?s(_cl):"");
+
+var _syms=pk(q,"symbols"),_sym0=(_syms&&typeof _syms.length!=="undefined"&&_syms.length>0)?_syms[0]:null;
+var _dCW=_sym0?pk(_sym0,"dataCodewords"):null;
+var _eCW=_sym0?(pk(_sym0,"ecCodewords")||pk(_sym0,"errorCorrectionCodewords")):null;
+var _ecl=_sym0?(pk(_sym0,"errorCorrectionLevel")||pk(_sym0,"ecLevel")):null;
+o+=elem("DataCodewords",_dCW!==null?s(_dCW):"");
+o+=elem("ErrorCorrectionBudget",_eCW!==null?s(_eCW):"");
+o+=elem("ErrorsCorrected",_cl>0?s(_ec):"");
+o+=elem("ErrorCapacityUsed",_cl>0?s(_ec*2):"");
+
+var _ect;
+if(_qr){_ect=_ecl||gp("errorCorrectionLevel")||gp("ecLevel")||op("ecLevel")||"";}
+else if(_dm){_ect="ECC200";}
+else{_ect="";}
+o+=elem("ErrorCorrectionType",_ect);
+o+=elem("NominalXDim",gp("xDimension"));
+o+=elem("ImagePolarity",gp("polarity")||gp("imagePolarity"));
+o+=elem("ContrastUniformity",gp("contrastUniformity"));
+o+=elem("MRD",gp("MRD")||gp("mrd"));
+o+=elem("ContrastUniformityRow",gp("contrastUniformityRow"));
+o+=elem("ContrastUniformityCol",gp("contrastUniformityCol"));
+
+var _cu=parseFloat(gp("contrastUniformity")),_mrd=parseFloat(gp("MRD")||gp("mrd"));
+o+=elem("OpticsSource",(!isNaN(_cu)&&_cu===-1&&!isNaN(_mrd)&&_mrd===-1)?"LoadedImage":"LiveScan");
+
+var _dd=pk(q,"distributedDamageGrade");
+o+=elem("DDGrade",(_dd&&typeof _dd==="object")?tg(_dd):s(_dd));
+var _avg=pk(q,"averageGrade");
+o+=elem("AverageGrade",tg(_avg));
+o+=elem("AverageGradeNumeric",tn(_avg));
+
+o+=elem("CustomNote",s(pk(q,"customNote")));
+
+o+=elem("LLSGrade",tg(_lls));
+o+=elem("BLSGrade",tg(_bls));
+o+=elem("LQZGrade",tg(_lqz));
+o+=elem("BQZGrade",tg(_bqz));
+o+=elem("TQZGrade",tg(_tqz));
+o+=elem("RQZGrade",tg(_rqz));
+o+=elem("TTRPercent",mpa(_ttr));
+o+=elem("TTRGrade",tg(_ttr));
+o+=elem("RTRPercent",mpa(_rtr));
+o+=elem("RTRGrade",tg(_rtr));
+o+=elem("TCTGrade",tg(_tct));
+o+=elem("RCTGrade",tg(_rct));
+
+o+=elem("ULQZGrade","");o+=elem("URQZGrade","");o+=elem("RUQZGrade","");o+=elem("RLQZGrade","");
+o+=elem("LLQZGrade","");o+=elem("LRQZGrade","");o+=elem("HClockTrackGrade","");o+=elem("VClockTrackGrade","");
+o+=elem("ULQTTRPercent","");o+=elem("ULQTTRGrade","");o+=elem("URQTTRPercent","");o+=elem("URQTTRGrade","");
+o+=elem("LLQTTRPercent","");o+=elem("LLQTTRGrade","");o+=elem("LRQTTRPercent","");o+=elem("LRQTTRGrade","");
+o+=elem("ULQRTRPercent","");o+=elem("ULQRTRGrade","");o+=elem("URQRTRPercent","");o+=elem("URQRTRGrade","");
+o+=elem("LLQRTRPercent","");o+=elem("LLQRTRGrade","");o+=elem("LRQRTRPercent","");o+=elem("LRQRTRGrade","");
+o+=elem("ULQTCTGrade","");o+=elem("URQTCTGrade","");o+=elem("LLQTCTGrade","");o+=elem("LRQTCTGrade","");
+o+=elem("ULQRCTGrade","");o+=elem("URQRCTGrade","");o+=elem("LLQRCTGrade","");o+=elem("LRQRCTGrade","");
+
+o+=elem("ULPGrade",_qr?tg(pk(q,"upperLeftPattern")):"");
+o+=elem("URPGrade",_qr?tg(pk(q,"upperRightPattern")):"");
+o+=elem("LLPGrade",_qr?tg(pk(q,"lowerLeftPattern")):"");
+o+=elem("HCTGrade",_qr?tg(pk(q,"horizontalClockTrack")):"");
+o+=elem("VCTGrade",_qr?tg(pk(q,"verticalClockTrack")):"");
+o+=elem("ALPGrade",_qr?tg(pk(q,"alignmentPatterns")):"");
+o+=elem("VIBGrade",_qr?tg(pk(q,"versionInformationBlock")):"");
+o+=elem("FIBGrade",_qr?tg(pk(q,"formatInformationBlock")):"");
+
+var _ag=prop(m,"ansiGrade")||prop(m,"symbolAnsiGrade");
+o+=elem("SymbolAnsiGrade",_ag);
+o+=elem("AvgEdge",prop(m,"avgEdge"));
+o+=elem("AvgRlRd",prop(m,"avgRlRd"));
+o+=elem("AvgSC",prop(m,"avgSc"));
+o+=elem("AvgMinEC",prop(m,"avgMinEc"));
+o+=elem("AvgMOD",prop(m,"avgMod"));
+o+=elem("AvgDefect",prop(m,"avgDefect"));
+o+=elem("AvgDcod",prop(m,"avgDcod"));
+o+=elem("AvgDEC",prop(m,"avgDec"));
+o+=elem("AvgLQZ",prop(m,"avgLqz"));
+o+=elem("AvgRQZ",prop(m,"avgRqz"));
+o+=elem("AvgHQZ",prop(m,"avgHqz"));
+o+=elem("AvgMinQZ",prop(m,"avgMinQz"));
+o+=elem("BWGPercent",mpa(pk(m,"printGrowth")));
+o+=elem("Magnification",prop(m,"magnification"));
+o+=elem("Ratio",prop(m,"ratio"));
+o+=elem("NominalXDim1D",prop(m,"nominalXDim1D")||prop(m,"nominalXDim1d"));
+
+} // end if(q)
+
+// ── Post-q-block wires ────────────────────────────────────────────────────────
+o+=elem("JpegImageBase64",q?s(pk(q,"jpegImage")):"");
+o+=elem("CalibrationDate",q?s(pk(q,"calibrationDate")):"");
+var _s3d=pk(rp,"status3D");
+o+=elem("FieldCalibrated",_s3d?s(pk(_s3d,"fieldCalibrated")):"");
+o+=elem("FactoryCalibrated",_s3d?s(pk(_s3d,"factoryCalibrated")):"");
+var _mpg=pk(m,"minPassGrade");
+o+=elem("MinPassGrade",tg(_mpg));
+o+=elem("MinPassRaw",mv(_mpg));
+
+// ── v1.37 probe: DebugApplicationStdArray ────────────────────────────────────
+// q.applicationStdArray appeared as [arr.13] in v1.36 DebugQTopKeys on the
+// GS1 4-AI pharma scan.  13 entries for 4 AIs suggests ~3 sub-fields per AI
+// element (e.g. ai, value, pass/fail).
+//
+// This probe emits: len=N followed by sub-key dump of first 6 elements.
+// Expected on GS1 code:  len=13|[0]=ai=01;value=...;pass=...;|[1]=...
+// Expected on non-GS1:   len=-1  (array absent)
+// Expected on GS1 no-parser: len=0  (array present but empty)
+//
+// Variable note: _ai already used for AIM ID above; using _asa* prefix here.
+var _asa=pk(q,"applicationStdArray");
+var _asaLen=(_asa&&typeof _asa.length!=="undefined")?_asa.length:-1;
+var _asaDiag="len="+_asaLen;
+if(_asa&&_asaLen>0){
+  var _asaLim=(_asaLen<6)?_asaLen:6;
+  for(var _asai=0;_asai<_asaLim;_asai++){
+    _asaDiag+="|["+_asai+"]="+ekv(_asa[_asai],"elem"+_asai);
+  }
+}
+o+=elem("DebugApplicationStdArray",_asaDiag);
+
+// ── v1.36 carry-forward: DebugBarcodeAssignment ──────────────────────────────
+// r.barcodeAssignment=[obj] confirmed in scan #13 inventory — still unprobed.
+o+=elem("DebugBarcodeAssignment",ekv(r?pk(r,"barcodeAssignment"):null,"r.barcodeAssignment"));
+
+o+='</DMSymVerResponse>\r\n</DMCCResponse>';
+if(typeof outputResults!=="undefined"&&outputResults!==null){outputResults.content=o;}else{output.content=o;}
+}
