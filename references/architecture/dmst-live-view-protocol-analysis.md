@@ -129,7 +129,7 @@ All of the following protocols share a single TCP port on the DM475V:
 | Can a third party poll `/svg_image.img`? | Yes — the HTTP GET is trivial to replicate |
 | Is the AES decryption key available? | **No** — not on the wire; embedded in DMST binary |
 | Is there an unencrypted image path? | Unknown — `IMAGE.SEND` (DMCC, port 44444 or 23) delivers unencrypted JPEG after a trigger |
-| Is `LIVEIMG.SEND` (DMCC reference) used? | **No** — not observed in DMST capture; tested manually, confirmed dead |
+| Is `LIVEIMG.SEND` (DMCC reference) used? | **CONFIRMED DEAD** — 0 bytes on port 23 mode 2, port 23 mode 3, port 44444 mode 3 |
 | What fps can a third party achieve? | 1.5–2.5 fps via `TRIGGER ON` + `IMAGE.SEND` (full TruCheck scan per frame); DMST achieves 3.5 fps via encrypted polling with no decode cost |
 
 ---
@@ -160,9 +160,9 @@ following would need to come from Cognex:
 2. **Is there a documented, unencrypted image streaming endpoint** (e.g. a DMCC `LIVEIMG.SEND`
    path) that operates without a full TruCheck scan per frame?
 3. ~~**Does `LIVEIMG.MODE=2` + `LIVEIMG.SEND` deliver unencrypted frames?**~~ **CONFIRMED
-   DEAD — 2026-06-10.** Both `LIVEIMG.MODE=2` and `LIVEIMG.MODE=3` + `LIVEIMG.SEND 0 1 85`
-   tested directly via raw TCP on port 23. Device accepts commands silently, returns
-   **0 bytes** on both modes. Not functional on fw 6.1.16_sr4 / DM475V hardware.
+   DEAD — 2026-06-10.** Tested exhaustively: mode 2 port 23, mode 3 port 23, mode 3
+   port 44444. Device accepts all commands silently, returns **0 bytes** in every case.
+   Not functional on fw 6.1.16_sr4 / DM475V hardware on any port or mode.
 
 ---
 

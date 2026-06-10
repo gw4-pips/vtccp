@@ -13,3 +13,4 @@
 - [Cognex strategy intel 2026-06-08](cognex-strategy-intel-pointer.md) — 475V EOL/frozen; 395V fw7 = new standard; browser migration underway; no CNX Excel capture; supps = business decision not tech; PIPS gets first 395V OMNI in weeks
 - [Command Pilot tools map](command-pilot-tools-map-pointer.md) — 5 tools (SDK/raw-TCP/HTTP/scraper/GS1lib); bold rows = HTML-only fields with no push-XML alternative
 - [GS1 Digital Link](gs1-digital-link-pointer.md) — DL URI = same AIs as web URI; library handles both via DataStr; DecodedData https:// prefix = route to encoder.DataStr; standard v1.6.0 on file
+- [DM475V live view ceiling](liveview-ceiling.md) — LIVEIMG.SEND dead on all ports/modes; svg_image.img AES-encrypted; trigger+IMAGE.SEND (1.5-2.5fps) is the only viable third-party path
