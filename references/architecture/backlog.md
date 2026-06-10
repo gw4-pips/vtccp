@@ -90,6 +90,33 @@ field represents vs DMST's DFPD row.
 
 ## Trigger / Result Capture
 
+### TRIG-0 — ★ ACTIVE BUG — Trigger results not arriving (CP trigger AND TC trigger both dead)
+**Observed**: 2026-06-10. Neither VTCCP (CP) software trigger nor DMST (TC) Verify button
+trigger results are arriving on the HTTP subscriber. Both paths are silent.
+
+**Context**: Earlier in this session, external production-line trigger results WERE arriving
+(that was the problem TRIG-1 was written to solve). Now neither external nor software triggers
+produce results on the subscriber.
+
+**Possible causes** (do not debug yet):
+- HTTP subscriber connection dropped or was not re-established after a mode change
+- TRIGGER.TYPE left in a non-standard state from a prior session (e.g. still set to
+  Presentation mode or a raw-TCP trigger mode from prior DMCC experiments)
+- Device reboot or config reset cleared push XML script or subscriber state
+- Port 44444 connection saturation (too many open connections from dual live mode)
+- The `_pendingVerification` filter from TRIG-1 implemented incorrectly — discarding ALL results
+
+**First things to check when revisiting**:
+1. Is the HTTP subscriber connection still alive? (Send a keepalive or reconnect)
+2. What is `TRIGGER.TYPE` currently set to on the device?
+3. Does triggering from the DMST Verify button produce a result on the HTTP channel?
+   (This was previously the most reliable path — Wireshark confirmed)
+4. Is the push XML script still installed on the device?
+
+**Do not debug further until user is ready to revisit.**
+
+---
+
 ### TRIG-1 — Pending-trigger correlation flag (filter external trigger results)
 **Problem**: The HTTP subscriber captures ALL verification results regardless of trigger source.
 When the production line is live and its external hardware trigger fires the DM475V, VTCCP
