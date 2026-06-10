@@ -161,6 +161,59 @@ public static class LiveFeedClient
         }
     }
 
+    /// <summary>
+    /// Fetches the latest sensor frame via IMAGE.SEND — no trigger, no scan.
+    /// Use for live-view polling.  GetLiveImageAsync (trigger + frame) is for
+    /// cases where a fresh scan must precede the image fetch.
+    ///
+    /// One TCP connection; idle gap 100 ms (sufficient on LAN — JPEG arrives
+    /// in one TCP delivery); round-trip typically ~120 ms.
+    /// </summary>
+    public static async Task<byte[]?> GetFrameAsync(
+        string            host,
+        int               totalTimeoutMs = 2_000,
+        CancellationToken ct             = default)
+    {
+        try
+        {
+            using var totalCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            totalCts.CancelAfter(totalTimeoutMs);
+
+            using var tcp = new TcpClient();
+            using var con = CancellationTokenSource.CreateLinkedTokenSource(totalCts.Token);
+            con.CancelAfter(ConnectTimeoutMs);
+            await tcp.ConnectAsync(host, DmccCommand.RawDmccPort, con.Token);
+
+            using var stream = tcp.GetStream();
+
+            await DrainBannerAsync(stream, totalCts.Token);
+
+            // Switch to extended ACK mode — required for IMAGE.SEND to return data.
+            await stream.WriteAsync(
+                Encoding.ASCII.GetBytes(
+                    $"{DmccCommand.WireHeader}SET COM.DMCC-RESPONSE 2\r\n"),
+                totalCts.Token);
+
+            await stream.WriteAsync(
+                Encoding.ASCII.GetBytes(
+                    $"{DmccCommand.WireHeader}{DmccCommand.ImageSend}\r\n"),
+                totalCts.Token);
+
+            byte[]? raw = await ReadUntilIdleAsync(stream, 100, totalCts.Token);
+            if (raw is null || raw.Length < 4)
+                return null;
+
+            int start = FindJpegStart(raw);
+            return start >= 0 ? raw[start..] : null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-LIVEFEED] GetFrameAsync: {ex.GetType().Name}: {ex.Message}");
+            return null;
+        }
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static async Task DrainBannerAsync(NetworkStream stream, CancellationToken ct)

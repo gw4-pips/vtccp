@@ -148,9 +148,9 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
 
     private void StartTimer()
     {
-        // 400 ms matches DMST's polling interval; each tick fires TRIGGER ON
-        // then IMAGE.SEND — see LiveFeedClient.GetLiveImageAsync.
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
+        // 300 ms ≈ 3 fps — matches DMST live view cadence.
+        // Each tick calls GetFrameAsync (IMAGE.SEND only, no trigger/scan).
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
         _timer.Tick += OnTimerTick;
         _timer.Start();
     }
@@ -167,7 +167,7 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
         _fetchInProgress = true;
         try
         {
-            byte[]? jpeg = await LiveFeedClient.GetLiveImageAsync(_host);
+            byte[]? jpeg = await LiveFeedClient.GetFrameAsync(_host);
             if (jpeg is not null)
                 LiveImage = BytesToBitmapImage(jpeg);
         }
@@ -189,8 +189,8 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
         try
         {
             // Wait for any in-flight poll cycle to finish before sending the
-            // verification trigger (~400 ms = one full poll interval).
-            await Task.Delay(400);
+            // verification trigger (350 ms > one 300 ms poll interval).
+            await Task.Delay(350);
 
             using var totalCts = new CancellationTokenSource(4_000);
             using var tcp      = new System.Net.Sockets.TcpClient();
