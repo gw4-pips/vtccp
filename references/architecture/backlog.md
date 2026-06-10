@@ -335,27 +335,34 @@ field represents vs DMST's DFPD row.
 ## Trigger / Result Capture
 
 ### DMST-1 — DMST TC instability after Grade F QR scan (post-verify image lost)
-**Observed**: 2026-06-10. After scanning the Grade F GS1 DL QR (scan #19), DMST TruCheck
-became visually unstable — the post-verify image panel was lost / failed to render.
-User restored from a saved good device configuration to recover.
+**★ CONFIRMED REPEATABLE — QR scan → DMST TC post-verify image lost, every time (2026-06-10)**
 
-**Hypothesis**: The total-fail QR scan (all parameters X/F, possibly malformed image data
-or unusual push XML content) triggered an edge case in DMST's image display pipeline.
-This is a DMST software issue, not a DM475V firmware issue.
+**Occurrences observed**:
+1. Scan #19 (Grade F GS1 DL QR) → post-verify image lost → config restore required
+2. Any QR scan after restore → post-verify image lost again immediately → second config restore
+
+**Pattern**: It is NOT specific to Grade F or total-fail QR symbols. Any QR scan on this
+device/firmware/DMST version combination reproduces the failure. Config restore recovers it;
+the next QR scan loses it again. DM scans do NOT trigger the issue.
+
+**Root cause (working hypothesis)**: fw 6.1.16_sr4 + this DMST version have an incompatibility
+in the QR result display pipeline — possibly the QR post-verify image is delivered in a format
+or path that DMST's TC panel does not handle, causing the image widget to enter a bad state that
+persists until a config restore clears it.
+
+**This is a DMST software bug, not a DM475V firmware issue and not a VTCCP issue.**
+Do not attempt to diagnose further — it is not VTCCP's component.
+
+**Operational consequence**: QR scans on this lab unit require a config restore after each
+scan if DMST TC post-verify image display matters. For VTCCP probe sessions: run all DM scans
+first, then QR scans at the end of the session (or accept the post-verify image loss for QR).
 
 **Note for VTCCP**: VTCCP's result display pipeline must be hardened against Grade F / total-fail
-scans. All grade fields will be X or F; numeric values will be empty, 0, or -1; image data may
-be absent or malformed. The UI must degrade gracefully — do not throw or leave the display
-in an indeterminate state on a total-fail result.
+scans AND against any scan where the post-verify image is absent or malformed. The UI must
+degrade gracefully — do not throw or leave the display in an indeterminate state.
 
-**Device recovery**: Saved config restore confirmed successful (2026-06-10). Post-verify image
-restored and DMST TC stable. No permanent device damage.
-**Do not debug DMST further** — it is not VTCCP's component.
-
-**TRIG-0 implication**: After the config restore the device is back to a known-good baseline.
-If triggers resume normally from this point, it confirms the instability (and possibly the
-silent subscriber) was a transient state from the dual-live-mode / QR-fail session, not a
-persistent configuration problem.
+**Device recovery**: Config restore recovers DMST TC each time. No permanent device damage.
+Two restorations confirmed 2026-06-10.
 
 ---
 
