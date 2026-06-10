@@ -521,7 +521,120 @@ responsibility; VTCCP echoes it.
 
 ## Competitive Intelligence
 
-### COMP-1 — OMRON LVS-950 Symbol Stitching (concept log, no action required)
+### STITCH-1 — Symbol Stitching: wide 1D barcode verification via composite image upload
+**Logged**: 2026-06-10  
+**Priority**: Medium — unique VTCCP capability, no Cognex equivalent on DM475V-LBL  
+**Triggered by**: Code 128 FX label too wide for DM475V-LBL FOV  
+**Competitive reference**: OMRON LVS-950 has a stitching feature (details TBD)
+
+#### Problem Statement
+
+The DM475V-LBL has a fixed field of view. Long 1D symbols (Code 128, ITF-14, GS1-128)
+printed on FX labels or full-panel pharmacy labels may exceed that FOV. Currently the
+operator cannot verify them at all with this unit — the symbol is simply out of range.
+
+#### Proposed Solution
+
+A VTCCP "Symbol Stitching" workflow:
+1. **Capture**: Operator positions the left portion of the symbol and triggers scan A.
+   Repositions for the right portion, triggers scan B. Both are IMAGE.LOAD uploads
+   (the camera frame, not a live decode — device used purely as an imager).
+2. **De-skew**: Correct rotation in each image independently. For C128/1D:
+   - The bar elements are vertical; quiet zones are horizontal white margins
+   - Detect the bar baseline via Hough line transform (or simpler: find the bounding
+     rectangle of the ink region via threshold + contour detection)
+   - Rotate to align bars perfectly vertical. Rotation only — no scaling, no
+     perspective correction (the DM475V-LBL produces low-distortion images)
+3. **Align and stitch**:
+   - The two de-skewed images share an overlapping region
+   - Find the optimal seam using normalized cross-correlation on the overlap zone
+   - The overlap identification can also use bar-pattern matching (bars are discrete,
+     high-contrast, regularly spaced — excellent correlation targets)
+   - Slice at the optimal seam ("razor cut") — pixel column where the two halves join
+   - Concatenate left image up to seam + right image from seam → composite image
+   - No interpolation or resampling needed if images share the same physical scale
+     (both captured at same distance/magnification on the same device)
+4. **Upload and verify**:
+   - Write composite image to a temp file (JPEG or PNG)
+   - Use `IMAGE.LOAD` DMCC command to push composite to device
+   - Use `IMAGE.REPLAY` to trigger a full TruCheck verification on the composite
+   - Receive result via push XML exactly as a standard verification
+5. **Flag the result**:
+   - Tag every result from a stitched image: `OpticsSource = "StitchedImage"`
+   - Report header: "⚠ Result derived from stitched composite image"
+   - See SBG discussion below for grading qualification language
+
+#### SBG (Standards-Based Grading) Qualification
+
+Cognex coined "Standards-Based Grading" to denote results using ISO algorithms but
+without full conformance to the physical measurement setup requirements (calibrated
+verifier, specified aperture, specified lighting, etc.).
+
+For stitched results:
+- **Lighting**: ✓ Per spec — both halves captured under same DM475V-LBL 45Q illumination
+- **Aperture**: ✓ Per spec — same aperture used for both captures
+- **Calibration**: ✓ Per spec — device calibration unchanged
+- **Non-conformance**: The composite image was assembled from two captures, not a single
+  uninterrupted optical path. ISO 15416 (1D) does not contemplate multi-capture grading.
+
+**Working position**: Flag as "Stitched" but not necessarily as "SBG". The physical
+measurement conditions (lighting, aperture, calibration) are conformant. The non-conformance
+is the image assembly step — which, if done accurately (sub-pixel alignment, no
+rescaling, no color alteration), introduces no optical artifact beyond the seam itself.
+
+**Validation approach**: Run the same label through the DM OMNI (6" FOV, verifies the
+full symbol in one pass) and compare grades. If stitched result ≈ OMNI result within
+normal repeatability tolerance, stitching is validated and "SBG" flag may be unnecessary.
+If they diverge, the seam or scaling difference is the cause — investigate and flag.
+
+OMRON's practice (whether they flag stitched results) to be confirmed by user.
+
+#### Technical Prerequisites
+
+| Item | Status |
+|---|---|
+| `IMAGE.LOAD` DMCC command | ✓ Confirmed working (D4 architecture) |
+| `IMAGE.REPLAY` DMCC command | ✓ Confirmed working |
+| Image format accepted by device | JPEG confirmed (from prior IMAGE.LOAD testing) |
+| C# image processing library | ⚠ Needs selection — Emgu.CV (OpenCV .NET wrapper) is the standard choice; alternatively System.Drawing for simple rotation |
+| Bar-pattern cross-correlation | Not yet implemented |
+| Seam detection algorithm | Not yet implemented |
+
+#### Scope and Phasing
+
+**Phase 1 (implement when scoped)**:
+- Skew correction (rotation only) using simple bar-baseline detection
+- Manual seam placement — operator drags a slider to set the cut point
+- Upload + verify + flag result
+
+**Phase 2**:
+- Automatic seam detection via cross-correlation
+- Sub-pixel accuracy alignment
+- Quality check: verify bar pitch is consistent across the seam (detect misalignment)
+
+**Phase 3**:
+- Validate against DM OMNI ground truth
+- Determine SBG flag requirement based on validation results
+- OMRON feature comparison (once user confirms OMRON's flagging practice)
+
+**Do NOT implement Phase 1 until**: User confirms this is a priority and provides C128
+FX label images for testing the algorithm. The stitching logic needs test images.
+
+#### Supporting images
+Two PNG images of a Code 128 FX label (too wide for DM475V-LBL FOV) referenced by user.
+Not yet received — send one at a time. Archive to `references/samples/stitching/` when received.
+
+---
+
+### COMP-1 — OMRON LVS-950 Symbol Stitching (competitive reference)
+**Logged**: 2026-06-10  
+**Source**: User observation — Code 128 FX label too wide for DM475V-LBL field of view
+**Note**: The VTCCP stitching feature (STITCH-1 above) is the action item. This entry
+is for competitive awareness only.
+
+**OMRON LVS-950 approach**: Scans symbol in two overlapping passes. De-skews each image
+(rotation only). Overlays via overlapping region. Decodes and grades the composite.
+Whether OMRON flags stitched results as non-conformant or SBG — TBD, user to confirm.
 **Logged**: 2026-06-10  
 **Source**: User observation — Code 128 FX label too wide for DM475V-LBL field of view
 
