@@ -349,6 +349,43 @@ public sealed class DeviceSession : IAsyncDisposable
             : record;
     }
 
+    /// <summary>
+    /// (Image-load mode) Loads a JPEG/BMP image from <paramref name="imagePath"/> into the
+    /// device image buffer using IMAGE.LOAD + IMAGE.REPLAY and returns the parsed
+    /// <see cref="VerificationRecord"/>.
+    ///
+    /// Called by <see cref="VtccpApp.ViewModels.StitchingViewModel"/> after the operator
+    /// composites two captured frames into a single stitched symbol image.
+    ///
+    /// The result is tagged <c>OpticsSource = "StitchedImage"</c> so the report layer
+    /// can display the appropriate disclaimer.
+    ///
+    /// Returns null if the device returns no result within <paramref name="timeoutMs"/>.
+    /// Throws <see cref="InvalidOperationException"/> if the SDK is not connected.
+    /// </summary>
+    public async Task<VerificationRecord?> LoadImageAndVerifyAsync(
+        string            imagePath,
+        int               timeoutMs = 30_000,
+        CancellationToken ct        = default)
+    {
+        ThrowIfDisposed();
+        if (!_client.IsConnected)
+            throw new InvalidOperationException(
+                "SDK not connected — cannot use IMAGE.LOAD. Connect the device first.");
+
+        string? xml = await _client.LoadAndReplayImageAsync(imagePath, timeoutMs, ct);
+        if (string.IsNullOrWhiteSpace(xml)) return null;
+
+        var ctx    = ContextFromDeviceInfo();
+        var record = DmstResultParser.Parse(xml, _map, ctx);
+
+        record = record with { OpticsSource = "StitchedImage" };
+        record = await AttachRoiImageAsync(record, ct);
+        return _scraper is not null
+            ? await _scraper.TryMergeAsync(record, ct)
+            : record;
+    }
+
     // ── Push mode ─────────────────────────────────────────────────────────────
 
     /// <summary>

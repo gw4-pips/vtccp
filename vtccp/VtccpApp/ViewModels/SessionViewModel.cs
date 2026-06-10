@@ -50,6 +50,7 @@ public sealed class SessionViewModel : ViewModelBase
     private string                              _statusMessage = "Ready.";
     private int                                 _recordCount;
     private LiveFeedWindow?                     _liveFeedWindow;
+    private StitchingWindow?                    _stitchingWindow;
 
     // ── OCR ───────────────────────────────────────────────────────────────────
 
@@ -234,6 +235,7 @@ public sealed class SessionViewModel : ViewModelBase
     public RelayCommand ReadSupplementalCommand  { get; }
     public RelayCommand WriteSupplementalCommand { get; }
     public RelayCommand OpenLiveFeedCommand      { get; }
+    public RelayCommand OpenStitchingCommand     { get; }
 
     public SessionViewModel(ConfigRepository repo, HistoryViewModel history)
     {
@@ -261,6 +263,10 @@ public sealed class SessionViewModel : ViewModelBase
 
         OpenLiveFeedCommand = new RelayCommand(
             OnOpenLiveFeed,
+            () => SelectedDevice is not null);
+
+        OpenStitchingCommand = new RelayCommand(
+            OnOpenStitching,
             () => SelectedDevice is not null);
 
         Reload();
@@ -809,6 +815,28 @@ public sealed class SessionViewModel : ViewModelBase
         var window = new LiveFeedWindow(vm) { Owner = Application.Current.MainWindow };
         _liveFeedWindow = window;
         window.Closed += (_, _) => _liveFeedWindow = null;
+        window.Show();
+    }
+
+    /// <summary>
+    /// Opens the Symbol Stitching window for the currently selected device.
+    /// Passes <see cref="_deviceSession"/> so Verify can call IMAGE.LOAD;
+    /// null is accepted — capture and preview still work, Verify is disabled.
+    /// </summary>
+    private void OnOpenStitching()
+    {
+        if (SelectedDevice is null) return;
+
+        if (_stitchingWindow is not null)
+        {
+            _stitchingWindow.Activate();
+            return;
+        }
+
+        var vm     = new StitchingViewModel(SelectedDevice.Host, _deviceSession);
+        var window = new StitchingWindow(vm) { Owner = Application.Current.MainWindow };
+        _stitchingWindow = window;
+        window.Closed += (_, _) => _stitchingWindow = null;
         window.Show();
     }
 

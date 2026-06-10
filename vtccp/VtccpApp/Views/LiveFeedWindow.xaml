@@ -16,24 +16,25 @@
             <RowDefinition Height="Auto" />   <!-- button bar -->
         </Grid.RowDefinitions>
 
-        <!-- ── Header ────────────────────────────────────────────────────── -->
+        <!-- Header -->
         <TextBlock Grid.Row="0"
                    Text="Live View"
                    Style="{StaticResource SectionHeader}"
                    Margin="0,0,0,12" />
 
-        <!-- ── Image panel ───────────────────────────────────────────────── -->
+        <!-- Image panel -->
         <Border Grid.Row="1"
                 Style="{StaticResource Card}"
                 Margin="0,0,0,10"
                 Padding="0">
-            <Grid>
+            <Grid MouseDown="OnImagePanelClick">
+
                 <!-- Camera image -->
                 <Image Source="{Binding LiveImage}"
                        Stretch="Uniform"
                        RenderOptions.BitmapScalingMode="HighQuality" />
 
-                <!-- Placeholder shown until the first IMAGE.SEND frame arrives -->
+                <!-- Placeholder shown until first IMAGE.SEND frame arrives -->
                 <TextBlock Text="No image — press Go Live to start the camera feed."
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
@@ -50,10 +51,42 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
+
+                <!-- ROI guide — ~67% of frame, dashed amber border.
+                     Click anywhere in the frame to dismiss. -->
+                <Grid IsHitTestVisible="False"
+                      Visibility="{Binding RoiVisible, Converter={StaticResource BoolToVisibility}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="4*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="4*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Rectangle Grid.Row="1" Grid.Column="1"
+                               Stroke="#C0FFA020"
+                               StrokeThickness="1.5"
+                               StrokeDashArray="6 3"
+                               Fill="Transparent" />
+                </Grid>
+
+                <!-- Crosshair — fixed center, always visible, no hit test -->
+                <Grid IsHitTestVisible="False">
+                    <Rectangle Width="1"
+                               HorizontalAlignment="Center"
+                               Fill="#80FF3030" />
+                    <Rectangle Height="1"
+                               VerticalAlignment="Center"
+                               Fill="#80FF3030" />
+                </Grid>
+
             </Grid>
         </Border>
 
-        <!-- ── Status bar ────────────────────────────────────────────────── -->
+        <!-- Status bar -->
         <Border Grid.Row="2"
                 Style="{StaticResource Card}"
                 Margin="0,0,0,10"
@@ -65,7 +98,7 @@
                        TextTrimming="CharacterEllipsis" />
         </Border>
 
-        <!-- ── Button bar ─────────────────────────────────────────────────── -->
+        <!-- Button bar -->
         <StackPanel Grid.Row="3"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">

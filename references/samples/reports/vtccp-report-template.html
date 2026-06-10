@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symbol Verification Report — {{ReportNumber}}</title>
+  <style>
+    /* ── Base ─────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 9.5pt;
+      color: #1a1a1a;
+      background: #fff;
+      line-height: 1.4;
+    }
+
+    @page { size: A4; margin: 14mm 14mm 12mm 14mm; }
+    @media print {
+      .no-print { display: none !important; }
+      body { font-size: 9pt; }
+      .page-break { page-break-before: always; }
+    }
+
+    /* ── Layout shell ─────────────────────────────────────────────────── */
+    .page {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 4px;
+    }
+
+    /* ── Header band ──────────────────────────────────────────────────── */
+    .report-header {
+      display: flex;
+      align-items: stretch;
+      border: 1.5px solid #2a6099;
+      margin-bottom: 6px;
+    }
+    .header-logo {
+      min-width: 130px;
+      max-width: 160px;
+      padding: 8px 12px;
+      border-right: 1.5px solid #2a6099;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .header-logo img {
+      max-width: 140px;
+      max-height: 48px;
+      object-fit: contain;
+    }
+    .header-logo-placeholder {
+      font-size: 13pt;
+      font-weight: 700;
+      color: #2a6099;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .header-title {
+      flex: 1;
+      padding: 6px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .header-title h1 {
+      font-size: 13pt;
+      font-weight: 700;
+      color: #2a6099;
+      letter-spacing: 0.02em;
+    }
+    .header-title .subtitle {
+      font-size: 8.5pt;
+      color: #555;
+      margin-top: 2px;
+    }
+    .header-meta {
+      min-width: 160px;
+      padding: 6px 12px;
+      border-left: 1.5px solid #2a6099;
+      font-size: 8.5pt;
+      line-height: 1.7;
+    }
+    .header-meta .label { color: #666; }
+    .header-meta .value { font-weight: 600; }
+
+    /* ── Grade banner ─────────────────────────────────────────────────── */
+    .grade-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      margin-bottom: 6px;
+      border-left: 6px solid;
+      border-radius: 2px;
+    }
+    .grade-banner.grade-A { background: #e8f5e9; border-color: #2e7d32; color: #1b5e20; }
+    .grade-banner.grade-B { background: #f3e5f5; border-color: #6a1b9a; color: #4a148c; }
+    .grade-banner.grade-C { background: #fff9c4; border-color: #f57f17; color: #e65100; }
+    .grade-banner.grade-D { background: #fff3e0; border-color: #e65100; color: #bf360c; }
+    .grade-banner.grade-F { background: #ffebee; border-color: #b71c1c; color: #7f0000; }
+    .grade-banner .grade-left { display: flex; align-items: center; gap: 14px; }
+    .grade-letter {
+      font-size: 30pt;
+      font-weight: 900;
+      line-height: 1;
+      min-width: 36px;
+      text-align: center;
+    }
+    .grade-details { font-size: 10pt; }
+    .grade-details .overall-label { font-size: 8pt; opacity: 0.75; }
+    .grade-details .formal { font-size: 9pt; font-family: monospace; font-weight: 600; margin-top: 2px; }
+    .grade-standard { font-size: 8pt; text-align: right; opacity: 0.8; }
+
+    /* ── Two-column info grids ────────────────────────────────────────── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .info-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+
+    /* ── Section card ─────────────────────────────────────────────────── */
+    .card {
+      border: 1px solid #c8d8e8;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .card-header {
+      background: #2a6099;
+      color: #fff;
+      font-size: 8pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 3px 8px;
+    }
+    .card-body { padding: 5px 8px; }
+
+    /* ── Field rows within cards ──────────────────────────────────────── */
+    .field-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 0;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 8px;
+    }
+    .field-row:last-child { border-bottom: none; }
+    .field-label { color: #555; flex-shrink: 0; }
+    .field-value { font-weight: 600; text-align: right; word-break: break-word; }
+    .field-value.mono { font-family: monospace; font-size: 9pt; }
+
+    /* ── Grade parameter table ────────────────────────────────────────── */
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8.5pt;
+      margin-bottom: 6px;
+    }
+    .param-table thead tr {
+      background: #2a6099;
+      color: #fff;
+    }
+    .param-table thead th {
+      padding: 4px 7px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 8pt;
+    }
+    .param-table thead th.right { text-align: right; }
+    .param-table tbody tr:nth-child(even) { background: #f4f8fc; }
+    .param-table tbody tr:hover { background: #e8f0f8; }
+    .param-table td {
+      padding: 3px 7px;
+      border-bottom: 1px solid #dde8f0;
+    }
+    .param-table td.param-name { font-weight: 500; }
+    .param-table td.right { text-align: right; font-family: monospace; }
+    .param-table td.grade-cell { text-align: center; font-weight: 700; min-width: 28px; }
+
+    .grade-A-cell { color: #2e7d32; }
+    .grade-B-cell { color: #6a1b9a; }
+    .grade-C-cell { color: #e65100; }
+    .grade-D-cell { color: #bf360c; }
+    .grade-F-cell { color: #b71c1c; }
+    .grade-X-cell { color: #9e9e9e; font-style: italic; }
+
+    .param-table tr.overall-row { font-weight: 700; background: #dde8f4 !important; }
+    .param-table tr.separator td { background: #e8f0f8; color: #2a6099; font-size: 7.5pt;
+                                    font-weight: 700; text-transform: uppercase;
+                                    letter-spacing: 0.06em; padding: 2px 7px; }
+
+    /* ── Symbol image ─────────────────────────────────────────────────── */
+    .image-section {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+      align-items: flex-start;
+    }
+    .image-frame {
+      border: 1px solid #c8d8e8;
+      border-radius: 2px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .image-frame .card-header { font-size: 7.5pt; }
+    .image-frame img {
+      display: block;
+      max-width: 260px;
+      max-height: 200px;
+      image-rendering: pixelated;
+      background: #000;
+    }
+    .image-placeholder {
+      width: 220px;
+      height: 140px;
+      background: #f4f4f4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-size: 8pt;
+      font-style: italic;
+    }
+
+    /* ── GS1 AI table ─────────────────────────────────────────────────── */
+    .gs1-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8pt;
+      margin-bottom: 6px;
+    }
+    .gs1-table thead tr { background: #2a6099; color: #fff; }
+    .gs1-table thead th { padding: 3px 7px; font-weight: 600; text-align: left; }
+    .gs1-table tbody tr:nth-child(even) { background: #f4f8fc; }
+    .gs1-table td { padding: 2.5px 7px; border-bottom: 1px solid #dde8f0; }
+    .gs1-table td.ai  { font-family: monospace; font-weight: 600; }
+    .gs1-table td.val { font-family: monospace; }
+
+    /* ── Warning / disclaimer blocks ──────────────────────────────────── */
+    .alert {
+      padding: 5px 10px;
+      border-left: 4px solid;
+      border-radius: 2px;
+      font-size: 8.5pt;
+      margin-bottom: 5px;
+    }
+    .alert.calib  { background: #fff8e1; border-color: #f57c00; color: #4e342e; }
+    .alert.optics { background: #e3f2fd; border-color: #1565c0; color: #0d47a1; }
+    .alert.stitch { background: #fce4ec; border-color: #c62828; color: #7f0000; }
+    .alert strong { font-weight: 700; }
+
+    /* ── Footer ───────────────────────────────────────────────────────── */
+    .report-footer {
+      border-top: 1.5px solid #2a6099;
+      padding-top: 5px;
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 7.5pt;
+      color: #666;
+    }
+    .report-footer .sig-line {
+      border-top: 1px solid #aaa;
+      min-width: 180px;
+      padding-top: 2px;
+      text-align: center;
+      font-size: 7.5pt;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Report Header ───────────────────────────────────────────────────── -->
+  <div class="report-header">
+    <div class="header-logo">
+      {{#if LogoBase64}}
+        <img src="data:image/png;base64,{{LogoBase64}}" alt="Company Logo" />
+      {{else}}
+        <div class="header-logo-placeholder">{{CompanyName}}</div>
+      {{/if}}
+    </div>
+    <div class="header-title">
+      <h1>Symbol Verification Certificate</h1>
+      <div class="subtitle">Barcode Quality Verification — Cognex DataMan · VTCCP v{{AppVersion}}</div>
+    </div>
+    <div class="header-meta">
+      <div><span class="label">Report No:&nbsp;</span><span class="value">{{ReportNumber}}</span></div>
+      <div><span class="label">Date:&nbsp;</span><span class="value">{{VerificationDate}}</span></div>
+      <div><span class="label">Time:&nbsp;</span><span class="value">{{VerificationTime}}</span></div>
+      <div><span class="label">Operator:&nbsp;</span><span class="value">{{OperatorName}}</span></div>
+      <div><span class="label">Job:&nbsp;</span><span class="value">{{JobName}}</span></div>
+    </div>
+  </div>
+
+  <!-- ── Calibration Warning (conditional — FieldCalibrated=false) ───────── -->
+  {{#if CalibrationWarning}}
+  <div class="alert calib">
+    <strong>⚠ Calibration Warning:</strong>
+    The verifier was not field-calibrated at the time of this verification
+    (<code>FieldCalibrated=false</code>).
+    Results may not conform to the ISO traceability chain.
+    Recalibrate and re-verify before use in a formal quality record.
+  </div>
+  {{/if}}
+
+  <!-- ── OpticsSource Disclaimer ─────────────────────────────────────────── -->
+  {{#if_eq OpticsSource "LoadedImage"}}
+  <div class="alert optics">
+    <strong>Note — Stored Image:</strong>
+    This grading event used a pre-captured image file (not a live optical scan).
+    Per ISO 15416:2016 §5.3, results derived from stored images are not equivalent
+    to a primary live-scan verification and must be qualified accordingly.
+  </div>
+  {{/if_eq}}
+  {{#if_eq OpticsSource "StitchedImage"}}
+  <div class="alert stitch">
+    <strong>Note — Stitched Composite Image:</strong>
+    Two partial captures were composited by VTCCP Symbol Stitching before verification.
+    This is an engineering tool for symbols too wide for a single frame.
+    Results are informational only and do not constitute a primary ISO-compliant grade
+    unless the stitching alignment has been validated against a known standard.
+  </div>
+  {{/if_eq}}
+
+  <!-- ── Overall Grade Banner ────────────────────────────────────────────── -->
+  <div class="grade-banner grade-{{OverallGradeLetter}}">
+    <div class="grade-left">
+      <div class="grade-letter">{{OverallGradeLetter}}</div>
+      <div class="grade-details">
+        <div class="overall-label">OVERALL GRADE</div>
+        <div style="font-size:11pt; font-weight:700;">{{NumericOverallGrade}} / 4.0</div>
+        <div class="formal">{{FormalGrade}}</div>
+      </div>
+    </div>
+    <div class="grade-standard">
+      {{GradingStandard}}<br/>
+      Aperture: {{Aperture}} · {{Wavelength}} nm · {{Lighting}}
+    </div>
+  </div>
+
+  <!-- ── Two-column info row: Verifier Equipment + Symbol Identity ─────── -->
+  <div class="info-grid">
+
+    <!-- Verifier Equipment -->
+    <div class="card">
+      <div class="card-header">Verification Equipment</div>
+      <div class="card-body">
+        <div class="field-row">
+          <span class="field-label">Device Model</span>
+          <span class="field-value">{{DeviceModel}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Serial Number</span>
+          <span class="field-value mono">{{DeviceSerial}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Firmware</span>
+          <span class="field-value mono">{{FirmwareVersion}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Device Name</span>
+          <span class="field-value">{{DeviceName}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Connection</span>
+          <span class="field-value">{{ConnectionMedium}} — {{ConnectionAddress}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Calibration Date</span>
+          <span class="field-value">{{CalibrationDate}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Field Calibrated</span>
+          <span class="field-value">{{#if FieldCalibrated}}Yes{{else}}<em style="color:#b71c1c">No</em>{{/if}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Symbol Identification -->
+    <div class="card">
+      <div class="card-header">Symbol Identification</div>
+      <div class="card-body">
+        <div class="field-row">
+          <span class="field-label">Symbology</span>
+          <span class="field-value">{{SymbologyName}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">AIM ID</span>
+          <span class="field-value mono">{{AimId}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Symbol Size</span>
+          <span class="field-value">{{MatrixSize}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">X-Dimension</span>
+          <span class="field-value">{{NominalXDim}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Image Polarity</span>
+          <span class="field-value">{{ImagePolarity}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Data Codewords</span>
+          <span class="field-value">{{DataCodewords}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">EC Codewords / Budget</span>
+          <span class="field-value">{{ErrorCorrectionBudget}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Errors Corrected</span>
+          <span class="field-value">{{ErrorsCorrected}}</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">EC Used</span>
+          <span class="field-value">{{ErrorCapacityUsed}} %</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Optics Source</span>
+          <span class="field-value">{{OpticsSource}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Decoded Data ─────────────────────────────────────────────────────── -->
+  <div class="card" style="margin-bottom:6px;">
+    <div class="card-header">Decoded Data</div>
+    <div class="card-body">
+      <div style="font-family:monospace; font-size:9pt; word-break:break-all;
+                  background:#f4f8fc; border:1px solid #dde8f0; padding:5px 8px;
+                  border-radius:1px; min-height:28px;">
+        {{DecodedData}}
+      </div>
+      {{#if GS1ApplicationPass}}
+      <div style="margin-top:4px; font-size:8pt; color:#555;">
+        GS1 Application Standard: <strong>{{GS1ApplicationStandard}}</strong>
+        &nbsp;|&nbsp;
+        Format Check: <strong style="color:{{#if_eq GS1ApplicationPass 'Pass'}}#2e7d32{{else}}#b71c1c{{/if_eq}}">
+          {{GS1ApplicationPass}}</strong>
+        {{#if GS1ApplicationPassReason}}
+        &nbsp;({{GS1ApplicationPassReason}})
+        {{/if}}
+        &nbsp;&nbsp;<em style="color:#888; font-style:italic;">(ISO grade is not affected by format check result)</em>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+
+  <!-- ── Verification Parameters ─────────────────────────────────────────── -->
+  <table class="param-table">
+    <thead>
+      <tr>
+        <th style="width:38%">Parameter</th>
+        <th class="right" style="width:20%">Measured Value</th>
+        <th class="right" style="width:16%">Numeric Grade</th>
+        <th style="width:10%; text-align:center">Letter</th>
+        <th style="width:16%">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 2D / DataMatrix Parameters ─────────────────────────────────── -->
+      {{#if IsDataMatrix}}
+      <tr class="separator"><td colspan="5">ISO/IEC 15415 — 2D Matrix Parameters</td></tr>
+      <tr>
+        <td class="param-name">Symbol Contrast (SC)</td>
+        <td class="right">{{SCPercent}} %</td>
+        <td class="right">{{SCGradeNumeric}}</td>
+        <td class="grade-cell grade-{{SCGradeLetter}}-cell">{{SCGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Modulation (MOD)</td>
+        <td class="right">{{MODPercent}} %</td>
+        <td class="right">{{MODGradeNumeric}}</td>
+        <td class="grade-cell grade-{{MODGradeLetter}}-cell">{{MODGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Axial Non-Uniformity (ANU)</td>
+        <td class="right">{{ANUPercent}} %</td>
+        <td class="right">{{ANUGradeNumeric}}</td>
+        <td class="grade-cell grade-{{ANUGradeLetter}}-cell">{{ANUGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Grid Non-Uniformity (GNU)</td>
+        <td class="right">{{GNUPercent}} %</td>
+        <td class="right">{{GNUGradeNumeric}}</td>
+        <td class="grade-cell grade-{{GNUGradeLetter}}-cell">{{GNUGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Fixed Pattern Damage (FPD)</td>
+        <td class="right">{{FPDValue}}</td>
+        <td class="right">{{FPDGradeNumeric}}</td>
+        <td class="grade-cell grade-{{FPDGradeLetter}}-cell">{{FPDGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Unused Error Correction (UEC)</td>
+        <td class="right">{{UECPercent}} %</td>
+        <td class="right">{{UECGradeNumeric}}</td>
+        <td class="grade-cell grade-{{UECGradeLetter}}-cell">{{UECGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Print Growth / Reflectance Margin</td>
+        <td class="right">{{MinReflectance}} %</td>
+        <td class="right">—</td>
+        <td class="grade-cell">—</td>
+        <td>Min Refl.</td>
+      </tr>
+      {{/if}}
+
+      <!-- QR Code Parameters ───────────────────────────────────────────── -->
+      {{#if IsQrCode}}
+      <tr class="separator"><td colspan="5">ISO/IEC 15415 — QR Code Parameters</td></tr>
+      <tr>
+        <td class="param-name">Symbol Contrast (SC)</td>
+        <td class="right">{{SCPercent}} %</td>
+        <td class="right">{{SCGradeNumeric}}</td>
+        <td class="grade-cell grade-{{SCGradeLetter}}-cell">{{SCGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Modulation (MOD)</td>
+        <td class="right">{{MODPercent}} %</td>
+        <td class="right">{{MODGradeNumeric}}</td>
+        <td class="grade-cell grade-{{MODGradeLetter}}-cell">{{MODGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Axial Non-Uniformity (ANU)</td>
+        <td class="right">{{ANUPercent}} %</td>
+        <td class="right">{{ANUGradeNumeric}}</td>
+        <td class="grade-cell grade-{{ANUGradeLetter}}-cell">{{ANUGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Grid Non-Uniformity (GNU)</td>
+        <td class="right">{{GNUPercent}} %</td>
+        <td class="right">{{GNUGradeNumeric}}</td>
+        <td class="grade-cell grade-{{GNUGradeLetter}}-cell">{{GNUGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Fixed Pattern Damage (FPD)</td>
+        <td class="right">{{FPDValue}}</td>
+        <td class="right">{{FPDGradeNumeric}}</td>
+        <td class="grade-cell grade-{{FPDGradeLetter}}-cell">{{FPDGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Unused Error Correction (UEC)</td>
+        <td class="right">{{UECPercent}} %</td>
+        <td class="right">{{UECGradeNumeric}}</td>
+        <td class="grade-cell grade-{{UECGradeLetter}}-cell">{{UECGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr class="separator"><td colspan="5">QR Code Pattern Grades</td></tr>
+      <tr>
+        <td class="param-name">Upper-Left Position Pattern (ULP)</td>
+        <td class="right">—</td>
+        <td class="right">{{QrULPGradeNumeric}}</td>
+        <td class="grade-cell grade-{{QrULPGradeLetter}}-cell">{{QrULPGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Upper-Right Position Pattern (URP)</td>
+        <td class="right">—</td>
+        <td class="right">{{QrURPGradeNumeric}}</td>
+        <td class="grade-cell grade-{{QrURPGradeLetter}}-cell">{{QrURPGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Lower-Left Position Pattern (LLP)</td>
+        <td class="right">—</td>
+        <td class="right">{{QrLLPGradeNumeric}}</td>
+        <td class="grade-cell grade-{{QrLLPGradeLetter}}-cell">{{QrLLPGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Horizontal Clock Track (HCT)</td>
+        <td class="right">—</td>
+        <td class="right">{{QrHCTGradeNumeric}}</td>
+        <td class="grade-cell grade-{{QrHCTGradeLetter}}-cell">{{QrHCTGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Vertical Clock Track (VCT)</td>
+        <td class="right">—</td>
+        <td class="right">{{QrVCTGradeNumeric}}</td>
+        <td class="grade-cell grade-{{QrVCTGradeLetter}}-cell">{{QrVCTGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Alignment Pattern (ALP)</td>
+        <td class="right">—</td>
+        <td class="right">{{QrALPGradeNumeric}}</td>
+        <td class="grade-cell grade-{{QrALPGradeLetter}}-cell">{{QrALPGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Version Information Block (VIB)</td>
+        <td class="right">—</td>
+        <td class="right">{{QrVIBGradeNumeric}}</td>
+        <td class="grade-cell grade-{{QrVIBGradeLetter}}-cell">{{QrVIBGradeLetter}}</td>
+        <td>{{#if_eq QrVIBGradeLetter "-"}}Not applicable (v1–6){{/if_eq}}</td>
+      </tr>
+      <tr>
+        <td class="param-name">Format Information Block (FIB)</td>
+        <td class="right">—</td>
+        <td class="right">{{QrFIBGradeNumeric}}</td>
+        <td class="grade-cell grade-{{QrFIBGradeLetter}}-cell">{{QrFIBGradeLetter}}</td>
+        <td>EC Level: {{ECLevel}} · Mask: {{DataMaskPattern}}</td>
+      </tr>
+      {{/if}}
+
+      <!-- 1D / Linear Parameters ──────────────────────────────────────── -->
+      {{#if Is1D}}
+      <tr class="separator"><td colspan="5">ISO/IEC 15416 — 1D Linear Parameters</td></tr>
+      <tr>
+        <td class="param-name">Minimum Reflectance (Rmin)</td>
+        <td class="right">{{MinReflectance}} %</td>
+        <td class="right">{{MinReflGradeNumeric}}</td>
+        <td class="grade-cell grade-{{MinReflGradeLetter}}-cell">{{MinReflGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Symbol Contrast (SC)</td>
+        <td class="right">{{SCPercent}} %</td>
+        <td class="right">{{SCGradeNumeric}}</td>
+        <td class="grade-cell grade-{{SCGradeLetter}}-cell">{{SCGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Minimum Edge Contrast (ECmin)</td>
+        <td class="right">{{MinEdgeContrast}} %</td>
+        <td class="right">{{MinEdgeContrastGradeNumeric}}</td>
+        <td class="grade-cell grade-{{MinEdgeContrastGradeLetter}}-cell">{{MinEdgeContrastGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Modulation (MOD)</td>
+        <td class="right">{{MODPercent}} %</td>
+        <td class="right">{{MODGradeNumeric}}</td>
+        <td class="grade-cell grade-{{MODGradeLetter}}-cell">{{MODGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Defects</td>
+        <td class="right">{{DefectsPercent}} %</td>
+        <td class="right">{{DefectsGradeNumeric}}</td>
+        <td class="grade-cell grade-{{DefectsGradeLetter}}-cell">{{DefectsGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Decode</td>
+        <td class="right">—</td>
+        <td class="right">{{DecodeGradeNumeric}}</td>
+        <td class="grade-cell grade-{{DecodeGradeLetter}}-cell">{{DecodeGradeLetter}}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="param-name">Decodability</td>
+        <td class="right">{{DecodabilityPercent}} %</td>
+        <td class="right">{{DecodabilityGradeNumeric}}</td>
+        <td class="grade-cell grade-{{DecodabilityGradeLetter}}-cell">{{DecodabilityGradeLetter}}</td>
+        <td></td>
+      </tr>
+      {{/if}}
+
+      <!-- Overall row (all symbologies) ─────────────────────────────── -->
+      <tr class="overall-row">
+        <td class="param-name">Overall Grade</td>
+        <td class="right">—</td>
+        <td class="right">{{NumericOverallGrade}}</td>
+        <td class="grade-cell grade-{{OverallGradeLetter}}-cell" style="font-size:11pt;">{{OverallGradeLetter}}</td>
+        <td>{{FormalGrade}}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ── Image + Extra Info row ──────────────────────────────────────────── -->
+  <div class="image-section">
+    <div class="image-frame">
+      <div class="card-header">Symbol Image (ROI Crop)</div>
+      {{#if JpegImageBase64}}
+        <img src="data:image/jpeg;base64,{{JpegImageBase64}}"
+             alt="Symbol verification image" />
+      {{else}}
+        <div class="image-placeholder">Image not available</div>
+      {{/if}}
+    </div>
+
+    <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+
+      <!-- Scan metrics -->
+      <div class="card">
+        <div class="card-header">Scan Metrics</div>
+        <div class="card-body">
+          <div class="field-row">
+            <span class="field-label">Contrast Uniformity (CU)</span>
+            <span class="field-value">{{ContrastUniformity}} %</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Min Reflectance Dark (MRD)</span>
+            <span class="field-value">{{MinReflectanceDark}} %</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Verification Time</span>
+            <span class="field-value">{{VerificationTime}}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Scan Number</span>
+            <span class="field-value">#{{ScanIndex}}</span>
+          </div>
+          {{#if EciValue}}
+          <div class="field-row">
+            <span class="field-label">ECI Value</span>
+            <span class="field-value mono">{{EciValue}}</span>
+          </div>
+          {{/if}}
+          <div class="field-row">
+            <span class="field-label">Horizontal BWG</span>
+            <span class="field-value">{{HorizontalBWG}}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Vertical BWG</span>
+            <span class="field-value">{{VerticalBWG}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Job context -->
+      <div class="card">
+        <div class="card-header">Job Context</div>
+        <div class="card-body">
+          <div class="field-row">
+            <span class="field-label">Job Name</span>
+            <span class="field-value">{{JobName}}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Session Start</span>
+            <span class="field-value">{{SessionStartTime}}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Total in Session</span>
+            <span class="field-value">{{SessionScanCount}} scans</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Pass Rate (session)</span>
+            <span class="field-value">{{SessionPassRate}} %</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /.image-section -->
+
+  <!-- ── GS1 Application Identifier Breakdown (conditional) ───────────────── -->
+  {{#if HasGS1Data}}
+  <div class="card" style="margin-bottom:6px;">
+    <div class="card-header">GS1 Application Identifier Breakdown</div>
+    <div class="card-body" style="padding:0;">
+      <table class="gs1-table">
+        <thead>
+          <tr>
+            <th style="width:60px">AI</th>
+            <th style="width:160px">Description</th>
+            <th>Value</th>
+            <th style="width:80px">Format Check</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each GS1Elements}}
+          <tr>
+            <td class="ai">({{AI}})</td>
+            <td>{{Description}}</td>
+            <td class="val">{{Value}}</td>
+            <td style="color:{{#if_eq FormatPass true}}#2e7d32{{else}}#b71c1c{{/if_eq}}">
+              {{#if_eq FormatPass true}}Pass{{else}}Fail{{/if_eq}}
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {{/if}}
+
+  <!-- ── Notes ─────────────────────────────────────────────────────────────── -->
+  {{#if Notes}}
+  <div class="card" style="margin-bottom:6px;">
+    <div class="card-header">Notes</div>
+    <div class="card-body" style="font-size:8.5pt; white-space:pre-wrap;">{{Notes}}</div>
+  </div>
+  {{/if}}
+
+  <!-- ── Regulatory / Standard notice ─────────────────────────────────────── -->
+  <div style="font-size:7.5pt; color:#777; margin-bottom:8px; line-height:1.5;">
+    Grading performed in accordance with <strong>{{GradingStandard}}</strong>.
+    Verifier: {{DeviceModel}} (S/N {{DeviceSerial}}), firmware {{FirmwareVersion}},
+    calibration {{CalibrationDate}}.
+    This report is generated by VTCCP (Verifier TruCheck Command &amp; Control Platform).
+    Results are valid only for the image presented at the time of verification.
+    Any modification to the symbol or image after this date voids the certificate.
+  </div>
+
+  <!-- ── Footer ────────────────────────────────────────────────────────────── -->
+  <div class="report-footer">
+    <div>
+      <div>Report No: <strong>{{ReportNumber}}</strong></div>
+      <div>Generated: {{GeneratedTimestamp}} by VTCCP v{{AppVersion}}</div>
+    </div>
+    <div class="sig-line">
+      Authorized Signature / Quality Approval
+    </div>
+    <div style="text-align:right;">
+      <div>Page 1 of 1</div>
+      <div>{{CompanyName}}</div>
+    </div>
+  </div>
+
+</div><!-- /.page -->
+</body>
+</html>

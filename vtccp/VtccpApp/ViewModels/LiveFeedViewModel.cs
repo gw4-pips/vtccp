@@ -52,6 +52,24 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
     private HttpEventSubscriber? _subscriber;
     private readonly VerificationXmlMap _xmlMap = new();
 
+    // ── ROI overlay ───────────────────────────────────────────────────────────
+
+    private bool _roiVisible = true;
+
+    /// <summary>
+    /// True while the ROI guide rectangle is shown over the live image.
+    /// Set to false when the operator clicks anywhere in the image panel.
+    /// Resets to true each time Go Live is pressed.
+    /// </summary>
+    public bool RoiVisible
+    {
+        get => _roiVisible;
+        private set => Set(ref _roiVisible, value);
+    }
+
+    /// <summary>Called from code-behind when the operator clicks in the image panel.</summary>
+    public void DismissRoi() => RoiVisible = false;
+
     // ── Bindable properties ───────────────────────────────────────────────────
 
     private BitmapImage? _liveImage;
@@ -111,6 +129,7 @@ public sealed class LiveFeedViewModel : ViewModelBase, IDisposable
         // TRIGGER.TYPE stays 0 — no device configuration is changed.
         StartTimer();
 
+        RoiVisible = true;
         _state = FeedState.Live;
         StatusText = "Live feed active — press Verify to trigger a scan.";
         NotifyStateChanged();

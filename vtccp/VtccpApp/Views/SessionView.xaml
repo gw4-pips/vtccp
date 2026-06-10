@@ -25,11 +25,18 @@
                        Foreground="#4A90D9"
                        Margin="0,0,0,6" />
             <Button DockPanel.Dock="Right"
+                    Content="Stitch"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding OpenStitchingCommand}"
+                    Padding="14,4"
+                    Margin="0,0,8,4"
+                    VerticalAlignment="Bottom" />
+            <Button DockPanel.Dock="Right"
                     Content="Live View"
                     Style="{StaticResource SecondaryButton}"
                     Command="{Binding OpenLiveFeedCommand}"
                     Padding="14,4"
-                    Margin="0,0,12,4"
+                    Margin="0,0,8,4"
                     VerticalAlignment="Bottom" />
         </DockPanel>
 
