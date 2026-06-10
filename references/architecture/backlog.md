@@ -41,40 +41,57 @@ Contrast: Scan #18 (pharma GS1 DM, Grade C): `len=13`.
   not as FNC1 AI streams. The DL parser recognizes the format as valid GS1 (hence
   `ApplicationPass=Fail(Quality)`, not `Fail(Data Format)`) but does not produce a
   row-per-field `applicationStdArray`.
+- **(C) ★ MOST LIKELY — GS1 DL parsing is a DM395V / fw7 feature, not present on DM475V fw6**
+  The DM475V runs fw 6.1.16_sr4. GS1 Digital Link support in the firmware's GS1 application
+  parser may have been introduced in fw7 (confirmed shipping on DM395V). On fw6, the device
+  may only recognize DL by URL pattern-match (enough to set `ApplicationStandard=Custom` and
+  `ApplicationPassReason=Quality`) but has no DL AI-parsing engine → `applicationStdArray`
+  is always empty for DL on this firmware/device combination.
 
-**Evidence for (A)**: `ApplicationPassReason=Quality` means GS1 format was recognized — if
-the codeword stream was undecodable, how did the firmware determine the format was good?
-**Evidence for (B)**: The `https://id.gs1.org/` URL could be pattern-matched at the string
-level without needing full GS1 AI parsing — explaining both `len=0` and the Quality fail reason.
+**If (C) is correct**: `applicationStdArray` will NEVER be populated for GS1 DL QR on
+fw 6.1.16_sr4 regardless of symbol quality. A passing DL QR scan would confirm this.
+GS1 DL AI extraction on this device must come entirely from `DecodedData` via the gs1-syntax-engine
+client-side library — the firmware offers no per-field data.
 
-**Resolution**: Scan a passing or near-passing GS1 Digital Link QR.
-- If len>0 → Grade F is the cause. DL populates array like pharma DM.
-- If len=0 → DL uses a different pipeline. No per-field array available from push XML.
+**If (C) is wrong** and a passing DL QR gives len>0 → revise to hypothesis (A).
 
-**Impact on GS1-1**: GS1-1 assumes applicationStdArray can be relied upon for all GS1 symbols.
-If DL QR never populates it, a separate `DecodedData`-based path via gs1-syntax-engine is needed
-for DL AI extraction.
+**Impact on GS1-1**: GS1-1 scoped to `applicationStdArray` on traditional GS1 (FNC1 / `]d2` DM).
+GS1 DL on fw6 needs a separate client-side extraction path. Do NOT block GS1-1 on this.
 
 ---
 
-### GS1-DL-2 — VTCCP GS1 Digital Link routing (DecodedData https:// prefix detection)
+### GS1-DL-2 — VTCCP GS1 Digital Link detection rule (https:// prefix is NOT sufficient)
 **Confirmed by**: Scan #19 (GS1 DL QR, `]Q1`, `DecodedData=https://id.gs1.org/...`)
 
 **Finding**: GS1 Digital Link QR codes carry `SymbologyId=]Q1` — the same AIM ID as non-GS1
-QR. There is NO symbology-layer distinction between DL QR and plain QR. The ONLY indicators
-that a QR result is GS1 Digital Link are:
-1. `DecodedData` starts with a GS1 DL domain (`https://id.gs1.org/`, or any resolver domain)
-2. `ApplicationStandard=Custom` (present on all GS1 symbols)
+QR. There is NO symbology-layer distinction between DL QR and plain QR in the push XML stream.
 
-**VTCCP parser action**: Route `DecodedData` through the gs1-syntax-engine Digital Link path
-(`gs1-syntax-engine` v1.4.0 is already in `vtccp/lib/`) when `DecodedData` starts with `https://`.
-The library handles DL URI → AI extraction. This complements the existing FNC1 path used for
-GS1 DataMatrix (`]d2`).
+**❌ WRONG approach — do NOT use**: Checking if `DecodedData` starts with `https://` (or
+`http://`, `www.`). An enormous number of non-GS1 QR codes encode plain URLs — product
+pages, contact cards, Wi-Fi credentials, payment links, marketing links. A URL prefix test
+would produce massive false positives.
 
-**AIs extracted from scan #19 DL URI**:
+**✓ Correct detection strategy**: Pass `DecodedData` to the gs1-syntax-engine
+(`vtccp/lib/gs1-syntax-engine/` v1.4.0) Digital Link validator. The library
+can attempt to parse the URI as a GS1 DL and return AIs. If the parse succeeds with
+at least one valid AI extracted → it is GS1 DL. If parse fails → treat as plain URL QR.
+
+In practice the gs1-syntax-engine checks that:
+- The path contains one of the GS1 primary key AIs (01/8006/8013/8010/255/8017/8018/414/417/8004)
+  in the correct position (first non-stem path segment pair)
+- Subsequent path segments follow valid GS1 AI structure
+
+`ApplicationStandard=Custom` is a secondary confirming signal but cannot be used alone —
+it is also set on GS1 DM (`]d2`) and is absent (or different) on non-GS1 QR.
+
+**AIs extracted from scan #19 DL URI** (`https://id.gs1.org/01/09506000164960/22/80/10/ABC`):
 - AI 01 = GTIN-14: `09506000164960`
 - AI 22 = Internal Product Variant: `80`
 - AI 10 = Batch/Lot: `ABC`
+
+**Note on fw6 / DM395V**: See GS1-DL-1 hypothesis (C). Client-side DL parsing via
+gs1-syntax-engine may be the ONLY path for AI extraction on this device/firmware regardless
+of what the firmware's own GS1 parser does.
 
 ---
 
