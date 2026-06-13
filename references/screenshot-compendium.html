@@ -13,17 +13,10 @@
     --muted: #5a6273;
     --accent: #1a56db;
 
-    --badge-a: #1e4d91; --badge-a-bg: #dbeafe;
-    --badge-b: #065f46; --badge-b-bg: #d1fae5;
-    --badge-c: #7c3aed; --badge-c-bg: #ede9fe;
-    --badge-d: #92400e; --badge-d-bg: #fef3c7;
-    --badge-e: #065f46; --badge-e-bg: #d1fae5;
-    --badge-f: #4b5563; --badge-f-bg: #f3f4f6;
-    --badge-g: #831843; --badge-g-bg: #fce7f3;
-    --badge-h: #1e3a5f; --badge-h-bg: #dbeafe;
-    --badge-i: #3b0764; --badge-i-bg: #f5f3ff;
-    --badge-j: #7f1d1d; --badge-j-bg: #fee2e2;
-    --badge-k: #134e4a; --badge-k-bg: #ccfbf1;
+    --w-fg: #1e3a5f; --w-bg: #dbeafe;
+    --d-fg: #7f1d1d; --d-bg: #fee2e2;
+    --v-fg: #064e3b; --v-bg: #d1fae5;
+    --s-fg: #4b5563; --s-bg: #f3f4f6;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
@@ -42,15 +35,20 @@
     text-decoration: none; white-space: nowrap;
   }
   nav a:hover { opacity: 0.85; }
+  nav .sep { color: #d1d5db; padding: 4px 2px; font-size: 12px; }
 
   main { max-width: 1600px; margin: 0 auto; padding: 24px 20px 48px; }
 
   section { margin-bottom: 48px; }
   section h2 {
     font-size: 16px; font-weight: 700; color: var(--text);
-    border-bottom: 2px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;
+    border-bottom: 2px solid var(--border); padding-bottom: 8px; margin-bottom: 4px;
   }
-  section p.section-note { font-size: 12px; color: var(--muted); margin: -10px 0 14px; }
+  section h3 {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    margin: 16px 0 10px; padding-left: 2px;
+  }
+  section p.section-note { font-size: 12px; color: var(--muted); margin: 4px 0 14px; }
 
   .grid {
     display: grid;
@@ -77,64 +75,798 @@
   }
   .caption { font-size: 12px; color: var(--text); line-height: 1.45; }
   .date   { font-size: 11px; color: var(--muted); margin-top: 4px; }
-  a.view  {
-    display: inline-block; margin-top: 6px; font-size: 11px;
-    color: var(--accent); text-decoration: none; font-weight: 600;
-  }
-  a.view:hover { text-decoration: underline; }
 
-  .badge-a { color: var(--badge-a); background: var(--badge-a-bg); }
-  .badge-b { color: var(--badge-b); background: var(--badge-b-bg); }
-  .badge-c { color: var(--badge-c); background: var(--badge-c-bg); }
-  .badge-d { color: var(--badge-d); background: var(--badge-d-bg); }
-  .badge-e { color: var(--badge-e); background: var(--badge-e-bg); }
-  .badge-f { color: var(--badge-f); background: var(--badge-f-bg); }
-  .badge-g { color: var(--badge-g); background: var(--badge-g-bg); }
-  .badge-h { color: var(--badge-h); background: var(--badge-h-bg); }
-  .badge-i { color: var(--badge-i); background: var(--badge-i-bg); }
-  .badge-j { color: var(--badge-j); background: var(--badge-j-bg); }
-  .badge-k { color: var(--badge-k); background: var(--badge-k-bg); }
+  .badge-w { color: var(--w-fg); background: var(--w-bg); }
+  .badge-d { color: var(--d-fg); background: var(--d-bg); }
+  .badge-v { color: var(--v-fg); background: var(--v-bg); }
+  .badge-s { color: var(--s-fg); background: var(--s-bg); }
 
-  nav a.nav-a { color: var(--badge-a); background: var(--badge-a-bg); }
-  nav a.nav-b { color: var(--badge-b); background: var(--badge-b-bg); }
-  nav a.nav-c { color: var(--badge-c); background: var(--badge-c-bg); }
-  nav a.nav-d { color: var(--badge-d); background: var(--badge-d-bg); }
-  nav a.nav-e { color: var(--badge-e); background: var(--badge-e-bg); }
-  nav a.nav-f { color: var(--badge-f); background: var(--badge-f-bg); }
-  nav a.nav-g { color: var(--badge-g); background: var(--badge-g-bg); }
-  nav a.nav-h { color: var(--badge-h); background: var(--badge-h-bg); }
-  nav a.nav-i { color: var(--badge-i); background: var(--badge-i-bg); }
-  nav a.nav-j { color: var(--badge-j); background: var(--badge-j-bg); }
-  nav a.nav-k { color: var(--badge-k); background: var(--badge-k-bg); }
+  nav a.nav-w { color: var(--w-fg); background: var(--w-bg); }
+  nav a.nav-d { color: var(--d-fg); background: var(--d-bg); }
+  nav a.nav-v { color: var(--v-fg); background: var(--v-bg); }
+  nav a.nav-s { color: var(--s-fg); background: var(--s-bg); }
 </style>
 </head>
 <body>
 
 <header>
   <h1>VTCCP Screenshot Compendium</h1>
-  <p>All Webscan TruCheck and Cognex DMST/TruCheck screenshots shared over the VTCCP project lifetime &mdash; grouped by subject. Generated 2026-06-11.</p>
+  <p>All Webscan TruCheck and Cognex DMST/TruCheck screenshots shared over the VTCCP project lifetime &mdash; grouped by subject. Rewritten 2026-06-13. Structure: W (Webscan TruCheck UI) | D (DMST/Cognex TruCheck UI) | V (VTCCP App UI) | S (Supporting Context).</p>
 </header>
 
 <nav>
-  <a class="nav-a" href="#sec-a">A · DMST Config</a>
-  <a class="nav-b" href="#sec-b">B · TruCheck Results</a>
-  <a class="nav-c" href="#sec-c">C · Webscan TC0374</a>
-  <a class="nav-d" href="#sec-d">D · VTCCP App UI</a>
-  <a class="nav-e" href="#sec-e">E · Excel Output</a>
-  <a class="nav-f" href="#sec-f">F · Network / Wireshark</a>
-  <a class="nav-g" href="#sec-g">G · DMST HTML Report</a>
-  <a class="nav-h" href="#sec-h">H · Calibration</a>
-  <a class="nav-i" href="#sec-i">I · Setup / Connect / Logging</a>
-  <a class="nav-j" href="#sec-j">J · Barcode Samples</a>
-  <a class="nav-k" href="#sec-k">K · Grade Params Close-up</a>
+  <a class="nav-w" href="#sec-w1">W1 · WTC TC0374</a>
+  <a class="nav-w" href="#sec-w2">W2 · WTC Menus &amp; Dialogs</a>
+  <a class="nav-w" href="#sec-w3">W3 · WTC Settings</a>
+  <a class="nav-w" href="#sec-w4">W4 · WTC Single Results</a>
+  <a class="nav-w" href="#sec-w5">W5 · WTC Multi Mode</a>
+  <a class="nav-w" href="#sec-w6">W6 · WTC Reports</a>
+  <span class="sep">|</span>
+  <a class="nav-d" href="#sec-d1">D1 · DMST App</a>
+  <a class="nav-d" href="#sec-d2">D2 · DMST TruCheck Config</a>
+  <a class="nav-d" href="#sec-d3">D3 · TruCheck Results</a>
+  <span class="sep">|</span>
+  <a class="nav-v" href="#sec-v1">V1 · CP Session Launcher</a>
+  <a class="nav-v" href="#sec-v2">V2 · CP Job Templates &amp; History</a>
+  <a class="nav-v" href="#sec-v3">V3 · CP Excel Output</a>
+  <span class="sep">|</span>
+  <a class="nav-s" href="#sec-s1">S1 · Network &amp; Protocol</a>
+  <a class="nav-s" href="#sec-s2">S2 · DMST HTML Report</a>
+  <a class="nav-s" href="#sec-s3">S3 · Calibration</a>
+  <a class="nav-s" href="#sec-s4">S4 · DMST Connect / Logging</a>
+  <a class="nav-s" href="#sec-s5">S5 · Barcode Samples</a>
+  <a class="nav-s" href="#sec-s6">S6 · Grade Params</a>
 </nav>
 
 <main>
 
-<!-- ═══════════════════════════════════════════════════════════════ A -->
-<section id="sec-a">
-<h2>A &mdash; DMST Configuration Screens</h2>
-<p class="section-note">DataMan Setup Tool device configuration: Optimize Image, Trigger, Imager, Symbology, Time, and TruCheck Verification Settings panels.</p>
+<!-- ═══════════════════════════════════════════════════════════════ W1 -->
+<section id="sec-w1">
+<h2>W1 &mdash; Webscan TruCheck: TC0374 Companion App</h2>
+<p class="section-note">TC0374 — Webscan data management / Excel companion software for Webscan 3300/3600 series USB verifiers. Separate from the WTC v3.03.74 main application. Covers Home Screen, Excel Functions, 1D Settings, 2D Settings, Report File Name, and User Information screens.</p>
+<div class="grid">
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_Home_Screen_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_Home_Screen_1774547522521.png" alt="TC0374 Home Screen">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">TC0374 Home Screen — main application entry point. Job, Operator, Roll Number fields and navigation buttons.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_Excel_Functions_Screen_-_Default_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_Excel_Functions_Screen_-_Default_1774547522521.png" alt="TC0374 Excel Functions default">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">Excel Spreadsheet Functions — default state. No job open. Buttons: New Job, Open Job, Close Job, Reclaim/Archive Job, Modify Template Spreadsheet.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_Excel_Functions_Screen_-_Default_1774544123436.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_Excel_Functions_Screen_-_Default_1774544123436.png" alt="TC0374 Excel Functions (earlier)">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">Excel Spreadsheet Functions — default state, earlier capture.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_Default_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_Default_1774547522521.png" alt="TC0374 1D Settings default">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">1D Settings Screen — default state. Mode, Aperture, Number of Scans, GS1 DataBar/RSS, UPC Supplemental, I25/ITF14.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_Mode_Drop_Down_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_Mode_Drop_Down_1774547522521.png" alt="TC0374 1D Mode dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">1D Settings — Mode drop-down open. Available 1D verification modes.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_Aperture_Drop_Down_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_Aperture_Drop_Down_1774547522521.png" alt="TC0374 1D Aperture dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">1D Settings — Aperture drop-down open. Aperture size options for 1D verification.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_%23_Scans_Drop_Down_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_%23_Scans_Drop_Down_1774547522521.png" alt="TC0374 1D Number of Scans dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">1D Settings — Number of Scans drop-down.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_GS1_dataBar-RSS_Name_Drop_Down_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_GS1_dataBar-RSS_Name_Drop_Down_1774547522521.png" alt="TC0374 1D GS1 DataBar RSS dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">1D Settings — GS1 DataBar / RSS Name drop-down. Available GS1 DataBar variants.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_I25-ITF14_Drop_Down_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_I25-ITF14_Drop_Down_1774547522521.png" alt="TC0374 1D I25/ITF14 dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">1D Settings — I25 / ITF-14 drop-down. Interleaved 2-of-5 mode selection.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_UPC_Sup_Drop_Down_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_UPC_Sup_Drop_Down_1774547522521.png" alt="TC0374 1D UPC Supplemental dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">1D Settings — UPC Supplemental drop-down. None / Auto / 2-Digit / 5-Digit handling.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_2D_Settings_Screen_-_Default_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_2D_Settings_Screen_-_Default_1774547522521.png" alt="TC0374 2D Settings default">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">2D Settings Screen — default state. Symbology, Aperture, Grading Standard, GS1 parser options.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_2D_Settings_Screen_-_Aperture_Drop_Down_Menu,_All_2D_Sy_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_2D_Settings_Screen_-_Aperture_Drop_Down_Menu,_All_2D_Sy_1774547522521.png" alt="TC0374 2D Aperture all 2D symbologies">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">2D Settings — Aperture drop-down for all 2D symbologies (global). Applies to DataMatrix, QR Code, etc.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_2D_Settings_Screen_-_Aperture_Drop_Down_Menu,_Data_Matr_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_2D_Settings_Screen_-_Aperture_Drop_Down_Menu,_Data_Matr_1774547522521.png" alt="TC0374 2D Aperture Data Matrix">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">2D Settings — Aperture drop-down for DataMatrix specifically. Per-symbology aperture override.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_Report_File_Name_Screen_-_Available_from_1D_and_2D_Sett_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_Report_File_Name_Screen_-_Available_from_1D_and_2D_Sett_1774547522521.png" alt="TC0374 Report File Name screen">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">Report File Name Screen — configures report filename, path, and format. Available from both 1D and 2D Settings.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/TC0374_User_Information_Screen_-_Available_from_1D_and_2D_Sett_1774547522521.png" target="_blank">
+      <img class="thumb" src="../attached_assets/TC0374_User_Information_Screen_-_Available_from_1D_and_2D_Sett_1774547522521.png" alt="TC0374 User Information screen">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">User Information Screen — Operator name, company, job number fields embedded in report header. Available from 1D and 2D Settings.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780846508356.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780846508356.png" alt="Webscan Excel Functions live session">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">Webscan Excel Spreadsheet Functions — live session 2026-06-07. No Job open. Buttons: New Job, Open Job, Close Job, Reclaim/Archive, Modify Template Spreadsheet.</p>
+      <p class="date">2026-06-07</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780850312245.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780850312245.png" alt="Webscan New Job dialog">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · Webscan TC0374</span>
+      <p class="caption">TC0374 — New Job dialog over Excel Functions. Fields: Job Name/Number, Operator Name/Number, Roll Number. "Create Spreadsheet" button.</p>
+      <p class="date">2026-06-07</p>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ W2 -->
+<section id="sec-w2">
+<h2>W2 &mdash; Webscan TruCheck v3.03.74: Menus &amp; Dialogs</h2>
+<p class="section-note">WTC v3.03.74 main application — window chrome, menu bar (File / Options / Help), password management dialogs, and Print dialog. Captured 2026-06-08 to 2026-06-13 in Demo Mode.</p>
+<div class="grid">
+
+  <div class="card">
+    <a href="../attached_assets/image_1781265703846.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781265703846.png" alt="WTC main window — Camera Model Not Initialized">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">WTC main window — <strong>"Camera Model Not Initialized"</strong> dialog on first launch. Working as Standard TruCheck 2D USB verifier. Main tab visible: Data Detail / General Characteristic / Quality Detail / Advanced Detail / Histogram / SRP / Report sub-tabs. ANSI Parameters and MIL-130N Acceptance Criteria panels.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781265779742.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781265779742.png" alt="WTC File menu (Single Mode)">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">File menu open (Single Mode): New, Open, Close, Calibrate, Print Report, Exit.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781265900707.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781265900707.png" alt="WTC Options menu (Single Mode)">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Options menu open (Single Mode): Switch to Multi Mode, Settings, (password-protected items).</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781265960116.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781265960116.png" alt="WTC Help menu (Single Mode)">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Help menu open (Single Mode): About, User Manual, DDM.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781266142528.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781266142528.png" alt="WTC Help > About">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Help &gt; About: Software Version <strong>3.03.74</strong>, Webscan logo, copyright, device serial / imager assembly info.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781267236693.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781267236693.png" alt="WTC Help > DDM">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Help &gt; DDM dialog — Webscan diagnostics / device debug mode access.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781267172051.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781267172051.png" alt="WTC File menu (Multi Mode context)">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">File menu open (Multi Mode context) — same items as Single Mode.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781267197989.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781267197989.png" alt="WTC Options menu (Multi Mode context)">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Options menu open (Multi Mode context): Switch to Single Mode replaces Switch to Multi Mode.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781267302380.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781267302380.png" alt="WTC File > User Password Options prompt">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">File &gt; User Password Options — password entry prompt before showing Password Options dialog.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781267382982.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781267382982.png" alt="WTC Password Error dialog">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Password Error dialog — wrong password entered. Generic error message.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781267582616.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781267582616.png" alt="WTC Password Options dialog">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Password Options dialog — Change Password field + Restrict Access checkboxes: Settings / Calibration / Toolbar / User Job Info. Master password required to open.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781268130621.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781268130621.png" alt="WTC Print dialog">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Print dialog — Brother HL-L2395DW selected as default printer. Standard Windows print dialog. WTC sends reports to printer directly; no "save to PDF" equivalent.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ W3 -->
+<section id="sec-w3">
+<h2>W3 &mdash; Webscan TruCheck v3.03.74: Settings Dialog</h2>
+<p class="section-note">WTC Settings dialog — 1D and 2D tabs with all dropdown options captured. Symbology-specific settings: RSS/DataBar name, I25/ITF14, UPC Supplemental, Mode (Normal/Pre-Press/Invert), MSI-Plessy, Strip Printer Type.</p>
+<div class="grid">
+
+  <div class="card">
+    <a href="../attached_assets/image_1781266224497.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781266224497.png" alt="WTC Settings dialog — default state">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Settings dialog — default state. Tab structure visible (1D / 2D / General / Report).</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781266275898.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781266275898.png" alt="WTC Settings — 2D tab">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Settings — 2D tab. Grading standard, aperture, and 2D symbology options.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781266353144.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781266353144.png" alt="WTC Settings — additional tab">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Settings — additional tab (General or Report). Additional configuration options.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781346160683.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781346160683.png" alt="WTC Settings 1D — RSS Name dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Settings 1D — <strong>RSS Name</strong> dropdown open: RSS | GS1 DataBar. Controls how GS1 DataBar family is labelled in reports.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781346229629.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781346229629.png" alt="WTC Settings 1D — I25/ITF14 dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Settings 1D — <strong>I25/ITF14</strong> dropdown open: Standard I25 | GS1 ITF14. Selects whether Interleaved 2-of-5 is graded as plain I25 or GS1 ITF-14.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781346290124.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781346290124.png" alt="WTC Settings 1D — UPC Supplement dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Settings 1D — <strong>UPC Supplement</strong> dropdown open: None / Auto / 2-Digit / 5-Digit. Controls supplemental digit handling for UPC/EAN symbols.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781346326354.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781346326354.png" alt="WTC Settings 1D — Mode dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Settings 1D — <strong>Mode</strong> dropdown open: Normal | Pre-Press Neg | Pre-Press Pos | Invert Image. Pre-Press modes apply contrast inversion for film/plate verification.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781346746612.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781346746612.png" alt="WTC Settings — additional symbology options">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Settings — additional symbology configuration options.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781346778583.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781346778583.png" alt="WTC Settings — MSI-Plessy Mode dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Settings — <strong>MSI-Plessy Mode</strong> dropdown open: Mode 1 | Mode 2. Selects check digit algorithm for MSI Plessey barcodes.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781346857656.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781346857656.png" alt="WTC Settings — Strip Printer Type dropdown">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Settings — <strong>Strip Printer Type</strong> dropdown open: Thermal | Dot Matrix | Generic. Configures strip printer output format for inline label printing integration.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ W4 -->
+<section id="sec-w4">
+<h2>W4 &mdash; Webscan TruCheck v3.03.74: Single Mode Results</h2>
+<p class="section-note">WTC Single Mode result display — all sub-tabs captured for a UPCA Grade A (4.0) scan. Main tab, Data Detail, Quality Detail (top + bottom), Advanced Detail (top + bottom), SRP (Scan 1 and Scan 6 of 10).</p>
+<div class="grid">
+
+  <div class="card">
+    <a href="../attached_assets/image_1781344905412.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781344905412.png" alt="WTC Single Mode — post-scan state">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">WTC Single Mode — window state after scan, Main tab. Camera view + result panel visible.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781345181912.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781345181912.png" alt="WTC Single Mode Main tab — Grade A">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>Main tab</strong> — UPCA Grade <strong>A (4.0)</strong>. Formal grade, ANSI parameters table, MIL-130N Acceptance Criteria, Go Live button. Summary Results panel top-right.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781345235511.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781345235511.png" alt="WTC Data Detail tab">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>Data Detail tab</strong> — decoded data shown as pill: "012345678950". Plain data string without AI parsing for 1D symbols.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781345376014.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781345376014.png" alt="WTC Quality Detail — top">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>Quality Detail tab — top</strong>. 9-parameter ANSI grade table: Decode / SC% / ERN / MOD / Defects / Decodability / Add-on / LMin / BQ. Each parameter with numeric grade and letter grade.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781345479643.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781345479643.png" alt="WTC Quality Detail — bottom">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>Quality Detail tab — bottom</strong>. Raw numeric per-scan data table — 10 scans. Each scan row: all 9 ANSI parameter values. Scroll required to see full table.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781345555363.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781345555363.png" alt="WTC Advanced Detail — top">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>Advanced Detail tab — top</strong>. Element Sizes section + partial Element Deviations table. Bar/space widths per element, reference sizes, deviations.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781345612225.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781345612225.png" alt="WTC Advanced Detail — bottom">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>Advanced Detail tab — bottom</strong>. Element Deviations complete — full bar/space deviation table for all elements of the UPCA symbol.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781345869810.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781345869810.png" alt="WTC SRP tab — Scan 1 of 10">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>SRP tab — Scan 1 of 10</strong>. Full reflectance profile waveform with overlaid reference thresholds. Navigation arrows to step through all 10 scans.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781345681679.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781345681679.png" alt="WTC SRP tab — Scan 6 of 10">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>SRP tab — Scan 6 of 10</strong>. Reflectance profile waveform with overlaid element boundaries. Scan-to-scan waveform comparison possible by stepping through 1–10.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ W5 -->
+<section id="sec-w5">
+<h2>W5 &mdash; Webscan TruCheck v3.03.74: Multi Mode</h2>
+<p class="section-note">WTC Multi Mode — complete workflow documented from idle through ROI drawing, group management, analysis, and results. Demo Mode, calibration card. 3 ROIs across 3 groups with mixed symbologies.</p>
+<div class="grid">
+
+  <div class="card">
+    <a href="../attached_assets/image_1781268235791.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781268235791.png" alt="WTC Multi Mode idle — Verifier not found">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode idle — <strong>"Verifier not found"</strong> error banner. No ROIs drawn. Main / Summary / Report tabs visible. Verify Code button disabled. Status bar: "Current Group: 1".</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781344785136.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781344785136.png" alt="WTC Multi Mode — post-verif UPCA Grade C">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — post-verification. UPCA Grade <strong>C</strong>. Summary Results and Histogram populated. Histogram: C:1 / all others 0. ROI overlay on camera view.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781345014639.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781345014639.png" alt="WTC Multi Mode — Help menu">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — Help menu open. Same items as Single Mode (About / User Manual / DDM). Menus are mode-agnostic.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781347018047.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781347018047.png" alt="WTC Multi Mode — first ROI drawn">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — <strong>first ROI drawn</strong>. Square ROI auto-classified as 2D (Group 1, red). Label shows "Group 1" + "2D". WTC uses shape heuristic: square → 2D; rectangle → 1D/2D. Status bar: "Current Group: 1".</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781347190184.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781347190184.png" alt="WTC Multi Mode — right-click context menu">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — <strong>right-click context menu</strong> on ROI. Items: Copy Group / Copy Region / Switch to 1D / Switch to 1D/2D / <strong>Switch to Group ▶</strong> / Settings / Delete. Full ROI management accessible here.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781347349165.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781347349165.png" alt="WTC Multi Mode — ROI after Switch to 1D">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — ROI after <strong>Switch to 1D</strong>. Label changes from "2D" to "1D"; ROI border color unchanged (still Group 1 red). Symbology type is independent of group color.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781347438766.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781347438766.png" alt="WTC Multi Mode — ROI after Switch to 1D/2D">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — ROI after <strong>Switch to 1D/2D</strong>. Label shows "1D/2D" — mixed-symbology mode that attempts both 1D and 2D decode.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781347526261.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781347526261.png" alt="WTC Multi Mode — two ROIs">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — <strong>two ROIs</strong>. Group 1 (red, 1D/2D) over DM Master. Group 2 (green) drawn as wide rectangle over UPC-A Master — auto-classified as 2D due to shape heuristic (bug: should be 1D for a barcode). Manually corrected via right-click.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781347662030.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781347662030.png" alt="WTC Multi Mode — three ROIs, Switch to Group submenu">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — <strong>three ROIs</strong> with Switch to Group submenu open. Group 1 (red, 1D/2D), Group 2 (green, 1D). Third ROI drawn at bottom — right-click shows Switch to Group ▶ submenu: <strong>New Group</strong> | 1. "New Group" creates Group 3 and assigns independent settings. Status bar: "Current Group: 2".</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781347893595.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781347893595.png" alt="WTC Multi Mode — 3 ROIs assigned to 3 groups">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — 3 ROIs each assigned to separate groups (Group 1 red, Group 2 green, Group 3 blue). Three distinct symbology types and independent verification criteria per group.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781348022151.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781348022151.png" alt="WTC Multi Mode — during analysis">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — <strong>during verification analysis</strong>. Button changes to <strong>"Abort Verification"</strong>. Progress dialog: "Generating verification report" with green progress bar. Two-phase process: scan acquisition → report generation. Group 3 (blue) visible at bottom.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781348051197.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781348051197.png" alt="WTC Multi Mode — post-analysis results">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Multi Mode — <strong>post-analysis results</strong>. Stats: 3 Selected / 2 Decoded / 1 NOT Decoded. ROI overlays: <strong>green fill = pass</strong>, <strong>red fill = fail/no-decode</strong>. Summary Results: DM 3.8(A)/3.8/05/660/45 PASS ISO15415 | UPCA 2.8(B)/2.8/06/660 N/A | NO DECODE F(0.0) N/A. Histogram: A+B:2 / C:0 / D+F:1.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ W6 -->
+<section id="sec-w6">
+<h2>W6 &mdash; Webscan TruCheck v3.03.74: Report Tab</h2>
+<p class="section-note">WTC Report tab — scrollable in-app report view. Multi Mode 3-symbol run: DM Grade A (ISO15415:2024) + UPCA Grade B (ISO15416:2016) + NO DECODE Grade F. Page 1 of 2 and Page 2 of 2 fully captured.</p>
+<div class="grid">
+
+  <div class="card">
+    <a href="../attached_assets/image_1781348329288.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781348329288.png" alt="WTC Summary tab — post-analysis">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption">Summary tab — post-analysis view showing tabular summary of all symbols and overall session statistics.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781348423556.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781348423556.png" alt="WTC Report — Page 1 top">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>Report tab — Page 1 of 2 (top)</strong>. Header: "Webscan TruCheck™ USB Verification Report" / Verified Sat 13-Jun-2026 06:53:24 AM / Last Calibrated: Never / Software Version: 3.03.74. Verification Summary: Verified By GW4, Company PIPS Inc., Product Post-calibration Conformance Challenge, Job TC-850-0518-089, Batch DMG-30050, Symbols 3 / Passed 2 / NOT Passed 1. Label Image: camera frame with ROIs numbered 1, 2, 3 (yellow boxes).</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781348449621.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781348449621.png" alt="WTC Report — Page 1 scrolled + Symbol 1">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>Report — Page 1 continued + Symbol 1</strong>. Grade Summary table: A:1 / B:1 / C:0 / D:0 / F:1. Verification Summary for Symbol 1 (DataMatrix): Data=WEBSCAN 020 CAL., Nominal X=19.8 mil, H-BWG=−12%, V-BWG=−10%. Grades: ISO15415:<strong>2024</strong> / A(3.8) / Aperture 05 / Wavelength 660 / <strong>Lighting 45</strong> / Formal 3.8/05/660/45. DM thumbnail shown. Note 5-column table for 2D (includes Lighting column).</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781348476400.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781348476400.png" alt="WTC Report — Page 2">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-w">W · WTC v3.03.74</span>
+      <p class="caption"><strong>Report — Page 2 of 2</strong>. Symbol 2 (UPCA): Data=012345678950, X=13.2 mil, BWG=13%/+1.6 MIL (1D has 2 BWG rows: % + absolute mil). Standard: ANSI/ISO / B(2.8) / 06 / 660 / Formal 2.8/06/660 / Notes: ISO15416:2016 (edition in Notes col for 1D). Symbol 3 (NO DECODE): Data="No Decoded data", Symbology="NO DECODE", BWG=0%, Grade F(0.0)/0.0/06/660 / Notes: ISO15416:2016. Gray thumbnail (no image). All three symbol thumbnails shown.</p>
+      <p class="date">2026-06-13</p>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ D1 -->
+<section id="sec-d1">
+<h2>D1 &mdash; DMST: Application &amp; Connection</h2>
+<p class="section-note">DataMan Setup Tool (DMST) 26.1.0 — splash screen, device discovery, connection dialog, and main window post-connect. DM475-63530E-PIPS-Verif-Lab at 10.10.10.7.</p>
 <div class="grid">
 
   <div class="card">
@@ -142,8 +874,8 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-splash-screen.png" alt="DMST splash screen">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">DataMan Setup Tool 26.1.0 welcome / splash screen.</p>
+      <span class="badge badge-d">D · DMST</span>
+      <p class="caption">DataMan Setup Tool 26.1.0 welcome / splash screen. Cognex branding.</p>
     </div>
   </div>
 
@@ -152,7 +884,7 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-home-connect-screen.png" alt="DMST home connect screen">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
+      <span class="badge badge-d">D · DMST</span>
       <p class="caption">DMST Home tab — no device connected. Device list empty.</p>
     </div>
   </div>
@@ -162,7 +894,7 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-connecting-dialog.png" alt="DMST connecting dialog">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
+      <span class="badge badge-d">D · DMST</span>
       <p class="caption">Connecting to DM475-63530E-PIPS-Verif-Lab — progress dialog in flight.</p>
     </div>
   </div>
@@ -172,7 +904,7 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-connecting-dialog-complete.png" alt="DMST connection complete">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
+      <span class="badge badge-d">D · DMST</span>
       <p class="caption">Connection complete — device parameters retrieved, ready to open.</p>
     </div>
   </div>
@@ -182,28 +914,37 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-main-idle.png" alt="DMST main idle">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
+      <span class="badge badge-d">D · DMST</span>
       <p class="caption">DMST main window post-connect, idle — Optimize Image pane, Image Panel live feed active.</p>
     </div>
   </div>
 
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ D2 -->
+<section id="sec-d2">
+<h2>D2 &mdash; DMST: TruCheck Verification Configuration</h2>
+<p class="section-note">DMST TruCheck Verification Settings panels — Application Settings, Report Settings, ACAS (Custom Acceptance Criteria), and grading standard / aperture / wavelength dropdowns.</p>
+<div class="grid">
+
   <div class="card">
-    <a href="dmst-screenshots/TruCheck-Verification-Settings-ApplicationSettings-2026-05-18.png" target="_blank">
-      <img class="thumb" src="dmst-screenshots/TruCheck-Verification-Settings-ApplicationSettings-2026-05-18.png" alt="TruCheck Application Settings">
+    <a href="../attached_assets/dmst-screenshots/TruCheck-Verification-Settings-ApplicationSettings-2026-05-18.png" target="_blank">
+      <img class="thumb" src="../attached_assets/dmst-screenshots/TruCheck-Verification-Settings-ApplicationSettings-2026-05-18.png" alt="TruCheck Application Settings">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
+      <span class="badge badge-d">D · DMST</span>
       <p class="caption">TruCheck Verification Settings — Application Settings tab. Grading standard, aperture, wavelength, lighting, and GS1 parser options.</p>
       <p class="date">2026-05-18</p>
     </div>
   </div>
 
   <div class="card">
-    <a href="dmst-screenshots/TruCheck-Verification-Settings-ReportSettings-2026-05-18.png" target="_blank">
-      <img class="thumb" src="dmst-screenshots/TruCheck-Verification-Settings-ReportSettings-2026-05-18.png" alt="TruCheck Report Settings">
+    <a href="../attached_assets/dmst-screenshots/TruCheck-Verification-Settings-ReportSettings-2026-05-18.png" target="_blank">
+      <img class="thumb" src="../attached_assets/dmst-screenshots/TruCheck-Verification-Settings-ReportSettings-2026-05-18.png" alt="TruCheck Report Settings">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
+      <span class="badge badge-d">D · DMST</span>
       <p class="caption">TruCheck Verification Settings — Report Settings tab. Report file path, format, and auto-save options.</p>
       <p class="date">2026-05-18</p>
     </div>
@@ -214,8 +955,8 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-settings-acas-upper.png" alt="DMST ACAS upper">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">Application / Custom Acceptance Criteria (ACAS) settings — upper portion. Per-parameter grade thresholds.</p>
+      <span class="badge badge-d">D · DMST</span>
+      <p class="caption">Application / Custom Acceptance Criteria (ACAS) — upper portion. Per-parameter grade thresholds.</p>
     </div>
   </div>
 
@@ -224,8 +965,8 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-settings-acas-lower.png" alt="DMST ACAS lower">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">Application / Custom Acceptance Criteria — lower portion. Continued parameter list including quiet zone and clock track grades.</p>
+      <span class="badge badge-d">D · DMST</span>
+      <p class="caption">ACAS — lower portion. Continued parameter list including quiet zone and clock track grades.</p>
     </div>
   </div>
 
@@ -234,8 +975,8 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-settings-application-aperture-dropdown.png" alt="Aperture dropdown">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">Application Settings — Aperture drop-down open, showing available aperture values (06 / 10 / 20 / etc.).</p>
+      <span class="badge badge-d">D · DMST</span>
+      <p class="caption">Application Settings — Aperture drop-down open (06 / 10 / 20 / etc.).</p>
     </div>
   </div>
 
@@ -244,8 +985,8 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-settings-2d-versions-dropdown.png" alt="2D grading versions dropdown">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">2D grading standard version drop-down — ISO 15415 edition options (2011, 2016, etc.).</p>
+      <span class="badge badge-d">D · DMST</span>
+      <p class="caption">2D grading standard version drop-down — ISO 15415 edition options. User-configurable; not firmware-determined.</p>
     </div>
   </div>
 
@@ -254,582 +995,27 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-settings-1d-versions-dropdown.png" alt="1D grading versions dropdown">
     </a>
     <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
+      <span class="badge badge-d">D · DMST</span>
       <p class="caption">1D grading standard version drop-down — ISO 15416 edition options.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-settings-dpm-versions-dropdown.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-settings-dpm-versions-dropdown.png" alt="DPM grading versions dropdown">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">DPM grading standard version drop-down — ISO 29158 / AIM DPM edition options.</p>
-    </div>
-  </div>
-
-  <!-- Timestamps: May TC config series -->
-  <div class="card">
-    <a href="../attached_assets/image_1779721827928.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779721827928.png" alt="TC config 2026-05-19 (1)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">TruCheck Configuration window — overview of settings tabs (Application, Acceptance Criteria, Report, etc.).</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779721963746.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779721963746.png" alt="TC config 2026-05-19 (2)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">TruCheck Configuration — Application Settings. Grading Standard, aperture 06, wavelength 660 nm, lighting 45Q, GS1 parser.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779721988903.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779721988903.png" alt="TC config 2026-05-19 (3)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">TruCheck Configuration — Acceptance Criteria settings. Per-parameter minimum grade thresholds.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779722252546.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779722252546.png" alt="TC config 2026-05-19 (4)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">TruCheck Configuration — continued Acceptance Criteria. Lower-half parameters.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779722275863.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779722275863.png" alt="TC config 2026-05-19 (5)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">TruCheck Configuration — Report Settings tab. Report file path and auto-save configuration.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779722304151.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779722304151.png" alt="TC config 2026-05-19 (6)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">TruCheck Configuration — additional settings panel (grading standard edition confirmation).</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <!-- March TC config series -->
-  <div class="card">
-    <a href="../attached_assets/image_1774662068647.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1774662068647.png" alt="TC config 2026-03-28 (start)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">TruCheck Configuration — March sprint, start of full TC config capture series.</p>
-      <p class="date">2026-03-28</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1774663539051.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1774663539051.png" alt="TC config 2026-03-28 (end)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">TruCheck Configuration — March sprint, end of full TC config capture series.</p>
-      <p class="date">2026-03-28</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1774701007892.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1774701007892.png" alt="DMST config March">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">DMST TruCheck configuration screen — March development session.</p>
-      <p class="date">2026-03-28</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1774706983108.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1774706983108.png" alt="DMST config March 2">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">DMST device configuration panel — Optimize Image / Trigger settings.</p>
-      <p class="date">2026-03-28</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1774707055774.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1774707055774.png" alt="DMST config March 3">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">DMST device configuration — Trigger Type and related settings.</p>
-      <p class="date">2026-03-28</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1774707085684.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1774707085684.png" alt="DMST config March 4">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">DMST device configuration — additional configuration panel (March sprint).</p>
-      <p class="date">2026-03-28</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1774710627513.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1774710627513.png" alt="DMST config March 5">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">DMST configuration — communications and push settings panel.</p>
-      <p class="date">2026-03-28</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1774710655897.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1774710655897.png" alt="DMST config March 6">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">DMST configuration — communications / push settings (continued).</p>
-      <p class="date">2026-03-28</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779103272978.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779103272978.png" alt="DMST config May 17">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">DMST configuration panel — May 17 sprint.</p>
-      <p class="date">2026-05-17</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779845582806.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779845582806.png" alt="Inputs/Outputs Outputs tab">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">Inputs / Outputs — Outputs tab. I/O signal matrix showing output trigger lines.</p>
-      <p class="date">2026-05-26</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779924507169.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779924507169.png" alt="Optimize Image Advanced Trigger Settings">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">Optimize Image → Advanced tab. Trigger Settings: Single (external). Image Panel shows DM product label read at 12.90 PPM. Result History: Read.</p>
-      <p class="date">2026-05-27</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1780165662700.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780165662700.png" alt="Imager Settings">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">Optimize Image → Advanced → Imager Settings. Auto Exposure ✓, Max Exposure 1000 µs, Max Gain 251.18, current Exposure 37 µs, Gain 1.01. Image Mirroring: Flip H + V both enabled.</p>
-      <p class="date">2026-05-30</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1780165786009.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780165786009.png" alt="Device Time Settings">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">System → Device Time Settings. Timezone: America/New_York. NTP enabled, server: time.nist.gov.</p>
-      <p class="date">2026-05-30</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1780262182100.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780262182100.png" alt="Symbology Settings">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">Symbology Settings — Basic tab. Enabled: 2D (Data Matrix, QR Code), 1D (Code 128, Code 93, Code 39, Codabar, I 2-of-5, UPC/EAN), Stacked (PDF417, GS1 DataBar). Postal and 4-State Code disabled.</p>
-      <p class="date">2026-05-31</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1780154293610.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780154293610.png" alt="Firmware update completed">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-a">A · DMST Config</span>
-      <p class="caption">Firmware update completed successfully. New Software Version: <strong>6.1.16_sr4</strong>. Bootloader: 2017.11-47-g58346ec. (This is the production firmware throughout all VTCCP scanning.)</p>
-      <p class="date">2026-05-29</p>
     </div>
   </div>
 
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════ B -->
-<section id="sec-b">
-<h2>B &mdash; DMST TruCheck Verification Results — All Tabs</h2>
-<p class="section-note">TruCheck Main result panel, all detail tabs (General Characteristic, Data Detail, Quality Detail, Advanced Detail, Histogram, Report), and Grade Parameters close-up panels. Scans on DM475V fw 6.1.16_sr4.</p>
+<!-- ═══════════════════════════════════════════════════════════════ D3 -->
+<section id="sec-d3">
+<h2>D3 &mdash; DMST: TruCheck Live Results</h2>
+<p class="section-note">DMST TruCheck result screens — Intro panel, Grade Parameters panel, all GUI tabs (General Characteristic, Quality Detail, Encodation Analysis, Modulation Grid, Codeword Values, Report). DM475V live scans and IMAGE.LOAD sessions. Includes side-by-side with VTCCP.</p>
 <div class="grid">
 
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-trucheck-pre-scan-main.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-trucheck-pre-scan-main.png" alt="TruCheck pre-scan main">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck Main tab before any scan. Camera live feed active, Verify button ready, no result shown.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-main-golive.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-main-golive.png" alt="DMST Go Live">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck Main — "Go Live" button state. Session active, camera ready to verify.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-main-result-dm-grade-d.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-main-result-dm-grade-d.png" alt="TruCheck Main result DM Grade D">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck Main tab — DM GS1 16×36 scan, <strong>Grade D</strong>. FormalGrade: 1.0/08/660/45Q. Modulation grid overlay on symbol. GS1 Format Grade: PASS. Custom Acceptance Criteria: Fail (Quality).</p>
-      <p class="date">DM475V fw 6.1.16_sr4 — scan #14 / v1.33</p>
-    </div>
-  </div>
-
-  <!-- All detail tabs -->
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-general-characteristic-tab.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-general-characteristic-tab.png" alt="General Characteristic tab">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">General Characteristic tab. Fields: ISO Grade, Formal Grade, Symbology, X Dimension, Symbol Size, Encoded Characters, Data Codewords, Error Correction Budget, Image (polarity), Calibrated flag.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-data-detail-tab.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-data-detail-tab.png" alt="Data Detail tab">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Data Detail tab. Decoded data string, AIM identifier, GS1 Application Identifiers parsed list.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-quality-detail-tab.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-quality-detail-tab.png" alt="Quality Detail tab">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Quality Detail tab. Grade Parameters table: UEC, SC, MOD, RM, ANU, GNU, FPD, quiet-zone grades (LLS/BLS/LQZ/BQZ/TQZ/RQZ), TTR/RTR, TCT/RCT, AG, DECODE — letter and numeric grades for each.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-advanced-detail-tab.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-advanced-detail-tab.png" alt="Advanced Detail tab">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Advanced Detail tab. Modulation Values array grid (18×38 cells for 16×36 symbol incl. 1-module QZ border), IsBlack colour coding.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-histogram-tab.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-histogram-tab.png" alt="Histogram tab">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Histogram tab. Pixel intensity distribution for the verified barcode ROI.</p>
-    </div>
-  </div>
-
-  <!-- Report tabs (5) -->
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-report-tab-1-header.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-report-tab-1-header.png" alt="Report tab 1 — header">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Report tab — scroll 1: report header. Device name, date/time, operator, overall grade summary, formal grade notation.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-report-tab-2-quality-params.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-report-tab-2-quality-params.png" alt="Report tab 2 — quality params">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Report tab — scroll 2: quality parameters table. All ISO grade parameters with numeric values and letter grades.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-report-tab-3-encodation.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-report-tab-3-encodation.png" alt="Report tab 3 — encodation">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Report tab — scroll 3: encodation analysis. Encodation character array, codeword summary.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-report-tab-4-encodation-codewords.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-report-tab-4-encodation-codewords.png" alt="Report tab 4 — codewords">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Report tab — scroll 4: codeword values table. Data codewords and ECC codewords with boundary marker.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-report-tab-5-modulation-grid.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-report-tab-5-modulation-grid.png" alt="Report tab 5 — modulation grid">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Report tab — scroll 5: modulation grid image. Per-module reflectance values and grade colour coding.</p>
-    </div>
-  </div>
-
-  <!-- May TruCheck result timestamps -->
-  <div class="card">
-    <a href="../attached_assets/image_1779047547862.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779047547862.png" alt="TruCheck result May 17 (1)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">DMST TruCheck result — May 17 sprint (1 of 2). Main result panel with grade and symbol image.</p>
-      <p class="date">2026-05-17</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779047668402.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779047668402.png" alt="TruCheck result May 17 (2)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">DMST TruCheck result — May 17 sprint (2 of 2). Detail tab view.</p>
-      <p class="date">2026-05-17</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779102524384.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779102524384.png" alt="TruCheck result May 17 (3)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">DMST TruCheck result — May 17 (3). Grade panel overview.</p>
-      <p class="date">2026-05-17</p>
-    </div>
-  </div>
-
-  <!-- May 19 TruCheck series -->
-  <div class="card">
-    <a href="../attached_assets/image_1779706411928.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779706411928.png" alt="TruCheck result 2026-05-19 (1)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck Main result — 2026-05-19 scanning session, scan 1.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779706485828.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779706485828.png" alt="TruCheck result 2026-05-19 (2)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 2. Grade parameters panel.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779707068597.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779707068597.png" alt="TruCheck result 2026-05-19 (3)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 3.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779708005087.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779708005087.png" alt="TruCheck result 2026-05-19 (4)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 4.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779708056957.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779708056957.png" alt="TruCheck result 2026-05-19 (5)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 5.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779708102149.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779708102149.png" alt="TruCheck result 2026-05-19 (6)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 6.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779708357402.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779708357402.png" alt="TruCheck result 2026-05-19 (7)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 7.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779708387831.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779708387831.png" alt="TruCheck result 2026-05-19 (8)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 8.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779708436345.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779708436345.png" alt="TruCheck result 2026-05-19 (9)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 9.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779708491510.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779708491510.png" alt="TruCheck result 2026-05-19 (10)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 10.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779708545826.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779708545826.png" alt="TruCheck result 2026-05-19 (11)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 11.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779708605943.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779708605943.png" alt="TruCheck result 2026-05-19 (12)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 12.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779708629758.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779708629758.png" alt="TruCheck result 2026-05-19 (13)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">TruCheck — 2026-05-19, scan 13 (end of series).</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <!-- May 26 real-label scans -->
   <div class="card">
     <a href="../attached_assets/image_1779843627317.png" target="_blank">
       <img class="thumb" src="../attached_assets/image_1779843627317.png" alt="Real label NO DECODE">
     </a>
     <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Real product label — GTIN 00355513710213, SN 100003289347, Lot 1197120. <strong>No Decode</strong> result (barcode not read). Intro panel + Image Panel visible.</p>
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">Real product label — GTIN 00355513710213, SN 100003289347, Lot 1197120. <strong>No Decode</strong> result. Intro panel + Image Panel visible.</p>
       <p class="date">2026-05-26</p>
     </div>
   </div>
@@ -839,7 +1025,7 @@
       <img class="thumb" src="../attached_assets/image_1779884845185.png" alt="Real label live mode Focus 44.8">
     </a>
     <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
+      <span class="badge badge-d">D · DMST Results</span>
       <p class="caption">Real product label in live mode. Focus Adjustment slider at 44.8. Verify button visible. No result yet.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -850,8 +1036,8 @@
       <img class="thumb" src="../attached_assets/image_1779884950920.png" alt="Grade F modulation grid overlay">
     </a>
     <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Real label scan — Overall ISO Grade: <strong>F (0.0)</strong> / 0.0/08/660/45Q. Modulation grid overlay on symbol image. GS1 Format Grade: PASS. Custom Acceptance Criteria: <strong>Fail (Quality)</strong>.</p>
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">Real label — Overall ISO Grade: <strong>F (0.0)</strong> / 0.0/08/660/45Q. Modulation grid overlay on symbol image. GS1 Format Grade: PASS. Custom Acceptance Criteria: <strong>Fail (Quality)</strong>.</p>
       <p class="date">2026-05-26</p>
     </div>
   </div>
@@ -861,8 +1047,8 @@
       <img class="thumb" src="../attached_assets/image_1779906143304.png" alt="Real label 12.90 PPM live mode">
     </a>
     <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Real product label in live mode — Data Matrix decode banner "12.90 PPM". Focus adjustment, Verify button. Intro panel shows Result History tab.</p>
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">Real product label in live mode — "12.90 PPM" decode banner. Focus adjustment, Verify button. Intro panel shows Result History tab.</p>
       <p class="date">2026-05-27</p>
     </div>
   </div>
@@ -872,247 +1058,141 @@
       <img class="thumb" src="../attached_assets/image_1779906157372.png" alt="Grade F modulation grid 2026-05-27">
     </a>
     <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Real label — Grade F 0.0/08/660/45Q. Modulation grid overlay. GS1 Format Grade: PASS. Custom Acceptance Criteria: Fail (Quality). Data field shows GS1 AI string. Timestamp: 2026-05-27T14:17:49.</p>
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">Real label — Grade F 0.0/08/660/45Q. Modulation grid overlay. GS1 PASS, Custom Criteria: Fail (Quality). GS1 AI string in Data field. Timestamp: 2026-05-27T14:17:49.</p>
       <p class="date">2026-05-27</p>
     </div>
   </div>
 
-  <!-- Grade params close-up (DMST_GRADE_PARAMS) -->
   <div class="card">
-    <a href="../attached_assets/image_1779919996210.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779919996210.png" alt="Grade parameters close-up (1)">
+    <a href="../attached_assets/image_1780003715809.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780003715809.png" alt="DMST Grade F + VTCCP side-by-side">
     </a>
     <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Grade Parameters panel close-up — scan A. UEC=70%/4.0, SC=61%/3.0, MOD=1.0, RM=1.0, ANU=4%/4.0, GNU=0.7%/4.0, FPD=1.0, TCT=1.0, AG=3.4/2.0, DECODE=0.0.</p>
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">Side-by-side: DMST Grade Parameters panel (left) + VTCCP Session Launcher (right). Job: 2026-05-28 Series 5 / Manual Trigger active. Grade F 0.0/08/660/45Q. ANU=5.6%, AG=3.2/2.0, DECODE=0.0.</p>
+      <p class="date">2026-05-28</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1779919996210.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1779919996210.png" alt="Grade parameters scan A">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">Grade Parameters panel — Scan A. UEC=70%/4.0, SC=61%/3.0, MOD=1.0, RM=1.0, ANU=4%/4.0, GNU=0.7%/4.0, FPD=1.0, TCT=1.0, AG=3.4/<strong>2.0</strong>, <strong>DECODE=0.0</strong>.</p>
       <p class="date">2026-05-27</p>
     </div>
   </div>
 
   <div class="card">
     <a href="../attached_assets/image_1779920020468.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779920020468.png" alt="Grade parameters close-up (2)">
+      <img class="thumb" src="../attached_assets/image_1779920020468.png" alt="Grade parameters scan B">
     </a>
     <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Grade Parameters panel close-up — scan B. UEC=70%/4.0, SC=61%/3.0, MOD=1.0, RM=1.0, ANU=4.4%/4.0, GNU=0.7%/4.0, FPD=2.0, TCT=2.0, AG=3.6/3.0, DECODE=0.0.</p>
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">Grade Parameters panel — Scan B. UEC=70%/4.0, SC=61%/3.0, FPD=<strong>2.0</strong>, TCT=<strong>2.0</strong>, AG=3.6/<strong>3.0</strong>, DECODE=0.0. FPD and TCT differ from Scan A — same label, different scan frame.</p>
       <p class="date">2026-05-27</p>
     </div>
   </div>
 
-  <!-- Side-by-side DMST + VTCCP showing full grade panel -->
+  <!-- GUI reference tab screenshots -->
   <div class="card">
-    <a href="../attached_assets/image_1780003715809.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780003715809.png" alt="DMST Grade F + VTCCP side-by-side">
+    <a href="../vtccp/architecture/gui-reference/dmst-quality-detail-tab.png" target="_blank">
+      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-quality-detail-tab.png" alt="DMST Quality Detail tab">
     </a>
     <div class="card-body">
-      <span class="badge badge-b">B · TruCheck Results</span>
-      <p class="caption">Side-by-side: DMST Grade Parameters panel (left) + VTCCP Session Launcher (right). Job: 2026-05-28 Series 5 / Manual Trigger active. Grade F 0.0/08/660/45Q. ANU=5.6%, AG=3.2/2.0, DECODE=0.0. GS1 PASS, Fail (Quality).</p>
-      <p class="date">2026-05-28</p>
-    </div>
-  </div>
-
-</div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════════ C -->
-<section id="sec-c">
-<h2>C &mdash; Webscan TruCheck TC0374</h2>
-<p class="section-note">Webscan TruCheck PC software (TC0374). All 15 screenshots covering Home Screen, Excel Functions, 1D Settings, 2D Settings, Report File Name, and User Information screens.</p>
-<div class="grid">
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_Home_Screen_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_Home_Screen_1774547522521.png" alt="TC0374 Home Screen">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">TC0374 Home Screen — main application entry point. Displays current Job, Operator, Roll Number fields and navigation buttons.</p>
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">Quality Detail tab — full grade table. DM GS1 16×36 Grade D scan (v1.33, scan #14). FormalGrade: 1.0/08/660/45Q.</p>
     </div>
   </div>
 
   <div class="card">
-    <a href="../attached_assets/TC0374_Excel_Functions_Screen_-_Default_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_Excel_Functions_Screen_-_Default_1774547522521.png" alt="TC0374 Excel Functions default">
+    <a href="../attached_assets/image_1780935195685.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780935195685.png" alt="DMST TruCheck result tab 1">
     </a>
     <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">Excel Spreadsheet Functions — default state. No job open. Buttons: New Job, Open Job, Close Job, Reclaim/Archive Job, Modify Template Spreadsheet.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_Excel_Functions_Screen_-_Default_1774544123436.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_Excel_Functions_Screen_-_Default_1774544123436.png" alt="TC0374 Excel Functions (earlier)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">Excel Spreadsheet Functions — default state (earlier capture, same UI).</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_Default_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_Default_1774547522521.png" alt="TC0374 1D Settings default">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">1D Settings Screen — default state. Mode, Aperture, Number of Scans, GS1 DataBar/RSS options, UPC Supplemental, I25/ITF14 settings.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_Mode_Drop_Down_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_Mode_Drop_Down_1774547522521.png" alt="TC0374 1D Mode dropdown">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">1D Settings — Mode drop-down open. Available 1D verification modes.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_Aperture_Drop_Down_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_Aperture_Drop_Down_1774547522521.png" alt="TC0374 1D Aperture dropdown">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">1D Settings — Aperture drop-down open. Aperture size options for 1D barcode verification.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_%23_Scans_Drop_Down_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_%23_Scans_Drop_Down_1774547522521.png" alt="TC0374 1D Number of Scans dropdown">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">1D Settings — Number of Scans drop-down. Scan count options (typically 10 or customizable).</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_GS1_dataBar-RSS_Name_Drop_Down_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_GS1_dataBar-RSS_Name_Drop_Down_1774547522521.png" alt="TC0374 1D GS1 DataBar RSS dropdown">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">1D Settings — GS1 DataBar / RSS Name drop-down. Available GS1 DataBar variants.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_I25-ITF14_Drop_Down_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_I25-ITF14_Drop_Down_1774547522521.png" alt="TC0374 1D I25/ITF14 dropdown">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">1D Settings — I25 / ITF-14 drop-down. Interleaved 2-of-5 mode selection.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_1D_Settings_Screen_-_UPC_Sup_Drop_Down_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_1D_Settings_Screen_-_UPC_Sup_Drop_Down_1774547522521.png" alt="TC0374 1D UPC Supplemental dropdown">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">1D Settings — UPC Supplemental drop-down. Options for UPC/EAN 2-digit and 5-digit supplemental handling.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_2D_Settings_Screen_-_Default_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_2D_Settings_Screen_-_Default_1774547522521.png" alt="TC0374 2D Settings default">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">2D Settings Screen — default state. Symbology, Aperture, Grading Standard, GS1 parser options for 2D verification.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_2D_Settings_Screen_-_Aperture_Drop_Down_Menu,_All_2D_Sy_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_2D_Settings_Screen_-_Aperture_Drop_Down_Menu,_All_2D_Sy_1774547522521.png" alt="TC0374 2D Aperture all 2D symbologies">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">2D Settings — Aperture drop-down for all 2D symbologies. Global aperture selection applying to Data Matrix, QR Code, etc.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_2D_Settings_Screen_-_Aperture_Drop_Down_Menu,_Data_Matr_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_2D_Settings_Screen_-_Aperture_Drop_Down_Menu,_Data_Matr_1774547522521.png" alt="TC0374 2D Aperture Data Matrix">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">2D Settings — Aperture drop-down for Data Matrix specifically. Per-symbology aperture override.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_Report_File_Name_Screen_-_Available_from_1D_and_2D_Sett_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_Report_File_Name_Screen_-_Available_from_1D_and_2D_Sett_1774547522521.png" alt="TC0374 Report File Name screen">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">Report File Name Screen — available from 1D and 2D Settings. Configures report filename, path, and format for Webscan report output.</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/TC0374_User_Information_Screen_-_Available_from_1D_and_2D_Sett_1774547522521.png" target="_blank">
-      <img class="thumb" src="../attached_assets/TC0374_User_Information_Screen_-_Available_from_1D_and_2D_Sett_1774547522521.png" alt="TC0374 User Information screen">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">User Information Screen — available from 1D and 2D Settings. Operator name, company, job number fields embedded in report header.</p>
-    </div>
-  </div>
-
-  <!-- Webscan DMST live (from B group — separate Webscan App live instances) -->
-  <div class="card">
-    <a href="../attached_assets/image_1780846508356.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780846508356.png" alt="Webscan Excel Functions dialog (live session)">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">Webscan Excel Spreadsheet Functions dialog — live session. No Job currently open. Buttons: New Job, Open Job, Close Job, Reclaim/Archive Job, Modify Template Spreadsheet.</p>
-      <p class="date">2026-06-07</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1780850312245.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780850312245.png" alt="Webscan New Job dialog">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">Webscan — New Job dialog over Excel Functions. Fields: Job Name/Number, Operator Name/Number, Roll Number. "Create Spreadsheet" button.</p>
-      <p class="date">2026-06-07</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1781265703846.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1781265703846.png" alt="Webscan TruCheck — Camera Model Not Initialized dialog">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-c">C · Webscan TC0374</span>
-      <p class="caption">Webscan TruCheck main window — <strong>"Camera Model Not Initialized"</strong> dialog. Message: <em>"TruCheck Imager Assembly number is not initialized on this verifier unit. Working as a Standard TruCheck 2D USB verifier. Please contact support to properly configure this unit."</em> Main tab visible (Data Detail, General Characteristic, Quality Detail, Advanced Detail, Histogram, SRP, Report). ANSI Parameters table and MIL-130N Acceptance Criteria visible. No result — verifier not yet calibrated/registered.</p>
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">DMST TruCheck result — additional result tab view, 2026-06-08.</p>
       <p class="date">2026-06-08</p>
     </div>
   </div>
 
+  <div class="card">
+    <a href="../attached_assets/image_1780935532396.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780935532396.png" alt="DMST TruCheck result tab 2">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">DMST TruCheck result — additional result tab view, 2026-06-08.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780936104739.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780936104739.png" alt="DMST TruCheck result tab 3">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">DMST TruCheck result — additional result tab view, 2026-06-08.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780944802452.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780944802452.png" alt="DMST TruCheck result tab 4">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">DMST TruCheck result — additional result tab view, 2026-06-08.</p>
+      <p class="date">2026-06-08</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1781057393850.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1781057393850.png" alt="DMST TruCheck result tab 5">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">DMST TruCheck result — additional result tab view, 2026-06-09.</p>
+      <p class="date">2026-06-09</p>
+    </div>
+  </div>
+
+  <!-- May 19 scan series -->
+  <div class="card">
+    <a href="../attached_assets/image_1779708605943.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1779708605943.png" alt="TruCheck result 2026-05-19 scan 12">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">TruCheck — 2026-05-19, scan 12.</p>
+      <p class="date">2026-05-19</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1779708629758.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1779708629758.png" alt="TruCheck result 2026-05-19 scan 13">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-d">D · DMST Results</span>
+      <p class="caption">TruCheck — 2026-05-19, scan 13 (end of series).</p>
+      <p class="date">2026-05-19</p>
+    </div>
+  </div>
+
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════ D -->
-<section id="sec-d">
-<h2>D &mdash; VTCCP App UI</h2>
-<p class="section-note">VCCS DMV TruCheck Command Pilot application — Session Launcher, Results History, Device Profiles, Job Templates screens across the full development timeline.</p>
+<!-- ═══════════════════════════════════════════════════════════════ V1 -->
+<section id="sec-v1">
+<h2>V1 &mdash; VTCCP Command Pilot: Session Launcher</h2>
+<p class="section-note">VCCS DMV TruCheck Command Pilot — Session Launcher view across the full development timeline. Push (DMST) mode, Manual Trigger mode, Device Configuration card, status messages, and build progression.</p>
 <div class="grid">
 
   <div class="card">
@@ -1120,7 +1200,7 @@
       <img class="thumb" src="../attached_assets/image_1774620500579.png" alt="VTCCP early build">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — early build, March sprint. Initial UI scaffold.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1131,7 +1211,7 @@
       <img class="thumb" src="../attached_assets/image_1774656651750.png" alt="VTCCP March sprint 2">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint. Session Launcher early version.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1142,7 +1222,7 @@
       <img class="thumb" src="../attached_assets/image_1774657945426.png" alt="VTCCP March sprint 3">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint. Session configuration options.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1153,7 +1233,7 @@
       <img class="thumb" src="../attached_assets/image_1774658451957.png" alt="VTCCP March sprint 4">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint. Early scan result display.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1164,7 +1244,7 @@
       <img class="thumb" src="../attached_assets/image_1774658773901.png" alt="VTCCP March sprint 5">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint. Device connection state.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1175,7 +1255,7 @@
       <img class="thumb" src="../attached_assets/image_1774659526121.png" alt="VTCCP March sprint 6">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1186,7 +1266,7 @@
       <img class="thumb" src="../attached_assets/image_1774660622519.png" alt="VTCCP March sprint 7">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1197,7 +1277,7 @@
       <img class="thumb" src="../attached_assets/image_1774660754185.png" alt="VTCCP March sprint 8">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1208,7 +1288,7 @@
       <img class="thumb" src="../attached_assets/image_1774663958158.png" alt="VTCCP March sprint 9">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1219,7 +1299,7 @@
       <img class="thumb" src="../attached_assets/image_1774664356804.png" alt="VTCCP March sprint 10">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1230,7 +1310,7 @@
       <img class="thumb" src="../attached_assets/image_1774704391736.png" alt="VTCCP March sprint 11">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint, later state.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1241,7 +1321,7 @@
       <img class="thumb" src="../attached_assets/image_1774705466811.png" alt="VTCCP March sprint 12">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1252,7 +1332,7 @@
       <img class="thumb" src="../attached_assets/image_1774706253240.png" alt="VTCCP March sprint 13">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1263,7 +1343,7 @@
       <img class="thumb" src="../attached_assets/image_1774709570889.png" alt="VTCCP March sprint 14">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1274,7 +1354,7 @@
       <img class="thumb" src="../attached_assets/image_1774712312798.png" alt="VTCCP March sprint 15">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1285,7 +1365,7 @@
       <img class="thumb" src="../attached_assets/image_1774713185730.png" alt="VTCCP March sprint 16">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1296,7 +1376,7 @@
       <img class="thumb" src="../attached_assets/image_1774714469260.png" alt="VTCCP March sprint 17">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1307,7 +1387,7 @@
       <img class="thumb" src="../attached_assets/image_1774739452114.png" alt="VTCCP March sprint 18">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint, late session.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1318,7 +1398,7 @@
       <img class="thumb" src="../attached_assets/image_1774744108897.png" alt="VTCCP March sprint 19">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1329,19 +1409,19 @@
       <img class="thumb" src="../attached_assets/image_1774893992602.png" alt="VTCCP March end sprint">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — March sprint, final day.</p>
       <p class="date">2026-03-30</p>
     </div>
   </div>
 
-  <!-- May VTCCP app screenshots -->
+  <!-- May sprint -->
   <div class="card">
     <a href="../attached_assets/image_1779837453273.png" target="_blank">
       <img class="thumb" src="../attached_assets/image_1779837453273.png" alt="VTCCP May sprint 1">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">VTCCP App — May sprint. Session Launcher state.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1352,7 +1432,7 @@
       <img class="thumb" src="../attached_assets/image_1779846450013.png" alt="Push DMST 0 records Ready">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">Session Launcher — Push (DMST) mode, Port 9004. Records written: 0. Status: <strong>Ready</strong>. Device: DMV475-63530E-PIPS-Verif-Lab.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1363,7 +1443,7 @@
       <img class="thumb" src="../attached_assets/image_1779846512858.png" alt="Push DMST session active">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">Session Launcher — Push (DMST) mode, session active. Stop button enabled.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1374,7 +1454,7 @@
       <img class="thumb" src="../attached_assets/image_1779848283172.png" alt="Manual Trigger session active">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">Session Launcher — Manual Trigger mode, session active. Trigger Scan button enabled.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1385,8 +1465,8 @@
       <img class="thumb" src="../attached_assets/image_1779848401843.png" alt="Manual Trigger No read">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
-      <p class="caption">Session Launcher — Manual Trigger, result: <strong>"No read."</strong> Scan triggered but device returned no decode.</p>
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">Session Launcher — Manual Trigger, result: <strong>"No read."</strong></p>
       <p class="date">2026-05-26</p>
     </div>
   </div>
@@ -1396,7 +1476,7 @@
       <img class="thumb" src="../attached_assets/image_1779882020416.png" alt="2026-05-26 3rd File job No read">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">Session Launcher — Job "2026-05-26 3rd File". Result: No read. Push mode.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1407,8 +1487,8 @@
       <img class="thumb" src="../attached_assets/image_1779885600975.png" alt="UPC/EAN Supplementals Device Config card">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
-      <p class="caption">Session Launcher showing the new <strong>Device Configuration card</strong> with UPC/EAN Supplementals: 5 radio buttons (Ignore / Required / Required 2-digit / Required 5-digit / Not Required). Read from Device + Apply to Device buttons. DMST trigger restored on Stop.</p>
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">Session Launcher — <strong>Device Configuration card</strong> with UPC/EAN Supplementals: 5 radio buttons (Ignore / Required / Required 2-digit / Required 5-digit / Not Required). Read from Device + Apply to Device buttons.</p>
       <p class="date">2026-05-26</p>
     </div>
   </div>
@@ -1418,7 +1498,7 @@
       <img class="thumb" src="../attached_assets/image_1779887767673.png" alt="Apply to Device highlighted">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">Device Configuration card — <strong>Apply to Device</strong> button highlighted (blue). UPC/EAN Supplementals controls visible.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1429,7 +1509,7 @@
       <img class="thumb" src="../attached_assets/image_1779922284733.png" alt="Results History 1 row Grade F">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">Results History page — 1 record: #1 18:47:16 GS1 DataMatrix, <strong>Grade 0.0 F</strong>, Fail, UEC%=80.0. Job: 2026-05-27 Series 4.</p>
       <p class="date">2026-05-27</p>
     </div>
@@ -1440,7 +1520,7 @@
       <img class="thumb" src="../attached_assets/image_1780009167890.png" alt="Trigger SDK no reply code -2">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">Session Launcher — Push (DMST), 2026-05-28 Series 5. Error: <strong>"Trigger: SDK connected but device sent no reply to TRIGGER (code -2)."</strong></p>
       <p class="date">2026-05-28</p>
     </div>
@@ -1451,7 +1531,7 @@
       <img class="thumb" src="../attached_assets/image_1780144566347.png" alt="Trigger sent waiting for push result">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">Session Launcher — Push (DMST), Job 2026-05-30 Series. Status: <strong>"Trigger sent — waiting for push result…"</strong></p>
       <p class="date">2026-05-30</p>
     </div>
@@ -1462,8 +1542,8 @@
       <img class="thumb" src="../attached_assets/image_1780145905554.png" alt="Records written 1 OCR Unreadable">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
-      <p class="caption">Session Launcher — Records written: 1. "Record 1: GS1 DataMatrix — F (0.0) | OCR: Unreadable [file open in Excel — close Excel before ending session]". File Explorer shows 2026-05-30_Series_8 Excel + JSON.</p>
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">Session Launcher — Records written: 1. "Record 1: GS1 DataMatrix — F (0.0) | OCR: Unreadable [file open in Excel]". File Explorer shows 2026-05-30_Series_8 Excel + JSON.</p>
       <p class="date">2026-05-30</p>
     </div>
   </div>
@@ -1473,19 +1553,8 @@
       <img class="thumb" src="../attached_assets/image_1780843734954.png" alt="VTCCP Build 1.1.0 Session Launcher ready">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
+      <span class="badge badge-v">V · VTCCP App</span>
       <p class="caption">Session Launcher — Build: <strong>1.1.0</strong>. Job Template: 2026-06-07 #12. Push (DMST), Port 9004. Records written: 0. Status: Ready.</p>
-      <p class="date">2026-06-07</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1780844208393.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780844208393.png" alt="Job Templates list">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
-      <p class="caption">Job Templates page — 3 templates: "Live Test w/ DMV475 JS #11", "DMV475 Push Test 1.14", "2026-06-07 #13" (default ✓). Columns: Name, Job Name, Operator, Format (Xlsx), Batch Mode (Manual).</p>
       <p class="date">2026-06-07</p>
     </div>
   </div>
@@ -1495,8 +1564,74 @@
       <img class="thumb" src="../attached_assets/image_1780845285342.png" alt="Records written 1 OCR Unreadable Build 1.2.0">
     </a>
     <div class="card-body">
-      <span class="badge badge-d">D · VTCCP App</span>
-      <p class="caption">Session Launcher Build 1.2.0 — Records written: 1. "Record 1: GS1 DataMatrix — F (0.0) | OCR: Unreadable". Excel file open: 2026-06-07 #13, GS1 DataMatrix row visible.</p>
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">Session Launcher Build 1.2.0 — Records written: 1. "Record 1: GS1 DataMatrix — F (0.0) | OCR: Unreadable". Excel file open: 2026-06-07 #13.</p>
+      <p class="date">2026-06-07</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780842066571.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780842066571.png" alt="VTCCP June sprint 1">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">VTCCP App — June sprint, 2026-06-07.</p>
+      <p class="date">2026-06-07</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780842452471.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780842452471.png" alt="VTCCP June sprint 2">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">VTCCP App — June sprint, 2026-06-07.</p>
+      <p class="date">2026-06-07</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780842514485.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780842514485.png" alt="VTCCP June sprint 3">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">VTCCP App — June sprint, 2026-06-07.</p>
+      <p class="date">2026-06-07</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780842611508.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780842611508.png" alt="VTCCP June sprint 4">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">VTCCP App — June sprint, 2026-06-07.</p>
+      <p class="date">2026-06-07</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780842807526.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780842807526.png" alt="VTCCP June sprint 5">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">VTCCP App — June sprint, 2026-06-07.</p>
+      <p class="date">2026-06-07</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780842996598.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780842996598.png" alt="VTCCP June sprint 6">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">VTCCP App — June sprint, 2026-06-07.</p>
       <p class="date">2026-06-07</p>
     </div>
   </div>
@@ -1504,10 +1639,30 @@
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════ E -->
-<section id="sec-e">
-<h2>E &mdash; Excel Output</h2>
-<p class="section-note">VCCS DMV TruCheck Command Pilot Excel files — Main sheet header, data rows, and close-up views. All GS1 DataMatrix Grade F/D scans on the DM475V production label.</p>
+<!-- ═══════════════════════════════════════════════════════════════ V2 -->
+<section id="sec-v2">
+<h2>V2 &mdash; VTCCP Command Pilot: Job Templates &amp; Results History</h2>
+<p class="section-note">Job Templates page and Results History page — the two secondary navigation views of the VTCCP app.</p>
+<div class="grid">
+
+  <div class="card">
+    <a href="../attached_assets/image_1780844208393.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780844208393.png" alt="Job Templates list">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · VTCCP App</span>
+      <p class="caption">Job Templates page — 3 templates: "Live Test w/ DMV475 JS #11", "DMV475 Push Test 1.14", "2026-06-07 #13" (default ✓). Columns: Name, Job Name, Operator, Format (Xlsx), Batch Mode (Manual).</p>
+      <p class="date">2026-06-07</p>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ V3 -->
+<section id="sec-v3">
+<h2>V3 &mdash; VTCCP Command Pilot: Excel Output</h2>
+<p class="section-note">VTCCP-generated Excel files — TruCheck-Compatible Schema. Header rows, data rows, grade columns, XML parse errors, and schema evolution from March through June sprint.</p>
 <div class="grid">
 
   <div class="card">
@@ -1515,7 +1670,7 @@
       <img class="thumb" src="../attached_assets/image_1774664703371.png" alt="Excel March sprint 1">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — March sprint, early schema.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1526,7 +1681,7 @@
       <img class="thumb" src="../attached_assets/image_1774702346725.png" alt="Excel March sprint 2">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1537,7 +1692,7 @@
       <img class="thumb" src="../attached_assets/image_1774702387853.png" alt="Excel March sprint 3">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1548,7 +1703,7 @@
       <img class="thumb" src="../attached_assets/image_1774702791199.png" alt="Excel March sprint 4">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1559,7 +1714,7 @@
       <img class="thumb" src="../attached_assets/image_1774711304738.png" alt="Excel March sprint 5">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — March sprint, wider column view.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1570,7 +1725,7 @@
       <img class="thumb" src="../attached_assets/image_1774712752969.png" alt="Excel March sprint 6">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1581,7 +1736,7 @@
       <img class="thumb" src="../attached_assets/image_1774741113480.png" alt="Excel March sprint 7">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1592,7 +1747,7 @@
       <img class="thumb" src="../attached_assets/image_1774743917542.png" alt="Excel March sprint 8">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1603,7 +1758,7 @@
       <img class="thumb" src="../attached_assets/image_1774894307717.png" alt="Excel March end sprint">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — March sprint final day.</p>
       <p class="date">2026-03-30</p>
     </div>
@@ -1614,7 +1769,7 @@
       <img class="thumb" src="../attached_assets/image_1779839446930.png" alt="Excel May sprint 1">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — May sprint start.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1625,7 +1780,7 @@
       <img class="thumb" src="../attached_assets/image_1779839596216.png" alt="Excel May sprint 2">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — May sprint.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1636,7 +1791,7 @@
       <img class="thumb" src="../attached_assets/image_1779839626799.png" alt="Excel May sprint 3">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel output — May sprint.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1647,7 +1802,7 @@
       <img class="thumb" src="../attached_assets/image_1779842662746.png" alt="VCCS header GS1 DM Grade F 2026-05-26">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">VCCS header row + data — GS1 DataMatrix, Grade F, 2026-05-26. Header: "VCCS DMV TruCheck Command Pilot | Job: … | Operator: GW4 | Roll: …"</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1658,7 +1813,7 @@
       <img class="thumb" src="../attached_assets/image_1779842753228.png" alt="Data/grade close-up">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel data/grade columns close-up — Formal Grade "0/F", ANSI Letter Grade "F", Numeric Grade "0.0".</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1669,7 +1824,7 @@
       <img class="thumb" src="../attached_assets/image_1779843405855.png" alt="GW4 Roll 20260526205515 1 row F">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Roll 20260526205515 — 1 data row, GS1 DataMatrix Grade F.</p>
       <p class="date">2026-05-26</p>
     </div>
@@ -1680,7 +1835,7 @@
       <img class="thumb" src="../attached_assets/image_1779902382442.png" alt="Rows 173-179 DataMatrix GS1 DM Grade F">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Excel rows 173–179 — DataMatrix and GS1 DataMatrix rows, all Grade F.</p>
       <p class="date">2026-05-27</p>
     </div>
@@ -1691,19 +1846,19 @@
       <img class="thumb" src="../attached_assets/image_1779920512631.png" alt="Job 2026-05-26 3rd File XML parse failed + GS1 pass row">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
-      <p class="caption">Job "2026-05-26 3rd File" / Roll 20260527145635. Row 3: <strong>XML parse failed</strong> (0x1D character). Row 4: GS1 DataMatrix 0.0/08/660/45Q Grade F — first successful write after 0x1D fix.</p>
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Job "2026-05-26 3rd File". Row 3: <strong>XML parse failed</strong> (0x1D character). Row 4: first successful write after 0x1D fix — GS1 DM Grade F.</p>
       <p class="date">2026-05-27</p>
     </div>
   </div>
 
   <div class="card">
     <a href="../attached_assets/image_1779922397907.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779922397907.png" alt="Job 2026-05-27 Series 4 full view">
+      <img class="thumb" src="../attached_assets/image_1779922397907.png" alt="Job 2026-05-27 Series 4">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
-      <p class="caption">Job: 2026-05-27 Series 4 / Roll: 20260527184710. 1 row: GS1 DataMatrix, 0.0/08/660/45Q, <strong>Grade F</strong>.</p>
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Job: 2026-05-27 Series 4 / Roll: 20260527184710. 1 row: GS1 DataMatrix, 0.0/08/660/45Q, Grade F.</p>
       <p class="date">2026-05-27</p>
     </div>
   </div>
@@ -1713,8 +1868,8 @@
       <img class="thumb" src="../attached_assets/image_1780006016296.png" alt="Job 2026-05-28 Series 5 XML parse failed">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
-      <p class="caption">Job: 2026-05-28 Series 5 / Roll 20260528175549. Row 3: <strong>XML parse failed</strong> — 0x1D hexadecimal value, Line 6. (Residual 0x1D bug still present.)</p>
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Job: 2026-05-28 Series 5. Row 3: <strong>XML parse failed</strong> — 0x1D hexadecimal value, Line 6.</p>
       <p class="date">2026-05-28</p>
     </div>
   </div>
@@ -1724,7 +1879,7 @@
       <img class="thumb" src="../attached_assets/image_1780007826826.png" alt="3 rows: XML parse fail + DataMatrix + GS1 DM">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">3-row close-up: Row 1 XML parse failed, Row 2 DataMatrix Grade 0/F, Row 3 GS1 DataMatrix Grade 0/F. GTIN+SN+Lot data visible.</p>
       <p class="date">2026-05-28</p>
     </div>
@@ -1735,7 +1890,7 @@
       <img class="thumb" src="../attached_assets/image_1780012728816.png" alt="Row 13 GS1 DM Grade F Series 5">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
+      <span class="badge badge-v">V · Excel Output</span>
       <p class="caption">Row 13: 2026-05-28 18:03:18 GW4 / Series 5. GS1 DataMatrix Grade 0/F.</p>
       <p class="date">2026-05-28</p>
     </div>
@@ -1743,64 +1898,218 @@
 
   <div class="card">
     <a href="../attached_assets/image_1780013108319.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780013108319.png" alt="Job 2026-05-28 Series 7 Roll 20260528200205">
+      <img class="thumb" src="../attached_assets/image_1780013108319.png" alt="Job 2026-05-28 Series 7">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
-      <p class="caption">Job: 2026-05-28 Series 7 / Roll 20260528200205. 1 row: GS1 DataMatrix 0/F.</p>
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Job: 2026-05-28 Series 7 / Roll 20260528200205. Excel output view.</p>
       <p class="date">2026-05-28</p>
     </div>
   </div>
 
   <div class="card">
-    <a href="../attached_assets/image_1780016243638.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780016243638.png" alt="Job 2026-05-28 Series 7 5 rows">
+    <a href="../attached_assets/image_1780141092893.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780141092893.png" alt="Excel May 30 sprint 1">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
-      <p class="caption">Job: 2026-05-28 Series 7 / Roll 20260528205329. <strong>5 rows</strong> — all GS1 DataMatrix 0/F. Times: 20:02:11 → 20:53:42. Main + Images sheet tabs visible.</p>
-      <p class="date">2026-05-28</p>
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Excel output — May 30 sprint.</p>
+      <p class="date">2026-05-30</p>
     </div>
   </div>
 
   <div class="card">
-    <a href="../attached_assets/image_1780845285342.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780845285342.png" alt="Job 2026-06-07 #13 Excel + VTCCP">
+    <a href="../attached_assets/image_1780142287581.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780142287581.png" alt="Excel May 30 sprint 2">
     </a>
     <div class="card-body">
-      <span class="badge badge-e">E · Excel Output</span>
-      <p class="caption">Job: 2026-06-07 #13 / Roll 20260607111315. 1 row: 11:08:24 GW4, GS1 DataMatrix. Side-by-side with VTCCP session (Build 1.2.0).</p>
-      <p class="date">2026-06-07</p>
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Excel output — May 30 sprint.</p>
+      <p class="date">2026-05-30</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780142869301.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780142869301.png" alt="Excel May 30 sprint 3">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Excel output — May 30 sprint.</p>
+      <p class="date">2026-05-30</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780143399609.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780143399609.png" alt="Excel May 30 sprint 4">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Excel output — May 30 sprint.</p>
+      <p class="date">2026-05-30</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780154293610.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780154293610.png" alt="Excel May 29 sprint 1">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Excel output — May 29 sprint.</p>
+      <p class="date">2026-05-29</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780165662700.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780165662700.png" alt="Excel May 30 late sprint 1">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Excel output — May 30 late sprint.</p>
+      <p class="date">2026-05-30</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780165786009.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780165786009.png" alt="Excel May 30 late sprint 2">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Excel output — May 30 late sprint.</p>
+      <p class="date">2026-05-30</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780262182100.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780262182100.png" alt="Excel May 31 sprint">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-v">V · Excel Output</span>
+      <p class="caption">Excel output — May 31 sprint.</p>
+      <p class="date">2026-05-31</p>
     </div>
   </div>
 
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════ F -->
-<section id="sec-f">
-<h2>F &mdash; Network / Environment / Wireshark</h2>
-<p class="section-note">PowerShell DMCC sessions, Wireshark packet captures, Telnet DMCC raw TCP probes, and push-script delivery network context.</p>
+<!-- ═══════════════════════════════════════════════════════════════ S1 -->
+<section id="sec-s1">
+<h2>S1 &mdash; Supporting: Network &amp; Protocol</h2>
+<p class="section-note">DMCC raw TCP sessions (PowerShell / Telnet), Wireshark captures of DMST ↔ DM475V port 44444 traffic, and device reset sequences.</p>
 <div class="grid">
 
   <div class="card">
-    <a href="../attached_assets/image_1774660452302.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1774660452302.png" alt="PowerShell DMCC March 1">
+    <a href="../attached_assets/image_1779717878499.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1779717878499.png" alt="Wireshark capture 1">
     </a>
     <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">PowerShell DMCC session — March sprint. Raw DMCC commands to DM475V.</p>
-      <p class="date">2026-03-28</p>
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">Wireshark packet capture — DMST ↔ DM475V (10.10.10.7 port 44444). Packet list with HTTP PUT /codes.xml result delivery.</p>
+      <p class="date">2026-05-19</p>
     </div>
   </div>
 
   <div class="card">
-    <a href="../attached_assets/image_1774709680562.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1774709680562.png" alt="PowerShell DMCC March 2">
+    <a href="../attached_assets/image_1779717990578.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1779717990578.png" alt="Wireshark capture 2">
     </a>
     <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">PowerShell DMCC session — device state queries (TRIGGER.TYPE, DATA.RESULT-TYPE).</p>
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">Wireshark capture 2 — HTTP pub/sub over port 44444. GET /events?enable (subscribe) + PUT /codes.xml (result) + PUT /pcm_report.html (HTML before codes.xml). Port 44444 confirmed Dst Port from packet 46.</p>
+      <p class="date">2026-05-19</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1779052141887.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1779052141887.png" alt="Telnet raw DMCC 1">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">Telnet raw TCP port 23 — DMCC session. ACK format ||:::2[0].</p>
+      <p class="date">2026-05-17</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1779053000176.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1779053000176.png" alt="Telnet raw DMCC 2">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">Telnet raw TCP DMCC — port 23, TRIGGER ON commands.</p>
+      <p class="date">2026-05-17</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1779053305163.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1779053305163.png" alt="Telnet raw DMCC 3">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">Telnet raw TCP DMCC — GET commands and device responses.</p>
+      <p class="date">2026-05-17</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780155749718.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780155749718.png" alt="Telnet SET COM.DMCC-RESPONSE Invalid Command">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">Telnet (Microsoft Telnet client, port 23) — SET COM.DMCC-RESPONSE 2 returns <strong>"Invalid Command"</strong>. Bare Telnet does not speak framed DMCC wire protocol.</p>
+      <p class="date">2026-05-29</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780163992192.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780163992192.png" alt="Telnet Invalid Command GET LIVEIMG.MODE">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">Telnet — both SET COM.DMCC-RESPONSE 2 and GET LIVEIMG.MODE return "Invalid Command". DMCC requires framing, not bare Telnet.</p>
+      <p class="date">2026-05-30</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780155955561.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780155955561.png" alt="PowerShell CONFIG.DEFAULT + REBOOT">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">PowerShell DMCC — <strong>CONFIG.DEFAULT + CONFIG.SAVE + REBOOT</strong> sequence. All ACK :::2[0]. "Connection to host lost" after REBOOT. (Factory reset procedure.)</p>
+      <p class="date">2026-05-29</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1780268413633.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1780268413633.png" alt="PowerShell factory reset Phase 1/2">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">PowerShell device-reset script — Phase 1: read DATA.RESULT-TYPE + DATA.RESULT-ALWAYSSEND, then CONFIG.DEFAULT + CONFIG.SAVE + REBOOT. Phase 2: reconnect, confirm factory defaults, apply DMCC restore block.</p>
+      <p class="date">2026-05-31</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="../attached_assets/image_1774708920680.png" target="_blank">
+      <img class="thumb" src="../attached_assets/image_1774708920680.png" alt="PowerShell DMCC March 1">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">PowerShell DMCC session — March sprint, initial device queries.</p>
       <p class="date">2026-03-28</p>
     </div>
   </div>
@@ -1810,7 +2119,7 @@
       <img class="thumb" src="../attached_assets/image_1774709721471.png" alt="PowerShell DMCC March 3">
     </a>
     <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
+      <span class="badge badge-s">S · Network</span>
       <p class="caption">PowerShell DMCC session — command responses.</p>
       <p class="date">2026-03-28</p>
     </div>
@@ -1821,117 +2130,18 @@
       <img class="thumb" src="../attached_assets/image_1774717418486.png" alt="PowerShell DMCC March 4">
     </a>
     <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">PowerShell network/DMCC session — March sprint.</p>
+      <span class="badge badge-s">S · Network</span>
+      <p class="caption">PowerShell DMCC session — March sprint.</p>
       <p class="date">2026-03-28</p>
     </div>
   </div>
 
   <div class="card">
-    <a href="../attached_assets/image_1779717878499.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779717878499.png" alt="Wireshark capture 1">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">Wireshark packet capture — DMST ↔ DM475V (10.10.10.7 port 44444). Capture 1: packet list view with HTTP PUT /codes.xml result delivery.</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779717990578.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779717990578.png" alt="Wireshark capture 2">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">Wireshark capture 2 — protocol detail. HTTP pub/sub over port 44444 (DMCC port). Confirmed: GET /events?enable (subscribe) + PUT /codes.xml (result), PUT /pcm_report.html (HTML report sent before codes.xml).</p>
-      <p class="date">2026-05-19</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779052141887.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779052141887.png" alt="Telnet raw DMCC 1">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">Telnet raw TCP (port 23) DMCC session — May 17. Raw DMCC command exchange, ACK format ||:::2[0].</p>
-      <p class="date">2026-05-17</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779053000176.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779053000176.png" alt="Telnet raw DMCC 2">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">Telnet raw TCP DMCC session — port 23, TRIGGER ON commands.</p>
-      <p class="date">2026-05-17</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1779053305163.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779053305163.png" alt="Telnet raw DMCC 3">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">Telnet raw TCP DMCC session — GET commands and device responses.</p>
-      <p class="date">2026-05-17</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1780155749718.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780155749718.png" alt="Telnet SET COM.DMCC-RESPONSE 2 Invalid Command">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">Telnet (Microsoft Telnet client, port 23) — SET COM.DMCC-RESPONSE 2 returns <strong>"Invalid Command"</strong>. Confirms raw Telnet does not speak the framed DMCC wire protocol.</p>
-      <p class="date">2026-05-29</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1780163992192.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780163992192.png" alt="Telnet Invalid Command GET LIVEIMG.MODE">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">Telnet — both SET COM.DMCC-RESPONSE 2 and GET LIVEIMG.MODE return "Invalid Command". DMCC commands require framing, not bare Telnet.</p>
-      <p class="date">2026-05-30</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1780155955561.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780155955561.png" alt="PowerShell CONFIG.DEFAULT + REBOOT">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">PowerShell DMCC session — <strong>CONFIG.DEFAULT + CONFIG.SAVE + REBOOT</strong> sequence. All commands ACK :::2[0]. "Connection to host lost" after REBOOT. (Factory reset procedure.)</p>
-      <p class="date">2026-05-29</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../attached_assets/image_1780268413633.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1780268413633.png" alt="PowerShell factory reset Phase 1/2">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
-      <p class="caption">PowerShell device-reset script — Phase 1: read DATA.RESULT-TYPE + DATA.RESULT-ALWAYSSEND, then CONFIG.DEFAULT + CONFIG.SAVE + REBOOT. Phase 2: reconnect, confirm factory defaults, apply DMCC restore block (SET TRAIN.AUTO-DISABLE ON → :::2[0]).</p>
-      <p class="date">2026-05-31</p>
-    </div>
-  </div>
-
-  <div class="card">
     <a href="../attached_assets/image_1779050148540.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779050148540.png" alt="Replit UI context">
+      <img class="thumb" src="../attached_assets/image_1779050148540.png" alt="Replit workspace UI">
     </a>
     <div class="card-body">
-      <span class="badge badge-f">F · Network</span>
+      <span class="badge badge-s">S · Network</span>
       <p class="caption">Replit workspace UI — development environment context (VTCCP project open).</p>
       <p class="date">2026-05-17</p>
     </div>
@@ -1940,10 +2150,10 @@
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════ G -->
-<section id="sec-g">
-<h2>G &mdash; DMST HTML Report</h2>
-<p class="section-note">The pcm_report.html file that DMST saves after each TruCheck verification — used as the DmstHtmlScraper data source for fields not available in push XML.</p>
+<!-- ═══════════════════════════════════════════════════════════════ S2 -->
+<section id="sec-s2">
+<h2>S2 &mdash; Supporting: DMST HTML Report</h2>
+<p class="section-note">The pcm_report.html file that DMST saves after each TruCheck verification — used as the DmstHtmlScraper data source for fields not available in push XML (Encoded Characters, Data Codewords, Image Polarity, ECLevel, DataMaskPattern, ECI).</p>
 <div class="grid">
 
   <div class="card">
@@ -1951,8 +2161,8 @@
       <img class="thumb" src="../attached_assets/image_1774911246633.png" alt="DMST HTML report">
     </a>
     <div class="card-body">
-      <span class="badge badge-g">G · DMST HTML Report</span>
-      <p class="caption">DMST pcm_report.html — rendered in browser. Cognex-branded verification report showing grade summary, General Characteristics table (Encoded Characters: 38, Data Codewords: 32, Error Correction Budget: 24, Image Polarity), quality parameters, encodation analysis, modulation grid, and codeword values.</p>
+      <span class="badge badge-s">S · DMST HTML Report</span>
+      <p class="caption">DMST pcm_report.html rendered in browser. Cognex-branded report: General Characteristics table (Encoded Characters: 38, Data Codewords: 32, ECBudget: 24, Image Polarity), quality parameters, encodation analysis, modulation grid, codeword values.</p>
       <p class="date">2026-03-30</p>
     </div>
   </div>
@@ -1960,10 +2170,10 @@
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════ H -->
-<section id="sec-h">
-<h2>H &mdash; Calibration Workflow</h2>
-<p class="section-note">DM475V TruCheck calibration sequence — calibration card placement, Go Live, in-progress, completion dialog, and Custom X-Dim entry.</p>
+<!-- ═══════════════════════════════════════════════════════════════ S3 -->
+<section id="sec-s3">
+<h2>S3 &mdash; Supporting: DM475V Calibration Workflow</h2>
+<p class="section-note">TruCheck calibration sequence — card placement, Go Live, in-progress, completion dialog, and Custom X-Dim entry. FieldCalibrated=false on all observed push XML scans (device re-calibrated between sessions).</p>
 <div class="grid">
 
   <div class="card">
@@ -1971,7 +2181,7 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-trucheck-calibration-main.png" alt="Calibration main">
     </a>
     <div class="card-body">
-      <span class="badge badge-h">H · Calibration</span>
+      <span class="badge badge-s">S · Calibration</span>
       <p class="caption">TruCheck Calibration — main screen. Calibration card instruction, device info, last calibration date.</p>
     </div>
   </div>
@@ -1981,7 +2191,7 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-trucheck-calibration-golive.png" alt="Calibration Go Live">
     </a>
     <div class="card-body">
-      <span class="badge badge-h">H · Calibration</span>
+      <span class="badge badge-s">S · Calibration</span>
       <p class="caption">TruCheck Calibration — Go Live button. Camera active, calibration card in view.</p>
     </div>
   </div>
@@ -1991,7 +2201,7 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-trucheck-calibration-inprogress.png" alt="Calibration in progress">
     </a>
     <div class="card-body">
-      <span class="badge badge-h">H · Calibration</span>
+      <span class="badge badge-s">S · Calibration</span>
       <p class="caption">TruCheck Calibration in progress — calibration running indicator.</p>
     </div>
   </div>
@@ -2001,7 +2211,7 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-trucheck-calibration-status-dialog.png" alt="Calibration status dialog">
     </a>
     <div class="card-body">
-      <span class="badge badge-h">H · Calibration</span>
+      <span class="badge badge-s">S · Calibration</span>
       <p class="caption">Calibration status dialog — completion confirmation. Calibration date/time stamped to device.</p>
     </div>
   </div>
@@ -2011,29 +2221,28 @@
       <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-trucheck-calibration-custom-xdim.png" alt="Calibration custom X-Dim">
     </a>
     <div class="card-body">
-      <span class="badge badge-h">H · Calibration</span>
+      <span class="badge badge-s">S · Calibration</span>
       <p class="caption">Calibration — Custom X-Dim entry field. Operator-supplied nominal X-dimension (mil) for non-standard calibration card.</p>
     </div>
   </div>
 
-  <!-- Calibration timestamps -->
   <div class="card">
     <a href="../attached_assets/image_1779720683673.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779720683673.png" alt="Calibration May 19 (1)">
+      <img class="thumb" src="../attached_assets/image_1779720683673.png" alt="Calibration May 19 step 1">
     </a>
     <div class="card-body">
-      <span class="badge badge-h">H · Calibration</span>
-      <p class="caption">TruCheck calibration workflow — May 19 sprint, step 1.</p>
+      <span class="badge badge-s">S · Calibration</span>
+      <p class="caption">TruCheck calibration workflow — May 19, step 1.</p>
       <p class="date">2026-05-19</p>
     </div>
   </div>
 
   <div class="card">
     <a href="../attached_assets/image_1779720782295.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779720782295.png" alt="Calibration May 19 (2)">
+      <img class="thumb" src="../attached_assets/image_1779720782295.png" alt="Calibration May 19 step 2">
     </a>
     <div class="card-body">
-      <span class="badge badge-h">H · Calibration</span>
+      <span class="badge badge-s">S · Calibration</span>
       <p class="caption">TruCheck calibration — step 2.</p>
       <p class="date">2026-05-19</p>
     </div>
@@ -2041,10 +2250,10 @@
 
   <div class="card">
     <a href="../attached_assets/image_1779721010335.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779721010335.png" alt="Calibration May 19 (3)">
+      <img class="thumb" src="../attached_assets/image_1779721010335.png" alt="Calibration May 19 step 3">
     </a>
     <div class="card-body">
-      <span class="badge badge-h">H · Calibration</span>
+      <span class="badge badge-s">S · Calibration</span>
       <p class="caption">TruCheck calibration — step 3.</p>
       <p class="date">2026-05-19</p>
     </div>
@@ -2052,10 +2261,10 @@
 
   <div class="card">
     <a href="../attached_assets/image_1779721086533.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779721086533.png" alt="Calibration May 19 (4)">
+      <img class="thumb" src="../attached_assets/image_1779721086533.png" alt="Calibration May 19 step 4">
     </a>
     <div class="card-body">
-      <span class="badge badge-h">H · Calibration</span>
+      <span class="badge badge-s">S · Calibration</span>
       <p class="caption">TruCheck calibration — step 4.</p>
       <p class="date">2026-05-19</p>
     </div>
@@ -2063,10 +2272,10 @@
 
   <div class="card">
     <a href="../attached_assets/image_1779721205137.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779721205137.png" alt="Calibration May 19 (5)">
+      <img class="thumb" src="../attached_assets/image_1779721205137.png" alt="Calibration May 19 step 5">
     </a>
     <div class="card-body">
-      <span class="badge badge-h">H · Calibration</span>
+      <span class="badge badge-s">S · Calibration</span>
       <p class="caption">TruCheck calibration — step 5 / completion.</p>
       <p class="date">2026-05-19</p>
     </div>
@@ -2075,40 +2284,40 @@
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════ I -->
-<section id="sec-i">
-<h2>I &mdash; DMST Setup / Connect / Data Logging</h2>
+<!-- ═══════════════════════════════════════════════════════════════ S4 -->
+<section id="sec-s4">
+<h2>S4 &mdash; Supporting: DMST Connect &amp; Data Logging</h2>
 <p class="section-note">DMST network discovery, device connect sequence, data logging configuration, and Result History within DMST.</p>
 <div class="grid">
 
   <div class="card">
     <a href="../attached_assets/image_1779099710579.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779099710579.png" alt="DMST setup/network May 17 (1)">
+      <img class="thumb" src="../attached_assets/image_1779099710579.png" alt="DMST network setup May 17">
     </a>
     <div class="card-body">
-      <span class="badge badge-i">I · Setup / Connect</span>
-      <p class="caption">DMST network setup — May 17 sprint. Device discovery / network configuration panel.</p>
+      <span class="badge badge-s">S · DMST Connect</span>
+      <p class="caption">DMST network setup — May 17. Device discovery / network configuration panel.</p>
       <p class="date">2026-05-17</p>
     </div>
   </div>
 
   <div class="card">
     <a href="../attached_assets/image_1779711833743.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779711833743.png" alt="DMST setup May 19 (1)">
+      <img class="thumb" src="../attached_assets/image_1779711833743.png" alt="DMST setup May 19 step 1">
     </a>
     <div class="card-body">
-      <span class="badge badge-i">I · Setup / Connect</span>
-      <p class="caption">DMST setup — May 19 sprint, step 1. Connection panel / device list.</p>
+      <span class="badge badge-s">S · DMST Connect</span>
+      <p class="caption">DMST setup — May 19, step 1. Connection panel / device list.</p>
       <p class="date">2026-05-19</p>
     </div>
   </div>
 
   <div class="card">
     <a href="../attached_assets/image_1779711864018.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779711864018.png" alt="DMST setup May 19 (2)">
+      <img class="thumb" src="../attached_assets/image_1779711864018.png" alt="DMST setup May 19 step 2">
     </a>
     <div class="card-body">
-      <span class="badge badge-i">I · Setup / Connect</span>
+      <span class="badge badge-s">S · DMST Connect</span>
       <p class="caption">DMST setup — May 19, step 2.</p>
       <p class="date">2026-05-19</p>
     </div>
@@ -2116,10 +2325,10 @@
 
   <div class="card">
     <a href="../attached_assets/image_1779711939129.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779711939129.png" alt="DMST setup May 19 (3)">
+      <img class="thumb" src="../attached_assets/image_1779711939129.png" alt="DMST setup May 19 step 3">
     </a>
     <div class="card-body">
-      <span class="badge badge-i">I · Setup / Connect</span>
+      <span class="badge badge-s">S · DMST Connect</span>
       <p class="caption">DMST setup — May 19, step 3.</p>
       <p class="date">2026-05-19</p>
     </div>
@@ -2127,10 +2336,10 @@
 
   <div class="card">
     <a href="../attached_assets/image_1779711989929.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779711989929.png" alt="DMST setup May 19 (4)">
+      <img class="thumb" src="../attached_assets/image_1779711989929.png" alt="DMST setup May 19 step 4">
     </a>
     <div class="card-body">
-      <span class="badge badge-i">I · Setup / Connect</span>
+      <span class="badge badge-s">S · DMST Connect</span>
       <p class="caption">DMST setup — May 19, step 4.</p>
       <p class="date">2026-05-19</p>
     </div>
@@ -2138,10 +2347,10 @@
 
   <div class="card">
     <a href="../attached_assets/image_1779712399750.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779712399750.png" alt="DMST setup May 19 (5)">
+      <img class="thumb" src="../attached_assets/image_1779712399750.png" alt="DMST setup May 19 connected">
     </a>
     <div class="card-body">
-      <span class="badge badge-i">I · Setup / Connect</span>
+      <span class="badge badge-s">S · DMST Connect</span>
       <p class="caption">DMST setup — May 19, step 5 / connected.</p>
       <p class="date">2026-05-19</p>
     </div>
@@ -2152,8 +2361,8 @@
       <img class="thumb" src="../attached_assets/image_1779843721281.png" alt="DMST Intro panel real label Result History">
     </a>
     <div class="card-body">
-      <span class="badge badge-i">I · Setup / Connect</span>
-      <p class="caption">DMST — Intro panel + Image Panel showing real product label + Result History tab. Device connected, session active.</p>
+      <span class="badge badge-s">S · DMST Connect</span>
+      <p class="caption">DMST — Intro panel + Image Panel (real product label) + Result History tab. Session active.</p>
       <p class="date">2026-05-26</p>
     </div>
   </div>
@@ -2163,8 +2372,8 @@
       <img class="thumb" src="../attached_assets/image_1779677638953.png" alt="DMST Data Logging 1">
     </a>
     <div class="card-body">
-      <span class="badge badge-i">I · Setup / Connect</span>
-      <p class="caption">DMST Data Logging configuration — panel 1. Logging path, format, and trigger settings.</p>
+      <span class="badge badge-s">S · DMST Connect</span>
+      <p class="caption">DMST Data Logging configuration — panel 1. Logging path, format, trigger settings.</p>
       <p class="date">2026-05-19</p>
     </div>
   </div>
@@ -2174,7 +2383,7 @@
       <img class="thumb" src="../attached_assets/image_1779678209948.png" alt="DMST Data Logging 2">
     </a>
     <div class="card-body">
-      <span class="badge badge-i">I · Setup / Connect</span>
+      <span class="badge badge-s">S · DMST Connect</span>
       <p class="caption">DMST Data Logging configuration — panel 2. Additional logging options.</p>
       <p class="date">2026-05-19</p>
     </div>
@@ -2183,10 +2392,10 @@
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════ J -->
-<section id="sec-j">
-<h2>J &mdash; Barcode Samples / Reference Symbols</h2>
-<p class="section-note">Reference barcodes, GS1 IDES parse results, grading standards configuration, and code details panels.</p>
+<!-- ═══════════════════════════════════════════════════════════════ S5 -->
+<section id="sec-s5">
+<h2>S5 &mdash; Supporting: Barcode Samples &amp; GS1 Parse</h2>
+<p class="section-note">Reference barcodes, GS1 IDES parse results, grading standards configuration, and code detail panels.</p>
 <div class="grid">
 
   <div class="card">
@@ -2194,8 +2403,8 @@
       <img class="thumb" src="../attached_assets/image_1779114981640.png" alt="Barcode sample 1">
     </a>
     <div class="card-body">
-      <span class="badge badge-j">J · Barcode Samples</span>
-      <p class="caption">Reference barcode sample — symbol image used for initial DMST testing.</p>
+      <span class="badge badge-s">S · Barcode Samples</span>
+      <p class="caption">Reference barcode sample — symbol used for initial DMST testing.</p>
       <p class="date">2026-05-17</p>
     </div>
   </div>
@@ -2205,7 +2414,7 @@
       <img class="thumb" src="../attached_assets/image_1779115099856.png" alt="Barcode sample 2">
     </a>
     <div class="card-body">
-      <span class="badge badge-j">J · Barcode Samples</span>
+      <span class="badge badge-s">S · Barcode Samples</span>
       <p class="caption">Reference barcode sample — second test symbol.</p>
       <p class="date">2026-05-17</p>
     </div>
@@ -2216,19 +2425,19 @@
       <img class="thumb" src="../attached_assets/image_1779244947420.png" alt="DMST Code Details panel">
     </a>
     <div class="card-body">
-      <span class="badge badge-j">J · Barcode Samples</span>
-      <p class="caption">DMST Code Details panel — decoded data, symbology, AIM identifier, data length for a test scan.</p>
+      <span class="badge badge-s">S · Barcode Samples</span>
+      <p class="caption">DMST Code Details panel — decoded data, symbology, AIM identifier, data length.</p>
       <p class="date">2026-05-18</p>
     </div>
   </div>
 
   <div class="card">
     <a href="../attached_assets/image_1779654030784.png" target="_blank">
-      <img class="thumb" src="../attached_assets/image_1779654030784.png" alt="Grading Standards Config">
+      <img class="thumb" src="../attached_assets/image_1779654030784.png" alt="Grading Standards config">
     </a>
     <div class="card-body">
-      <span class="badge badge-j">J · Barcode Samples</span>
-      <p class="caption">Grading Standards configuration — grading standard selection screen showing available ISO editions for 1D, 2D, and DPM verification.</p>
+      <span class="badge badge-s">S · Barcode Samples</span>
+      <p class="caption">Grading Standards configuration — available ISO editions for 1D, 2D, and DPM verification. User-configurable setting; not firmware-determined.</p>
       <p class="date">2026-05-19</p>
     </div>
   </div>
@@ -2238,8 +2447,8 @@
       <img class="thumb" src="../attached_assets/image_1780014376888.png" alt="GS1 IDES parse error format code 05">
     </a>
     <div class="card-body">
-      <span class="badge badge-j">J · Barcode Samples</span>
-      <p class="caption">GS1 IDES parse output — <strong>Error: Format code 05 is incompatible with data qualifiers 17V, 1P, and S.</strong> DM symbol shown. Illustrates GS1 application standard validation in the parser.</p>
+      <span class="badge badge-s">S · Barcode Samples</span>
+      <p class="caption">GS1 IDES parse — <strong>Error: Format code 05 incompatible with data qualifiers 17V, 1P, S.</strong> Illustrates GS1 application standard validation.</p>
       <p class="date">2026-05-28</p>
     </div>
   </div>
@@ -2249,8 +2458,8 @@
       <img class="thumb" src="../attached_assets/image_1780014970728.png" alt="Webscan GS1 parse result B13">
     </a>
     <div class="card-body">
-      <span class="badge badge-j">J · Barcode Samples</span>
-      <p class="caption">Webscan / GS1 parser result for symbol B13. UII: D9N206M2014-2. IDES and RO strings shown with full AI breakdown. DM symbol image included.</p>
+      <span class="badge badge-s">S · Barcode Samples</span>
+      <p class="caption">GS1 parser result — Symbol B13. UII: D9N206M2014-2. IDES and RO strings with full AI breakdown. DM symbol image included.</p>
       <p class="date">2026-05-28</p>
     </div>
   </div>
@@ -2258,19 +2467,29 @@
 </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════ K -->
-<section id="sec-k">
-<h2>K &mdash; Grade Parameters Close-up</h2>
-<p class="section-note">Right-panel Grade Parameters table in detail — per-parameter numeric values and letter grades for consecutive scans of the same DM product label.</p>
+<!-- ═══════════════════════════════════════════════════════════════ S6 -->
+<section id="sec-s6">
+<h2>S6 &mdash; Supporting: Grade Parameters Close-up</h2>
+<p class="section-note">Right-panel Grade Parameters table in detail — per-parameter numeric values and letter grades for consecutive scans of the same DM product label. Confirms scan-to-scan repeatability variation.</p>
 <div class="grid">
+
+  <div class="card">
+    <a href="../vtccp/architecture/gui-reference/dmst-quality-detail-tab.png" target="_blank">
+      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-quality-detail-tab.png" alt="Quality Detail tab full">
+    </a>
+    <div class="card-body">
+      <span class="badge badge-s">S · Grade Params</span>
+      <p class="caption">Quality Detail tab — full grade table in context. DM GS1 16×36 Grade D scan (v1.33, scan #14, fw 6.1.16_sr4). FormalGrade: 1.0/08/660/45Q.</p>
+    </div>
+  </div>
 
   <div class="card">
     <a href="../attached_assets/image_1779919996210.png" target="_blank">
       <img class="thumb" src="../attached_assets/image_1779919996210.png" alt="Grade params scan A">
     </a>
     <div class="card-body">
-      <span class="badge badge-k">K · Grade Params</span>
-      <p class="caption"><strong>Scan A.</strong> UEC 70%/4.0, SC 61%/3.0, MOD 1.0, RM 1.0, ANU 4%/4.0, GNU 0.7%/4.0, FPD 1.0, LLS-RQZ all 4.0, TTR/RTR 0%/4.0, TCT 1.0, RCT 4.0, AG 3.4/<strong>2.0</strong>, <strong>DECODE 0.0</strong>.</p>
+      <span class="badge badge-s">S · Grade Params</span>
+      <p class="caption"><strong>Scan A.</strong> UEC 70%/4.0, SC 61%/3.0, MOD 1.0, RM 1.0, ANU 4%/4.0, GNU 0.7%/4.0, FPD 1.0, TCT 1.0, AG 3.4/<strong>2.0</strong>, <strong>DECODE 0.0</strong>.</p>
       <p class="date">2026-05-27</p>
     </div>
   </div>
@@ -2280,19 +2499,9 @@
       <img class="thumb" src="../attached_assets/image_1779920020468.png" alt="Grade params scan B">
     </a>
     <div class="card-body">
-      <span class="badge badge-k">K · Grade Params</span>
-      <p class="caption"><strong>Scan B.</strong> UEC 70%/4.0, SC 61%/3.0, MOD 1.0, RM 1.0, ANU 4.4%/4.0, GNU 0.7%/4.0, FPD <strong>2.0</strong>, TCT <strong>2.0</strong>, AG 3.6/<strong>3.0</strong>, <strong>DECODE 0.0</strong>. FPD and TCT differ from Scan A — same label, different scan frame.</p>
+      <span class="badge badge-s">S · Grade Params</span>
+      <p class="caption"><strong>Scan B.</strong> UEC 70%/4.0, SC 61%/3.0, FPD <strong>2.0</strong>, TCT <strong>2.0</strong>, AG 3.6/<strong>3.0</strong>, DECODE 0.0. FPD and TCT differ from Scan A — same label, different scan frame.</p>
       <p class="date">2026-05-27</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <a href="../vtccp/architecture/gui-reference/dmst-quality-detail-tab.png" target="_blank">
-      <img class="thumb" src="../vtccp/architecture/gui-reference/dmst-quality-detail-tab.png" alt="Quality Detail tab full">
-    </a>
-    <div class="card-body">
-      <span class="badge badge-k">K · Grade Params</span>
-      <p class="caption">Quality Detail tab — full grade table in context. DM GS1 16×36 Grade D scan (v1.33, scan #14, fw 6.1.16_sr4). FormalGrade: 1.0/08/660/45Q.</p>
     </div>
   </div>
 
@@ -2302,7 +2511,7 @@
 </main>
 
 <footer style="background:#1a1d23;color:#6b7280;text-align:center;padding:16px;font-size:12px;">
-  VTCCP Screenshot Compendium &mdash; Generated 2026-06-11 &mdash; DM475V fw 6.1.16_sr4 &mdash; <strong style="color:#9ca3af;">523 source images reviewed</strong>
+  VTCCP Screenshot Compendium &mdash; Rewritten 2026-06-13 &mdash; Structure: W (Webscan TruCheck UI) | D (DMST/Cognex TruCheck UI) | V (VTCCP App UI) | S (Supporting Context) &mdash; DM475V fw 6.1.16_sr4
 </footer>
 
 </body>
