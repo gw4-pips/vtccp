@@ -60,8 +60,8 @@ Prior table was wrong to list this as a TC0374 gap. Corrected delta:
 |---|---|---|
 | Permanent Excel session record | ✓ | ✓ |
 | Report reprint without re-scanning | ✗ session ends = no reprint ever | ✓ XML sidecar makes any past session reprintable |
-| GS1 AI-level data (GTIN, Lot, Expiry, Serial) | ✗ decoded string only | ✓ dedicated columns |
-| Formal grade notation (4.0/06/660/45Q) | ✗ letter grade only | ✓ |
+| GS1 AI parsing | ✓ parsed data in TC0374's own result table | ✓ same parsing **plus** dedicated Excel columns per AI (GTIN, Lot, Expiry, Serial) — individually addressable in formulas and pivot tables |
+| Numeric + letter grades per parameter | ✓ decimal and letter grades for major parameters in Excel | ✓ same **plus** ISO formal notation string (4.0/06/660/45Q) as a single standardized combined field |
 | Job template enforcement | ✗ | ✓ |
 | DataMan hardware support | ✗ | ✓ (Step 2) |
 
