@@ -772,6 +772,13 @@ Saved file: `2026-06-20_09-00-37-256.png`
 - The saved file is the **full IMAGE.SEND frame** at the configured resolution — NOT a barcode ROI crop. Full scene context is preserved.
 - PNG format confirmed working. DMST format dropdown DOES control this save path.
 
+**⚠ TRIGGER DEPENDENCY — CONFIRMED 2026-06-20**: DMST native save ONLY fires when the scan
+is triggered FROM WITHIN DMST. A CP-triggered scan (DMCC software trigger) does NOT cause
+DMST to save a decoded image file. DMST must be both running AND must have initiated the
+trigger for the native save path to activate. This eliminates DMST native save as a
+viable L0 archive path for CP-triggered workflows. IMAGE.SEND (DMCC, CP-initiated) is
+the only image retrieval path that works independently of DMST trigger ownership.
+
 **Resolution map (DM475V, 2448×2048 sensor):**
 
 | DMST label | IMAGE.SIZE | Saved dimensions | Pixels | Approx size (PNG) |
