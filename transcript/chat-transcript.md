@@ -138,3 +138,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Confirming interpretation before coding: Col A row 1 = full decoded data label (no 40-char truncation). Col A row 2 = base64 chunk 1. Col A row 3 = chunk 2 if needed. Col B = visual chunk markers [JPEG 1/2], [JPEG 2/2] etc. Then image row, then blanks. Is that the right read?
 
 ---
+
+**User:** This is the concept. Maybe Col A in that 2nd row can be tagged "JPEG base64 Cont'd -->". Plan accordingly if you agree. But first, remind me of the resolution of these images. And again, the b64 is the entire ROI image and L1 is the cropped version, same resolution? Right?
+
+**Assistant:** Resolution: both L1 and L2 come from the same 3.45µm sensor — same quality/DPI, different crop sizes. L1 (barcode crop) ~200–600px narrow axis. L2 (ROI frame) wider, exact dims TBD. L3 (full sensor, not captured) = 2448×2048. Correction: col B currently holds the L1 barcode crop (tight firmware crop from push XML). L2 (RoiJpegImageBase64, wider ROI from IMAGE.SEND) is in VerificationRecord but not written to the Images sheet at all. Layout plan confirmed: label row in col A (full decoded data, no truncation), base64 row(s) in col A with "JPEG base64 Cont'd →" in col B as the visual marker, then embedded image row, then blanks. Ready to implement when you say go.
+
+---
