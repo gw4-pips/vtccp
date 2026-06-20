@@ -764,6 +764,25 @@ Prior test data used 2011/2016. Parser must echo whatever the device reports; co
 Operator-set probe note confirming the user was testing PNG save functionality.
 CustomNote field wired and populating correctly.
 
+### DMST "native save decoded file" — PNG confirmed working, resolution confirmed
+
+Saved file: `2026-06-20_09-00-37-256.png`
+- **Dimensions: 1224 × 1024 px** (8-bit grayscale, 1,254,709 bytes / ~1.2 MB)
+- This is **Quarter resolution** in DMST terms = IMAGE.SIZE=1 = ¼ pixel count = ½ each linear dimension of the 2448×2048 full sensor.
+- The saved file is the **full IMAGE.SEND frame** at the configured resolution — NOT a barcode ROI crop. Full scene context is preserved.
+- PNG format confirmed working. DMST format dropdown DOES control this save path.
+
+**Resolution map (DM475V, 2448×2048 sensor):**
+
+| DMST label | IMAGE.SIZE | Saved dimensions | Pixels | Approx size (PNG) |
+|---|---|---|---|---|
+| Full | 0 | 2448 × 2048 | 5.0 MP | ~5 MB |
+| Quarter | 1 (known-good) | 1224 × 1024 | 1.25 MP | ~1.2 MB ✓ confirmed |
+| 1/16 | 2 | 612 × 512 | 0.31 MP | ~0.3 MB |
+| 1/64 | 3 | 306 × 256 | 0.08 MP | ~0.08 MB |
+
+**For DPM multi-lab grading study**: switch DMST to **Full + PNG** to get lossless 2448×2048 images. The Quarter PNG is usable for most purposes but lacks the pixel density needed for manufacturer-standard DPM analysis at 1:1.
+
 ---
 
 ## v1.37 push script — DEVICE CONFIRMED (scan #16, 2026-06-20)

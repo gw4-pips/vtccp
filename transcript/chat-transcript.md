@@ -240,3 +240,9 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 - GradingStandard: ISO 15415:2024 — first 2024 edition observation.
 
 ---
+
+**User:** Restoring v1.37 JS and saving config. Attached a PNG file — is it the full frame? At what resolution?
+
+**Assistant:** Not full frame. 1224×1024 px (Quarter = IMAGE.SIZE=1 = ¼ pixel count of 2448×2048 sensor). 8-bit grayscale, ~1.2 MB. DMST native save confirmed working — saves the full IMAGE.SEND frame at configured resolution (not a barcode crop). For DPM study, switch to Full + PNG to get lossless 2448×2048. Resolution map logged in WORKING-NOTES.md.
+
+---
