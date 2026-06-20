@@ -82,16 +82,17 @@ Do NOT set LIVEIMG.MODE to 2 — this is not the fix.
 compares each to the expected value, corrects LIVEIMG.MODE in place if it is the only
 deviation, and recommends CONFIG.DEFAULT for any other deviation pattern.
 
-### Recurrence — 2026-06-20
+### Recurrence — 2026-06-20 **RESOLVED**
 
 Blank-image symptom recurred.  Root trigger: a QR code scan with DMST set to
 Full + Bitmap caused a device lockup (buffer overrun on ~14 MB full-frame BMP preparation).
 Power cycle cleared the lockup but left one or more NVRAM parameters corrupted again.
 
-**Action**: Run `vtccp/tools/Fix-LiveimgMode.ps1` first.
-- If all 7 parameters match known-good → run CONFIG.DEFAULT + CONFIG.SAVE + REBOOT.
-- If only LIVEIMG.MODE is wrong → the script corrects it automatically.
-- If other params are wrong → CONFIG.DEFAULT is still required.
+**Fix applied**: CONFIG restore from last known-good config save.  Device confirmed
+working after restore.  Same CONFIG.DEFAULT recovery pattern as 2026-05-31.
+
+**Pattern confirmed**: Full+Bitmap on QR is a reliable way to corrupt NVRAM.
+Do not use Full+Bitmap mode on QR scans.
 
 ---
 

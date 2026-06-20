@@ -222,3 +222,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
    - v1.37 scan #16 catalog (the "missed" action): DebugBarcodeAssignment=result=-1 (firmware "no assignment" sentinel on fail scan; need passing scan to see non-(-1) result); FormalGrade=0/F confirmed correct device behavior (script constructs gradeValue+"/"+gradeLetter; not a CP bug); EncodedCharacters=31 came from eaLen fallback (22×22 count happened to match — NOT a dead-path fix; remains unresolvable from push XML).
 
 ---
+
+**User:** Missing post-verif image problem corrected with config restore from last known-good config save.
+
+**Assistant:** Marked resolved in WORKING-NOTES.md. Pattern confirmed: Full+Bitmap on QR is a reliable NVRAM corruptor — noted as a do-not-use rule.
+
+---
