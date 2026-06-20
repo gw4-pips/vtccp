@@ -198,3 +198,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Two things. On the XML: file is truncated in the preview — only the opening is visible (DMSymVerResponse, GS1 DataMatrix ]d2, SymbolQuality 100, ModuleSizePx ~13.16). Can you share the full XML, or confirm — is the image data embedded in this response, or was the BMP saved as a separate file by DMST's image logging feature? On the lost post-scan image display: what is the new clue? And is this the same blank-after-trigger symptom as before, or something different in appearance?
 
 ---
+
+**User:** This file is the complete (one line) DMST output. Parse it more closely as you always have to do.
+
+**Assistant:** Full XML parsed. Key findings: (1) v1.37 push script — new, uncataloged. (2) Overall F due to DecodeGrade F — not an image quality failure; optical params mostly good (UEC/MOD/RM/ANU/GNU all A, SC=B, FPD=B). (3) ImagePolarity still empty despite Full+Bitmap setting — DMST format selector does not populate this field in push XML. (4) EncodedCharacters: 31 — now populated (was empty before). (5) No image data in this XML — BMP is a separate file from DMST's logging feature, confirming the two outputs are independent. (6) DebugBarcodeAssignment: result=-1; stats=[obj] — first data point. (7) FormalGrade: "0/F" — unusual format, expected "0/08/660/45Q", possible code issue.
+
+---
