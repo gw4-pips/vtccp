@@ -150,3 +150,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Resolution (constant): 3.45µm pixel pitch = ~7,362 DPI, fixed for every image from this sensor. Image size (variable): L1 = tight crop proportional to the symbol (fewer total pixels, same DPI). L2 = user-defined ROI in DMST, or full frame if no ROI is set — you recall correctly. L3 = full 2448×2048. IMAGE.SIZE 1/4/1/16/1/64: not a screen display setting — controls downscaling of the image transmitted by IMAGE.SEND over the network. At 1/4, CP receives ¼ the pixels of the full frame. Does not affect the push XML L1 crop, which comes from the firmware's own processing pipeline independently.
 
 ---
+
+**User:** Let's clarify what you mean by the image sent over the network...and the "integrity" of the L1 crop.
+
+**Assistant:** Image sent over the network (IMAGE.SEND / L2): the DM475V physically sits at 10.10.10.7. When CP issues IMAGE.SEND after a trigger, the device transmits a JPEG over that TCP connection to CP. IMAGE.SIZE controls how many pixels are in that transmitted JPEG — at 1/1 the full ROI crop; at 1/4 downsampled to ¼ the pixels before transmission. The sensor always captures at full resolution; downsampling only affects what gets transmitted. L1 crop integrity: comes embedded in push XML as r.trucheck.jpegImage — JPEG the firmware generated from the same scan event that was graded. Same source as grading. Spatially accurate — no downsampling, full sensor DPI, just cropped tight to the symbol. Lossy JPEG compression (quality factor firmware-controlled, unknown to us). Good enough for human review; not lossless. It's the same image shown in the DMST verification panel.
+
+---
