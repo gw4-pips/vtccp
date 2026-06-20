@@ -168,3 +168,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** No mutual exclusivity — two separate capture paths. L1 is always JPEG, period. The firmware encodes it as JPEG before embedding in push XML. No setting changes that. L2 (IMAGE.SEND) is where format choice lives — DMST's bitmap/JPEG/PNG setting controls what the device transmits when IMAGE.SEND is called. Set to PNG → CP receives lossless PNG of the ROI. Set to BMP → lossless BMP. Design path: L1 stays as JPEG thumbnail in Excel Images sheet (convenient, small, already there); L2 PNG/BMP becomes the authoritative lossless archive copy. They serve different purposes, no need to choose. Worth logging as a D4 image archival design decision.
 
 ---
+
+**User:** You're saying that if I set the image format to BMP, BMP is what is incorporated into the screen image, the HTML report image, OR what is transmitted via CP to Excel? Let's nail this down one step at a time. Is this your assumption or a fact?
+
+**Assistant:** Honest answer — it was assumption. What is confirmed fact: L1 push XML is always JPEG (confirmed from captures). IMAGE.SIZE DMCC setting controls IMAGE.SEND downscaling (confirmed from DMCC digest). DMST HTML report contains an embedded image (confirmed from Wireshark). What was assumption: that DMST's bitmap/JPEG/PNG selector maps directly to what the device transmits via IMAGE.SEND. It could instead control only what DMST stores/displays and embeds in its HTML report — with IMAGE.SEND having a separate format setting via a DMCC command not yet identified. Needs verification: set to BMP, call IMAGE.SEND, observe what format CP receives.
+
+---
