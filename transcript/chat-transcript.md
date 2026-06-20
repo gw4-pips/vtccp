@@ -210,3 +210,15 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Likely chain: Full+Bitmap setting on QR scan caused device to attempt a full-resolution ~14MB BMP, overwhelming firmware buffer → lockup → power cycle cleared lockup but left LIVEIMG.MODE corrupted in NVRAM → blank post-scan display. Plan: (1) LIVEIMG.MODE GET — confirm current value, known-good = 0. (2) If corrupted: LIVEIMG.MODE SET 0, check if display restores. (3) If restored: COM.DMCC-SAVE to persist to NVRAM. If step 2 fails, CONFIG.DEFAULT + reboot (nuclear option). What does LIVEIMG.MODE GET currently return?
 
 ---
+
+**User:** [Pasted working plan for context] — Can you update a probe script to get the data you need. And act on the last message which you seem to have missed.
+
+**Assistant:** Two actions taken:
+
+1. **Fix-LiveimgMode.ps1 updated** (`vtccp/tools/`) — rewrote as a proper 7-parameter known-good diagnostic. Reads LIVEIMG.MODE, DATA.IMAGE-TYPE, DATA.RESULT-TYPE, DATA.RESULT-ENCODING, DATA.RESULT-ALWAYSSEND, IMAGE.FORMAT, IMAGE.SIZE. Compares each to the DM-KnownGood-Snapshot-2026-05-31 values. If only LIVEIMG.MODE is wrong: corrects it in place. If anything else is wrong (or everything passes but image is still blank): recommends CONFIG.DEFAULT. Three-outcome logic: all-OK, LIVEIMG.MODE-only, or broader-corruption.
+
+2. **WORKING-NOTES.md updated** — two additions:
+   - Recurrence note (2026-06-20): QR Full+Bitmap lockup → power cycle → NVRAM corruption recurrence. Links to Fix-LiveimgMode.ps1.
+   - v1.37 scan #16 catalog (the "missed" action): DebugBarcodeAssignment=result=-1 (firmware "no assignment" sentinel on fail scan; need passing scan to see non-(-1) result); FormalGrade=0/F confirmed correct device behavior (script constructs gradeValue+"/"+gradeLetter; not a CP bug); EncodedCharacters=31 came from eaLen fallback (22×22 count happened to match — NOT a dead-path fix; remains unresolvable from push XML).
+
+---

@@ -78,6 +78,21 @@ GET IMAGE.SIZE
 **If image panel goes blank again**, use the CONFIG.DEFAULT recovery procedure above.
 Do NOT set LIVEIMG.MODE to 2 — this is not the fix.
 
+**Diagnostic tool**: `vtccp/tools/Fix-LiveimgMode.ps1` — reads all 7 known-good parameters,
+compares each to the expected value, corrects LIVEIMG.MODE in place if it is the only
+deviation, and recommends CONFIG.DEFAULT for any other deviation pattern.
+
+### Recurrence — 2026-06-20
+
+Blank-image symptom recurred.  Root trigger: a QR code scan with DMST set to
+Full + Bitmap caused a device lockup (buffer overrun on ~14 MB full-frame BMP preparation).
+Power cycle cleared the lockup but left one or more NVRAM parameters corrupted again.
+
+**Action**: Run `vtccp/tools/Fix-LiveimgMode.ps1` first.
+- If all 7 parameters match known-good → run CONFIG.DEFAULT + CONFIG.SAVE + REBOOT.
+- If only LIVEIMG.MODE is wrong → the script corrects it automatically.
+- If other params are wrong → CONFIG.DEFAULT is still required.
+
 ---
 
 ## Active investigation: Trigger reset / DMST TC recovery
@@ -687,6 +702,42 @@ previous parent — not just `+1`. On each new scan, VTCCP must:
   color signal — decide at implementation time.
 - Should Level-2 rows carry the Formal Grade / Overall Letter columns populated,
   or only the raw per-parameter values?
+
+---
+
+## v1.37 push script — DEVICE CONFIRMED (scan #16, 2026-06-20)
+
+**PushScriptDiag**: `v1.37 q=r.trucheck m=found`
+
+**Symbol**: GS1 DM 22×22, overall grade F (DecodeGrade=F)
+
+### Probe: DebugBarcodeAssignment — ANSWERED
+
+`r.barcodeAssignment` is an object with a single key: **`result=-1`**.
+
+`result=-1` is the firmware's "no assignment" sentinel — fires when the scan fails to
+decode cleanly (DecodeGrade=F on this scan).  A passing scan is the next test needed to
+see whether `result` takes a non-(-1) value on success.  No other sub-keys present on a
+fail scan.  The barcodeAssignment probe is partially answered; queue a passing-scan
+observation to complete it.
+
+### FormalGrade `0/F` — confirmed correct device behavior
+
+v1.37 constructs `FormalGrade` as `op("gradeValue") + "/" + op("gradeLetter")` (script
+line: `elem("FormalGrade",(op("gradeLetter"))?(op("gradeValue")+"/"+op("gradeLetter")):"")` ).
+For a fail scan: gradeValue=0, gradeLetter=F → `0/F`.  This is correct and expected.
+The full ISO formal notation (`1.0/16/660/45Q` etc.) is only emitted on passing scans
+where the aperture/wavelength/lighting fields are all populated.  No CP code change needed.
+
+### EncodedCharacters `31` — eaLen fallback, not a firmware fix
+
+v1.37 tries `gp("encodedCharacters")` first; falls back to `s(_el)` (encodationAnalysisArray.length)
+if that is absent.  The 22×22 symbol encoded 31 characters; the eaLen fallback happened to
+equal the true encoded character count for this symbol.  This is NOT a resolution of the
+dead-path finding from v1.32/v1.33 — `q.general.encodedCharacters` is still absent on
+fw 6.1.16_sr4.  The fallback remains unreliable for other symbol sizes (confirmed wrong on
+16×36: eaLen=33 vs DMST=38).  Field status: unresolvable from push XML; populate via
+`DmstHtmlScraper` (General Characteristics block).
 
 ---
 
