@@ -228,3 +228,15 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Marked resolved in WORKING-NOTES.md. Pattern confirmed: Full+Bitmap on QR is a reliable NVRAM corruptor — noted as a do-not-use rule.
 
 ---
+
+**User:** DMST is set to PNG but a JPEG is being sent to Excel. Still investigating native save decoded file. [Attached: base64 image, push XML (v1.36, 2026-06-20T08:51:33, GS1 DM 22×22 grade F), HTML report, DMST Image Panel screenshot showing PNG format selected.]
+
+**Assistant:** JPEG in Excel is by design — confirmed by first bytes FFD8FFE0. JpegImageBase64 in push XML is firmware-generated JPEG regardless of DMST format setting. Format dropdown controls DMST's own saved-file logging path only. Two independent channels. No CP change needed.
+
+v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post-backup, lost on restore). New scan #17 cataloged. Key findings:
+- EncodedCharacters: HTML=49 vs push XML eaLen=31 — prior scan #16 match was a coincidence; dead path confirmed again.
+- DataCodewords=30, ECBudget=20, ImagePolarity="White on black" — all from HTML report.
+- DebugBarcodeAssignment: result=-1;stats=[obj] — NEW stats sub-key found; queue DebugBarcodeAssignmentStats probe for v1.38.
+- GradingStandard: ISO 15415:2024 — first 2024 edition observation.
+
+---

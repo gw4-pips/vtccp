@@ -706,6 +706,66 @@ previous parent — not just `+1`. On each new scan, VTCCP must:
 
 ---
 
+## v1.36 push script — scan #17, 2026-06-20T08:51:33
+
+**PushScriptDiag**: `v1.36 q=r.trucheck m=found`
+
+**Note**: v1.36 is running because the CONFIG restore reverted the device to the .dmb
+save state (which had v1.36). v1.37 was installed after that backup — lost on restore.
+This is the "push script auto-deploy on connect" problem in practice.
+
+**Symbol**: GS1 DM 22×22, GS1 ]d2, overall grade F (DecodeGrade=F, proprietary Decode metric)
+
+### JpegImageBase64 format — CONFIRMED JPEG regardless of DMST PNG setting
+
+`JpegImageBase64` first bytes: `FFD8FFE0` — JPEG SOI+APP0 marker.
+DMST Image Panel toolbar shows "PNG" selected — has NO effect on push XML image.
+The push XML image path (`JpegImageBase64`) is firmware-generated JPEG, always.
+The DMST format dropdown controls only the separately-saved decoded file (DMST logging
+path). These are two independent image delivery channels:
+- **Push XML path** (`JpegImageBase64`): firmware-controlled, always JPEG, no knob.
+- **DMST logging path** ("native save decoded file"): format dropdown applies here.
+
+Excel always receives JPEG via push XML. Do not attempt PNG conversion on the CP side.
+
+### EncodedCharacters: HTML=49, push XML (eaLen fallback)=31 — MISMATCH CONFIRMED
+
+HTML report `Encoded characters = 49`; push XML emits 31 (eaLen fallback).
+For this 22×22 GS1 symbol the firmware says 49 encoded characters.
+eaLen=31 is the encodationAnalysisArray.length, which counts encoding segments, not characters.
+The prior observation (scan #16 eaLen=31 ≈ correct) was a coincidence for that data.
+Dead-path status confirmed again. `DmstHtmlScraper` is the only correct source.
+
+### DataCodewords / Error Correction Budget — from HTML report
+
+| Field | Push XML | HTML report |
+|---|---|---|
+| DataCodewords | (empty) | 30 |
+| ErrorCorrectionBudget | (empty) | 20 |
+| TotalCodewords | 50 | 50 ✓ |
+| ImagePolarity | (empty) | White on black |
+| EncodedCharacters | 31 (wrong) | 49 |
+
+### DebugBarcodeAssignment — NEW sub-key: `stats=[obj]`
+
+v1.36 output: `result=-1;stats=[obj];`
+Compared to scan #16 (v1.37): `result=-1` only.
+Either `stats` is conditionally present or was missed in the prior ekv pass.
+Queue a **DebugBarcodeAssignmentStats** probe in v1.38: enumerate `stats` sub-keys.
+Note: `result=-1` on fail scans confirmed on two independent symbols now.
+
+### ISO 15415:2024 — new edition string
+
+GradingStandard: `ISO 15415:2024` — first observation of the 2024 edition.
+Prior test data used 2011/2016. Parser must echo whatever the device reports; confirmed.
+
+### Custom Note: "Test of 1 4th PNG Image"
+
+Operator-set probe note confirming the user was testing PNG save functionality.
+CustomNote field wired and populating correctly.
+
+---
+
 ## v1.37 push script — DEVICE CONFIRMED (scan #16, 2026-06-20)
 
 **PushScriptDiag**: `v1.37 q=r.trucheck m=found`
