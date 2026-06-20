@@ -246,3 +246,15 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **Assistant:** Not full frame. 1224×1024 px (Quarter = IMAGE.SIZE=1 = ¼ pixel count of 2448×2048 sensor). 8-bit grayscale, ~1.2 MB. DMST native save confirmed working — saves the full IMAGE.SEND frame at configured resolution (not a barcode crop). For DPM study, switch to Full + PNG to get lossless 2448×2048. Resolution map logged in WORKING-NOTES.md.
 
 ---
+
+**User:** Confirmed DMST native save trigger dependency: DMST must be open AND must have triggered the scan — CP-triggered scans do NOT produce a saved image file. Also asked: is the HTTP subscriber path (receiving PUT /pcm_report.html from device) something we haven't done but could? What are the implications?
+
+**Assistant:** Logged trigger dependency in WORKING-NOTES.md. HTTP subscriber: NOT yet implemented — DmstHtmlScraper is currently a filesystem watcher only. §6.3 in wireshark-protocol-analysis.md is a sketch only. It IS buildable: CP opens a second TCP connection to port 44444, sends GET /events?enable, device pushes pcm_report.html body to CP directly after every scan regardless of trigger source. Implication: eliminates DMST dependency for the 4 unresolvable push XML fields (EncodedCharacters, DataCodewords, ECBudget, ImagePolarity). Does NOT solve PNG — IMAGE.SEND is JPEG only, PNG is a DMST-side conversion.
+
+**User:** Native PNG save adequate for now — critical discovery, worthwhile investigation. PNG needed for test plate development / sharing with verifier manufacturers including Cognex. HTML and PNG share timestamp filename root. CP could build UI + code to set naming convention and immediately rename both files after DMST saves them. Also: HTML header could print its own filename even after rename. Agree?
+
+**User (second message):** Grade differences on IMAGE.LOAD re-grading likely attributable to lossy JPEG — not original sensor image. Inventor was surprised, didn't engage with the explanation. Offered rounding error as plausible alternative. Will test further when can resubmit same image.
+
+**Assistant:** File rename: yes, CP can watch DMST save directory, match timestamp to scan record, immediately rename both .html and PNG — pure filesystem, no DMCC or DMST API. Token set would far exceed DMST's built-in options ({GTIN}, {Lot}, {Serial}, {Expiry}, {OverallGrade}, etc.). HTML integrity rule: CP must NOT modify HTML content — audit identity lives in session sidecar JSON. On JPEG re-grade differences: hypothesis strongly supported — JPEG DCT introduces ringing at module edges (SC%/Modulation), blocking at 8×8 tile boundaries, DC coefficient drift. Consistent with 0.1–0.2 grade unit differences at borderline grades. Confirmation test proposed: DMST-trigger scan → L0 PNG → lossless L1Prime crop → IMAGE.LOAD → compare re-grade to original. Both findings logged in WORKING-NOTES.md.
+
+---

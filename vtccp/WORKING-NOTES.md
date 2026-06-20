@@ -828,6 +828,70 @@ fw 6.1.16_sr4.  The fallback remains unreliable for other symbol sizes (confirme
 
 ---
 
+## CP file-rename architecture — PLANNED 2026-06-20
+
+**Context**: DMST native save produces timestamp-rooted filenames (e.g.
+`2026-06-20_09-00-37-256.png` / `2026-06-20_09-00-37-256.html`). DMST's
+built-in naming convention control is limited and cannot be set programmatically
+via DMCC. The save path is also DMST-configured only (no DMCC path command).
+Both path and naming convention are sticky (persist across DMST restarts).
+
+**CP rename approach** (agreed, not yet scheduled for build):
+1. CP knows the DMST save directory (configured once at CP setup)
+2. CP knows the exact scan timestamp from push XML `<DateTime>`
+3. After each DMST-triggered scan CP watches for new files whose timestamp root
+   matches → immediately renames both the `.html` and decoded image (PNG/JPEG)
+4. Pure filesystem operation — no DMCC, no DMST API, no UI automation
+
+**CP naming token set** (proposed — far exceeds DMST's built-in options):
+`{Date}`, `{Time}`, `{DeviceName}`, `{Operator}`, `{JobName}`, `{ScanSeq}`,
+`{OverallGrade}`, `{Symbology}`, `{MatrixSize}`, `{GTIN}`, `{Lot}`, `{Serial}`,
+`{Expiry}`, `{NominalXDim}`, `{GradingStandard}` — any field in VerificationRecord.
+
+**HTML file integrity rule**: CP must NOT modify the HTML content. The rename is
+sufficient to make the filename meaningful. Audit identity lives in CP's session
+sidecar JSON (stores renamed filepath per scan record). The renamed file IS the
+official record; its name is its identity.
+
+**Blocked by**: DMST must be open AND must have triggered the scan (confirmed
+trigger dependency 2026-06-20). Rename path only applies to DMST-triggered scans.
+
+---
+
+## Re-grade grade differences — JPEG artifact hypothesis 2026-06-20
+
+**Observation**: When a previously-graded symbol image is re-uploaded via
+IMAGE.LOAD and re-graded, small numeric grade differences appear vs the original
+live-scan grade (e.g. decimal-place differences in SC%, Modulation, etc.).
+
+**Hypothesis (user, supported)**: The image being re-submitted is the L1 JPEG
+(`JpegImageBase64` from push XML) — a lossy compressed crop of the original
+sensor image. JPEG DCT compression introduces:
+- **Ringing artifacts** at high-contrast module edges → alters SC% and Modulation
+  measurement values
+- **Blocking artifacts** at 8×8 DCT tile boundaries → particularly damaging for
+  dense Data Matrix where tile boundaries cross module patterns
+- **DC coefficient drift** in uniform regions → slightly shifts Rmax/Rmin,
+  compressing the measured contrast range
+
+Differences of 0.1–0.2 numeric grade units at borderline grades are expected and
+consistent with this mechanism. "Rounding error" is plausible only for differences
+< 0.05 at the second decimal place.
+
+**Shared with inventor/chief scientist**: offered as JPEG artifact explanation;
+inventor was surprised but did not engage with the explanation. User's read: the
+inventor may have assumed IMAGE.LOAD receives original sensor data.
+
+**Proposed confirmation test**: DMST-trigger a scan to capture L0 PNG (lossless,
+full frame). Crop to L1Prime (lossless). Re-submit L1Prime via IMAGE.LOAD. If
+re-grade matches original to more decimal places than L1 JPEG re-grade, JPEG
+artifact hypothesis is confirmed. Has implications for any manufacturer receiving
+CP-provided images for independent grading.
+
+**Status**: Hypothesis, not yet confirmed on bench.
+
+---
+
 ## Key code locations (reference only — do not edit without instruction)
 
 | Topic | File | Lines |
