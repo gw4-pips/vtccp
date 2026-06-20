@@ -107,3 +107,19 @@ The cleanest implementation: CP runs as a system tray app. When it detects WTC l
 **Assistant:** Glad it's useful. Agreed on all counts — the goal is that you never actually need it, but it's there if you do. Between the transcript, the strategy log, the git checkpoints, and the memory system, this project is about as well-preserved as it can be. Now — still outstanding from before your return: the grade notation row in the delta table. You confirmed the formal notation string is standard output from both TC0374 and DMTC, not a CP delta. Should that row be removed entirely, or is there a real CP advantage there worth capturing?
 
 ---
+
+**User:** No delta. Remove. Now, to business with another focus - a little sidebar....
+
+**Assistant:** Done — row removed. Go ahead, I'm listening.
+
+---
+
+**User:** [System reminder only — no message]
+
+**Assistant:** Waiting for you — take your time.
+
+---
+
+**Assistant:** Still here whenever you're ready.
+
+---
