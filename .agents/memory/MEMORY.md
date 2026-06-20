@@ -16,3 +16,4 @@
 - [DM475V live view ceiling](liveview-ceiling.md) — LIVEIMG.SEND dead on all ports/modes; svg_image.img AES-encrypted; trigger+IMAGE.SEND (1.5-2.5fps) is the only viable third-party path
 - [Doc versioning rule](doc-versioning-rule.md) — always bump version + revision date in any references/ doc header on every edit; never deliver an updated doc without a rev increment
 - [Transcript rule](transcript-rule.md) — append every user+assistant turn (text only, no tool detail) to transcript/chat-transcript.md at the end of every response; standing rule, never skip
+- [ISO/IEC 15424 reference](iso-15424-reference.md) — complete symbology identifier standard in vtccp/references/standards/iso-15424-symbology-identifiers.md; ]Q1 ECI correction logged

@@ -179,18 +179,28 @@ this correctly. The DM r-sibling inventory is expected to be identical to QR.
 
 ---
 
-## 2. AIM ID modifier semantics (confirmed v1.29, 2026-05-19)
+## 2. AIM ID modifier semantics (confirmed v1.29, 2026-05-19; corrected 2026-06-20)
 
-| AIM ID | Observed modifier | Modifier encodes | NOT |
+| AIM ID | Observed modifier | Modifier means (ISO/IEC 15424) | NOT |
 |---|---|---|---|
-| `]d1` | `1` | ASCII encoding type | ECLevel |
-| `]Q1` | `1` | ECI **presence** (000003 = Latin-1) | ECLevel |
+| `]d1` | `1` | Data Matrix ECC 200 (standard) | ECLevel |
+| `]Q1` | `1` | QR Code 2005 Model 2, ECI protocol **not** explicitly implemented | ECLevel |
 
-**Prior incorrect assumption**: modifier bits[1:0] = ECLevel.
-**Confirmed behavior**: For QR, modifier `1` means ECI data is present; the ECI value itself
-(e.g. `000003`) is shown in DMST but is NOT present anywhere in push XML on fw 6.1.16_sr4.
+**Prior incorrect interpretation** (v1.29 session): modifier `1` on `]Q1` was described as
+"encoding ECI presence (000003 = Latin-1)". **Corrected 2026-06-20 against ISO/IEC FCD 15424.**
 
-The `DebugValidationGS1` probe confirmed `ecLvl=absent` on both DM and QR.
+**Correct interpretation per ISO/IEC 15424 §4.4.21:**
+- `]Q1` = "QR Code 2005 symbol, ECI protocol not implemented"
+- `]Q2` = "QR Code 2005 symbol, ECI protocol implemented"
+- ISO/IEC 15424 §4 states: "the default ECI interpretation for these symbologies is \000003"
+
+When DMST shows ECI=000003 on a `]Q1` scan, this reflects the **default** Latin-1
+interpretation — NOT an explicit ECI escape sequence in the symbol. The firmware correctly
+emits `]Q1` (ECI not explicitly implemented) because the symbol uses only the implicit
+default. `]Q2` would be emitted if the symbol contained a non-default ECI override.
+
+The `DebugValidationGS1` probe confirmed `ecLvl=absent` on both DM and QR — consistent
+with there being no explicit ECI encoding in the observed symbols.
 
 ---
 

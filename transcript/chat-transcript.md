@@ -257,4 +257,24 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 **Assistant:** File rename: yes, CP can watch DMST save directory, match timestamp to scan record, immediately rename both .html and PNG — pure filesystem, no DMCC or DMST API. Token set would far exceed DMST's built-in options ({GTIN}, {Lot}, {Serial}, {Expiry}, {OverallGrade}, etc.). HTML integrity rule: CP must NOT modify HTML content — audit identity lives in session sidecar JSON. On JPEG re-grade differences: hypothesis strongly supported — JPEG DCT introduces ringing at module edges (SC%/Modulation), blocking at 8×8 tile boundaries, DC coefficient drift. Consistent with 0.1–0.2 grade unit differences at borderline grades. Confirmation test proposed: DMST-trigger scan → L0 PNG → lossless L1Prime crop → IMAGE.LOAD → compare re-grade to original. Both findings logged in WORKING-NOTES.md.
 
+**User:** [Session resumed] Provided working plan / session context. Asking about project status.
+
+**Assistant:** Code audit complete. HTTP subscriber: fully done end-to-end — DeviceSession.StartHttpSubscriberAsync() wired in SessionViewModel for both Push and Manual/AutoPoll modes. Sensor metadata Steps 1–7: fully done — TruCheckCompatibleSchema has all four columns, ContextFromDeviceInfo() stamps on every record, schema-driven writer picks them up. SymbologyId: parsed in DmstResultParser, in VerificationRecord — but NO schema column in TruCheckCompatibleSchema. Version: 1.3.3. Architecture docs not yet written. Ready to implement SymbologyId schema column or write architecture docs on request.
+
+**User:** Do I have the complete ISO/IEC Symbology ID and Data Identifier document? If not, look to source a comprehensive TEI source doc.
+
+**Assistant:** Nothing in the library. ANSI MH10.8.2 (Data Identifiers — payload labels like 1P, 4L, S) is in references/mil-std/ but covers a different concept. ISO/IEC 15424 (Symbology Identifiers — the ]XX scanner prefix) is absent. Web fetch tools not returning external content in this environment. GS1 excerpt would cover GS1-applicable subset only.
+
+**User:** Shared GS1 General Specifications §5.1.2 image — GS1 subset of ISO/IEC 15424 (]E0, ]C1, ]e0, ]d2, ]Q3, ]I1, ]J1, etc.).
+
+**Assistant:** GS1 General Specifications §5.1.2 confirmed as source. Covers GS1-applicable identifiers only (~30% of 15424). ]d1, ]Q1, ]C0 absent because they mark non-GS1 content. ]J1 (GS1 DotCode) not in 2008 FCD (J was reserved); added post-2008 via AIM maintenance. Asking: do you have full ISO/IEC 15424?
+
+**User:** Looking for aerospace TEIs while user finds 15424.
+
+**Assistant:** Web search and fetch tools not returning usable results from external URLs in this environment. Could not source aerospace TEI documents.
+
+**User:** Provided ISO/IEC FCD 15424 (Final Committee Draft, 2008-01-19 with FCD edits) — complete document (1146 lines) including all 29 modifier tables, code character table, and normative annexes A/B/C.
+
+**Assistant:** Read complete document in three passes. Wrote comprehensive reference to vtccp/references/standards/iso-15424-symbology-identifiers.md — full code character table (Table 1), all 29 modifier tables, GS1 cross-reference, device-confirmed identifiers table, Annex B (emulation), Annex C (normative references per symbology). Key clarification logged: ]Q1 = "ECI not implemented as non-default override" — ISO/IEC 15424 §4 defines \000003 (Latin-1) as the DEFAULT ECI interpretation. Device emitting ]Q1 when DMST shows ECI=000003 is correct firmware behaviour; \000003 is the implicit default, not an explicit ECI escape in the symbol. Prior interpretation ("modifier=1 encodes ECI presence") was imprecise — corrected in the reference doc.
+
 ---
