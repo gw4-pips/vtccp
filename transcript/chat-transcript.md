@@ -192,3 +192,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Noted. No more closing filler lines.
 
 ---
+
+**User:** Here is the XML from a new scan at Full and Bitmap. Also note, we have lost post-scan image display. This happened about a week ago. Something mysterious is still at play. I have a new clue (maybe) — right now we should plan to send a DMCC command to fix it. [Attached: DMCCResponse XML truncated in preview]
+
+**Assistant:** Two things. On the XML: file is truncated in the preview — only the opening is visible (DMSymVerResponse, GS1 DataMatrix ]d2, SymbolQuality 100, ModuleSizePx ~13.16). Can you share the full XML, or confirm — is the image data embedded in this response, or was the BMP saved as a separate file by DMST's image logging feature? On the lost post-scan image display: what is the new clue? And is this the same blank-after-trigger symptom as before, or something different in appearance?
+
+---
