@@ -204,3 +204,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Full XML parsed. Key findings: (1) v1.37 push script — new, uncataloged. (2) Overall F due to DecodeGrade F — not an image quality failure; optical params mostly good (UEC/MOD/RM/ANU/GNU all A, SC=B, FPD=B). (3) ImagePolarity still empty despite Full+Bitmap setting — DMST format selector does not populate this field in push XML. (4) EncodedCharacters: 31 — now populated (was empty before). (5) No image data in this XML — BMP is a separate file from DMST's logging feature, confirming the two outputs are independent. (6) DebugBarcodeAssignment: result=-1; stats=[obj] — first data point. (7) FormalGrade: "0/F" — unusual format, expected "0/08/660/45Q", possible code issue.
 
 ---
+
+**User:** Same blank-after-trigger symptom as before. QR Code was locking up the verifier. Only solution power cycle.
+
+**Assistant:** Likely chain: Full+Bitmap setting on QR scan caused device to attempt a full-resolution ~14MB BMP, overwhelming firmware buffer → lockup → power cycle cleared lockup but left LIVEIMG.MODE corrupted in NVRAM → blank post-scan display. Plan: (1) LIVEIMG.MODE GET — confirm current value, known-good = 0. (2) If corrupted: LIVEIMG.MODE SET 0, check if display restores. (3) If restored: COM.DMCC-SAVE to persist to NVRAM. If step 2 fails, CONFIG.DEFAULT + reboot (nuclear option). What does LIVEIMG.MODE GET currently return?
+
+---
