@@ -144,3 +144,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Resolution: both L1 and L2 come from the same 3.45µm sensor — same quality/DPI, different crop sizes. L1 (barcode crop) ~200–600px narrow axis. L2 (ROI frame) wider, exact dims TBD. L3 (full sensor, not captured) = 2448×2048. Correction: col B currently holds the L1 barcode crop (tight firmware crop from push XML). L2 (RoiJpegImageBase64, wider ROI from IMAGE.SEND) is in VerificationRecord but not written to the Images sheet at all. Layout plan confirmed: label row in col A (full decoded data, no truncation), base64 row(s) in col A with "JPEG base64 Cont'd →" in col B as the visual marker, then embedded image row, then blanks. Ready to implement when you say go.
 
 ---
+
+**User:** You seem to be confusing resolution with image size. Resolution is X DPI or DPmm at 3.45µm pixel size, yes? L1 image size is proportional to the symbol. L2 is the user defined ROI (or full frame if no user defined ROI, if I recall correctly). In terms of the image resolution as set in the DMST image panel, 1/4, 1/16, 1/64, remind me, is that just the screen resolution?
+
+**Assistant:** Resolution (constant): 3.45µm pixel pitch = ~7,362 DPI, fixed for every image from this sensor. Image size (variable): L1 = tight crop proportional to the symbol (fewer total pixels, same DPI). L2 = user-defined ROI in DMST, or full frame if no ROI is set — you recall correctly. L3 = full 2448×2048. IMAGE.SIZE 1/4/1/16/1/64: not a screen display setting — controls downscaling of the image transmitted by IMAGE.SEND over the network. At 1/4, CP receives ¼ the pixels of the full frame. Does not affect the push XML L1 crop, which comes from the firmware's own processing pipeline independently.
+
+---
