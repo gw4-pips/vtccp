@@ -175,3 +175,42 @@ CP runs as a **system tray app**. On detecting WTC process launch, CP watches fo
 **Required fix**: Either (a) write the full base64 to per-scan sidecar files alongside the Excel output (e.g. `scan_001.b64` or `scan_001.jpg`), or (b) remove col B and rely solely on the embedded visual image (losing D2 round-trip capability). Decision needed before D2 is implemented.
 
 **Do not implement until the approach is chosen.**
+
+---
+
+## 9. DPM Image Capture for Multi-Lab Grading Study (logged 2026-06-20)
+
+### Background
+VCCS needs a way to have verifier manufacturers independently grade DPM symbols imaged under ISO/IEC 29158-compliant conditions, using experimental VeriPLATE DPM calibration plates — without sharing the physical plates or involving Applied Image prematurely.
+
+### Workflow
+1. VCCS images DPM symbols on VeriPLATE plates under ISO 29158-compliant conditions using the DM475V
+2. CP captures full-resolution lossless images of each symbol via IMAGE.SEND
+3. User sends image files to each verifier manufacturer's engineering team
+4. Each manufacturer grades independently using their own grading software
+5. Grades returned to user for cross-manufacturer comparison
+6. Applied Image receives images at the appropriate stage
+
+This is effectively a **blind multi-lab grading study conducted via image exchange** — clean, defensible, repeatable.
+
+### What this requires from CP
+
+| Requirement | Detail |
+|---|---|
+| Image format | Lossless (PNG or BMP) — JPEG at any resolution is insufficient for grading use |
+| Image scale | 1:1 (no downsampling) — full sensor resolution |
+| Image scope | Full ROI, not L1 barcode crop |
+| File naming | Must tie unambiguously to Excel record: scan sequence number + timestamp + decoded data fragment |
+| Output | Per-scan files on disk — NOT embedded in Excel (manufacturers need openable files, not cell embeds) |
+| Batch export | "Export all images from this session" function — future feature |
+
+### Open question (blocking)
+Does DMST's bitmap/JPEG/PNG image format selector control what IMAGE.SEND transmits, or only what DMST stores/displays internally? Must be verified before building this feature. User will ask each manufacturer what format they consider ideal input.
+
+### Secondary use case
+Same image set supports IMAGE.LOAD re-grading within CP (Mode 2 — Offline Image Grading) — images captured here are the same assets used for re-grade workflows.
+
+### Excel vs. separate files decision
+For this use case: **separate files on disk**. Excel record is the traceability anchor. Image files are the deliverable to manufacturers. These are not in conflict — both can coexist.
+
+**Do not implement until IMAGE.SEND format question is resolved and manufacturer format preferences are known.**
