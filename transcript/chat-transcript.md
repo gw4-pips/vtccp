@@ -123,3 +123,13 @@ The cleanest implementation: CP runs as a system tray app. When it detects WTC l
 **Assistant:** Still here whenever you're ready.
 
 ---
+
+**User:** I understand we ARE already capturing one or more images when we run CP. Correct? Which image(s)? Captured where? I want to go look.
+
+**Assistant:** Two images captured per scan, both end up inside the Excel file only — no separate image files on disk. L1 Barcode crop: from push XML r.trucheck.jpegImage — firmware-processed ROI, ~200–600px — lives in the "Images" sheet in the Excel file as an embedded JPEG plus full base64 string in col 2 of each label row. L2 ROI frame: from IMAGE.SEND DMCC command — also flows to Images sheet. To go look: open the Excel output file for any past session, named {JobName}_{YYYY-MM-DD}.xlsx. Find the Images tab — one block per scan: label row with timestamp/symbology/grade, then a tall row with the embedded JPEG visible directly in the cell.
+
+---
+
+**Assistant:** Ready when you are — go take a look and come back with any questions.
+
+---
