@@ -186,3 +186,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Excellent — potentially exactly what's needed. Key things to note when you look at it: what format does it save (JPEG/PNG/BMP/TIFF)? What is the image scope — barcode crop, full ROI, or full sensor frame? Where does it save and what is the naming convention? Is resolution configurable or tied to the current IMAGE.SIZE setting? If it saves lossless at full ROI, this could be the capture path for the manufacturer image-share workflow with no IMAGE.SEND call needed from CP at all — DMST does the saving, CP just knows where to find the files.
 
 ---
+
+**User:** This "Ready" comment is totally superfluous.
+
+**Assistant:** Noted. No more closing filler lines.
+
+---
