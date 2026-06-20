@@ -162,3 +162,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Correct. The grading algorithms run on the raw sensor data internally — pixel-perfect, full bit depth, no compression. ISO grading requires that. The JPEG is generated afterward purely for transmission and display. The DMST bitmap/JPEG/PNG setting controls the IMAGE.SEND L2 output format. Default JPEG at 1/4 = two degradations stacked: spatial downsampling to ¼ the pixels, then lossy JPEG compression. What lands in Excel is a convenience thumbnail — useful for human review, not a faithful record of what the sensor analyzed. For a higher-fidelity archive, switch DMST IMAGE.SEND to PNG at 1/1 — full ROI at sensor resolution, lossless. L1 push XML crop is always JPEG regardless of the DMST setting — firmware-generated, not controlled by the IMAGE.SEND format selector.
 
 ---
+
+**User:** If you ever needed a higher-fidelity archive image, you'd switch DMST's IMAGE.SEND setting to PNG (lossless) at 1/1. I don't understand the seeming mutual exclusivity here. How would we capture a PNG or BMP version of L1 or ROI?
+
+**Assistant:** No mutual exclusivity — two separate capture paths. L1 is always JPEG, period. The firmware encodes it as JPEG before embedding in push XML. No setting changes that. L2 (IMAGE.SEND) is where format choice lives — DMST's bitmap/JPEG/PNG setting controls what the device transmits when IMAGE.SEND is called. Set to PNG → CP receives lossless PNG of the ROI. Set to BMP → lossless BMP. Design path: L1 stays as JPEG thumbnail in Excel Images sheet (convenient, small, already there); L2 PNG/BMP becomes the authoritative lossless archive copy. They serve different purposes, no need to choose. Worth logging as a D4 image archival design decision.
+
+---
