@@ -132,3 +132,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Yes, agreed — the current truncation is a data loss risk. Write rule: if base64 exceeds 32,000 chars, write the remainder into additional label rows below — col A marked [BASE64 +2], [BASE64 +3] etc., col B holding the next chunk. The visual image row follows after all chunks. Reconstruct rule: find the label row for a scan, collect col B from that row and any immediately following [BASE64 +N] rows, concatenate in order → full decodable JPEG. Alternative: write each scan's JPEG as a standalone scan_NNN.jpg file alongside the Excel file — no chunking logic, no cell limits. Which direction: multi-chunk in the sheet, or per-scan sidecar files on disk?
 
 ---
+
+**User:** For now let's stick with the Excel approach. Why not put the b64 data in Col A immediately after the decode? And the wrap in Col B to provide the visual clue? A separate file is a good idea we just need to name it distinctly, tying it to the Excel file and image, and I'm not ready to figure that out.
+
+**Assistant:** Confirming interpretation before coding: Col A row 1 = full decoded data label (no 40-char truncation). Col A row 2 = base64 chunk 1. Col A row 3 = chunk 2 if needed. Col B = visual chunk markers [JPEG 1/2], [JPEG 2/2] etc. Then image row, then blanks. Is that the right read?
+
+---
