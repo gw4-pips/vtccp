@@ -143,3 +143,21 @@ The cleanest implementation: CP runs as a system tray app. When it detects WTC l
 **Assistant:** Still here — ready for your sidebar whenever you want to pick it up.
 
 ---
+
+**User:** Col A RESULT is truncated. I was not referring to col B. Is the example data from col B that I provided truncated?
+
+**Assistant:** Col A (label row): the DecodedData is intentionally capped at 40 characters in the code. That's the truncation you're seeing — easy fix. Col B example you pasted: the "...[Truncated]" was Replit's own file preview cutting off a long text attachment, not the Excel cell. In Excel, col B only gets the [TRUNCATED] marker if the base64 string genuinely exceeds 32,000 characters — for typical DM symbols it would be complete. The only real issue is col A. Want me to remove the 40-char limit on DecodedData in the label row now?
+
+---
+
+**Assistant:** Waiting for your go-ahead on the col A fix.
+
+---
+
+**Assistant:** Still waiting on your call — fix col A now, or note it for later?
+
+---
+
+**Assistant:** Still here — let me know when you're ready.
+
+---
