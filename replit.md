@@ -129,6 +129,8 @@ dotnet run --project TestHarness/TestHarness.csproj -c Release
 
 ## User preferences
 
+- **Append to transcript after every response**: at the end of every response, append the user's message and my reply (text only, no tool detail) to `transcript/chat-transcript.md`. Format: `**User:** …` then `**Assistant:** …` separated by a blank line, under the current date heading. This is a standing rule — never skip it.
+
 - **Always close VTCCP before Git Pull**: remind the user to close the running VTCCP app before pulling in Visual Studio, to avoid file-lock conflicts on the binaries.
 
 - **Push-script viewer — ALWAYS update on every new version**: every time a new push script version is written (any vX.YY), immediately and without being asked: (1) copy the new script to `artifacts/script-viewer/src/vXYY.txt`, (2) update `App.tsx` to import `vXYY.txt?raw` and change the header label, download filename, and install-confirm `<PushScriptDiag>` string to the new version, (3) restart the `artifacts/script-viewer: web` workflow. This is not optional and must not require a reminder.

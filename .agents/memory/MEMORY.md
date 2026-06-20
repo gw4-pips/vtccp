@@ -15,3 +15,4 @@
 - [GS1 Digital Link](gs1-digital-link-pointer.md) — DL URI = same AIs as web URI; library handles both via DataStr; DecodedData https:// prefix = route to encoder.DataStr; standard v1.6.0 on file
 - [DM475V live view ceiling](liveview-ceiling.md) — LIVEIMG.SEND dead on all ports/modes; svg_image.img AES-encrypted; trigger+IMAGE.SEND (1.5-2.5fps) is the only viable third-party path
 - [Doc versioning rule](doc-versioning-rule.md) — always bump version + revision date in any references/ doc header on every edit; never deliver an updated doc without a rev increment
+- [Transcript rule](transcript-rule.md) — append every user+assistant turn (text only, no tool detail) to transcript/chat-transcript.md at the end of every response; standing rule, never skip
