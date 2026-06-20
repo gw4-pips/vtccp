@@ -126,3 +126,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Understood — apologies. Those filler messages were noise and shouldn't have been appended to the transcript. Removed from transcript, won't happen again.
 
 ---
+
+**User:** So, we need to add logic to assure we don't lose the base64 JPG representation, wouldn't you agree. A rule to wrap into a 2nd or conceivably 3rd or 4th line. And a rule to reconstruct?
+
+**Assistant:** Yes, agreed — the current truncation is a data loss risk. Write rule: if base64 exceeds 32,000 chars, write the remainder into additional label rows below — col A marked [BASE64 +2], [BASE64 +3] etc., col B holding the next chunk. The visual image row follows after all chunks. Reconstruct rule: find the label row for a scan, collect col B from that row and any immediately following [BASE64 +N] rows, concatenate in order → full decodable JPEG. Alternative: write each scan's JPEG as a standalone scan_NNN.jpg file alongside the Excel file — no chunking logic, no cell limits. Which direction: multi-chunk in the sheet, or per-scan sidecar files on disk?
+
+---
