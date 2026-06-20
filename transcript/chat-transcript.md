@@ -133,3 +133,13 @@ The cleanest implementation: CP runs as a system tray app. When it detects WTC l
 **Assistant:** Ready when you are — go take a look and come back with any questions.
 
 ---
+
+**User:** OK. I see the data row is truncated. Make a note to not truncate. As for col B; please explain further. Here is example data: [/9j/4AAQSkZJRgABAQ... base64 JPEG string]
+
+**Assistant:** Col B explained: the raw base64-encoded JPEG string of the scan image. Starts with /9j/4AAQ — the standard JPEG signature in base64. Copy the entire string into any base64-to-image converter and you get the exact barcode image back as a .jpg. Col B exists for the D2 reverse-report feature. Truncation finding: Excel's hard 32,767-char cell limit causes the truncation. Bigger problem: the code comment claims "the sidecar always stores the full payload" but SessionSidecar.cs stores no image data at all — only session metadata. If col B is truncated, the full image is currently lost. Logged as issue in strategy log section 8. Decision needed (per-scan sidecar files vs remove col B) before D2 is built.
+
+---
+
+**Assistant:** Still here — ready for your sidebar whenever you want to pick it up.
+
+---

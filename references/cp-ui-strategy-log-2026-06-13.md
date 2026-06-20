@@ -159,3 +159,19 @@ CP runs as a **system tray app**. On detecting WTC process launch, CP watches fo
 ---
 
 *Next session picks up at: CP top-level navigation and main screen layout.*
+
+---
+
+## 8. Open Issues — Images Sheet (logged 2026-06-20)
+
+### Issue: Col B base64 truncation + sidecar comment is wrong
+
+**Col B** in the Images sheet label row holds the raw base64-encoded JPEG string of the scan image — identical to the visual embed in the row below it. Its purpose is D2 reverse-report reconstruction (re-generate the report from the Excel file without re-scanning).
+
+**Problem 1 — Truncation**: Excel enforces a hard 32,767-character cell limit. `ImagesSheetWriter` caps at 32,000 and appends `[TRUNCATED]`. Any image whose base64 exceeds that limit is unrecoverable from col B. Larger DM symbols and QR codes at higher versions are at risk.
+
+**Problem 2 — Wrong sidecar comment**: `ImagesSheetWriter.cs` line 26 states *"the sidecar (SessionSidecar) always stores the full payload and is the authoritative source for D2 round-trip."* This is incorrect — `SessionSidecar.cs` stores only session metadata (job name, operator, device info, counters). Image bytes are not written to any sidecar. If col B is truncated, the full image is currently lost.
+
+**Required fix**: Either (a) write the full base64 to per-scan sidecar files alongside the Excel output (e.g. `scan_001.b64` or `scan_001.jpg`), or (b) remove col B and rely solely on the embedded visual image (losing D2 round-trip capability). Decision needed before D2 is implemented.
+
+**Do not implement until the approach is chosen.**
