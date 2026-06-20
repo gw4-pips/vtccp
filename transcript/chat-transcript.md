@@ -180,3 +180,9 @@ Format: User messages and assistant replies only. Tool actions and system remind
 **Assistant:** Smart strategy — reframes the entire image capture architecture question. This is essentially a blind multi-lab grading study conducted via image exchange: clean, defensible, repeatable. Key implications: JPEG at 1/4 is completely unsuitable for grading use — manufacturers need lossless full-resolution full-ROI images. CP needs IMAGE.SEND at 1/1 lossless (PNG/BMP), per-scan files named to tie unambiguously to the Excel record, and eventually a batch export function. For this use case, separate files on disk are the right answer — not Excel embeds. Manufacturers need openable files; Excel record stays as the traceability anchor. The IMAGE.SEND format question (does DMST's format selector control what IMAGE.SEND transmits?) is blocking and must be verified before building. Logged as section 9 in the strategy log.
 
 ---
+
+**User:** DMST has a log all decoded images feature. I am investigating and can share them with you for evaluation.
+
+**Assistant:** Excellent — potentially exactly what's needed. Key things to note when you look at it: what format does it save (JPEG/PNG/BMP/TIFF)? What is the image scope — barcode crop, full ROI, or full sensor frame? Where does it save and what is the naming convention? Is resolution configurable or tied to the current IMAGE.SIZE setting? If it saves lossless at full ROI, this could be the capture path for the manufacturer image-share workflow with no IMAGE.SEND call needed from CP at all — DMST does the saving, CP just knows where to find the files.
+
+---
