@@ -382,3 +382,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Nice. Thanks.
 
 **Assistant:** Acknowledged.
+
+**User:** A break for me...
+
+**Assistant:** Session paused. Transcript and canvas are up to date.
