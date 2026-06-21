@@ -286,3 +286,12 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **Assistant:** All three complete. (1) SymbologyId: added Col("SymbologyId", "AIM ID", 8, Universal) to TruCheckCompatibleSchema.cs after Symbology — ExcelEngine build clean. (2) vtccp/architecture/image-capture-pipeline.md: four-level image stack (L0 DMST PNG / L1 barcode crop push XML / L2 ROI IMAGE.SEND / L3 SDK full frame), OpticsSource discriminator, OCR source, IMAGE.SIZE scope, JPEG grade-drift warning. (3) vtccp/architecture/http-subscriber-spec.md: port 44444 multiplexing, five endpoints, result flow diagram, C# entry points, DMST coexistence, trigger independence, three-path comparison table. Version bumped 1.3.3 → 1.3.4.
 
 ---
+**User:** Canvas viewport showed File Name Format Builder + Data Logging Paths iframes still loading from previous session. Noted CP operational file storage locations need to be determined at install time.
+
+**Assistant:** Both mockup components rewritten and iframes refreshed to live. FileNameFormatBuilder: Symbology ID rename, comma separator, bracket-stripped sample (d1), formal-grade hyphens, 24-char data truncation, notes footer, global templates. DataLoggingPaths: 4 sections — Verification Reports (path + template dropdown + Define… + extension), Decoded Images (radio: use report name / custom prefix + live preview), No-Read Images (radio: use report name + editable ND suffix / custom prefix), Excel/CSV Log. File path architecture decided and logged to WORKING-NOTES: two categories — CP App Data (%APPDATA%\VCCS\CommandPilot\Settings|JobTemplates|FileNameTemplates|Sessions; factory templates read-only in %PROGRAMFILES%) vs Output Files (default %USERPROFILE%\Documents\VCCS Command Pilot\{Reports|Images\Decoded|Images\NoRead|ExcelLog}). Installer writes to %PROGRAMFILES% ONLY; first run creates %APPDATA% + Documents tree + shows one-time notice. No setup wizard needed. Enterprise V2: UNC paths already work via path fields; policy.json in %PROGRAMDATA% for path lockdown. DMST-managed paths (%USERPROFILE%\Documents\{DeviceName}\CodeQuality\) are CP-read-only.
+
+**User:** Shared full session plan for context re-orientation after compression.
+
+**Assistant:** Acknowledged — full plan absorbed. Standing rules (DO NOT BUILD WITHOUT ASKING, version bump, transcript append) confirmed active. Awaiting direction on next task.
+
+---

@@ -904,3 +904,44 @@ CP-provided images for independent grading.
 | HTTP subscriber start | `DeviceInterface/DeviceSession.cs` | ~190 |
 | GS1 formatter (parked) | `DeviceInterface/Dmst/BarcodeDataFormatter.cs` | all |
 | Manual vs Push trigger dispatch | `VtccpApp/ViewModels/SessionViewModel.cs` | 421–446 |
+
+---
+
+## CP Installation File Path Architecture — DECIDED 2026-06-20
+
+### Two distinct categories — must not conflate
+
+**Category 1: CP Application Data** (config, templates, settings)
+Managed by CP internally; not user-configurable; survives app updates.
+
+| Item | Path |
+|---|---|
+| CP settings / device profiles | `%APPDATA%\VCCS\CommandPilot\Settings\` |
+| Job templates | `%APPDATA%\VCCS\CommandPilot\JobTemplates\` |
+| File name format templates | `%APPDATA%\VCCS\CommandPilot\FileNameTemplates\` |
+| Session history index | `%APPDATA%\VCCS\CommandPilot\Sessions\` |
+| Factory defaults (read-only, shipped) | `%PROGRAMFILES%\VCCS\CommandPilot\Templates\` |
+
+**Category 2: Verification Output Files** (reports, images, Excel logs)
+Defaults shown below; operator-configurable via Data Logging Paths screen.
+
+| Item | Default path |
+|---|---|
+| HTML/PDF reports | `%USERPROFILE%\Documents\VCCS Command Pilot\Reports\` |
+| Decoded images (JPEG) | `%USERPROFILE%\Documents\VCCS Command Pilot\Images\Decoded\` |
+| No-read images | `%USERPROFILE%\Documents\VCCS Command Pilot\Images\NoRead\` |
+| Excel / CSV log | `%USERPROFILE%\Documents\VCCS Command Pilot\ExcelLog\` |
+
+### Installer behavior
+- Installer: binaries + factory templates to `%PROGRAMFILES%` ONLY — no writes to Documents or AppData during install.
+- First run: CP creates `%APPDATA%\VCCS\CommandPilot\`, copies factory templates, creates default Documents output tree.
+- First-run notice shown: "Verification reports and images will be saved to Documents\VCCS Command Pilot\. Change in Settings → Data Logging."
+- No setup wizard needed — keeps installer silent-install-friendly for enterprise IT.
+
+### Enterprise / network-share (V2)
+- QA managers at multi-station sites point output paths to UNC share (`\\QA-SERVER\VerifLogs\`).
+- Machine-wide path lock: `%PROGRAMDATA%\VCCS\CommandPilot\policy.json` — prevents operators from redirecting output. V2 scope, architecture noted.
+
+### DMST-managed paths (CP cannot change)
+- DMST PNG + HTML saves: `%USERPROFILE%\Documents\{DeviceName}\CodeQuality\{timestamp}.*`
+- CP filesystem watcher monitors this path; does not write to it.
