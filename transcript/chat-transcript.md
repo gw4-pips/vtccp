@@ -378,3 +378,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Just add the em dash following the label and wrap to 2nd line naturally.
 
 **Assistant:** Collapsed to single span — label and em dash note inline, natural text wrap. Canvas iframe refreshed.
+
+**User:** Nice. Thanks.
+
+**Assistant:** Acknowledged.
