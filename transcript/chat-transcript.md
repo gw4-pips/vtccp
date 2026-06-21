@@ -295,3 +295,8 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **Assistant:** Acknowledged — full plan absorbed. Standing rules (DO NOT BUILD WITHOUT ASKING, version bump, transcript append) confirmed active. Awaiting direction on next task.
 
 ---
+**User:** Apologized — mistaken about transcript not being updated.
+
+**Assistant:** Confirmed transcript is healthy (297 lines, all recent turns present). Noted script-viewer workflow is in failed state (port 24071 conflict); offered to restart.
+
+---
