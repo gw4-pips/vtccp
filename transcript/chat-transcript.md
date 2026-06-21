@@ -358,3 +358,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Please present in preview ExcelColumnOptions mockup.
 
 **Assistant:** Presented ExcelColumnOptions mockup via presentArtifact. WTC Replica option accessible in the Column Preset dropdown at the bottom (below separator); selecting it shows amber notice and disables all controls.
+
+**User:** No Webscan option visible. Please reload ExcelColumnOptions mockup.
+
+**Assistant:** Reloaded canvas iframe for excel-column-options shape using applyCanvasActions with a cache-busting URL (timestamp query param). Panned canvas to bring the shape into view. WTC Replica option is at the bottom of the Column Preset dropdown below a separator line. User may need to click inside the frame to wake it before the dropdown responds.
