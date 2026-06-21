@@ -354,3 +354,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Okay. I say make the change to COM functionality you recommend. Put the Webscan replica option at the bottom of the col option UI (checking it is mutually exclusive to all other boxes, right?) even though its size is still undefined. Agreed?
 
 **Assistant:** Agreed on both. WTC Replica is mutually exclusive to everything — selecting it deselects all other presets AND disables all individual column toggles (layout is frozen). Made both changes: (1) SessionManager.cs COM fix — moved ComExcelAdapter.TryAttach before lock check, now runs after _outputPath is pinned; lock check only fires if COM failed, uses _outputPath not initialPath; .xls path always does lock check. (2) ExcelColumnOptions.tsx — WTC Replica added at bottom of preset dropdown with divider separator; when selected: all block/column controls disabled with grey overlay, amber banner explains fixed layout and trailing hidden column behavior, status bar changes to "column count pending." Mutually exclusive in all directions — selecting any block or preset exits WTC Replica mode.
+
+**User:** Please present in preview ExcelColumnOptions mockup.
+
+**Assistant:** Presented ExcelColumnOptions mockup via presentArtifact. WTC Replica option accessible in the Column Preset dropdown at the bottom (below separator); selecting it shows amber notice and disables all controls.
