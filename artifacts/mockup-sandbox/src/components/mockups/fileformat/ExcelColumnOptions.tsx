@@ -230,6 +230,8 @@ const PRESETS: Record<string, Set<string>> = {
   ]),
 };
 
+const WTC_REPLICA = "Webscan TruCheck Replica";
+
 function blockState(block: Block, enabled: Set<string>): "all" | "none" | "partial" {
   const on = block.cols.filter(c => enabled.has(c.id)).length;
   if (on === 0) return "none";
@@ -248,9 +250,11 @@ export function ExcelColumnOptions() {
   const [showSaveAs, setShowSaveAs] = useState(false);
   const [userPresets, setUserPresets] = useState<Record<string, Set<string>>>({});
 
+  const isWtcReplica = preset === WTC_REPLICA;
   const allPresets = { ...PRESETS, ...userPresets };
 
   const toggleBlock = (block: Block) => {
+    if (isWtcReplica) return;
     const st = blockState(block, enabled);
     setEnabled(prev => {
       const next = new Set(prev);
@@ -262,6 +266,7 @@ export function ExcelColumnOptions() {
   };
 
   const toggleCol = (id: string) => {
+    if (isWtcReplica) return;
     setEnabled(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -272,7 +277,7 @@ export function ExcelColumnOptions() {
 
   const applyPreset = (name: string) => {
     setPreset(name);
-    setEnabled(new Set(allPresets[name]));
+    if (name !== WTC_REPLICA) setEnabled(new Set(allPresets[name]));
   };
 
   const savePreset = () => {
@@ -283,12 +288,14 @@ export function ExcelColumnOptions() {
     setSaveAsName(""); setShowSaveAs(false);
   };
 
-  const toggleExpand = (key: string) =>
+  const toggleExpand = (key: string) => {
+    if (isWtcReplica) return;
     setExpanded(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);
       return next;
     });
+  };
 
   const totalSelected = enabled.size;
   const totalCols = ALL_IDS.size;
@@ -343,22 +350,28 @@ export function ExcelColumnOptions() {
           <div className="flex items-center gap-2">
             <label className="text-[12px] text-[#333] shrink-0">Column Preset:</label>
             <select value={preset} onChange={e => applyPreset(e.target.value)}
-              className="border border-[#aaa] bg-white text-[12px] px-2 h-6 flex-1">
+              className="border border-[#aaa] bg-white text-[12px] px-2 h-6 flex-1"
+              disabled={false}>
               {Object.keys(allPresets).map(n => (
                 <option key={n} value={n}>{n}</option>
               ))}
               {preset === "Custom" && <option value="Custom">Custom</option>}
+              <option disabled>──────────────────────</option>
+              <option value={WTC_REPLICA}>⬛ Webscan TruCheck Replica</option>
             </select>
             <button onClick={() => setShowSaveAs(true)}
-              className="border border-[#aaa] bg-[#e9e9e9] hover:bg-[#d9d9d9] px-3 h-6 text-[12px] whitespace-nowrap">
+              disabled={isWtcReplica}
+              className="border border-[#aaa] bg-[#e9e9e9] hover:bg-[#d9d9d9] px-3 h-6 text-[12px] whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed">
               Save As…
             </button>
-            <button onClick={() => { setEnabled(new Set(ALL_IDS)); setPreset("All Columns"); }}
-              className="border border-[#aaa] bg-[#e9e9e9] hover:bg-[#d9d9d9] px-3 h-6 text-[12px]">
+            <button onClick={() => { if (!isWtcReplica) { setEnabled(new Set(ALL_IDS)); setPreset("All Columns"); } }}
+              disabled={isWtcReplica}
+              className="border border-[#aaa] bg-[#e9e9e9] hover:bg-[#d9d9d9] px-3 h-6 text-[12px] disabled:opacity-40 disabled:cursor-not-allowed">
               All
             </button>
-            <button onClick={() => { setEnabled(new Set()); setPreset("Custom"); }}
-              className="border border-[#aaa] bg-[#e9e9e9] hover:bg-[#d9d9d9] px-3 h-6 text-[12px]">
+            <button onClick={() => { if (!isWtcReplica) { setEnabled(new Set()); setPreset("Custom"); } }}
+              disabled={isWtcReplica}
+              className="border border-[#aaa] bg-[#e9e9e9] hover:bg-[#d9d9d9] px-3 h-6 text-[12px] disabled:opacity-40 disabled:cursor-not-allowed">
               None
             </button>
           </div>
@@ -374,8 +387,24 @@ export function ExcelColumnOptions() {
             </div>
           )}
 
+          {/* ── WTC Replica notice ────────────────────────────────────────────── */}
+          {isWtcReplica && (
+            <div className="bg-[#fff8e1] border border-[#f0b429] px-3 py-2 flex items-start gap-2">
+              <span className="text-[#b45309] text-[14px] mt-0.5 shrink-0">⚠</span>
+              <div className="text-[11px] text-[#5c3d00] leading-relaxed">
+                <span className="font-semibold">Webscan TruCheck Replica mode.</span>
+                {" "}Column layout is fixed to match Webscan TruCheck output exactly — column selection is disabled.
+                {" "}All CP data fields not present in TruCheck are written as hidden trailing columns using standard CP header names, making migration to a full CP template straightforward.
+                {" "}The TruCheck product line is EOL; this layout will not change.
+                <span className="block mt-1 italic text-[#7c5200]">
+                  Column count pending live TruCheck export data. To customise columns, select a different preset.
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* ── Column Group Accordion ────────────────────────────────────────── */}
-          <div className="border border-[#c0c0c0]">
+          <div className={`border border-[#c0c0c0] ${isWtcReplica ? "opacity-40 pointer-events-none" : ""}`}>
             {/* Header row */}
             <div className="flex items-center bg-[#e0e8f4] px-3 py-1 border-b border-[#c0c0c0] text-[11px] font-semibold text-[#333]">
               <span className="w-5 shrink-0"></span>
@@ -407,6 +436,7 @@ export function ExcelColumnOptions() {
                         checked={st === "all"}
                         ref={el => { if (el) el.indeterminate = st === "partial"; }}
                         onChange={() => toggleBlock(block)}
+                        disabled={isWtcReplica}
                         className="accent-[#0054a6] w-3.5 h-3.5" />
                       <span className="inline-flex items-center justify-center w-6 h-5 text-[11px] font-bold rounded text-white shrink-0"
                         style={{ background: blockColor[block.key] ? "#0054a6" : "#888", opacity: st === "none" ? 0.4 : 1 }}>
@@ -424,9 +454,9 @@ export function ExcelColumnOptions() {
                       {onCount} / {block.cols.length}
                     </span>
                     <span className="w-20 text-right flex items-center justify-end gap-1">
-                      <button onClick={e => { e.stopPropagation(); setEnabled(p => { const n = new Set(p); block.cols.forEach(c => n.add(c.id)); return n; }); setPreset("Custom"); }}
+                      <button onClick={e => { e.stopPropagation(); if (!isWtcReplica) { setEnabled(p => { const n = new Set(p); block.cols.forEach(c => n.add(c.id)); return n; }); setPreset("Custom"); } }}
                         className="border border-[#aaa] bg-[#e9e9e9] hover:bg-[#d9d9d9] px-1.5 h-5 text-[10px]">All</button>
-                      <button onClick={e => { e.stopPropagation(); setEnabled(p => { const n = new Set(p); block.cols.forEach(c => n.delete(c.id)); return n; }); setPreset("Custom"); }}
+                      <button onClick={e => { e.stopPropagation(); if (!isWtcReplica) { setEnabled(p => { const n = new Set(p); block.cols.forEach(c => n.delete(c.id)); return n; }); setPreset("Custom"); } }}
                         className="border border-[#aaa] bg-[#e9e9e9] hover:bg-[#d9d9d9] px-1.5 h-5 text-[10px]">None</button>
                     </span>
                   </div>
@@ -440,6 +470,7 @@ export function ExcelColumnOptions() {
                           <input type="checkbox"
                             checked={enabled.has(col.id)}
                             onChange={() => toggleCol(col.id)}
+                            disabled={isWtcReplica}
                             className="accent-[#0054a6] w-3 h-3 shrink-0" />
                           <span className="text-[11px] text-[#333] truncate"
                             title={col.label}>{col.label}</span>
@@ -454,14 +485,22 @@ export function ExcelColumnOptions() {
 
           {/* ── Status bar ────────────────────────────────────────────────────── */}
           <div className="flex items-center justify-between bg-[#f0f0f0] border border-[#ccc] px-3 py-1.5">
-            <span className="text-[12px] text-[#444]">
-              <span className="font-semibold" style={{ color: totalSelected === 0 ? "#c00" : "#0054a6" }}>
-                {totalSelected}
+            {isWtcReplica ? (
+              <span className="text-[12px] text-[#7c5200] font-medium italic">
+                Webscan TruCheck Replica — column count defined by live export data (pending)
               </span>
-              {" / "}{totalCols}{" columns selected"}
-            </span>
+            ) : (
+              <span className="text-[12px] text-[#444]">
+                <span className="font-semibold" style={{ color: totalSelected === 0 ? "#c00" : "#0054a6" }}>
+                  {totalSelected}
+                </span>
+                {" / "}{totalCols}{" columns selected"}
+              </span>
+            )}
             <span className="text-[11px] text-[#888]">
-              {BLOCKS.filter(b => blockState(b, enabled) !== "none").length} of {BLOCKS.length} blocks active
+              {isWtcReplica
+                ? "Fixed layout — column selection disabled"
+                : `${BLOCKS.filter(b => blockState(b, enabled) !== "none").length} of ${BLOCKS.length} blocks active`}
             </span>
           </div>
 

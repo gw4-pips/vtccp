@@ -108,10 +108,6 @@ public sealed class SessionManager : IDisposable
         string initialPath    = ExcelFileManager.ResolveOutputPath(state, state.OutputFormat);
         string initialSidecar = GetSidecarPath(initialPath);
 
-        // Guard: fail early with a clear message if the file is open in Excel.
-        string? lockError = ExcelFileManager.CheckFileLocked(initialPath);
-        if (lockError is not null) throw new IOException(lockError);
-
         bool resumed = TryMergeSidecar(initialSidecar, state);
         if (resumed)
         {
@@ -151,9 +147,22 @@ public sealed class SessionManager : IDisposable
         {
             // On Windows: try COM first so rows appear live in an open Excel workbook.
             // On non-Windows (or if Excel is not running / file not open): use EPPlus.
+            //
+            // COM attach is attempted BEFORE the file-lock check.  If Excel has the
+            // file open and COM succeeds, there is no lock conflict — rows go directly
+            // into Excel's in-memory workbook.  The lock guard only fires when we fall
+            // back to EPPlus (file-based) because that path requires exclusive access.
+            // Using _outputPath (the fully-pinned path) not initialPath, which may
+            // differ when roll-mode changes the filename during Step B.
             ComExcelAdapter? comAdapter = null;
             if (OperatingSystem.IsWindows())
                 comAdapter = ComExcelAdapter.TryAttach(_outputPath!);
+
+            if (comAdapter is null)
+            {
+                string? lockError = ExcelFileManager.CheckFileLocked(_outputPath!);
+                if (lockError is not null) throw new IOException(lockError);
+            }
 
             _adapter = comAdapter ?? (IExcelAdapter)new XlsxAdapter();
             System.Diagnostics.Debug.WriteLine(
@@ -161,6 +170,9 @@ public sealed class SessionManager : IDisposable
         }
         else
         {
+            // .xls is always file-based (NPOI); check for lock before opening.
+            string? lockError = ExcelFileManager.CheckFileLocked(_outputPath!);
+            if (lockError is not null) throw new IOException(lockError);
             _adapter = new XlsAdapter();
         }
 
