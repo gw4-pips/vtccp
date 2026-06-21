@@ -374,3 +374,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Put the label on one line and the em dash explanatory note below. Keep all other attributes as is.
 
 **Assistant:** Wrapped label and sub-note in a flex-col div — label on first line, em dash note on second line. All other class attributes preserved. Canvas iframe refreshed.
+
+**User:** Just add the em dash following the label and wrap to 2nd line naturally.
+
+**Assistant:** Collapsed to single span — label and em dash note inline, natural text wrap. Canvas iframe refreshed.
