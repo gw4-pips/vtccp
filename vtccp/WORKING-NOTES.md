@@ -986,3 +986,33 @@ Based on Webscan screenshots (user-provided) and prior discussion, CP should ado
 **Access control / password setup** → Level 3.
 
 Full design of the access control UI is pending — screenshots of Webscan's scheme referenced but detailed implementation not yet scoped. DO NOT IMPLEMENT until scoped.
+
+---
+
+## TD: Webscan TruCheck Replica Excel template — 2026-06-21
+
+### Decision log
+- A "Webscan TruCheck Replica" preset will be added at the **bottom** of the Excel Column Options preset list, below all VTCCP-native presets.
+- Layout is **frozen and non-configurable** — column toggles are disabled for this preset; it is rendered exactly as TruCheck exports it, column for column. UI note: *"Layout is fixed to match Webscan TruCheck output. Column selection is not available for this preset."*
+- TruCheck product line is **EOL** — no future firmware changes expected, so the column layout will not drift. No versioning tag required.
+- Webscan TruCheck **does support QR Code** — the replica preset must cover DM, QR, and linear (1D) symbologies. Edge cases: 4-quad DM (2-row symbol layout?), larger-content QR (more codewords, higher version).
+
+### Authoritative source
+Live TruCheck Excel exports are the ground truth for column layout — **not documentation**.
+User to provide live exports for:
+- [ ] Key linear (e.g. Code 128, EAN-13)
+- [ ] Standard DataMatrix (e.g. 16×36)
+- [ ] 4-quad DataMatrix
+- [ ] Standard QR Code (e.g. Version 3, 29×29)
+- [ ] Larger-content QR (higher version, more codewords)
+
+Column mapping work begins only after these exports are received. DO NOT IMPLEMENT column layout until source data arrives.
+
+### Migration import — TD (low priority, easy to offer)
+Offer a future one-time import operation: **"Import data from Webscan TruCheck Excel export into a CP log file."** Mechanism: CP reads a user-selected TruCheck `.xlsx`, maps WTC columns to CP schema, appends (or creates) a CP-format output file. Rows that map cleanly transfer verbatim; fields with no WTC equivalent emit empty.
+
+Surface this option:
+- In the "Open / Import" menu or File menu
+- Possibly as a first-run prompt if CP detects an existing TruCheck file in the default output path
+
+Scope and build only after the WTC column layout is fully mapped from live export data.
