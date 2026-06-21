@@ -1016,3 +1016,24 @@ Surface this option:
 - Possibly as a first-run prompt if CP detects an existing TruCheck file in the default output path
 
 Scope and build only after the WTC column layout is fully mapped from live export data.
+
+---
+
+## TD: Excel column visibility architecture — LOCKED 2026-06-21
+
+### Decision 1 — Column presence model
+**All CP columns are always written to every Excel file.** Presets (Standard, Minimal, QA Audit, WTC Replica, etc.) control column *visibility* (hidden/shown) only — not column presence. A column hidden by the active preset still receives its data value. This means:
+- Data is never silently discarded
+- Switching presets retroactively is possible — just unhide the relevant group
+- No schema migration when a preset changes
+
+### Decision 2 — WTC Replica trailing columns
+In WTC Replica mode, WTC-layout columns appear first in their native order (visible). All CP columns that have no WTC equivalent are appended as **hidden trailing columns** after the last WTC column. These trailing columns use the **same header names as the main CP template** — identical strings, not aliases. Rationale: when an operator later migrates a WTC Replica file to a CP template file, the column headers match exactly and no mapping table is required.
+
+### Decision 3 — Hidden column warning behavior
+When a hidden column receives a **non-null value** for the first time in a session, CP surfaces a **category-level toast/warning** in the application status area (not in Excel). Warning rules:
+- Fires once per category group per session (e.g. "QR Pattern Grades", "Modulation Values", "HTML Scraper fields") — not once per column or per scan
+- Does NOT fire if the field is null/empty (normal for symbology-specific fields on the wrong symbology)
+- Action offered: *"Show [category] columns"* — CP unhides that group in the live file
+- If operator dismisses: suppressed for the remainder of the session
+- **Global override**: a future config UI (Level 2 or Level 3) can offer a persistent setting — "Always warn / Never warn / Warn once per session (default)". Until that config UI exists, per-session suppression is the only option.
