@@ -945,3 +945,44 @@ Defaults shown below; operator-configurable via Data Logging Paths screen.
 ### DMST-managed paths (CP cannot change)
 - DMST PNG + HTML saves: `%USERPROFILE%\Documents\{DeviceName}\CodeQuality\{timestamp}.*`
 - CP filesystem watcher monitors this path; does not write to it.
+
+---
+
+## CP File Path Architecture — REVISED 2026-06-21 (ProgramData decision)
+
+**Decision**: Primary configuration location is `%ProgramData%\VCCS\CommandPilot\` — NOT `%AppData%`.
+
+### Rationale
+Verification lab workstations are shared across multiple operators. `%AppData%` is per-user-isolated — operator A's job templates would be invisible to operator B. `%ProgramData%` is machine-wide and shared across all Windows user accounts on that PC, which is correct for a shared instrument. This is NOT old school — it is the Microsoft-recommended location for machine-wide application data (Vista+). Webscan's use of ProgramData was architecturally correct for the same reason.
+
+### Revised path layout
+
+| Item | Path | Notes |
+|---|---|---|
+| Job templates | `%ProgramData%\VCCS\CommandPilot\JobTemplates\` | Shared across all operators on this machine |
+| Device profiles | `%ProgramData%\VCCS\CommandPilot\Devices\` | Machine-specific (GigE IP, device config) |
+| File name format templates | `%ProgramData%\VCCS\CommandPilot\FileNameTemplates\` | Global, shared |
+| Output path config | `%ProgramData%\VCCS\CommandPilot\Settings\Paths.json` | Machine-level; points at server share in enterprise |
+| Factory defaults (read-only) | `%ProgramFiles%\VCCS\CommandPilot\Templates\` | Ships with installer; never written by CP |
+| Per-user preferences | `%AppData%\VCCS\CommandPilot\UserPrefs\` | Window layout, recent files only |
+| Output files | Configurable (default local; enterprise = UNC share) | Path stored in Paths.json above |
+
+### Enterprise output path
+In an enterprise environment, `Paths.json` output paths point at a UNC network share (e.g. `\\QA-SERVER\VerifLogs\`). CP does NOT restrict the path — operator can point anywhere they have write access. Access CONTROL (who can change the path) is handled by the password tier system (see below), not by the app enforcing a fixed location.
+
+### Multi-level password protection — gating for path settings
+Based on Webscan screenshots (user-provided) and prior discussion, CP should adopt a similar multi-tier access scheme:
+
+| Tier | Role | What they can do |
+|---|---|---|
+| 0 — Operator | Day-to-day scanning | Scan, view results, select pre-loaded job template |
+| 1 — Supervisor | Job management | Run jobs, load/select templates, view logs |
+| 2 — QA Manager | Configuration | Edit templates, configure output paths, device profiles |
+| 3 — Admin | Full control | Password management, factory reset, installer-level config |
+
+**Data Logging Paths screen** → Level 2 minimum.
+**Excel Column Options screen** → Level 1 or 2 (TBD — whether operators adjust log columns).
+**Device configuration screen** → Level 2.
+**Access control / password setup** → Level 3.
+
+Full design of the access control UI is pending — screenshots of Webscan's scheme referenced but detailed implementation not yet scoped. DO NOT IMPLEMENT until scoped.
