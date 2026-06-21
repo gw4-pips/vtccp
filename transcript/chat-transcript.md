@@ -300,3 +300,8 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **Assistant:** Confirmed transcript is healthy (297 lines, all recent turns present). Noted script-viewer workflow is in failed state (port 24071 conflict); offered to restart.
 
 ---
+**User:** Was previewing the new Data Logging cards. Will review in more detail next time. Signing off.
+
+**Assistant:** Good night. Mockup cards saved and ready for next review session.
+
+---
