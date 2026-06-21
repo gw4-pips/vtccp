@@ -384,10 +384,12 @@ export function ExcelColumnOptions() {
               onChange={e => setIsWtcReplica(e.target.checked)}
               className="accent-[#b45309] w-3.5 h-3.5 shrink-0"
             />
-            <span className="text-[12px] font-medium text-[#333]">Webscan TruCheck Replica layout</span>
-            <span className="text-[11px] text-[#888] ml-1">
-              — fixed column order matching TruCheck export; column selection disabled
-            </span>
+            <div className="flex flex-col">
+              <span className="text-[12px] font-medium text-[#333]">Webscan TruCheck Replica layout</span>
+              <span className="text-[11px] text-[#888]">
+                — fixed column order matching TruCheck export; column selection disabled
+              </span>
+            </div>
           </label>
 
           {showSaveAs && (

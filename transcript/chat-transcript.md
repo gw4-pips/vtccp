@@ -370,3 +370,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Why the solid black box at the start of the option label?
 
 **Assistant:** Removed the ⬛ emoji from the WTC Replica checkbox label — it was carried over from the dropdown option and isn't needed on a dedicated row. Canvas iframe refreshed.
+
+**User:** Put the label on one line and the em dash explanatory note below. Keep all other attributes as is.
+
+**Assistant:** Wrapped label and sub-note in a flex-col div — label on first line, em dash note on second line. All other class attributes preserved. Canvas iframe refreshed.
