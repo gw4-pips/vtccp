@@ -2,6 +2,7 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/fileformat/DataLoggingPaths.tsx": () => import("../components/mockups/fileformat/DataLoggingPaths.tsx"),
+  "./components/mockups/fileformat/ExcelColumnOptions.tsx": () => import("../components/mockups/fileformat/ExcelColumnOptions.tsx"),
   "./components/mockups/fileformat/FileNameFormatBuilder.tsx": () => import("../components/mockups/fileformat/FileNameFormatBuilder.tsx"),
   "./components/mockups/grading/GradingStandards.tsx": () => import("../components/mockups/grading/GradingStandards.tsx")
 };

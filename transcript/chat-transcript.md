@@ -305,3 +305,8 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **Assistant:** Good night. Mockup cards saved and ready for next review session.
 
 ---
+**User:** Asked whether a UI for the Excel data logging component has been built; wants it resurfaced as a similar-looking card with its own unique controls, while preparing comments on Install Paths.
+
+**Assistant:** Confirmed no dedicated Excel column options UI existed — DataLoggingPaths had only a minimal path/filename row. Read TruCheckCompatibleSchema.cs (167 columns across Blocks A–J). Built ExcelColumnOptions.tsx mockup with unique controls: accordion group list (10 blocks A–J, each with block-level checkbox showing all/none/indeterminate state, column count, selected count, per-block All/None quick buttons, expand to show individual column checkboxes in 3-column grid with tinted background per block); File Behavior section (New file each session / Append / New file each day + Freeze header rows + Hide all-blank columns after write); Column Preset dropdown (All Columns / Summary Only / 1D Focus / 2D Focus / GS1 Aerospace + Save As user presets); status bar showing total columns selected and blocks active. Placed as new iframe on canvas below DataLoggingPaths.
+
+---
