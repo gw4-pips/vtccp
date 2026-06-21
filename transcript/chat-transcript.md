@@ -366,3 +366,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Let's go with Option 2 (dedicated toggle row).
 
 **Assistant:** Implemented Option 2 — WTC Replica moved from hidden dropdown option to a dedicated always-visible checkbox row directly below the Column Preset dropdown. Unchecked: row shows with subtle grey border. Checked: row highlights amber, preset dropdown disables, Save As/All/None buttons disable, column accordion greys out, status bar and notice banner activate. Canvas iframe refreshed.
+
+**User:** Why the solid black box at the start of the option label?
+
+**Assistant:** Removed the ⬛ emoji from the WTC Replica checkbox label — it was carried over from the dropdown option and isn't needed on a dedicated row. Canvas iframe refreshed.
