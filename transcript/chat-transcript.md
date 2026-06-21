@@ -277,4 +277,12 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 **Assistant:** Read complete document in three passes. Wrote comprehensive reference to vtccp/references/standards/iso-15424-symbology-identifiers.md — full code character table (Table 1), all 29 modifier tables, GS1 cross-reference, device-confirmed identifiers table, Annex B (emulation), Annex C (normative references per symbology). Key clarification logged: ]Q1 = "ECI not implemented as non-default override" — ISO/IEC 15424 §4 defines \000003 (Latin-1) as the DEFAULT ECI interpretation. Device emitting ]Q1 when DMST shows ECI=000003 is correct firmware behaviour; \000003 is the implicit default, not an explicit ECI escape in the symbol. Prior interpretation ("modifier=1 encodes ECI presence") was imprecise — corrected in the reference doc.
 
+**User:** Provided ATA CSDD TEI (Text Element Identifiers) aerospace parts traceability document.
+
+**Assistant:** Wrote vtccp/references/standards/ata-csdd-tei-aerospace.md — full TEI code table (MFR/PNO/SER/SEQ/UCN/LOT/ECI/NST/OEI/OPN/BPN/REV), ISO 15434 encoding, MFR CAGE code context. Flagged ECI naming collision (TEI "Export Control Indicator" vs barcode "Extended Channel Interpretation" — unrelated). Flagged ISO15434Parser.cs has no TEI branch — gap for aerospace scope.
+
+**User:** [Session plan shared] Let's knock out: SymbologyId schema column + architecture docs (image-capture-pipeline.md + http-subscriber-spec.md).
+
+**Assistant:** All three complete. (1) SymbologyId: added Col("SymbologyId", "AIM ID", 8, Universal) to TruCheckCompatibleSchema.cs after Symbology — ExcelEngine build clean. (2) vtccp/architecture/image-capture-pipeline.md: four-level image stack (L0 DMST PNG / L1 barcode crop push XML / L2 ROI IMAGE.SEND / L3 SDK full frame), OpticsSource discriminator, OCR source, IMAGE.SIZE scope, JPEG grade-drift warning. (3) vtccp/architecture/http-subscriber-spec.md: port 44444 multiplexing, five endpoints, result flow diagram, C# entry points, DMST coexistence, trigger independence, three-path comparison table. Version bumped 1.3.3 → 1.3.4.
+
 ---

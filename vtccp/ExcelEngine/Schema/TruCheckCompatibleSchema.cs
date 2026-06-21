@@ -49,6 +49,7 @@ public static class TruCheckCompatibleSchema
         cols.Add(Col("CompanyName",    "Company",         12, SymbologyGroup.Universal));
         cols.Add(Col("ProductName",    "Product",         12, SymbologyGroup.Universal));
         cols.Add(Col("Symbology",      "Symbology",       12, SymbologyGroup.Universal));
+        cols.Add(Col("SymbologyId",   "AIM ID",           8, SymbologyGroup.Universal));
         cols.Add(Col("DecodedData",    "Data",            30, SymbologyGroup.Universal));
         cols.Add(Col("FormalGrade",    "Formal Grade",    14, SymbologyGroup.Universal));
         cols.Add(Col("OverallLetter",  "ANSI Letter Grade", 6, SymbologyGroup.Universal));
