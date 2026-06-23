@@ -1051,7 +1051,7 @@ When a hidden column receives a **non-null value** for the first time in a sessi
 | Grading standard | ISO 15415 / ISO 15416 | Combined 2D+1D standard selection |
 | Lighting | 45° | Locked/implied by ISO 15415/15416 standard selection — device restricts to 45Q automatically |
 | Aperture | 50 / 80 | Dual-aperture (TBD which aperture per symbol type or operator choice) |
-| Batch Number (user field) | Device name | Ties the challenge record to the specific unit being validated |
+| Batch Number (user field) | TBD | DeviceName already captured in Block A — Batch purpose for conformance challenge TBD |
 | Custom Note | "Post-calibration Conformance Challenge" | Fixed string — identifies the record type in log |
 
 ### TBD items
