@@ -386,3 +386,31 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** A break for me...
 
 **Assistant:** Session paused. Transcript and canvas are up to date.
+
+**User:** Incidental request — at the device physically. Please search DMST docs for how to rename the device.
+
+**Assistant:** DMCC command confirmed: `||>SET DEVICE.NAME "name"` then `||>CONFIG.SAVE`. Noted there is no DMCC console in DMST documented — use Telnet port 23 or PuTTY Raw mode. Clarified the `||>` prefix is mandatory on all port-23 commands (silently ignored without it). Confirmed local echo in Windows Telnet: Ctrl+] → `set localecho` → Enter. PuTTY Raw mode with "Force local echo on" is easier.
+
+**User:** Needed to reset LIVEIMG.MODE.
+
+**Assistant:** Provided `||>SET LIVEIMG.MODE 0` + `||>CONFIG.SAVE`. Later clarified: LIVEIMG.MODE (0=disable, 2=enable) controls the live feed, NOT the post-verification TC panel image — I initially misdirected. Error [101] on that device likely means "not available." Real fix for blank post-verification image is CONFIG.DEFAULT (same as LBL verifier fix). Recommended diagnosing DATA.IMAGE-TYPE, DATA.RESULT-TYPE, LIVEIMG.MODE first.
+
+**User:** Can we clone settings from LBL unit to DPM verifier?
+
+**Assistant:** Yes via DMST File → Load Settings from File. Critical caveats: field calibration data is unit-specific and MUST be redone after cross-device restore; device name, camera mirror settings (LBL=H+V, DPM=V only), aperture/wavelength/lighting may differ.
+
+**User:** Only vertical mirror is flipped on DPM verifier.
+
+**Assistant:** Noted. After LBL backup restore: `||>SET CAMERA.MIRROR-HORIZONTAL OFF` + `||>CONFIG.SAVE`.
+
+**User:** Restored out-of-box backup. Device name not overwritten — likely separate NVRAM partition. Recalibrating now, will set other settings and create fresh backup.
+
+**Assistant:** Provided full post-restore DMCC + DMST configuration checklist for out-of-box state.
+
+**User:** Aside — Cognex verif engineer recommends saving full images as BMP not JPEG (JPEG inherently lossy). Real question: what format does device use to internally grade?
+
+**Assistant:** Device grades from raw sensor data before any JPEG encoding — JPEG output is post-grade display artefact. BMP/lossless advice applies specifically to IMAGE.LOAD re-grading: if archived as JPEG, re-grade operates on JPEG-artifact-corrupted data → possible grade drift. PNG is equivalent to BMP (both lossless) but far smaller. Confirms our D4 architecture lossless archival decision.
+
+**User:** Please log a CP verifier config preset for post-calibration conformance challenge (ISO 15415/15416, 45° lighting locked, aperture 50/80, batch=device name, custom note="Post-calibration Conformance Challenge").
+
+**Assistant:** Logged in WORKING-NOTES.md as TD with known settings table, TBD items, and architecture notes (requires DMCC write, device config feature dependency, offer config restore after session).

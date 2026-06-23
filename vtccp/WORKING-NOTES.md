@@ -1037,3 +1037,33 @@ When a hidden column receives a **non-null value** for the first time in a sessi
 - Action offered: *"Show [category] columns"* — CP unhides that group in the live file
 - If operator dismisses: suppressed for the remainder of the session
 - **Global override**: a future config UI (Level 2 or Level 3) can offer a persistent setting — "Always warn / Never warn / Warn once per session (default)". Until that config UI exists, per-session suppression is the only option.
+
+---
+
+## TD: CP Verifier Config Preset — Post-Calibration Conformance Challenge (LOGGED 2026-06-21)
+
+**Concept**: CP offers a one-click verifier configuration preset that sets the device into a standardised state for running a post-calibration conformance challenge on a 2D symbol (e.g. NIST/ISO reference target).
+
+### Known required settings
+
+| Setting | Value | Notes |
+|---|---|---|
+| Grading standard | ISO 15415 / ISO 15416 | Combined 2D+1D standard selection |
+| Lighting | 45° | Locked/implied by ISO 15415/15416 standard selection — device restricts to 45Q automatically |
+| Aperture | 50 / 80 | Dual-aperture (TBD which aperture per symbol type or operator choice) |
+| Batch Number (user field) | Device name | Ties the challenge record to the specific unit being validated |
+| Custom Note | "Post-calibration Conformance Challenge" | Fixed string — identifies the record type in log |
+
+### TBD items
+- Additional DMCC settings locked by the standard selection (confirm from device)
+- Whether aperture is operator-selectable (50 vs 80) or both required in sequence
+- Any required symbology enables/disables for conformance challenge
+- Whether a specific reference target (part number / lot) should be logged
+- Whether CP should enforce a minimum number of repeat scans before accepting the session as a valid conformance record
+
+### Architecture notes
+- This preset writes DMCC settings to the device (not just CP UI state) — it is a full device configuration operation, not just a log-format preset
+- Requires DMCC write capability in CP (already planned via raw TCP port 23)
+- After the challenge session ends, CP should offer to restore the previous device config (or leave it to the operator)
+- Blocked by: Device Config feature (DMST TC window screenshots required — see LOGGED FEATURE PLAN 2026-05-25)
+
