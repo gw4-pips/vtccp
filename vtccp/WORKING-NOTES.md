@@ -1327,3 +1327,59 @@ read-time operation, not a stored image — reducing per-scan storage by one ima
 
 **Not implementing until instructed** — log only.
 
+
+---
+
+## Scan #18 — QR IMAGE.LOAD Grade A, DPM device, new pre-release firmware (2026-06-24)
+
+**Device**: DM475-DPM-866D76-VCCS-Verif-Lab (DM475V-DPM unit)
+**Firmware**: Pre-release (version TBD — not yet queried)
+**Push script**: v1.37 confirmed (`<PushScriptDiag>v1.37 q=r.trucheck m=found</PushScriptDiag>`)
+**Symbol**: QR 29×29 (Version 3), IMAGE.LOAD, `CustomNote: 'Post-calibration Conformance Challenge'`
+**Decoded**: `0e95e424-3a33-eb11-a816-001dd80187c1` (GUID, byte mode)
+**OverallGrade**: A (all parameter grades A; VIBGrade=`'-'`)
+**GradingStandard**: `ISO 29158:2025 (AIM-DPM)` ← NEW 2025 EDITION (previously 2024 max observed)
+**OpticsSource**: `LoadedImage` (CU=-1, MRD=-1 confirmed)
+**JpegImageBase64**: 19,580 chars — JPEG present and correct
+
+### barcodeAssignment — RESOLVED 2026-06-24
+
+`DebugBarcodeAssignment: 'result=-1;stats=[obj];'` on this Grade A scan.
+
+Combined with scan #16 (Grade F DM, `result=-1` no stats):
+- **`result=-1` is grade-independent** — confirmed device-config sentinel: "no barcode assignment rule configured on this device." NOT a decode or grade signal.
+- **`stats=[obj]`** present here (Grade A QR IMAGE.LOAD) and in v1.36 scan #17, but ABSENT in scan #16 (Grade F DM live). Tentative pattern: `stats` correlates with QR symbology or IMAGE.LOAD scans, not with grade. v1.38 probe still needed to enumerate `stats` sub-keys.
+
+### NEW field — `FactoryCalibrated`
+
+`FactoryCalibrated: 'false'` — new field in pre-release firmware push XML.
+Not previously seen (only `FieldCalibrated` existed before). Not yet in `VerificationXmlMap` or `VerificationRecord`. **Do not implement until instructed** — log only.
+
+### No-image in CP — gap confirmed, not a firmware regression
+
+`JpegImageBase64` is present and correct (19,580 chars). Firmware is working normally.
+The no-image display is a CP gap: `JpegImageBase64` is only wired to OCR in
+`SessionViewModel` (line 717). No `BitmapImage` / `ImageSource` binding exists in
+`SessionView.xaml` or `SessionViewModel` for displaying it as a post-scan panel image.
+LiveFeedViewModel and StitchingViewModel both have image display; the main session
+result view does not. Feature gap — not yet implemented, not a regression.
+
+### ISO 29158:2025 (AIM-DPM) — new edition
+
+First observation of 2025 edition. Prior: 2024 max. Parser echoes whatever device
+reports — no code change needed. DPM device applies ISO 29158 to ALL scans including QR.
+
+### Other field readings
+
+| Field | Value | Notes |
+|---|---|---|
+| QR grades | All A | ULP/URP/LLP/HCT/VCT/ALP=A, VIBGrade='-', FIBGrade=A |
+| SymbologyId | `]Q1` | Consistent |
+| ANUPercent | 1.305032730102539 | Raw value; no ÷100 issue |
+| EncodedCharacters | 39 | v1.37 eaLen fallback; unchanged |
+| DataCodewords | '' | Still empty — bug #5 |
+| ErrorCorrectionBudget | '' | Still empty — bug #6 |
+| FactoryCalibrated | 'false' | NEW FIELD — not yet parsed |
+| FieldCalibrated | 'false' | Consistent |
+| DateTime | 2026-06-23T22:32:33 | Device RTC off by ~1 day |
+

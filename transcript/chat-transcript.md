@@ -482,3 +482,15 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Grade F does NOT mean no decode — it means one or more grading parameters failed threshold. Symbol was decoded fine on scan #16. Will provide both Grade F and Grade A from the same symbol.
 
 **Assistant:** Correction acknowledged. Fixed two places in WORKING-NOTES.md: result=-1 interpretation changed from "decode failed" to "not yet established." Two candidate interpretations now documented: (1) device-config sentinel, grade-independent; (2) tracks grade/grading outcome. A/B comparison (same symbol, Grade F vs Grade A, same device/firmware) will distinguish them. Standing by for results.
+
+---
+
+**User:** [Attached push XML, scan #18] QR IMAGE.LOAD Grade A on DPM unit with new pre-release firmware. Says "no post verif image" not seen on LBL unit. Also "You always forget" re: push XML being one line.
+
+**Assistant:** Full XML parsed via Python. Key findings: (1) JpegImageBase64 present (19,580 chars) — firmware working; no-image is a CP gap: JpegImageBase64 only wired to OCR in SessionViewModel, no BitmapImage binding in SessionView. Feature not yet implemented. (2) barcodeAssignment result=-1 on Grade A → CONFIRMED grade-independent device-config sentinel. stats=[obj] present on QR/IMAGE.LOAD, absent on DM live — v1.38 stats sub-key probe still needed. (3) NEW firmware field: FactoryCalibrated='false' — not in parser or model, log only. (4) GradingStandard ISO 29158:2025 (AIM-DPM) — first 2025 edition observation; DPM device applies ISO 29158 to all scans including QR. MEMORY NOTE: push XML is always one line — do not use read tool alone; always parse via bash/python.
+
+---
+
+**User:** [Session Plan dump] — Full project status doc from v1.29 through scan #18 findings. No explicit action requested.
+
+**Assistant:** Received and processed. Context reloaded. Awaiting specific instruction.
