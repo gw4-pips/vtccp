@@ -1176,7 +1176,14 @@ VERIFY (trigger one canonical scan):
 
 The VERIFY step serves operator intent: stop the continuous viewfinder to freeze the label in a known position, then fire a clean deliberate capture. This distinguishes a QA-grade verification record from a random frame from the continuous viewfinder cycle.
 
-**⚠ UNCONFIRMED — ONE PROBE NEEDED**: When TRIGGER.TYPE=4 is active, do the self-triggered scans produce full HTTP subscriber events (PUT /codes.xml + PUT /pcm_report.html)? Strong expectation yes — TruCheck runs on every decode regardless of trigger source. Needs one test: set TRIGGER.TYPE=4, let it run 3–4 cycles, observe HTTP subscriber output. If confirmed: CP could optionally use continuous-mode scanning without the explicit VERIFY step.
+**⚠ CORRECTED 2026-06-24**: Live view does NOT produce TruCheck verifications. User confirmed: no decode XML generated, no result history entry, no codes.xml event. Live view is frame acquisition for the viewfinder only — camera exposure + display, not a verification cycle. The 3–4 Hz LED flicker is camera acquisition, not TruCheck.
+
+**OPEN PROBE (DMCC GET — trivial, no push script needed)**: While DMST is actively showing the live view feed, from a raw TCP port-23 session run:
+```
+||>GET TRIGGER.TYPE
+||>GET CAMERA.INTERVAL-US
+```
+Whatever the device returns IS the ground truth. This closes the TRIGGER.TYPE=4 hypothesis definitively in one step. Do not assume TRIGGER.TYPE=4 until this GET confirms it.
 
 ### Implication for CP session lifecycle
 
