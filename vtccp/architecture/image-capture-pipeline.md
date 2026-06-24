@@ -87,25 +87,56 @@ DMST does NOT show the full-sensor frame in its TC panel — it shows the L1 cro
 
 ---
 
-### L2 — ROI Frame (IMAGE.SEND)
+### L2 — Full Camera Scene (IMAGE.SEND)
+
+⚠ **Naming correction 2026-06-24**: This level was previously called "ROI Frame". That
+was incorrect. `IMAGE.SEND` returns the **full camera scene** at `IMAGE.SIZE` resolution —
+it is NOT cropped to `DECODER.ROI`. The ROI is a separate concept (see Virtual ROI Crop
+below). The field `RoiJpegImageBase64` in `VerificationRecord` is a legacy name; the content
+is the full scene, not an ROI crop.
 
 | Property | Value |
 |---|---|
 | Source | `IMAGE.SEND` DMCC command, issued after scan via `DeviceSession.GetRoiImageAsync()` |
-| Field in VerificationRecord | `RoiJpegImageBase64` |
+| Field in VerificationRecord | `RoiJpegImageBase64` (legacy name — content is full scene) |
 | Format | JPEG, raw bytes (`GetRoiImageAsync` returns `byte[]`) |
-| Resolution | Operator-configured ROI frame — wider than L1 barcode crop; includes surrounding label area: HRI text, lot numbers, expiry, adjacent symbols |
-| Scale | Controlled by `IMAGE.SIZE` setting: Full (2448×2048) / 1:4 / 1:16 / 1:64 |
+| Resolution | **Full camera scene** at `IMAGE.SIZE` setting: Full (2448×2048) / 1:4=1224×1024 / 1:16 / 1:64 |
+| Scale | Controlled by `IMAGE.SIZE` DMCC setting — confirmed: IMAGE.SIZE=1 (DMST default) → 1224×1024 |
 | Timing | Fetched on demand **after** push result received — separate DMCC round-trip |
 | DMST dependency | None |
 | Trigger dependency | None — buffer persists until next scan |
 | Method | `_client.GetRoiImageAsync()` → `AttachRoiImageAsync()` → `record with { RoiJpegImageBase64 = ... }` |
-| Status | **Implemented** — `GetRoiImageAsync()` and `AttachRoiImageAsync()` in DeviceSession; invocation gated on session config |
+| Status | **Implemented** |
 | Throughput ceiling | ~1.5–2.5 fps sustained (confirmed: LIVEIMG.SEND is dead on all ports/modes) |
 
 **IMAGE.SIZE setting note**: `IMAGE.SIZE` controls IMAGE.SEND output resolution ONLY. It
 does NOT affect the push XML JPEG crop (L1). It does NOT affect DMST PNG save (L0).
 Queried on connect via DMCC GET; stored in `VerificationRecord.ImageSizeSetting`.
+
+---
+
+### L2.ROI — Virtual ROI Crop (Derived, Not Captured)
+
+The **Virtual ROI Crop** is NOT a separately captured image. It is derived by cropping the
+L2 full camera scene to the `DECODER.ROI` coordinates. It is "virtual" in the sense that
+no firmware API produces it directly — it is computed in software after the fact.
+
+| Property | Value |
+|---|---|
+| Source | L2 full camera scene, cropped to `r.image.RoI` coordinates |
+| Coordinates | `r.image.RoI` — confirmed present in r.image 28-key inventory (scan #12, 2026-05-24) |
+| DMCC key | `DECODER.ROI` — SET/GET, format: `{left} {right} {top} {bottom}` in sensor pixel space |
+| Scale note | At IMAGE.SIZE=1 (1224×1024), DECODER.ROI coords are in sensor space (2448×2048) → scale by 0.5 to map to IMAGE.SEND pixel space |
+| Status | Not yet implemented — concept logged 2026-06-24 |
+| Use case | Provides a tighter view than the full L2 scene while preserving HRI and surrounding label context; useful for OCR of adjacent text |
+
+**PNG metadata opportunity**: If the L2 full frame is saved as PNG, the `DECODER.ROI`
+coordinates (from `r.image.RoI`) can be embedded as PNG `tEXt` metadata chunks at scan time.
+This makes the Virtual ROI Crop reconstructable from the PNG alone, with no additional API
+call at read time. BMP has no equivalent metadata capability.
+
+**Planned evaluation pass**: PNG vs BMP comparison for L2 archival — see WORKING-NOTES.md
+§PNG-vs-BMP evaluation.
 
 **LIVEIMG.SEND is dead**: `LIVEIMG.SEND` returns no data on any port or mode on the
 DM475V. The `svg_image.img` live-view stream is AES-encrypted and not accessible to

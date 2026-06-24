@@ -458,3 +458,15 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **Assistant:** Two distinct issues identified and fixed (v1.37 → v1.3.7):
 1. EthSystemDiscoverer — root cause of all 5 cascade errors. Class does not exist in Cognex.DataMan.SDK namespace in SDK v25.4.1. EthSystemConnector and DataManSystem are present and working. NetworkDiscoverer.cs stubbed to return empty list with debug log; TODO comment added for correct class name. Manual ⊕ Import still fully available.
 2. CA1416 System.Drawing warnings — DeviceInterface (net8.0) and ExcelEngine (net8.0) use Windows-only System.Drawing APIs. Suppressed via NoWarn CA1416 in both .csproj files. VtccpApp already correctly targets net8.0-windows10.0.18362.0. Version bumped to 1.3.7.
+
+---
+
+**User:** Cannot open ILSpy; please write a procedure I can execute. Also: the ROI is not the same as the tightly-cropped JPEG saved with every scan — I think that's L1 vs L0 respectively. L1 is a "virtual image" generatable from the full image and the ROI coordinates. Interesting to explore whether this metadata is embedded in the PNG version saved. Both PNG and BMP are lossless but PNG has metadata that BMP does not. Could we write that metadata to the PNG at the time of each scan? Plan a pass to evaluate PNG vs BMP.
+
+**Assistant:** Three updates made:
+1. SDK DLL inspection procedure written in WORKING-NOTES.md — PowerShell script using System.Reflection (no ILSpy needed); lists all types matching *Discover* and all public types in Cognex.DataMan.SDK namespace.
+2. Image layer model clarified and corrected:
+   - L2 (IMAGE.SEND) is the FULL camera scene, not an ROI crop — naming correction applied to image-capture-pipeline.md and image-stack.md memory.
+   - L2.ROI (Virtual ROI Crop) introduced as new concept: derived by cropping L2 to DECODER.ROI coordinates from r.image.RoI; NOT a separately captured image.
+   - Full layer table: L0=DMST PNG, L1=barcode crop (push XML), L2=full camera scene (IMAGE.SEND), L2.ROI=virtual derived, L3=SDK full frame.
+3. PNG vs BMP evaluation pass logged in WORKING-NOTES.md: PNG tEXt chunks can embed DECODER.ROI coords + scan metadata at save time, making Virtual ROI Crop reconstructable from PNG alone; BMP has no metadata capability; planned probe: IMAGE.FORMAT=2 (PNG) from IMAGE.SEND + tEXt metadata write.

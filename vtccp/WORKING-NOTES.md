@@ -1196,3 +1196,125 @@ Note: `CAMERA.INTERVAL-US` query was sent without `||>` prefix — silently igno
 - No LIVEIMG.SEND needed (confirmed dead on all ports/modes)
 - Restore to 0 on session end — same restore path as existing TRIGGER.TYPE management
 
+
+---
+
+## SDK DLL inspection — PowerShell procedure (2026-06-24)
+
+**Purpose**: Identify the correct Cognex DataMan SDK v25.4.1 discovery class name to
+replace the `EthSystemDiscoverer` stub in `NetworkDiscoverer.cs`.
+`EthSystemDiscoverer` does not exist in the v25.4.1 DLL; correct class name unknown.
+
+**Requirements**: Windows PowerShell 5.1 or PowerShell 7+ (both ship with Windows 10/11).
+No third-party tools required.
+
+### Step 1 — Open PowerShell
+
+Press `Win+R`, type `powershell`, press Enter.
+
+### Step 2 — Run the inspection script
+
+Copy and paste the following block into the PowerShell window, then press Enter:
+
+```powershell
+$dll = "C:\Program Files (x86)\Cognex\DataMan\DataMan Software v25.4.1\Cognex.DataMan.SDK.PC.dll"
+$asm = [System.Reflection.Assembly]::LoadFile($dll)
+
+Write-Host "`n=== Types matching *Discover* ===" -ForegroundColor Cyan
+$asm.GetTypes() | Where-Object { $_.Name -like "*Discover*" } | Select-Object -Expand FullName
+
+Write-Host "`n=== All public types in Cognex.DataMan.SDK ===" -ForegroundColor Cyan
+$asm.GetTypes() | Where-Object { $_.Namespace -eq "Cognex.DataMan.SDK" } |
+    Select-Object -Expand FullName | Sort-Object
+```
+
+### Step 3 — Read the output
+
+The first block lists any type whose name contains "Discover" — the discovery class will
+appear there if it exists in this DLL. The second block lists every public type in the
+`Cognex.DataMan.SDK` namespace — scan for anything related to network scanning, discovery,
+or system enumeration.
+
+### Step 4 — Report back
+
+Paste the full output here. Once the correct class name is confirmed, the stub in
+`NetworkDiscoverer.cs` will be replaced with the real implementation (one pass, ~20 lines).
+
+**If the DLL path is different** (e.g. different version directory), adjust `$dll` on line 1.
+To list all Cognex DLLs available on the machine, run first:
+```powershell
+Get-ChildItem "C:\Program Files (x86)\Cognex" -Recurse -Filter "*.dll" |
+    Where-Object { $_.Name -like "*DataMan.SDK*" } | Select-Object FullName
+```
+
+---
+
+## Image layer model — clarification 2026-06-24
+
+### Correction: L2 (IMAGE.SEND) is the full camera scene, NOT the ROI frame
+
+`IMAGE.SEND` returns the **full camera scene** at `IMAGE.SIZE` resolution. It is not
+cropped to `DECODER.ROI`. The field name `RoiJpegImageBase64` in `VerificationRecord` is a
+legacy misnomer — the content is the full scene. `image-capture-pipeline.md` L2 section
+corrected accordingly.
+
+### Image layer model (authoritative, 2026-06-24)
+
+| Level | Name | Source | Content | Captured? |
+|---|---|---|---|---|
+| L0 | DMST Native PNG | DMST filesystem save | Full sensor frame (2448×2048), lossless | DMST-triggered scans only |
+| L1 | Barcode crop | Push XML `JpegImageBase64` | Firmware-generated tight crop around symbol only (~200–600 px) | Every scan, automatically |
+| L2 | Full camera scene | `IMAGE.SEND` DMCC | Full camera frame at `IMAGE.SIZE` resolution (e.g. 1224×1024 at SIZE=1) | On demand, CP-triggered |
+| L2.ROI | Virtual ROI crop | L2 cropped to `DECODER.ROI` | Operator-defined scan region — wider than L1, tighter than L2 | **Virtual** — derived in software |
+| L3 | Full sensor frame | SDK `GetResultImage()` | 2448×2048 full sensor | D4 scope |
+
+**Key distinction (user-confirmed 2026-06-24)**:
+- L1 (barcode crop) is the **firmware-generated bounding box** around the symbol only —
+  equivalent to what DMST shows in the verification panel crop. This is a fixed firmware
+  output; CP has no control over its extent.
+- L2.ROI (Virtual ROI crop) is the **operator-configured scan region** (DECODER.ROI) —
+  always larger than L1; includes surrounding HRI text, lot number, expiry date, etc.
+  It does NOT exist as a separately-captured image anywhere in the firmware output.
+  It is derived by cropping L2 (or L3) to the `r.image.RoI` coordinates.
+
+### Virtual ROI Crop — derivation at any time
+
+The ROI coordinates are available from two sources:
+- `r.image.RoI` — embedded in every push result (confirmed: 28-key r.image inventory, scan #12)
+- `DECODER.ROI` DMCC GET — queryable at any time
+
+To construct the Virtual ROI Crop:
+1. Obtain L2 full camera scene (IMAGE.SEND)
+2. Scale DECODER.ROI sensor-space coords to IMAGE.SIZE pixel space (factor 0.5 at SIZE=1)
+3. Crop L2 to scaled ROI rect → Virtual ROI Crop
+
+### PNG vs BMP — planned evaluation pass
+
+`IMAGE.SEND` currently delivers JPEG bytes. For L2 archival, the question is JPEG vs
+lossless (PNG or BMP). The user has noted:
+
+| Property | PNG | BMP |
+|---|---|---|
+| Lossless | ✓ | ✓ |
+| Compression | ✓ (typical 30–60% smaller than BMP for grayscale scanner images) | ✗ (raw pixels) |
+| Metadata support | ✓ `tEXt` / `iTXt` chunks — arbitrary key-value pairs | ✗ (no standard metadata) |
+| Ecosystem | Universal | Universal |
+| Decode complexity | Minor decompression overhead | Trivial |
+
+**Key opportunity**: PNG `tEXt` metadata chunks can embed `DECODER.ROI` coordinates
+(from `r.image.RoI`), scan timestamp, device name, grade letter, and any other
+`VerificationRecord` field — all in the same file as the pixel data. This makes the
+**Virtual ROI Crop reconstructable from the PNG alone** at any future time, with no
+additional database or sidecar file required.
+
+If full-frame archival is saved as PNG + embedded metadata, the L2.ROI is a derived
+read-time operation, not a stored image — reducing per-scan storage by one image level.
+
+**Planned pass** (not yet scheduled): evaluate PNG vs BMP/JPEG for L2 archival:
+- Confirm IMAGE.FORMAT=2 (PNG) returns valid PNG bytes from IMAGE.SEND
+- Measure file size vs JPEG at quality=50 and quality=85
+- Prototype writing ROI coords + scan metadata to PNG tEXt chunks at scan time
+- Confirm round-trip: save PNG → read PNG → crop to embedded ROI coords → verify pixel fidelity
+
+**Not implementing until instructed** — log only.
+
