@@ -1470,3 +1470,62 @@ Device-config sentinel. Passing-scan probe closed — no further investigation n
 Tentative: `stats` correlates with QR symbology. One more DM pass scan would confirm.
 Sub-key enumeration remains a v1.38 candidate but is no longer blocking anything.
 
+
+---
+
+## Scan #21 — QR IMAGE.LOAD Grade F (DECODED), ISO 15415:2011, DPM device (2026-06-24)
+
+**Device**: DM475-DPM-866D76-VCCS-Verif-Lab  
+**GradingStandard**: `ISO 15415:2011`  
+**Symbol**: QR 29×29, IMAGE.LOAD, same GUID — partial degradation (not total failure)  
+**FormalGrade**: 0/F, OverallGrade: F, SymbolQuality: **46** (decoded, partial fail)  
+**DecodedData**: `0e95e424-3a33-eb11-a816-001dd80187c1` — **decode succeeded**  
+**DecodeGrade**: 'A' — decode perfect  
+**DebugBarcodeAssignment**: `result=-1;stats=[obj];` — consistent  
+**JpegImageBase64**: 18,600 chars present  
+**FactoryCalibrated**: 'false'
+
+### Three-way Grade F comparison — decoded F vs total fail F
+
+This scan establishes the critical distinction between:
+- **Scan #20**: total decode failure (no decode, SymbolQuality=0, all grades F)
+- **Scan #21**: decoded but grade F (MOD+RM fail, SymbolQuality=46)
+
+| Field | Scan #19 (A, pass) | Scan #21 (F, decoded) | Scan #20 (F, no decode) |
+|---|---|---|---|
+| SymbolQuality | 100 | 46 | 0 |
+| DecodeGrade | 'A' | 'A' | 'F' |
+| MatrixSize | '29x29' | '29x29' | '' |
+| EncodedCharacters | '39' | '39' | '' |
+| NominalXDim | '21.5 mil' | '21.4 mil' | '' |
+| ErrorsCorrected | '0' | '8' | '' |
+| ErrorCapacityUsed | '0' | '16' | '' |
+| UECGrade | 'A' | **'C'** | 'F' |
+| MODGrade | 'A' | **'F'** | 'F' |
+| RMGrade | 'A' | **'F'** | 'F' |
+| FPDGrade | 'A' | **'D'** | 'F' |
+| ALPGrade | 'A' | **'D'** | 'F' |
+| ULPGrade/URPGrade/LLPGrade | 'A' | 'A' | 'F' |
+| HCTGrade/VCTGrade | 'A' | 'A' | 'F' |
+| **VIBGrade** | **'-'** | **'-'** | **'F'** |
+| FIBGrade | 'A' | 'A' | 'F' |
+| HorizontalBWG | '0' | **'1'** | absent |
+| VerticalBWG | '0' | **'5'** | absent |
+
+### ★ VIBGrade — rule now fully established
+
+- `'-'` = "not applicable" for v1–6 QR (no VIB to grade). Appears on **any decoded scan**, pass OR grade F.
+- `'F'` = total decode failure only (no decode → no grade → 'F' sentinel for all grades).
+- `'-'` does NOT mean "passing VIB." It means the VIB grading parameter does not apply to this version.
+
+### ErrorsCorrected / ErrorCapacityUsed population rule — confirmed
+
+- Populated (non-empty) whenever symbol decodes successfully: `'0'` on clean pass, `'8'`/`'16'` on error-corrected decode.
+- Empty (`''`) only on total decode failure (scan #20).
+- Aligns with expected behaviour: these fields require a successful decode to compute.
+
+### DataCodewords / ErrorCorrectionBudget — still empty
+
+Both still `''` on this scan (decoded, non-trivial error correction). Confirms these remain
+unresolvable from push XML. C# table lookup (bug #5/#6) still required.
+
