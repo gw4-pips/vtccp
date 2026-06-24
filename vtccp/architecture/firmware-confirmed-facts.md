@@ -1040,3 +1040,85 @@ crop — eliminating the on-connect DMCC round-trip.
 
 Design rule (user-confirmed): "The barcode crop is not sufficient except in rare circumstances where the HRI is canonically associated with the symbol, such as UPC/EAN."
 
+
+---
+
+## §11 — FTP Subsystems (DMCC Reference, confirmed 2026-06-24)
+
+Source: DMCC reference `Communication.overview.htm`, all FTP detail pages.
+
+### FTP-IMAGE — per-scan image push to external FTP/SFTP server
+
+Content hypothesis (Glenn Reuss, Cognex chief eng, 2026-06-24): FTP-IMAGE delivers whatever `IMAGE.FORMAT` and `IMAGE.SIZE` are set to — i.e., the full-frame acquisition (not the ROI crop). This makes it fundamentally different from `JpegImageBase64` in codes.xml (always ROI crop, always JPEG, no configuration knobs). **ONE PROBE NEEDED** to confirm: enable FTP-IMAGE pointing at FileZilla, run one scan, check file dimensions.
+
+| DMCC Key | Type | Notes |
+|---|---|---|
+| `FTP-IMAGE.ENABLE` | SET/GET bool ON/OFF | Platforms: all Ethernet readers |
+| `FTP-IMAGE.IP-ADDRESS` | SET/GET string | FTP server IP |
+| `FTP-IMAGE.PORT` | SET/GET int | Server port |
+| `FTP-IMAGE.USER-NAME` | SET/GET string | Login credential |
+| `FTP-IMAGE.PASSWORD` | SET/GET string | Login credential |
+| `FTP-IMAGE.SERVER-TYPE` | SET/GET enum | FTP or SFTP; SFTP confirmed DM380/390/580/590/8700; DM475V TBD |
+| `FTP-IMAGE.FILE-NAME` | SET/GET string | Static filename |
+| `FTP-IMAGE.CUSTOM-FILE-NAME` | SET/GET bool | ON = device auto-names; OFF = server names |
+| `FTP-IMAGE.FILE-NAME-USE-SCRIPT` | SET/GET bool | Script-generated filename |
+| `FTP-IMAGE.SERVER-PATH` | SET/GET string | Directory on server |
+| `FTP-IMAGE.SERVER-PATH-SCRIPT` | SET/GET string | Load/get script for path naming |
+| `FTP-IMAGE.SERVER-PATH-SCRIPT-ERROR` | GET string | Script error message |
+| `FTP-IMAGE.MAX-APPEND` | SET/GET int | Max auto-increment suffix value |
+| `FTP-IMAGE.MAX-APPEND-START-VALUE` | SET/GET int | Initial increment value |
+| `FTP-IMAGE.IDLE-LIMIT` | SET/GET | Max idle connections |
+| `FTP-IMAGE.IDLE-TIME` | SET/GET | Keepalive duration |
+| `FTP-IMAGE.SERVER-FINGERPRINT` | SET/GET string | SFTP host key verification |
+
+### FTP-PCM-REPORT — per-scan HTML report push
+
+Content: `pcm_report.html` — identical to `PUT /pcm_report.html` already received via HTTP subscriber. **No delta value for CP** — we already have this channel. Relevant for standalone installations where CP is not running.
+
+Key commands: `FTP-PCM-REPORT.ENABLE`, `FTP-PCM-REPORT.IP-ADDRESS` (via "Set the PCM Report FTP server"), `FTP-PCM-REPORT.PORT`, `FTP-PCM-REPORT.USER-NAME`, `FTP-PCM-REPORT.PASSWORD`, `FTP-PCM-REPORT.SERVER-TYPE`, `FTP-PCM-REPORT.FILE-NAME`, `FTP-PCM-REPORT.CUSTOM-FILE-NAME`, `FTP-PCM-REPORT.FILE-NAME-USE-SCRIPT`, `FTP-PCM-REPORT.IDLE-LIMIT`, `FTP-PCM-REPORT.IDLE-TIME`, `FTP-PCM-REPORT.MAX-APPEND`, `FTP-PCM-REPORT.MAX-APPEND-START-VALUE`, `FTP-PCM-REPORT.SERVER-FINGERPRINT`.
+
+### FTP-RESULT — formatted decode result string push
+
+Content: Data Formatting template output string. Subset of codes.xml. Less useful than codes.xml for CP. `FTP-RESULT.APPEND` controls append vs overwrite on server file.
+
+Key commands: `FTP-RESULT.ENABLE`, `FTP-RESULT.IP-ADDRESS`, `FTP-RESULT.PORT`, `FTP-RESULT.USER-NAME`, `FTP-RESULT.PASSWORD`, `FTP-RESULT.SERVER-TYPE`, `FTP-RESULT.FILE-NAME`, `FTP-RESULT.APPEND`, `FTP-RESULT.IDLE-LIMIT`, `FTP-RESULT.IDLE-TIME`, `FTP-RESULT.SERVER-FINGERPRINT`.
+
+### CONFIG-BACKUP — device configuration backup
+
+Not a scan result delivery mechanism. Pushes .dmb config backup file to FTP/SFTP server. Relevant for NVRAM-corruption disaster recovery. Keys: `CONFIG-BACKUP.IP-ADDRESS`, `CONFIG-BACKUP.PORT`, `CONFIG-BACKUP.USER-NAME`, `CONFIG-BACKUP.PASSWORD`, `CONFIG-BACKUP.SERVER-FINGERPRINT`.
+
+---
+
+## §12 — TRIGGER.TYPE Full Mode Table (DMCC Reference, confirmed 2026-06-24)
+
+Source: DMCC reference `TRIGGER.TYPE` detail page (`idp10154189968.htm`), confirmed 2026-06-24.
+
+| Value | Name | Class | Relevant for CP |
+|---|---|---|---|
+| 0 | Single | External | **CP idle/verify state — always restore to this** |
+| 1 | Presentation | Internal | Motion-detect auto-trigger. NOT the live view mechanism. |
+| 2 | Manual | Button | Physical button. Not relevant for CP. |
+| 3 | Burst | External | Multi-image per trigger. Uses CAMERA.INTERVAL-US. |
+| **4** | **Self** | **Internal** | **NEW — self-triggers at CAMERA.INTERVAL-US. Live view mechanism.** |
+| 5 | Continuous | External | Continuous. Uses CAMERA.INTERVAL-US. |
+
+Platform note: DM80/280/290 supported. DM8000 supports only Presentation and Manual. MX-1000/1502/Mobile support only Manual and Continuous.
+
+### CAMERA.INTERVAL-US
+
+Acquisition interval between successive camera acquisitions, in microseconds. Step size: 250 µs. Supported for: Burst (3), **Self (4)**, Continuous (5).
+
+At 3–4 Hz: 250,000–333,333 µs. **This is the 3–4 Hz live view LED flicker frequency** — device is self-triggering TruCheck scans as DMST viewfinder frames.
+
+### MOTION-DETECTION.ACTIVE
+
+GET-only property (v5.7.0). "Allows checking the current state of motion detection for presentation or **self-internal** trigger mode." Covers TRIGGER.TYPE=1 (Presentation) AND TRIGGER.TYPE=4 (Self). Both modes share the motion-detection hardware path.
+
+### CP live view state machine (user-confirmed 2026-06-24)
+
+- **Cancel live view**: `SET TRIGGER.TYPE 0`
+- **VERIFY (trigger one canonical scan)**: `SET TRIGGER.TYPE 0` + `TRIGGER ON`
+- **Enter live view**: `SET TRIGGER.TYPE 4` + `SET CAMERA.INTERVAL-US 333333`
+
+⚠ **UNCONFIRMED**: Whether TRIGGER.TYPE=4 self-triggered scans produce full HTTP subscriber events (codes.xml + pcm_report.html). Probe needed — set TRIGGER.TYPE=4, observe HTTP subscriber output for 3–4 cycles.
+

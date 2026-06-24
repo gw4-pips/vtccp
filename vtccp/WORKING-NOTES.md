@@ -1067,3 +1067,122 @@ When a hidden column receives a **non-null value** for the first time in a sessi
 - After the challenge session ends, CP should offer to restore the previous device config (or leave it to the operator)
 - Blocked by: Device Config feature (DMST TC window screenshots required — see LOGGED FEATURE PLAN 2026-05-25)
 
+
+---
+
+## FTP-IMAGE — Full-Frame Archival Channel (2026-06-24)
+
+**Context**: Glenn Reuss (Cognex chief eng) suggested using device FTP to capture bits missing from current extraction methods — specifically FTP-PCM-REPORT for HTML delivery. Investigation expanded to all three FTP result channels.
+
+### Assessment of all four FTP subsystems
+
+| Channel | Content | Delta vs current CP? |
+|---|---|---|
+| `FTP-PCM-REPORT` | pcm_report.html — identical to PUT /pcm_report.html already received via HTTP subscriber | **None** — we already get this |
+| `FTP-RESULT` | Formatted decode string (Data Formatting template output) — subset of codes.xml | **None** |
+| `FTP-IMAGE` | Image per scan — **content TBD, likely full-frame at IMAGE.SIZE** | **Potentially high** — see below |
+| `CONFIG-BACKUP` | .dmb config backup file — not scan data | N/A |
+
+### FTP-IMAGE — the critical channel
+
+**Hypothesis (Glenn-confirmed direction)**: FTP-IMAGE delivers whatever `IMAGE.FORMAT` and `IMAGE.SIZE` are set to via DMCC. This is almost certainly the full-frame acquisition path — distinct from `JpegImageBase64` in codes.xml (which is always a firmware-generated ROI crop, always JPEG, no knobs).
+
+**Why this matters**: DMST's "Log All Decoded Images" function (Data Logging tab → Decoded Images path/prefix) and FTP-IMAGE are almost certainly the same underlying firmware mechanism — one saves to filesystem, the other pushes to FTP server. The image content is the same: full-frame at IMAGE.SIZE resolution. The DMST path settings are NOT sticky (Glenn confirmed Cognex will not fix this — internal emphasis on browser migration). FTP-IMAGE settings ARE sticky (DMCC-settable, NVRAM-persisted).
+
+**Image format control:**
+
+| DMCC Key | Values | Notes |
+|---|---|---|
+| `IMAGE.FORMAT` | `0`=JPEG, `2`=PNG | PNG support from v5.6.3+; PNG confirmed on DM475V |
+| `IMAGE.SIZE` | `0`=Full (2448×2048), `1`=1/4 (1224×1024), `2`=1/16, `3`=1/64 | Same key that controls IMAGE.SEND downscale |
+
+**⚠ UNCONFIRMED — ONE PROBE NEEDED**: Enable `FTP-IMAGE.ENABLE ON` pointing at a FileZilla instance, run one scan, check file dimensions. If 2448×2048 → confirmed full-frame. If ~200–600px → duplicates JpegImageBase64 (low value). Result will definitively answer this.
+
+**What FTP-IMAGE solves if confirmed full-frame:**
+1. L3 full-frame archival without requiring Cognex SDK `GetResultImage()` (eliminates D4 SDK dependency)
+2. Sticky path/prefix via DMCC — replaces non-sticky DMST Data Logging settings entirely
+3. DMST-independent — works for CP-triggered scans (DMST filesystem save does NOT fire for CP-triggered scans)
+4. Format choice: PNG for lossless archival; JPEG for space-efficient daily use — operator-configurable via DMCC
+
+**Replacement mapping for DMST Data Logging settings (screenshot 2026-06-24):**
+
+| DMST "Data Logging" field | FTP-IMAGE replacement |
+|---|---|
+| Decoded Images → Path | `FTP-IMAGE.IP-ADDRESS` + `FTP-IMAGE.SERVER-PATH` |
+| Decoded Images → Filename Prefix | `FTP-IMAGE.FILE-NAME` or `FTP-IMAGE.FILE-NAME-USE-SCRIPT` |
+| Image resolution (not shown in UI, controlled by DMST connection settings) | `IMAGE.SIZE` via DMCC |
+| Image format (PNG / BMP) | `IMAGE.FORMAT` via DMCC |
+| Include Overlay Graphics (SVG) | **No FTP equivalent** — SVG overlay is DMST-only rendering |
+
+### FTP-IMAGE DMCC key inventory
+
+All keys: `FTP-IMAGE.ENABLE`, `FTP-IMAGE.IP-ADDRESS`, `FTP-IMAGE.PORT`, `FTP-IMAGE.USER-NAME`, `FTP-IMAGE.PASSWORD`, `FTP-IMAGE.SERVER-TYPE` (FTP or SFTP — SFTP confirmed on DM380/390/580/590/8700, DM475V support TBD), `FTP-IMAGE.FILE-NAME`, `FTP-IMAGE.CUSTOM-FILE-NAME`, `FTP-IMAGE.FILE-NAME-USE-SCRIPT`, `FTP-IMAGE.SERVER-PATH`, `FTP-IMAGE.SERVER-PATH-SCRIPT`, `FTP-IMAGE.SERVER-PATH-SCRIPT-ERROR` (GET-only error string), `FTP-IMAGE.MAX-APPEND`, `FTP-IMAGE.MAX-APPEND-START-VALUE`, `FTP-IMAGE.IDLE-LIMIT`, `FTP-IMAGE.IDLE-TIME`, `FTP-IMAGE.SERVER-FINGERPRINT` (SFTP host key).
+
+Platforms: all Ethernet readers. DM8000 wireless with Ethernet base station also supported.
+
+---
+
+## TRIGGER.TYPE=4 "Self (internal)" — Live View Mechanism Identified (2026-06-24)
+
+**Source**: DMCC reference `TRIGGER.TYPE` detail page confirmed 2026-06-24.
+
+### All six TRIGGER.TYPE modes
+
+| Value | Name | Class | Notes |
+|---|---|---|---|
+| 0 | Single | External | **CP idle/verify state — confirmed** |
+| 1 | Presentation | Internal | Motion-detect auto-trigger; our earlier wrong hypothesis |
+| 2 | Manual | Button | Physical trigger button |
+| 3 | Burst | External | Multi-image per trigger |
+| **4** | **Self** | **Internal** | **NEW FINDING — self-triggers at CAMERA.INTERVAL-US** |
+| 5 | Continuous | External | Continuous external trigger |
+
+### Self (internal) trigger — key facts
+
+**`CAMERA.INTERVAL-US`**: interval between successive camera acquisitions in microseconds. Step size: 250 µs. Supported for Burst (3), **Self (4)**, and Continuous (5).
+
+- 3 Hz = 333,333 µs
+- 4 Hz = 250,000 µs
+
+**Conclusion**: The 3–4 Hz LED flicker observed during DMST live view is the device running in **TRIGGER.TYPE=4 (Self)** at CAMERA.INTERVAL-US ≈ 250,000–333,333. DMST sets TRIGGER.TYPE=4 when entering live view mode and restores TRIGGER.TYPE=0 when exiting.
+
+**MOTION-DETECTION.ACTIVE** (GET-only, v5.7.0) — covers both Presentation (1) and Self (4). Both trigger types share the motion-detection hardware path. This is how Glenn recognized "self internal" as a motion-related context.
+
+### CP Live View architecture using TRIGGER.TYPE=4
+
+```
+Enter live view:
+  SET TRIGGER.TYPE 4
+  SET CAMERA.INTERVAL-US 333333   ← 3 Hz; configurable
+  → device self-triggers at 3 Hz
+  → each self-trigger fires a full TruCheck scan
+  → IMAGE.SEND after each trigger → JPEG frames for viewfinder UI
+  → HTTP subscriber receives PUT /codes.xml per frame (⚠ unconfirmed — see below)
+
+Cancel live view:
+  SET TRIGGER.TYPE 0
+  → self-triggering stops immediately
+  → device returns to idle single-external mode
+
+VERIFY (trigger one canonical scan):
+  SET TRIGGER.TYPE 0              ← freeze the label / stop continuous triggers
+  TRIGGER ON                      ← fire one deliberate TruCheck scan
+  → result arrives via HTTP subscriber (codes.xml + pcm_report.html)
+```
+
+**User-confirmed trigger state model (2026-06-24)**:
+- Cancel live view = `SET TRIGGER.TYPE 0`
+- VERIFY = `SET TRIGGER.TYPE 0` + `TRIGGER ON` (freeze then fire)
+
+The VERIFY step serves operator intent: stop the continuous viewfinder to freeze the label in a known position, then fire a clean deliberate capture. This distinguishes a QA-grade verification record from a random frame from the continuous viewfinder cycle.
+
+**⚠ UNCONFIRMED — ONE PROBE NEEDED**: When TRIGGER.TYPE=4 is active, do the self-triggered scans produce full HTTP subscriber events (PUT /codes.xml + PUT /pcm_report.html)? Strong expectation yes — TruCheck runs on every decode regardless of trigger source. Needs one test: set TRIGGER.TYPE=4, let it run 3–4 cycles, observe HTTP subscriber output. If confirmed: CP could optionally use continuous-mode scanning without the explicit VERIFY step.
+
+### Implication for CP session lifecycle
+
+- On connect: GET TRIGGER.TYPE → confirm returns 0 (single external) at idle
+- If GET returns 4: DMST is actively in live view mode — wait or alert operator
+- Live view feature: SET TRIGGER.TYPE 4 + SET CAMERA.INTERVAL-US → read IMAGE.SEND frames
+- No LIVEIMG.SEND needed (confirmed dead on all ports/modes)
+- Restore to 0 on session end — same restore path as existing TRIGGER.TYPE management
+
