@@ -1355,14 +1355,13 @@ Combined with scan #16 (Grade F DM, `result=-1` no stats):
 `FactoryCalibrated: 'false'` — new field in pre-release firmware push XML.
 Not previously seen (only `FieldCalibrated` existed before). Not yet in `VerificationXmlMap` or `VerificationRecord`. **Do not implement until instructed** — log only.
 
-### No-image in CP — gap confirmed, not a firmware regression
+### No-image in DMST TC — resolved by config restore
 
-`JpegImageBase64` is present and correct (19,580 chars). Firmware is working normally.
-The no-image display is a CP gap: `JpegImageBase64` is only wired to OCR in
-`SessionViewModel` (line 717). No `BitmapImage` / `ImageSource` binding exists in
-`SessionView.xaml` or `SessionViewModel` for displaying it as a post-scan panel image.
-LiveFeedViewModel and StitchingViewModel both have image display; the main session
-result view does not. Feature gap — not yet implemented, not a regression.
+**CORRECTION 2026-06-24**: CP was not open and was not a factor. The post-verification
+image problem was entirely within DMST TruCheck's TC panel. Resolved by config restore
+(same NVRAM corruption pattern as the prior episode — see `dmst-image-blank-root-cause.md`).
+`JpegImageBase64` is present and correct (19,580 chars). Firmware working normally.
+All is well following the restore.
 
 ### ISO 29158:2025 (AIM-DPM) — new edition
 

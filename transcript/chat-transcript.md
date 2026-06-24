@@ -512,3 +512,9 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Added scan #21 — QR IMAGE.LOAD Grade F but decoded (SymbolQuality=46). "F but not because of no decode."
 
 **Assistant:** Parsed. Key findings: (1) VIBGrade='-' even on Grade F decoded scan — confirms '-' means "not applicable" (v1–6 no VIB to grade), NOT "passing." VIBGrade='F' is ONLY on total decode failure. (2) Three-way comparison established: pass/decoded-F/no-decode-F. Pattern grades (ULP/URP/LLP/HCT/VCT) all 'A' even on fail — structural patterns readable; MOD/RM/FPD fail (optical quality). ALPGrade='D' (alignment pattern degraded — likely cause of MOD/RM failures). (3) ErrorsCorrected='8', ErrorCapacityUsed='16' — populated on any successful decode; empty only on total decode fail. (4) DataCodewords/ErrorCorrectionBudget still '' — table lookup still required. (5) DebugBarcodeAssignment: result=-1;stats=[obj] — consistent.
+
+---
+
+**User:** CP was not open and was never a factor. Post-verif image problem was always in DMST TC. Resolved by config restore. All well.
+
+**Assistant:** Corrected scan #18 note — struck the incorrect "CP gap" analysis. DMST TC no-image was the same NVRAM corruption pattern as the prior episode (see dmst-image-blank-root-cause.md). Config restore resolved it. JpegImageBase64 was present and correct throughout; firmware was never the issue.
