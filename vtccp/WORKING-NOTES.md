@@ -1387,3 +1387,86 @@ No inference about DPM device applying ISO 29158 to QR scans is valid from this 
 | FieldCalibrated | 'false' | Consistent |
 | DateTime | 2026-06-23T22:32:33 | Device RTC off by ~1 day |
 
+
+---
+
+## Scan #19 — QR IMAGE.LOAD Grade A, ISO 15415:2011, DPM device (2026-06-24)
+
+**Device**: DM475-DPM-866D76-VCCS-Verif-Lab  
+**Firmware**: Pre-release  
+**GradingStandard**: `ISO 15415:2011` ✓ (correct standard; scan #18 used wrong 29158)  
+**Symbol**: QR 29×29, IMAGE.LOAD, GUID `0e95e424-3a33-eb11-a816-001dd80187c1`  
+**FormalGrade**: 4/A, OverallGrade: A, SymbolQuality: 100  
+**ApertureRef**: 16 (was 17 on scan #18 with 29158 — aperture is standard-dependent)  
+**OpticsSource**: LoadedImage (CU=-1, MRD=-1 confirmed)  
+**JpegImageBase64**: 18,716 chars — JPEG present  
+**DebugBarcodeAssignment**: `result=-1;stats=[obj];`  
+**FactoryCalibrated**: 'false' (confirmed again — new firmware field)  
+
+All QR grades A; VIBGrade='-'; FIBGrade=A. Consistent with scan #13/#15/#18.
+
+---
+
+## Scan #20 — QR IMAGE.LOAD Grade F (TOTAL FAIL), ISO 15415:2011, DPM device (2026-06-24)
+
+**Device**: DM475-DPM-866D76-VCCS-Verif-Lab  
+**Firmware**: Pre-release  
+**GradingStandard**: `ISO 15415:2011`  
+**Symbol**: QR 29×29, IMAGE.LOAD, same GUID (intentional degraded image)  
+**FormalGrade**: 0/F, OverallGrade: F, SymbolQuality: 0  
+**ApertureRef**: 16  
+**OpticsSource**: LoadedImage (CU=-1, MRD=-1 — confirmed IMAGE.LOAD even on total fail)  
+**JpegImageBase64**: 18,496 chars — **JPEG present even on total fail** ← notable  
+**DebugBarcodeAssignment**: `result=-1;stats=[obj];` — **grade-independent CONFIRMED**  
+**FactoryCalibrated**: 'false'
+
+### Total-fail QR field behaviour (ISO 15415, IMAGE.LOAD)
+
+| Field | Total-fail value | Notes |
+|---|---|---|
+| SymbolQuality | '0' | Not '' or '-1' |
+| UECPercent / SCPercent | '0' | Zero, not empty |
+| ANUPercent / GNUPercent | '0' | Zero, not empty |
+| FPDValue | '0' | Zero |
+| All grade letters (ULP…FIB) | 'F' | All F including VIBGrade='F' |
+| MatrixSize | '' | Empty — decode failed |
+| EncodedCharacters | '' | Empty |
+| NominalXDim | '' | Empty |
+| ErrorsCorrected / ErrorCapacityUsed | '' | Empty |
+| ApplicationPass | 'Fail (Quality)' | NEW variant — see below |
+| ApplicationPassReason | 'Quality' | NEW variant |
+| DDGrade / AverageGrade | 'X' | Same as passing scans — no change |
+| AverageGradeNumeric | '8.8' | Same sentinel — no change |
+| JpegImageBase64 | 18,496 chars | Image sent even on total fail |
+
+**VIBGrade='F' on total fail** — reconfirms prior finding (live QR fail scan #3). Parser handles both '-' (passing v3) and 'F' (total fail).
+
+### ApplicationPass variants — now 3 observed
+
+| ApplicationPass | ApplicationPassReason | Condition |
+|---|---|---|
+| 'Pass' | '' | ISO grade pass |
+| 'Fail (Quality)' | 'Quality' | ISO grade total fail (scan #20) ← NEW |
+| 'Fail (Data Format)' | 'Data Format' | GS1 format fail (Code 128 scan #9) |
+
+### ★ barcodeAssignment — FULLY RESOLVED 2026-06-24
+
+`result=-1;stats=[obj];` on both pass (A) and fail (F) QR IMAGE.LOAD scans.
+
+Combined evidence across all scans:
+
+| Scan | Symbology | Grade | OpticsSource | result | stats |
+|---|---|---|---|---|---|
+| #16 | DM 22×22 | F | Live | -1 | absent |
+| #18 | QR 29×29 | A | IMAGE.LOAD | -1 | [obj] |
+| #19 | QR 29×29 | A | IMAGE.LOAD | -1 | [obj] |
+| #20 | QR 29×29 | F | IMAGE.LOAD | -1 | [obj] |
+
+**CONCLUSION**: `result=-1` = "no barcode assignment rule configured on this device."
+Completely grade-independent, standard-independent, and symbology-independent.
+Device-config sentinel. Passing-scan probe closed — no further investigation needed.
+
+**stats=[obj] pattern**: present on all QR scans (pass and fail); absent on DM live.
+Tentative: `stats` correlates with QR symbology. One more DM pass scan would confirm.
+Sub-key enumeration remains a v1.38 candidate but is no longer blocking anything.
+

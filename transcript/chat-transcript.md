@@ -500,3 +500,9 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Corrected: ISO 29158:2025 on scan #18 was operator config error — should have selected ISO 15415 for this printed QR symbol. Grading standard is DMST operator setting, independent of symbology. No claim that DPM device applies 29158 to QR is valid.
 
 **Assistant:** Struck the incorrect inference from WORKING-NOTES.md scan #18 section. Grading standard is user-configurable in DMST TruCheck — already established in the confirmed-facts table. No other files contained the incorrect claim.
+
+---
+
+**User:** Attached two QR IMAGE.LOAD scans on DPM device with ISO 15415:2011 (corrected standard). Same GUID symbol. Scan A = pass, scan B = fail.
+
+**Assistant:** Parsed both. Key findings: (1) barcodeAssignment FULLY RESOLVED — result=-1;stats=[obj] on both pass and fail QR IMAGE.LOAD. Combined with DM Grade F scan #16 (result=-1, no stats): result=-1 is grade/standard/symbology-independent device-config sentinel. Probe closed. (2) stats=[obj] present on all QR scans (pass and fail), absent DM live — tentative QR-symbology correlation. (3) Total-fail QR (scan #20): all numeric fields '0' not empty (UEC/SC/ANU/GNU/FPD percent); grade letters all 'F' including VIBGrade='F'; MatrixSize/EncodedCharacters/NominalXDim empty; JPEG still present (18,496 chars). (4) NEW ApplicationPass variant: 'Fail (Quality)' / 'Quality' (total grade fail). Prior variants: 'Pass'/'' and 'Fail (Data Format)'/'Data Format'. (5) FactoryCalibrated='false' confirmed on both scans — new firmware field, consistent. (6) ApertureRef=16 on 15415 vs 17 on 29158 — aperture is standard-dependent.
