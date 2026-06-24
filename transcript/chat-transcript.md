@@ -470,3 +470,9 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
    - L2.ROI (Virtual ROI Crop) introduced as new concept: derived by cropping L2 to DECODER.ROI coordinates from r.image.RoI; NOT a separately captured image.
    - Full layer table: L0=DMST PNG, L1=barcode crop (push XML), L2=full camera scene (IMAGE.SEND), L2.ROI=virtual derived, L3=SDK full frame.
 3. PNG vs BMP evaluation pass logged in WORKING-NOTES.md: PNG tEXt chunks can embed DECODER.ROI coords + scan metadata at save time, making Virtual ROI Crop reconstructable from PNG alone; BMP has no metadata capability; planned probe: IMAGE.FORMAT=2 (PNG) from IMAGE.SEND + tEXt metadata write.
+
+---
+
+**User:** Something is amiss — pulled, cleaned, rebuilt, ran app. Going to close and reopen VS. [Screenshot: Session Launcher at Build 1.3.7, bottom-left shows "v1.0.0 | VCCS"]
+
+**Assistant:** Build is clean at 1.3.7 (confirmed in top-right badge). Noted the bottom-left shows "v1.0.0" — that's a separate display field, likely hardcoded or from a different source than VtccpApp.csproj <Version>. Will investigate if requested. Standing by.
