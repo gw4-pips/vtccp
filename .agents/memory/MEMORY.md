@@ -17,3 +17,4 @@
 - [Doc versioning rule](doc-versioning-rule.md) — always bump version + revision date in any references/ doc header on every edit; never deliver an updated doc without a rev increment
 - [Transcript rule](transcript-rule.md) — append every user+assistant turn (text only, no tool detail) to transcript/chat-transcript.md at the end of every response; standing rule, never skip
 - [ISO/IEC 15424 reference](iso-15424-reference.md) — complete symbology identifier standard in vtccp/references/standards/iso-15424-symbology-identifiers.md; ]Q1 ECI correction logged
+- [EthSystemDiscoverer SDK stub](eth-system-discoverer.md) — class not in SDK v25.4.1; NetworkDiscoverer returns empty; restore when correct class name confirmed

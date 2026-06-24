@@ -450,3 +450,11 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** ||>GET TRIGGER.TYPE → ||0 (response while DMST in live view); >GET CAMERA.INTERVAL-US (no response — missing ||> prefix)
 
 **Assistant:** TRIGGER.TYPE=0 (Single external) confirmed during live view. TRIGGER.TYPE=4 hypothesis definitively wrong. DMST does not change TRIGGER.TYPE when entering live view. CAMERA.INTERVAL-US query silently ignored (missing ||> prefix); moot since TRIGGER.TYPE=0 confirmed and CAMERA.INTERVAL-US only applies to types 3/4/5. Live view mechanism is unknown — DMST likely sends rapid TRIGGER ON commands via its own DMCC session or uses an internal SDK streaming path that bypasses standard DMCC trigger state. Neither path accessible to CP via raw DMCC. LED behavior and TRIGGER.TYPE are decoupled. All three docs corrected: WORKING-NOTES.md, firmware-confirmed-facts.md.
+
+---
+
+**User:** [Session plan recap — working plan through v1.33, all phase notes, confirmed facts table, live scan catalog #1–15] + Build errors from Windows compile: EthSystemDiscoverer not found in Cognex.DataMan.SDK, 5× metadata DLL cascade errors, 50+ CA1416 System.Drawing platform warnings.
+
+**Assistant:** Two distinct issues identified and fixed (v1.37 → v1.3.7):
+1. EthSystemDiscoverer — root cause of all 5 cascade errors. Class does not exist in Cognex.DataMan.SDK namespace in SDK v25.4.1. EthSystemConnector and DataManSystem are present and working. NetworkDiscoverer.cs stubbed to return empty list with debug log; TODO comment added for correct class name. Manual ⊕ Import still fully available.
+2. CA1416 System.Drawing warnings — DeviceInterface (net8.0) and ExcelEngine (net8.0) use Windows-only System.Drawing APIs. Suppressed via NoWarn CA1416 in both .csproj files. VtccpApp already correctly targets net8.0-windows10.0.18362.0. Version bumped to 1.3.7.

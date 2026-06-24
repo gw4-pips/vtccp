@@ -1,8 +1,5 @@
 namespace DeviceInterface;
 
-using System.Net;
-using CognexSdk = Cognex.DataMan.SDK;
-
 /// <summary>
 /// A DataMan device found on the local subnet by <see cref="NetworkDiscoverer"/>.
 /// All fields are populated from the UDP broadcast reply; some may be empty if the
@@ -18,8 +15,18 @@ public sealed record DiscoveredDevice(
     string MacAddress);
 
 /// <summary>
-/// Wraps the Cognex DataMan SDK <c>EthSystemDiscoverer</c> to locate DataMan
-/// devices on the local subnet via UDP broadcast (same mechanism as DMST).
+/// Locates DataMan devices on the local subnet via UDP broadcast (same mechanism
+/// as DMST).
+///
+/// ⚠ SDK DISCOVERY STUB — 2026-06-24
+/// The Cognex DataMan SDK v25.4.1 DLL (Cognex.DataMan.SDK.PC.dll) does NOT expose
+/// <c>EthSystemDiscoverer</c> at <c>Cognex.DataMan.SDK.EthSystemDiscoverer</c>.
+/// <c>EthSystemConnector</c> and <c>DataManSystem</c> are present and working.
+/// The correct discovery class name for this SDK version is unconfirmed.
+/// This method currently returns an empty list — operators can add devices manually
+/// via the ⊕ Import button in the Devices panel.
+/// TODO: Confirm the correct SDK discovery class name from Cognex SDK docs / DLL
+///       reflection, then restore the SDK-based implementation.
 /// </summary>
 public static class NetworkDiscoverer
 {
@@ -27,49 +34,19 @@ public static class NetworkDiscoverer
     /// Broadcasts a UDP discovery probe and collects responding DataMan devices.
     /// Listens for <paramref name="listenMs"/> milliseconds (default 3 000 ms).
     /// Returns a deduplicated, read-only list ordered by response arrival time.
+    ///
+    /// Currently stubbed — returns empty list. See class-level XML doc.
     /// </summary>
-    public static async Task<IReadOnlyList<DiscoveredDevice>> DiscoverAsync(
+    public static Task<IReadOnlyList<DiscoveredDevice>> DiscoverAsync(
         int               listenMs = 3_000,
         CancellationToken ct       = default)
     {
-        var results = new List<DiscoveredDevice>();
-        var seen    = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var gate    = new object();
+        System.Diagnostics.Debug.WriteLine(
+            "[VTCCP-NET] NetworkDiscoverer: SDK discovery stubbed — " +
+            "EthSystemDiscoverer class name unconfirmed for SDK v25.4.1. " +
+            "Manual IP entry via ⊕ Import is available.");
 
-        var discoverer = new CognexSdk.EthSystemDiscoverer();
-
-        discoverer.SystemDiscovered += (_, e) =>
-        {
-            try
-            {
-                var connector = e.Connector;
-                string host   = connector.Address?.ToString() ?? string.Empty;
-                if (string.IsNullOrEmpty(host)) return;
-
-                lock (gate)
-                {
-                    if (!seen.Add(host)) return;
-                    results.Add(new DiscoveredDevice(
-                        Name:            connector.Name            ?? host,
-                        Host:            host,
-                        Port:            44_444,
-                        DeviceType:      connector.DeviceType      ?? string.Empty,
-                        FirmwareVersion: connector.FirmwareVersion ?? string.Empty,
-                        Serial:          connector.SerialNumber    ?? string.Empty,
-                        MacAddress:      connector.MACAddress      ?? string.Empty));
-                }
-            }
-            catch { /* ignore malformed discovery responses */ }
-        };
-
-        await Task.Run(() =>
-        {
-            discoverer.StartDiscovery();
-            System.Threading.Thread.Sleep(listenMs);
-            discoverer.StopDiscovery();
-        }, ct).ConfigureAwait(false);
-
-        lock (gate)
-            return results.AsReadOnly();
+        return Task.FromResult<IReadOnlyList<DiscoveredDevice>>(
+            new List<DiscoveredDevice>().AsReadOnly());
     }
 }
