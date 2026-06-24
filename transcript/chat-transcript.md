@@ -494,3 +494,9 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** [Session Plan dump] — Full project status doc from v1.29 through scan #18 findings. No explicit action requested.
 
 **Assistant:** Received and processed. Context reloaded. Awaiting specific instruction.
+
+---
+
+**User:** Corrected: ISO 29158:2025 on scan #18 was operator config error — should have selected ISO 15415 for this printed QR symbol. Grading standard is DMST operator setting, independent of symbology. No claim that DPM device applies 29158 to QR is valid.
+
+**Assistant:** Struck the incorrect inference from WORKING-NOTES.md scan #18 section. Grading standard is user-configurable in DMST TruCheck — already established in the confirmed-facts table. No other files contained the incorrect claim.

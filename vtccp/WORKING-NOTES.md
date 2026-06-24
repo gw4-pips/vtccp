@@ -1367,7 +1367,11 @@ result view does not. Feature gap — not yet implemented, not a regression.
 ### ISO 29158:2025 (AIM-DPM) — new edition
 
 First observation of 2025 edition. Prior: 2024 max. Parser echoes whatever device
-reports — no code change needed. DPM device applies ISO 29158 to ALL scans including QR.
+reports — no code change needed.
+**CORRECTION 2026-06-24**: The 29158 grading standard on this scan was operator
+configuration error — ISO 15415 should have been selected for this printed QR symbol.
+Grading standard is user-configurable in DMST TruCheck and is independent of symbology.
+No inference about DPM device applying ISO 29158 to QR scans is valid from this data point.
 
 ### Other field readings
 
