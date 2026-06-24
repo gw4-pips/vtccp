@@ -1178,12 +1178,15 @@ The VERIFY step serves operator intent: stop the continuous viewfinder to freeze
 
 **⚠ CORRECTED 2026-06-24**: Live view does NOT produce TruCheck verifications. User confirmed: no decode XML generated, no result history entry, no codes.xml event. Live view is frame acquisition for the viewfinder only — camera exposure + display, not a verification cycle. The 3–4 Hz LED flicker is camera acquisition, not TruCheck.
 
-**OPEN PROBE (DMCC GET — trivial, no push script needed)**: While DMST is actively showing the live view feed, from a raw TCP port-23 session run:
-```
-||>GET TRIGGER.TYPE
-||>GET CAMERA.INTERVAL-US
-```
-Whatever the device returns IS the ground truth. This closes the TRIGGER.TYPE=4 hypothesis definitively in one step. Do not assume TRIGGER.TYPE=4 until this GET confirms it.
+**★ PROBE RESULT — 2026-06-24**: `||>GET TRIGGER.TYPE` → `||0` while DMST is in live view.
+
+**TRIGGER.TYPE=4 hypothesis is WRONG. TRIGGER.TYPE=0 (Single external) during live view — confirmed.**
+
+DMST does not change TRIGGER.TYPE when entering live view. The 3–4 Hz LED flicker is NOT from Self (internal) triggering.
+
+**Live view mechanism is still unknown.** Most likely: DMST sends rapid `TRIGGER ON` DMCC commands via its own connection at 3–4 Hz while suppressing the result from the verification pipeline — or DMST uses an internal SDK streaming path that bypasses standard DMCC trigger state entirely. Neither path is accessible to CP via raw DMCC. The live view LED behavior and TRIGGER.TYPE are decoupled.
+
+Note: `CAMERA.INTERVAL-US` query was sent without `||>` prefix — silently ignored by device. Moot regardless: CAMERA.INTERVAL-US only applies to TRIGGER.TYPE 3/4/5; with TRIGGER.TYPE=0 confirmed it is irrelevant to live view.
 
 ### Implication for CP session lifecycle
 

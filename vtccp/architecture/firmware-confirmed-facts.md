@@ -1122,5 +1122,5 @@ GET-only property (v5.7.0). "Allows checking the current state of motion detecti
 
 ⚠ **CORRECTED 2026-06-24**: Live view does NOT produce TruCheck verifications — confirmed by user observation (no decode XML generated, no result history entry). Live view is frame acquisition only, not a verification cycle. Do not assume self-triggered scans produce HTTP subscriber events.
 
-**OPEN PROBE**: While DMST is in live view, from raw TCP port 23: `||>GET TRIGGER.TYPE` and `||>GET CAMERA.INTERVAL-US`. Returns actual device state during live view — closes the TRIGGER.TYPE=4 hypothesis definitively.
+**★ PROBE RESULT — 2026-06-24**: `||>GET TRIGGER.TYPE` → `||0` while DMST is in live view. TRIGGER.TYPE=0 (Single external) confirmed. **TRIGGER.TYPE=4 hypothesis is WRONG.** DMST does not change TRIGGER.TYPE when entering live view. Live view mechanism is unknown — DMST likely sends rapid TRIGGER ON commands via its own DMCC session or uses an internal SDK streaming path. CAMERA.INTERVAL-US query was sent without `||>` prefix and was silently ignored; moot since TRIGGER.TYPE=0 confirmed (CAMERA.INTERVAL-US applies to types 3/4/5 only).
 
