@@ -538,3 +538,11 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** I do not see any new date and timestamps in the transcript, as we agreed there would be. Make a permanent note. And go back to the beginning of our sessions today and add at least that one.
 
 **Assistant:** Retrofitted all of today's entries (scan #18 through CP/DMST correction) with `2026-06-24 — evening` timestamps. Updated transcript-rule.md: rule now requires a timestamp on EVERY single entry without exception, not just at session breaks — with explicit "no exceptions" language. MEMORY.md entry for transcript-rule already present; topic file updated to match.
+
+---
+
+**`2026-06-24 — evening`**
+
+**User:** Calling it a night. Can't fight these interface dev issues right now. Need to get some verification work done tomorrow.
+
+**Assistant:** Good night. Device Profiles issues held for tomorrow — still need one answer before fixing Save/Add: what do you see when you click Save (form stays open? closes with no device added? status bar message?). Enjoy the verification work.
