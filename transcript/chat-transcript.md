@@ -476,3 +476,9 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Something is amiss — pulled, cleaned, rebuilt, ran app. Going to close and reopen VS. [Screenshot: Session Launcher at Build 1.3.7, bottom-left shows "v1.0.0 | VCCS"]
 
 **Assistant:** Build is clean at 1.3.7 (confirmed in top-right badge). Noted the bottom-left shows "v1.0.0" — that's a separate display field, likely hardcoded or from a different source than VtccpApp.csproj <Version>. Will investigate if requested. Standing by.
+
+---
+
+**User:** Grade F does NOT mean no decode — it means one or more grading parameters failed threshold. Symbol was decoded fine on scan #16. Will provide both Grade F and Grade A from the same symbol.
+
+**Assistant:** Correction acknowledged. Fixed two places in WORKING-NOTES.md: result=-1 interpretation changed from "decode failed" to "not yet established." Two candidate interpretations now documented: (1) device-config sentinel, grade-independent; (2) tracks grade/grading outcome. A/B comparison (same symbol, Grade F vs Grade A, same device/firmware) will distinguish them. Standing by for results.

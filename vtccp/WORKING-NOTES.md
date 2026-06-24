@@ -752,7 +752,8 @@ v1.36 output: `result=-1;stats=[obj];`
 Compared to scan #16 (v1.37): `result=-1` only.
 Either `stats` is conditionally present or was missed in the prior ekv pass.
 Queue a **DebugBarcodeAssignmentStats** probe in v1.38: enumerate `stats` sub-keys.
-Note: `result=-1` on fail scans confirmed on two independent symbols now.
+Note: `result=-1` on Grade F scans confirmed on two independent symbols — but Grade F
+does NOT mean no decode; symbol was decoded in both cases. Interpretation TBD.
 
 ### ISO 15415:2024 — new edition string
 
@@ -802,11 +803,19 @@ the only image retrieval path that works independently of DMST trigger ownership
 
 `r.barcodeAssignment` is an object with a single key: **`result=-1`**.
 
-`result=-1` is the firmware's "no assignment" sentinel — fires when the scan fails to
-decode cleanly (DecodeGrade=F on this scan).  A passing scan is the next test needed to
-see whether `result` takes a non-(-1) value on success.  No other sub-keys present on a
-fail scan.  The barcodeAssignment probe is partially answered; queue a passing-scan
-observation to complete it.
+`result=-1` meaning is **not yet established**. Both observations so far were Grade F
+scans, but Grade F means one or more grading parameters failed threshold — the symbol
+was decoded successfully in both cases. `result=-1` is NOT "decode failed."
+Two candidate interpretations:
+- "No barcode assignment rule configured on this device" — would return -1 on every
+  scan regardless of grade.
+- Tracks something about grade level or grading outcome — would change on a Grade A scan.
+
+A Grade A scan of the same symbol (same device, same firmware) will distinguish these:
+- If result is still -1 → device-config sentinel, grade-independent.
+- If result changes → tracks grade or grading outcome.
+No other sub-keys present on these Grade F scans. Probe is partially answered;
+passing-scan observation pending (incoming — user running now).
 
 ### FormalGrade `0/F` — confirmed correct device behavior
 
