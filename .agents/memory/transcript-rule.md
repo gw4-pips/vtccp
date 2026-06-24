@@ -1,14 +1,15 @@
 ---
 name: Transcript rule
-description: Standing rule to append every conversation turn to transcript/chat-transcript.md, with timestamps at session breaks and key intervals
+description: Standing rule to append every conversation turn to transcript/chat-transcript.md, with a date+time timestamp on every single entry
 ---
 
 **Rule:** At the end of every response, append the user's message and the assistant's reply (text only — no tool calls, no tool results) to `transcript/chat-transcript.md`.
 
-**Format:**
+**Format — every entry must include a timestamp:**
 ```
 ---
-**`YYYY-MM-DD — time-of-day`**
+
+**`YYYY-MM-DD — HH:MM or time-of-day`**
 
 **User:** …
 
@@ -17,12 +18,13 @@ description: Standing rule to append every conversation turn to transcript/chat-
 ---
 ```
 
-**Timestamp rule (standing — 2026-06-21):** Insert a `**\`YYYY-MM-DD — time-of-day\`**` marker line:
-- Above every new user inquiry that starts a new session or after a sleep/sign-off break
-- At least every few hours during a long working session (at natural breakpoints — topic changes, feature completions, sign-offs)
-- Use plain language for time-of-day: morning / afternoon / evening / night, or HH:MM if known from logs
-- Retrofit timestamps on the preceding sign-off turn as well so both sides of each break are dated
+**Timestamp rule (standing — confirmed 2026-06-24):** Every single entry gets its own `**\`YYYY-MM-DD — time\`**` line — not just at session breaks, not just every few hours. **Every entry. No exceptions.**
 
-**Why:** User wants a running verbatim record of the conversation independent of Replit's chat UI, which cannot be programmatically exported. The transcript is the only reliable persistent copy, and timestamps make it useful for tracking development pace across days.
+- Use HH:MM if known from device timestamps or logs
+- Use plain language (morning / afternoon / evening / night) when exact time is unknown
+- If multiple consecutive turns happen within the same minute, the same timestamp is fine
+- Retrofit missing timestamps when the user points out omissions
 
-**How to apply:** Every single response, without exception. This is a standing rule — do not wait to be reminded. It is saved in replit.md User preferences and here so it survives session compression.
+**Why:** User wants a running verbatim record with timestamps useful for tracking development pace across days. Agreed standing rule — do not wait to be reminded. Failure to include a timestamp on an entry is a rule violation.
+
+**How to apply:** Every single response, without exception. This rule is saved in MEMORY.md and replit.md so it survives session compression.

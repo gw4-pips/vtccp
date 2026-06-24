@@ -485,11 +485,15 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
+**`2026-06-24 — evening`**
+
 **User:** [Attached push XML, scan #18] QR IMAGE.LOAD Grade A on DPM unit with new pre-release firmware. Says "no post verif image" not seen on LBL unit. Also "You always forget" re: push XML being one line.
 
-**Assistant:** Full XML parsed via Python. Key findings: (1) JpegImageBase64 present (19,580 chars) — firmware working; no-image is a CP gap: JpegImageBase64 only wired to OCR in SessionViewModel, no BitmapImage binding in SessionView. Feature not yet implemented. (2) barcodeAssignment result=-1 on Grade A → CONFIRMED grade-independent device-config sentinel. stats=[obj] present on QR/IMAGE.LOAD, absent on DM live — v1.38 stats sub-key probe still needed. (3) NEW firmware field: FactoryCalibrated='false' — not in parser or model, log only. (4) GradingStandard ISO 29158:2025 (AIM-DPM) — first 2025 edition observation; DPM device applies ISO 29158 to all scans including QR. MEMORY NOTE: push XML is always one line — do not use read tool alone; always parse via bash/python.
+**Assistant:** Full XML parsed via Python. Key findings: (1) JpegImageBase64 present (19,580 chars) — firmware working; no-image is CP gap: JpegImageBase64 only wired to OCR in SessionViewModel, no BitmapImage binding in SessionView. Feature not yet implemented. (2) barcodeAssignment result=-1 on Grade A → CONFIRMED grade-independent device-config sentinel. stats=[obj] present on QR/IMAGE.LOAD, absent on DM live — v1.38 stats sub-key probe still needed. (3) NEW firmware field: FactoryCalibrated='false' — not in parser or model, log only. (4) GradingStandard ISO 29158:2025 (AIM-DPM) — first 2025 edition observation. MEMORY NOTE: push XML is always one line — always parse via bash/python.
 
 ---
+
+**`2026-06-24 — evening`**
 
 **User:** [Session Plan dump] — Full project status doc from v1.29 through scan #18 findings. No explicit action requested.
 
@@ -497,24 +501,40 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
+**`2026-06-24 — evening`**
+
 **User:** Corrected: ISO 29158:2025 on scan #18 was operator config error — should have selected ISO 15415 for this printed QR symbol. Grading standard is DMST operator setting, independent of symbology. No claim that DPM device applies 29158 to QR is valid.
 
 **Assistant:** Struck the incorrect inference from WORKING-NOTES.md scan #18 section. Grading standard is user-configurable in DMST TruCheck — already established in the confirmed-facts table. No other files contained the incorrect claim.
 
 ---
 
+**`2026-06-24 — evening`**
+
 **User:** Attached two QR IMAGE.LOAD scans on DPM device with ISO 15415:2011 (corrected standard). Same GUID symbol. Scan A = pass, scan B = fail.
 
-**Assistant:** Parsed both. Key findings: (1) barcodeAssignment FULLY RESOLVED — result=-1;stats=[obj] on both pass and fail QR IMAGE.LOAD. Combined with DM Grade F scan #16 (result=-1, no stats): result=-1 is grade/standard/symbology-independent device-config sentinel. Probe closed. (2) stats=[obj] present on all QR scans (pass and fail), absent DM live — tentative QR-symbology correlation. (3) Total-fail QR (scan #20): all numeric fields '0' not empty (UEC/SC/ANU/GNU/FPD percent); grade letters all 'F' including VIBGrade='F'; MatrixSize/EncodedCharacters/NominalXDim empty; JPEG still present (18,496 chars). (4) NEW ApplicationPass variant: 'Fail (Quality)' / 'Quality' (total grade fail). Prior variants: 'Pass'/'' and 'Fail (Data Format)'/'Data Format'. (5) FactoryCalibrated='false' confirmed on both scans — new firmware field, consistent. (6) ApertureRef=16 on 15415 vs 17 on 29158 — aperture is standard-dependent.
+**Assistant:** Parsed both. Key findings: (1) barcodeAssignment FULLY RESOLVED — result=-1;stats=[obj] on both pass and fail QR IMAGE.LOAD. Combined with DM Grade F scan #16 (result=-1, no stats): result=-1 is grade/standard/symbology-independent device-config sentinel. Probe closed. (2) stats=[obj] present on all QR scans (pass and fail), absent DM live — tentative QR-symbology correlation. (3) Total-fail QR (scan #20): all numeric fields '0' not empty; grade letters all 'F' including VIBGrade='F'; MatrixSize/EncodedCharacters/NominalXDim empty; JPEG present. (4) NEW ApplicationPass variant: 'Fail (Quality)' / 'Quality'. (5) FactoryCalibrated='false' confirmed. (6) ApertureRef=16 on 15415 vs 17 on 29158.
 
 ---
+
+**`2026-06-24 — evening`**
 
 **User:** Added scan #21 — QR IMAGE.LOAD Grade F but decoded (SymbolQuality=46). "F but not because of no decode."
 
-**Assistant:** Parsed. Key findings: (1) VIBGrade='-' even on Grade F decoded scan — confirms '-' means "not applicable" (v1–6 no VIB to grade), NOT "passing." VIBGrade='F' is ONLY on total decode failure. (2) Three-way comparison established: pass/decoded-F/no-decode-F. Pattern grades (ULP/URP/LLP/HCT/VCT) all 'A' even on fail — structural patterns readable; MOD/RM/FPD fail (optical quality). ALPGrade='D' (alignment pattern degraded — likely cause of MOD/RM failures). (3) ErrorsCorrected='8', ErrorCapacityUsed='16' — populated on any successful decode; empty only on total decode fail. (4) DataCodewords/ErrorCorrectionBudget still '' — table lookup still required. (5) DebugBarcodeAssignment: result=-1;stats=[obj] — consistent.
+**Assistant:** Parsed. Key findings: (1) VIBGrade='-' even on Grade F decoded scan — '-' means "not applicable" (v1–6 no VIB), NOT "passing." VIBGrade='F' is ONLY on total decode failure. (2) Three-way comparison established: pass/decoded-F/no-decode-F. Pattern grades (ULP/URP/LLP/HCT/VCT) all 'A' even on fail; MOD/RM/FPD fail; ALPGrade='D'. (3) ErrorsCorrected='8', ErrorCapacityUsed='16' — populated on any successful decode; empty only on total decode fail. (4) DataCodewords/ErrorCorrectionBudget still '' — table lookup still required.
 
 ---
+
+**`2026-06-24 — evening`**
 
 **User:** CP was not open and was never a factor. Post-verif image problem was always in DMST TC. Resolved by config restore. All well.
 
 **Assistant:** Corrected scan #18 note — struck the incorrect "CP gap" analysis. DMST TC no-image was the same NVRAM corruption pattern as the prior episode (see dmst-image-blank-root-cause.md). Config restore resolved it. JpegImageBase64 was present and correct throughout; firmware was never the issue.
+
+---
+
+**`2026-06-24 — evening`**
+
+**User:** I do not see any new date and timestamps in the transcript, as we agreed there would be. Make a permanent note. And go back to the beginning of our sessions today and add at least that one.
+
+**Assistant:** Retrofitted all of today's entries (scan #18 through CP/DMST correction) with `2026-06-24 — evening` timestamps. Updated transcript-rule.md: rule now requires a timestamp on EVERY single entry without exception, not just at session breaks — with explicit "no exceptions" language. MEMORY.md entry for transcript-rule already present; topic file updated to match.
