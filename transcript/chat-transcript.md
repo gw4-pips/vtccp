@@ -414,3 +414,15 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Please log a CP verifier config preset for post-calibration conformance challenge (ISO 15415/15416, 45° lighting locked, aperture 50/80, batch=device name, custom note="Post-calibration Conformance Challenge").
 
 **Assistant:** Logged in WORKING-NOTES.md as TD with known settings table, TBD items, and architecture notes (requires DMCC write, device config feature dependency, offer config restore after session).
+
+**User:** Hello, I am at the office with the devices. Now that I have 2 DMV devices connected it appears we have not fully built out the CP interface to add and edit devices. Please review that code and then let's update it. Once you give me the lay of the land we can discuss details.
+
+**Assistant:** Reviewed DevicesViewModel, DevicesView, DeviceProfile, DeviceProfileViewModel. Lay of the land: CRUD is built (Add/Edit/Delete/SetDefault/TestConnection), but Edit button silently requires a row selection (appears broken with nothing selected), Port defaults to 23 (should be 44444), edit panel column reserves 320px permanently (list cramped), panel header always says "Edit Device Profile", no DeviceType/model field, no Duplicate command, no network discovery.
+
+**User:** So, rather than me adding a new device manually, can you query DMST or the network directly to determine connected DM devices?
+
+**Assistant:** Three paths: (1) Cognex SDK EthSystemDiscoverer — UDP broadcast, same mechanism as DMST, returns Name/IP/Type/FW/Serial without connecting; (2) TCP port scan on 44444 — slower, needs manual query per host; (3) DMST API — no documented external API. Recommendation: Option 1 via SDK. Confirmed both units are on same subnet. Plan: Scan Network button → discovery results panel → click Import to pre-fill edit form.
+
+**User:** Fix all bugs and add network discovery.
+
+**Assistant:** Fixed all 8 items in v1.3.6. (1) Port default 23→44444. (2) Edit panel column now Width=Auto — collapses to 0 when not editing, list fills full width. (3) Panel header dynamically shows "Add Device Profile" vs "Edit Device Profile". (4) DeviceType field added to DeviceProfile model, DeviceProfileViewModel, edit form (editable ComboBox with presets), and list column. (5) Duplicate command added — clones profile with new GUID + " (copy)", opens edit panel. (6) Status message hints added when Edit/Delete/Duplicate clicked with no row selected. (7) Network discovery: NetworkDiscoverer static class in DeviceInterface using EthSystemDiscoverer SDK; DiscoveredDeviceViewModel; ScanNetworkCommand runs 3s UDP broadcast, results shown in dismissible panel above list, each card has ⊕ Import button that pre-fills edit form. (8) Default status message guides first-time users.

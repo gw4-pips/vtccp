@@ -10,7 +10,8 @@ using VtccpApp.Commands;
 /// <summary>
 /// Manages the device profile list for the Devices page.
 /// Exposes an <see cref="ObservableCollection{T}"/> for the list view and
-/// commands for Add / Edit / Delete / Set-Default / Test-Connection.
+/// commands for Add / Edit / Duplicate / Delete / Set-Default / Test-Connection /
+/// Scan-Network / Import-Discovered / Dismiss-Discovery.
 /// </summary>
 public sealed class DevicesViewModel : ViewModelBase
 {
@@ -19,12 +20,15 @@ public sealed class DevicesViewModel : ViewModelBase
     private DeviceProfileViewModel? _selected;
     private DeviceProfileViewModel? _editing;
     private bool                    _isEditing;
+    private bool                    _isNew;
     private bool                    _isTesting;
+    private bool                    _isScanning;
     private string                  _statusMessage = string.Empty;
 
     // ── Bindable collections and properties ───────────────────────────────────
 
-    public ObservableCollection<DeviceProfileViewModel> Devices { get; } = [];
+    public ObservableCollection<DeviceProfileViewModel>    Devices          { get; } = [];
+    public ObservableCollection<DiscoveredDeviceViewModel> DiscoveredDevices { get; } = [];
 
     public DeviceProfileViewModel? Selected
     {
@@ -39,7 +43,7 @@ public sealed class DevicesViewModel : ViewModelBase
         private set => Set(ref _editing, value);
     }
 
-    /// <summary>True when the edit panel is open.</summary>
+    /// <summary>True when the edit/add panel is open.</summary>
     public bool IsEditing
     {
         get => _isEditing;
@@ -50,6 +54,23 @@ public sealed class DevicesViewModel : ViewModelBase
         }
     }
 
+    /// <summary>True while a network scan is running.</summary>
+    public bool IsScanning
+    {
+        get => _isScanning;
+        private set
+        {
+            Set(ref _isScanning, value);
+            RelayCommand.Refresh();
+        }
+    }
+
+    /// <summary>"Add Device Profile" or "Edit Device Profile" depending on context.</summary>
+    public string EditingTitle => _isNew ? "Add Device Profile" : "Edit Device Profile";
+
+    /// <summary>True when the discovery results panel should be visible.</summary>
+    public bool HasDiscoveredDevices => DiscoveredDevices.Count > 0;
+
     public string StatusMessage
     {
         get => _statusMessage;
@@ -58,32 +79,45 @@ public sealed class DevicesViewModel : ViewModelBase
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
-    public RelayCommand AddCommand          { get; }
-    public RelayCommand EditCommand         { get; }
-    public RelayCommand DeleteCommand       { get; }
-    public RelayCommand DefaultCommand      { get; }
-    public RelayCommand SaveCommand         { get; }
-    public RelayCommand CancelCommand       { get; }
-    public RelayCommand BrowseLogoCommand   { get; }
-    public RelayCommand TestConnectCommand  { get; }
+    public RelayCommand AddCommand             { get; }
+    public RelayCommand EditCommand            { get; }
+    public RelayCommand DuplicateCommand       { get; }
+    public RelayCommand DeleteCommand          { get; }
+    public RelayCommand DefaultCommand         { get; }
+    public RelayCommand SaveCommand            { get; }
+    public RelayCommand CancelCommand          { get; }
+    public RelayCommand TestConnectCommand     { get; }
+    public RelayCommand ScanNetworkCommand     { get; }
+    public RelayCommand DismissDiscoveryCommand { get; }
+
+    public RelayCommand<DiscoveredDeviceViewModel> ImportDiscoveredCommand { get; }
 
     private readonly Action? _onListChanged;
 
     public DevicesViewModel(ConfigRepository repo, Action? onListChanged = null)
     {
-        _repo           = repo;
-        _onListChanged  = onListChanged;
+        _repo          = repo;
+        _onListChanged = onListChanged;
 
-        AddCommand        = new RelayCommand(OnAdd);
-        EditCommand       = new RelayCommand(OnEdit,        () => Selected is not null && !IsEditing);
-        DeleteCommand     = new RelayCommand(OnDelete,      () => Selected is not null && !IsEditing);
-        DefaultCommand    = new RelayCommand(OnSetDefault,  () => Selected is not null && !IsEditing);
-        SaveCommand       = new RelayCommand(OnSave,        () => IsEditing);
-        CancelCommand     = new RelayCommand(OnCancel,      () => IsEditing);
-        BrowseLogoCommand = new RelayCommand(OnBrowseLogo,  () => IsEditing);
+        AddCommand       = new RelayCommand(OnAdd);
+        EditCommand      = new RelayCommand(OnEdit,      () => Selected is not null && !IsEditing);
+        DuplicateCommand = new RelayCommand(OnDuplicate, () => Selected is not null && !IsEditing);
+        DeleteCommand    = new RelayCommand(OnDelete,    () => Selected is not null && !IsEditing);
+        DefaultCommand   = new RelayCommand(OnSetDefault, () => Selected is not null && !IsEditing);
+        SaveCommand      = new RelayCommand(OnSave,       () => IsEditing);
+        CancelCommand    = new RelayCommand(OnCancel,     () => IsEditing);
+
         TestConnectCommand = new RelayCommand(
             async () => await OnTestConnectAsync(),
             () => Selected is not null && !IsEditing && !_isTesting);
+
+        ScanNetworkCommand = new RelayCommand(
+            async () => await OnScanNetworkAsync(),
+            () => !IsScanning && !IsEditing);
+
+        DismissDiscoveryCommand = new RelayCommand(OnDismissDiscovery);
+
+        ImportDiscoveredCommand = new RelayCommand<DiscoveredDeviceViewModel>(OnImportDiscovered);
 
         Reload();
     }
@@ -95,27 +129,62 @@ public sealed class DevicesViewModel : ViewModelBase
         Devices.Clear();
         foreach (var d in _repo.Devices)
             Devices.Add(new DeviceProfileViewModel(d));
-        StatusMessage = string.Empty;
+        StatusMessage = Devices.Count == 0
+            ? "No device profiles yet. Click + Add or 🔍 Scan to get started."
+            : "Select a device to edit or test, or click + Add to create a new profile.";
     }
 
-    // ── Command handlers ──────────────────────────────────────────────────────
+    // ── Command handlers — list ───────────────────────────────────────────────
 
     private void OnAdd()
     {
+        _isNew    = true;
         Editing   = new DeviceProfileViewModel();
         IsEditing = true;
+        OnPropertyChanged(nameof(EditingTitle));
+        StatusMessage = string.Empty;
     }
 
     private void OnEdit()
     {
-        if (Selected is null) return;
+        if (Selected is null)
+        {
+            StatusMessage = "Select a device in the list first, then click Edit.";
+            return;
+        }
+        _isNew    = false;
         Editing   = new DeviceProfileViewModel(Selected.ToModel());
         IsEditing = true;
+        OnPropertyChanged(nameof(EditingTitle));
+        StatusMessage = string.Empty;
+    }
+
+    private void OnDuplicate()
+    {
+        if (Selected is null)
+        {
+            StatusMessage = "Select a device in the list first, then click Duplicate.";
+            return;
+        }
+        var clone = new DeviceProfileViewModel(Selected.ToModel())
+        {
+            Id   = Guid.NewGuid().ToString(),
+            Name = Selected.Name + " (copy)",
+        };
+        _isNew    = true;
+        Editing   = clone;
+        IsEditing = true;
+        OnPropertyChanged(nameof(EditingTitle));
+        StatusMessage = "Editing duplicate — update the name and host, then click Save.";
     }
 
     private void OnDelete()
     {
-        if (Selected is null) return;
+        if (Selected is null)
+        {
+            StatusMessage = "Select a device in the list first, then click Delete.";
+            return;
+        }
         if (MessageBox.Show($"Delete device profile '{Selected.Name}'?",
                 "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question)
             != MessageBoxResult.Yes) return;
@@ -139,14 +208,16 @@ public sealed class DevicesViewModel : ViewModelBase
         StatusMessage = $"'{Selected.Name}' is now the default device.";
     }
 
+    // ── Command handlers — edit panel ─────────────────────────────────────────
+
     private void OnSave()
     {
         if (Editing is null) return;
 
         string name = Editing.Name.Trim();
-        if (string.IsNullOrEmpty(name)) { StatusMessage = "Name is required."; return; }
-        if (string.IsNullOrEmpty(Editing.Host.Trim())) { StatusMessage = "Host is required."; return; }
-        if (Editing.Port is < 1 or > 65535) { StatusMessage = "Port must be 1–65535."; return; }
+        if (string.IsNullOrEmpty(name))              { StatusMessage = "Name is required.";       return; }
+        if (string.IsNullOrEmpty(Editing.Host.Trim())) { StatusMessage = "Host is required.";     return; }
+        if (Editing.Port is < 1 or > 65535)          { StatusMessage = "Port must be 1–65535.";   return; }
 
         Editing.Name = name;
         DeviceProfile model = Editing.ToModel();
@@ -165,20 +236,11 @@ public sealed class DevicesViewModel : ViewModelBase
     {
         IsEditing = false;
         Editing   = null;
+        StatusMessage = string.Empty;
     }
 
-    private void OnBrowseLogo()
-    {
-        // Logo is configured on the Job Template (JobTemplate.LogoPath), not on a
-        // device profile.  This command stub is retained so the binding does not
-        // throw; the button is not exposed in DevicesView.xaml.
-    }
+    // ── Command handlers — Test Connection ───────────────────────────────────
 
-    /// <summary>
-    /// Connects to the selected device, queries its type and firmware, and
-    /// reports the result (including round-trip latency) in the status bar.
-    /// Uses a 3-second timeout so the UI stays responsive.
-    /// </summary>
     private async Task OnTestConnectAsync()
     {
         if (Selected is null) return;
@@ -216,5 +278,59 @@ public sealed class DevicesViewModel : ViewModelBase
             _isTesting = false;
             RelayCommand.Refresh();
         }
+    }
+
+    // ── Command handlers — Network Discovery ─────────────────────────────────
+
+    private async Task OnScanNetworkAsync()
+    {
+        IsScanning = true;
+        DiscoveredDevices.Clear();
+        OnPropertyChanged(nameof(HasDiscoveredDevices));
+        StatusMessage = "Scanning network for DataMan devices (3 s)…";
+
+        try
+        {
+            var found = await NetworkDiscoverer.DiscoverAsync(listenMs: 3_000);
+
+            foreach (var d in found)
+                DiscoveredDevices.Add(new DiscoveredDeviceViewModel(d));
+
+            OnPropertyChanged(nameof(HasDiscoveredDevices));
+
+            StatusMessage = DiscoveredDevices.Count > 0
+                ? $"Found {DiscoveredDevices.Count} device(s). Click ⊕ Import to add a profile."
+                : "No DataMan devices found on this subnet.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Network scan failed: {ex.Message}";
+        }
+        finally
+        {
+            IsScanning = false;
+        }
+    }
+
+    private void OnImportDiscovered(DiscoveredDeviceViewModel? device)
+    {
+        if (device is null) return;
+        _isNew  = true;
+        Editing = new DeviceProfileViewModel
+        {
+            Name            = device.Name,
+            Host            = device.Host,
+            Port            = device.Port,
+            DeviceType      = device.DeviceType,
+        };
+        IsEditing = true;
+        OnPropertyChanged(nameof(EditingTitle));
+        StatusMessage = $"Importing {device.Name} — review the fields and click Save.";
+    }
+
+    private void OnDismissDiscovery()
+    {
+        DiscoveredDevices.Clear();
+        OnPropertyChanged(nameof(HasDiscoveredDevices));
     }
 }

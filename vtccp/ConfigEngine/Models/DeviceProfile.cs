@@ -16,6 +16,9 @@ public sealed class DeviceProfile
     /// <summary>Operator-facing display name, e.g. "Line-1 DM260Q".</summary>
     public string Name { get; set; } = "New Device";
 
+    /// <summary>Operator-assigned device type label, e.g. "DM475V-LBL" or "DM475V-DPM".</summary>
+    public string? DeviceType { get; set; }
+
     /// <summary>Optional free-text notes.</summary>
     public string? Notes { get; set; }
 

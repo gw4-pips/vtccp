@@ -12,12 +12,13 @@ public sealed class DeviceProfileViewModel : ViewModelBase
     private string _id          = Guid.NewGuid().ToString();
     private string _name        = "New Device";
     private string _host        = "192.168.0.100";
-    private int    _port        = 23;
+    private int    _port        = 44_444;
     private int    _connectMs   = 5_000;
     private int    _responseMs  = 5_000;
     private int    _idleGapMs   = 150;
     private int    _dmstPort    = 0;
     private bool   _isDefault;
+    private string _deviceType  = string.Empty;
     private string _notes       = string.Empty;
 
     public string Id         { get => _id;         set => Set(ref _id,         value); }
@@ -29,6 +30,7 @@ public sealed class DeviceProfileViewModel : ViewModelBase
     public int    IdleGapMs  { get => _idleGapMs;  set => Set(ref _idleGapMs,  value); }
     public int    DmstPort   { get => _dmstPort;   set => Set(ref _dmstPort,   value); }
     public bool   IsDefault  { get => _isDefault;  set => Set(ref _isDefault,  value); }
+    public string DeviceType { get => _deviceType; set => Set(ref _deviceType, value); }
     public string Notes      { get => _notes;      set => Set(ref _notes,      value); }
 
     public DeviceProfileViewModel() { }
@@ -46,6 +48,7 @@ public sealed class DeviceProfileViewModel : ViewModelBase
         IdleGapMs  = p.IdleGapMs;
         DmstPort   = p.DmstListenPort;
         IsDefault  = p.IsDefault;
+        DeviceType = p.DeviceType ?? string.Empty;
         Notes      = p.Notes ?? string.Empty;
     }
 
@@ -60,7 +63,8 @@ public sealed class DeviceProfileViewModel : ViewModelBase
         IdleGapMs         = IdleGapMs,
         DmstListenPort    = DmstPort,
         IsDefault         = IsDefault,
-        Notes             = string.IsNullOrWhiteSpace(Notes) ? null : Notes,
+        DeviceType        = string.IsNullOrWhiteSpace(DeviceType) ? null : DeviceType,
+        Notes             = string.IsNullOrWhiteSpace(Notes)      ? null : Notes,
     };
 
     public override string ToString() => $"{Name} ({Host}:{Port})";
