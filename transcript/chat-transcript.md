@@ -546,3 +546,11 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Calling it a night. Can't fight these interface dev issues right now. Need to get some verification work done tomorrow.
 
 **Assistant:** Good night. Device Profiles issues held for tomorrow — still need one answer before fixing Save/Add: what do you see when you click Save (form stays open? closes with no device added? status bar message?). Enjoy the verification work.
+
+---
+
+**`2026-06-25 — morning`**
+
+**User:** Hello. Let's leave the Device add/edit issue aside and turn attention back to the live mode issue — being able to reproduce and control scanning outside DMST. Should you take a minute to review where we think we are?
+
+**Assistant:** Reviewed all relevant memory files (http-result-delivery.md, dmcc-wire-protocol.md, trigger-type-ground-truth.md, trigger-reset-plan.md, liveview-ceiling.md). Summary: (1) CONFIRMED WORKING — port 23 raw DMCC TRIGGER ON fires scan; HTTP subscriber on port 44444 receives results (codes.xml, origin=common); HttpEventSubscriber.cs implemented and wired; VTCCP not touching TRIGGER.TYPE. (2) CONFIRMED DEAD — SDK TRIGGER command (InvalidParameterException on fw 6.1.16_sr4); LIVEIMG.SEND; AES live view. (3) UNRESOLVED — discrepancy between two memory notes on whether CP software trigger actually produces a scan (may be TRIGGER vs TRIGGER ON confusion). (4) DMST recovery problem (TC not returning to live feed after VTCCP scan) — investigation planned but not started; restore point at f474fa7; three unconfirmed hypotheses. Proposed: Step 0 (DMST Verify baseline, VTCCP not running) then Step 1 (VTCCP CP trigger scan, observe DMST TC recovery).
