@@ -5,7 +5,7 @@
 **Session date**: 2026-05-25 (DM475-63530E-PIPS-Verif-Lab, fw 6.1.16_sr4)
 **Capture type**: Single TCP stream — Follow TCP Stream export from Wireshark
 **Analyzed**: 2026-05-25
-**Version**: 12 — **2026-06-25**: §9.7, §9.9, §9.10, §10.10 updated — trigger URL fully confirmed (`TRIGGER /on` / `TRIGGER /off`); §11 added (command channel full TCP stream analysis)
+**Version**: 13 — **2026-06-25**: §9.7, §9.9, §9.10, §10.10 updated — trigger URL fully confirmed (`TRIGGER /on` / `TRIGGER /off`); §11 added (command channel full TCP stream analysis); **§12 added** — full-session unfiltered capture: verification toggle mechanism (`PUT /vs.cfg` DMST→device), config backup endpoints (`GET /config.cfg`, `GET /config.cdc`), device config-change push (`PUT /status.xml` device→DMST on events channel), complete init sequence, external telemetry SNI confirmation, UDP discovery protocol
 
 ---
 
@@ -1176,4 +1176,263 @@ GET /monitormode?enable=false HTTP/1.1  → 204 No Content
 
 **The complete DMST HTTP control protocol is now fully reverse-engineered.**
 VTCCP requires no DMST process to be running to operate the DM475V for TruCheck verification.
+
+---
+
+## 12. Full-session unfiltered capture — 2026-06-25
+
+**Capture**: Unfiltered — all interfaces, full session  
+**Actions captured**: Open DMST → start TC → (no Go Live) → Save backup config → Disable verification → Re-enable × 2 → Stop  
+**Lines**: 3,736 packets  
+**Analyzed**: 2026-06-25
+
+This capture was not filtered to the device IP, so it contains all network traffic from the DMST host (10.10.10.19) across the full session. It is the most complete capture to date and adds several previously unobserved events.
+
+---
+
+### 12.1 External services contacted by the DMST host — SNI confirmed
+
+Two external TLS connections fire at session start (before DMST ever connects to the device):
+
+| t= | Destination | SNI (from ClientHello — plaintext) | Who |
+|---|---|---|---|
+| 0.000s | 34.128.165.207:443 | *(already established — ACK only at pkt 1)* | Unknown (Cloudflare) |
+| 0.186s | 18.223.69.42:443 | **`lambdaapi.superops.ai`** | SuperOps RMM agent |
+| 0.563s | 18.97.138.67:443 | **`ingress.us1.coralogix.com`** | Coralogix log shipping |
+
+**`lambdaapi.superops.ai`** — SuperOps is an IT RMM (Remote Monitoring & Management) / PSA
+platform used by managed service providers to remotely monitor and manage endpoints. At t=186ms
+DMST fires a ~26KB TLS 1.3 burst upload (packets 15–95 of the capture, rapid 325-byte TLS
+records + one large 10,274-byte frame), then closes the connection with FIN at t=434ms.
+This is a one-shot telemetry upload, not a persistent connection.
+
+**`ingress.us1.coralogix.com`** — Coralogix is a cloud log analytics / observability platform.
+DMST opens this connection at t=563ms and ships logs there.
+
+**Critical timing note**: The device connection does not begin until t=8.97s (ARP + TCP SYN to
+10.10.10.4:44444). The SuperOps upload completes and closes in 248ms — well before any device
+interaction. This strongly suggests SuperOps is a **Windows background IT management agent**
+installed on the DMST workstation, NOT a component of DMST itself. The Coralogix connection
+could be either DMST log shipping or the same Windows IT agent.
+
+> **Test to distinguish**: Close DMST and watch Wireshark for ~2 minutes. If SuperOps/Coralogix
+> still fire on their ~10-second heartbeat schedule, they are Windows agents independent of DMST.
+> If they stop, they originate from within DMST.
+
+**Payload content**: All traffic is TLS 1.3 — payload is encrypted and unreadable without the
+server private key. Packet sizes (97/93/82 bytes on heartbeats; 325-byte bursts on uploads) are
+consistent with telemetry/log data, not bulk file transfer. No inference about specific data
+content is possible.
+
+**Air-gap implication**: If DMST is deployed in a network-isolated environment, these outbound
+HTTPS calls will fail silently or after TCP timeout. Whether DMST or the IT agent degrades
+gracefully is unknown.
+
+---
+
+### 12.2 Device UDP discovery broadcasts — NEW
+
+Both DM475V devices (LBL = 10.10.10.7, DPM = 10.10.10.4) send UDP broadcasts at approximately
+3-second and 6-second marks into the capture — **before DMST connects to them**:
+
+| pkt | t= | Source | Destination | Port | Size |
+|---|---|---|---|---|---|
+| 237 | 3.41s | 10.10.10.7 | 255.255.255.255 | 1069 → 1069 | 223B |
+| 243 | 3.60s | 10.10.10.7 | 10.10.10.19 (DMST) | 1069 → 63589 | 223B |
+| 244 | 3.70s | 10.10.10.4 | 10.10.10.19 (DMST) | 1069 → 63589 | 223B |
+| 249 | 3.90s | 10.10.10.4 | 255.255.255.255 | 1069 → 1069 | 223B |
+| 380 | 6.29s | 10.10.10.7 | 10.10.10.19 | 1069 → 63589 | 223B |
+| 381 | 6.39s | 10.10.10.4 | 10.10.10.19 | 1069 → 63589 | 223B |
+
+UDP port 1069 is associated with Cognex device discovery / GigE Vision network presence announcements.
+Both devices are broadcasting their presence to the subnet and unicasting directly to the DMST
+host. The DMST host is evidently known to them (presumably from a prior connection or ARP cache).
+Capture capture does not show DMST responding to these UDP packets.
+
+---
+
+### 12.3 Complete device init sequence (DPM, t=8.60–10.1s)
+
+At t=8.60s the LBL device (10.10.10.7) issues an ARP request for the DMST host; DPM (10.10.10.4)
+follows at t=8.71s. DMST then immediately opens two TCP connections to DPM port 44444:
+
+| pkt | t= | Direction | Verb | Response | Notes |
+|---|---|---|---|---|---|
+| 444/445 | 8.97s | DMST→DPM | TCP SYN (63160→44444) | SYN-ACK | Channel 1 (command) |
+| 447/448 | 8.97s | DMST→DPM | TCP SYN (63161→44444) | SYN-ACK | Channel 2 (data) |
+| 450/452 | 8.99s | DMST→DPM | `Continuation` (= `RESUME /`) | `200 OK` (195B) | Session resume |
+| 453/454 | 9.01s | DMST→DPM | `Continuation` (= `ISALIVE /`) | `204 No Content` (203B) | Heartbeat |
+| 456/458 | 9.03s | DMST→DPM | `GET /events?enable HTTP/1.1` | `204 No Content` (203B) | Subscribe to events |
+| 459/485 | 9.04s | DMST→DPM | `GET /vs.cfg HTTP/1.1` | `200 OK` (1,023B) | Fetch device config (~24KB body) |
+| 497/531 | 9.63s | DMST→DPM | `GET /parameters.xml HTTP/1.1` | `200 OK` (1,113B) | Full parameter dump |
+| 533/552 | 9.71s | DMST→DPM | `GET /vs.cfg HTTP/1.1` | `200 OK` (1,023B) | **Second vs.cfg fetch** |
+| 559/564 | 9.83s | DMST→DPM | `GET /status.xml HTTP/1.1` | `200 OK` (529B) | Status poll |
+| 566/567 | 9.86s | DMST→DPM | `GET /device_info.xml HTTP/1.1` | `401 Unauthorized` (260B) | Auth failure |
+| 570/571 | 9.88s | DMST→DPM | `GET /device_info.xml HTTP/1.1` | `401 Unauthorized` (260B) | Retry, also fails |
+| 579/583 | 10.08s | DMST→DPM | `GET /status.xml HTTP/1.1` | `200 OK` (529B) | Poll continues |
+
+**Notes:**
+- vs.cfg is fetched **twice** during init (t=9.04s and t=9.71s). The second fetch may be triggered
+  by TC panel initialization after the first.
+- `GET /device_info.xml` fails with 401 both times. DMST cannot authenticate this endpoint on
+  fw 6.1.16_sr4, or the endpoint requires credentials DMST does not send. Content unknown.
+  Matches §11.3 observation from the prior capture.
+- `GET /events?enable` subscription fires before the config fetches — the device can begin
+  pushing events immediately after t=9.03s.
+
+---
+
+### 12.4 Save backup config — NEW endpoints discovered (t=30.23s)
+
+When the user clicks "Save backup config" in DMST, two sequential GET requests fire to the device:
+
+```
+→ GET /config.cfg HTTP/1.1         (pkt 2160, t=30.23s)
+← HTTP/1.1 200 OK                  (pkt 2273, t=30.26s, 249B total)
+   Body: ~83B  ← small metadata
+
+→ GET /config.cdc HTTP/1.1         (pkt 2274, t=30.28s)
+← HTTP/1.1 200 OK                  (pkt 2391, t=30.31s, 415B Wireshark frame)
+   Body: ~136.5KB  ← large response (seq 232809 → ack 372562 = 139,753 bytes)
+```
+
+**`GET /config.cfg`** — small metadata file (body ~83B after HTTP headers). Extension `.cfg`
+suggests a configuration descriptor or header file. Likely ASCII/XML.
+
+**`GET /config.cdc`** — large 136.5KB response, reassembled across ~97 TCP segments before
+Wireshark presents it as a single HTTP frame. The `.cdc` extension is Cognex-proprietary —
+this is the full device configuration backup container. Content is binary or AES-encrypted
+(unreadable from packet headers alone). This is what DMST saves to disk as the backup file.
+
+**VTCCP implication**: These two endpoints provide a config snapshot path. `GET /config.cdc`
+followed by a corresponding `PUT /config.cdc` would presumably restore a saved configuration.
+The PUT direction has not been observed; it would only fire on "Restore from backup".
+Both endpoints are additive to the Phase 1 plan and require no new plumbing.
+
+---
+
+### 12.5 Verification toggle mechanism — NEW: `PUT /vs.cfg` (DMST → device) (t=37.5–46.0s)
+
+When the user enables or disables verification in TC, DMST fires this 3-step sequence:
+
+```
+→ GET /status.xml HTTP/1.1         ← read current device state (529B)
+← HTTP/1.1 200 OK
+
+→ PUT /vs.cfg HTTP/1.1             ← write new verification state to device (118B total)
+  [small body — AES-encrypted delta or enable/disable flag]
+
+← [device events channel]:
+   PUT /status.xml HTTP/1.1        ← device pushes config-change notification (326B XML)
+
+← HTTP/1.1 200 OK                  ← response to the PUT /vs.cfg
+  [406B first toggle; 309B subsequent toggles]
+```
+
+Four toggles observed — matches user's "disable + re-enable × 2" sequence:
+
+| pkt | t= | Action |
+|---|---|---|
+| 3374 | 37.51s | PUT /vs.cfg toggle 1 |
+| 3463 | 40.48s | PUT /vs.cfg toggle 2 |
+| 3583 | 43.74s | PUT /vs.cfg toggle 3 |
+| 3653 | 46.04s | PUT /vs.cfg toggle 4 |
+
+**Direction note**: There are now TWO distinct `PUT /vs.cfg` flows in the protocol:
+
+| Direction | Channel | Content | Size | Trigger |
+|---|---|---|---|---|
+| Device → DMST | Events (long-poll) | AES-encrypted full config | ~288–400B | Periodic config sync |
+| **DMST → Device** | **Command (data channel)** | **AES-encrypted delta or flag** | **~30–50B body** | **Verification enable/disable, config change** |
+
+The DMST→device PUT body is estimated at ~30–50 bytes (118B frame − IP/TCP/HTTP header overhead).
+Very small — likely a single AES block carrying just the changed parameter(s).
+
+**VTCCP implication**: To implement verification enable/disable without DMST, VTCCP would need to:
+1. GET /status.xml (confirm state)
+2. PUT /vs.cfg with the appropriate small AES-encrypted body
+
+The body content is unknown (AES-encrypted). **This specific PUT is NOT required for Phase 2**
+(VTCCP controls the trigger, not the enable/disable — that is operator-set before a session).
+It is logged here for completeness. If VTCCP ever needs to toggle verification programmatically,
+the body format will require a targeted Wireshark decode session with TLS key export or
+firmware analysis.
+
+---
+
+### 12.6 Device config-change push — `PUT /status.xml` (device → DMST, events channel)
+
+Previously documented (§2.2): the device sends `PUT /status.xml` **every ~1 second** as
+periodic telemetry (~4.6KB, on the events long-poll channel).
+
+**NEW from this capture**: the device also sends `PUT /status.xml` **immediately** after any
+configuration change, regardless of the 1-second telemetry schedule. Each verification toggle
+produces a 326-byte `PUT /status.xml` within ~170ms of the DMST PUT /vs.cfg completing.
+
+This is a **config-change notification** — smaller than the periodic 4.6KB telemetry
+(326B vs 4,600B), and fires out-of-schedule. Content likely carries only the changed parameter
+subset, not the full status.
+
+**Distinguishing periodic from config-change `PUT /status.xml`**:
+
+| Property | Periodic | Config-change |
+|---|---|---|
+| Trigger | ~1 second timer | Immediately after config write |
+| Size | ~4,600B | 326B |
+| XML content | Full `<status version="3">` tree | Likely partial / delta |
+
+VTCCP's HttpEventsChannel should handle both variants — the parser already processes the
+full tree; the smaller variant will parse as a partial update and should not cause errors
+if all fields are nullable.
+
+---
+
+### 12.7 Updated complete verb inventory (all captures combined)
+
+| Verb | Path | Direction | Response | First seen |
+|---|---|---|---|---|
+| `RESUME` | `/` | DMST→device | `200 OK` | §9 |
+| `ISALIVE` | `/` | DMST→device | `204 No Content` | §9 |
+| `GET` | `/events?enable` | DMST→device | `204 No Content` | §2.1 |
+| `GET` | `/vs.cfg` | DMST→device | `200 OK` (~24KB AES) | §11 |
+| `GET` | `/parameters.xml` | DMST→device | `200 OK` (1,113B) | §11 |
+| `GET` | `/status.xml` | DMST→device | `200 OK` (529B) | §11 |
+| `GET` | `/device_info.xml` | DMST→device | `401 Unauthorized` | §11 |
+| `GET` | `/config.cfg` | DMST→device | `200 OK` (~83B) | **§12.4** |
+| `GET` | `/config.cdc` | DMST→device | `200 OK` (~136.5KB) | **§12.4** |
+| `GET` | `/monitormode?enable=true` | DMST→device | `204 No Content` | §8.1 |
+| `GET` | `/monitormode?enable=false` | DMST→device | `204 No Content` | §8.1 |
+| `GET` | `/svg_image.img` | DMST→device | `500` (wrong direction) | §9 |
+| `TRIGGER` | `/on` | DMST→device | `204 No Content` | §9.7 |
+| `TRIGGER` | `/off` | DMST→device | `204 No Content` | §9.7 |
+| **`PUT`** | **`/vs.cfg`** | **DMST→device** | **`200 OK`** | **§12.5** |
+| `PUT` | `/status.xml` (periodic) | device→DMST | *(long-poll push)* | §2.2 |
+| `PUT` | `/status.xml` (config-change) | device→DMST | *(long-poll push, 326B)* | **§12.6** |
+| `PUT` | `/vs.cfg` | device→DMST | *(long-poll push, AES)* | §2.3 |
+| `PUT` | `/codes.xml` | device→DMST | *(long-poll push)* | §2.4 |
+| `PUT` | `/pcm_report.html` | device→DMST | *(long-poll push)* | §2.5 |
+| `PUT` | `/svg_image.img` | device→DMST | *(long-poll push, SVG)* | §9.8 |
+
+**Total: 20 distinct verb/path combinations confirmed across all captures.**
+
+---
+
+### 12.8 Protocol reversal status — updated
+
+| Component | Status |
+|---|---|
+| Events channel subscription (`GET /events?enable`) | ✓ Confirmed §2.1 |
+| Result delivery (`PUT /codes.xml`, `PUT /pcm_report.html`) | ✓ Confirmed §2.4, §2.5 |
+| Image delivery (`PUT /svg_image.img`) | ✓ Confirmed §9.8 |
+| Go Live / Sleep (`GET /monitormode?enable=*`) | ✓ Confirmed §8.1 |
+| Verification trigger (`TRIGGER /on` / `TRIGGER /off`) | ✓ Confirmed §9.7 |
+| Session init (`RESUME /`, `ISALIVE /`) | ✓ Confirmed §9.3 |
+| Config fetch read (`GET /vs.cfg`, `GET /parameters.xml`, `GET /status.xml`) | ✓ Confirmed §11 |
+| Config backup download (`GET /config.cfg`, `GET /config.cdc`) | ✓ Confirmed **§12.4** |
+| **Verification toggle write (`PUT /vs.cfg` DMST→device)** | ✓ **Confirmed §12.5** — body AES-encrypted, content unknown |
+| Config-change notification (`PUT /status.xml` 326B, device→DMST) | ✓ **Confirmed §12.6** |
+
+**20 verb/path combinations confirmed. Protocol reversal is complete for all DMST actions
+observed to date.** The only remaining unknown is the AES body format of `PUT /vs.cfg`
+(DMST→device), which is not required for any Phase 1–2 VTCCP operation.
 

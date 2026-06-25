@@ -721,3 +721,36 @@ Updated: wireshark-protocol-analysis.md §§9.7, 9.9, 9.10, 10.10, +§11 (comple
 - Phase 3: FTP-IMAGE server (full-frame image archival — embedded FTP listener, device pushes per scan)
 - Phase 4: Live SVG display (UI only — data already flowing from Phase 1)
 DMST coexistence confirmed as safe (multiple HTTP subscribers on port 44444). Two open questions before starting Phase 1: multiple-subscriber confirmation test, and FTP-IMAGE full-frame probe.
+
+---
+
+## 2026-06-25 (continued)
+
+**User**: Previous Wireshark capture (unfiltered, wrong filter — only Cloudflare/internet traffic captured). Asks about what DMST transmits to external servers.
+
+**Assistant**: Traffic is TLS 1.3 encrypted — payload unreadable without server private key. However: TLS ClientHello contains SNI (Server Name Indication) in plaintext. The SNI from the prior capture shows `lambdaapi.superops.ai` and `ingress.us1.coralogix.com`. Packet cadence (~10s, 97/93/82-byte heartbeats) is consistent with license heartbeat or telemetry, not bulk data. 520-byte responses at longer intervals may be periodic license refresh. DNS query from full capture will confirm hostname.
+
+**User**: Full-session unfiltered capture submitted (3,736 packets). Actions: Open DMST → start TC → (no Go Live) → Save backup config → Disable verification → Re-enable ×2 → Stop.
+
+**Assistant**: Full analysis of 3,736-packet capture. Key findings:
+
+**External services (SNI confirmed from ClientHello):**
+- `lambdaapi.superops.ai` (18.223.69.42) — SuperOps RMM agent. Fires at t=186ms with ~26KB one-shot upload, closes FIN at t=434ms. SuperOps is an IT MSP/RMM platform. Timing (248ms before device connection at t=8.97s) strongly suggests this is a Windows IT management agent, NOT DMST itself.
+- `ingress.us1.coralogix.com` (18.97.138.67) — Coralogix cloud log analytics. Opens at t=563ms.
+- Test to confirm: close DMST, watch Wireshark — if SuperOps/Coralogix still fire on heartbeat schedule, they are Windows background agents independent of DMST.
+
+**Device UDP port 1069 broadcasts** — both DM475V devices (LBL and DPM) send UDP 1069→1069 broadcasts and unicasts to DMST at t=3-6s, before DMST connects. Likely Cognex GigE device discovery protocol.
+
+**Complete device init sequence** — two TCP connections to DPM:44444 at t=8.97s, then: RESUME → ISALIVE → GET /events?enable → GET /vs.cfg (twice) → GET /parameters.xml → GET /status.xml → GET /device_info.xml ×2 (401 both times) → GET /status.xml polling continues.
+
+**NEW: Save backup config (t=30.23s) — 2 new endpoints:**
+- `GET /config.cfg` → 200 OK, ~83B body (small metadata)
+- `GET /config.cdc` → 200 OK, **136.5KB body** (full config backup container, Cognex-proprietary format)
+
+**NEW: Verification toggle mechanism — `PUT /vs.cfg` (DMST→device):**
+4 toggles confirmed (matches disable+enable×2). Each toggle: GET /status.xml → PUT /vs.cfg (118B frame, tiny AES body) → device immediately pushes PUT /status.xml (326B, config-change notification) → 200 OK. The PUT /vs.cfg direction was previously only known device→DMST (on events channel). DMST also writes config TO the device.
+
+**NEW: Device config-change push — `PUT /status.xml` (326B, out-of-schedule):**
+Device pushes a 326B PUT /status.xml on the events channel immediately after each config change. Distinct from the periodic ~4.6KB telemetry. Config-change notification, not full status.
+
+**Updated verb count: 20 distinct verb/path combinations across all captures. Written to wireshark-protocol-analysis.md §12.**
