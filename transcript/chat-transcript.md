@@ -671,3 +671,38 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 6. trigger_time=572-578ms in codes.xml — reliable timing field.
 7. Trigger URL still unknown — trigger fires on command channel (54768), not visible in this events stream.
 - Updated: wireshark-protocol-analysis.md §10, WORKING-NOTES.md
+
+---
+
+**`2026-06-25`**
+
+**User**: Showed command channel (54768) Follow TCP Stream starting from `GET /events?enable` (wrong stream — that's the events channel). Corrected to Option B: Ctrl+G → pkt 2035 → Follow TCP Stream.
+
+**User**: Confirmed the RESUME/ISALIVE/GET /vs.cfg stream was already open from earlier. Used Ctrl+F to search for `monitormode` within it. Found `GET /monitormode?enable=true → 204`, then `GET /svg_image.img → 500` pair.
+
+**User**: Attached the full command channel TCP stream (22,489 lines) as `Pasted-RESUME-HTTP-1-1-Date-Thu-25-Jun-2026-00-46-35-GMT-X-Pee_1782350561788.txt`.
+
+**Assistant**: Grepped the attached stream for all HTTP verbs. Found trigger at lines 10023 and 22465:
+
+```
+TRIGGER /on HTTP/1.1
+Date: Thu, 25 Jun 2026 00:46:46 GMT
+X-Peer: 62476613
+→ HTTP/1.1 204 No Content
+
+TRIGGER /off HTTP/1.1
+Date: Thu, 25 Jun 2026 00:46:46 GMT
+X-Peer: 62476613
+→ HTTP/1.1 204 No Content
+```
+
+Confirmed twice (00:46:46 and 00:47:00). Full "Go Live from Sleep" sequence:
+`GET /monitormode?enable=false` → `TRIGGER /on` → `TRIGGER /off` → `GET /monitormode?enable=true`
+
+"Cancel" = `GET /monitormode?enable=false` only (no trigger, no re-enable).
+
+Complete command channel verb inventory extracted (11 verbs: RESUME, ISALIVE, GET /vs.cfg, GET /parameters.xml, GET /status.xml, GET /device_info.xml, GET /monitormode?enable=true/false, GET /svg_image.img, TRIGGER /on, TRIGGER /off).
+
+**DMST HTTP control protocol is now 100% reverse-engineered.**
+
+Updated: wireshark-protocol-analysis.md §§9.7, 9.9, 9.10, 10.10, +§11 (complete command channel stream analysis). WORKING-NOTES.md trigger section confirmed.

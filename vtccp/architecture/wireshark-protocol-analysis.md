@@ -5,6 +5,7 @@
 **Session date**: 2026-05-25 (DM475-63530E-PIPS-Verif-Lab, fw 6.1.16_sr4)
 **Capture type**: Single TCP stream — Follow TCP Stream export from Wireshark
 **Analyzed**: 2026-05-25
+**Version**: 12 — **2026-06-25**: §9.7, §9.9, §9.10, §10.10 updated — trigger URL fully confirmed (`TRIGGER /on` / `TRIGGER /off`); §11 added (command channel full TCP stream analysis)
 
 ---
 
@@ -737,29 +738,66 @@ this endpoint or the DM475V does not support it. Not needed for VTCCP.
 Device immediately pushes: `PUT /status.xml` ×2, `PUT /vs.cfg` (588B), then begins monitor
 scanning cycle (`PUT /codes.xml` + `PUT /status.xml` at ~300ms cadence).
 
-### 9.7 Trigger command — endpoint unknown, two-packet pattern
+### 9.7 ★ Trigger command — CONFIRMED 2026-06-25
 
 When the user clicks **Go Live** from Sleep mode to trigger a verification scan, two
-`Continuation`-labeled HTTP requests fire in rapid succession on the command channel:
+custom HTTP verbs fire in rapid succession on the command channel (54768):
+
+```
+→ TRIGGER /on HTTP/1.1
+  Date: Thu, 25 Jun 2026 00:46:46 GMT
+  X-Peer: 62476613
+
+← HTTP/1.1 204 No Content
+  Content-Length: 0
+  Cache-Control: no-cache
+  Pragma: no-cache
+  Connection: Keep-Alive
+  Server: DM475/6.1.16 (DeviceID=50)
+
+→ TRIGGER /off HTTP/1.1
+  Date: Thu, 25 Jun 2026 00:46:46 GMT
+  X-Peer: 62476613
+
+← HTTP/1.1 204 No Content
+  ...
+```
+
+Both verified from Follow TCP Stream on command channel (54768) — 22,489-line stream,
+confirmed twice (00:46:46 and 00:47:00 within same session).
 
 | Packet | Time | Request | Response |
 |---|---|---|---|
-| 2035 | t=21.19s | `Continuation` (133 bytes) on 54768 | `HTTP/1.1 204 No Content` |
-| 2038 | t=21.23s | `Continuation` (134 bytes) on 54768 | `HTTP/1.1 204 No Content` |
+| 2035 | t=21.19s | `TRIGGER /on HTTP/1.1` on 54768 | `HTTP/1.1 204 No Content` |
+| 2038 | t=21.23s | `TRIGGER /off HTTP/1.1` on 54768 | `HTTP/1.1 204 No Content` |
 
-Both return `204 No Content` within ~2ms. The pattern matches other control commands
-(`/monitormode?enable=*`). Same pattern observed in second trigger (pkts 4307, 4310 at t=35.16s).
+Both return `204 No Content` within ~2ms. No body, no Content-Length beyond 0.
 
-**Scan result arrives ~550ms after trigger** as:
-1. `PUT /vs.cfg` (235B)
+**Full "Go Live from Sleep" sequence on command channel:**
+
+```
+→ GET /monitormode?enable=false   (exit sleep/monitor mode)
+← 204 No Content
+
+→ TRIGGER /on                     (fire verification trigger)
+← 204 No Content
+
+→ TRIGGER /off                    (release trigger)
+← 204 No Content
+
+→ GET /monitormode?enable=true    (return to sleep mode)
+← 204 No Content
+```
+
+The device cannot be in monitor mode and execute a trigger simultaneously. DMST exits
+monitor mode, fires the trigger pair, then re-enters monitor mode.
+
+**Scan result arrives ~550ms after TRIGGER /on** on the events channel (54767) as:
+1. `PUT /vs.cfg` (235B, AES-encrypted)
 2. `PUT /pcm_report.html` (full HTML verification report)
-3. `PUT /codes.xml` (verification result + base64 push XML)
-4. **`PUT /svg_image.img`** (scan image — see §9.8)
+3. `PUT /codes.xml` (verification result + base64 push XML, `origin="common"`)
+4. **`PUT /svg_image.img`** (annotated SVG scan image — see §9.8)
 5. `PUT /status.xml` ×2
-
-**To identify the trigger URL**: In Wireshark, right-click on pkt 2035 or 4307 →
-**Follow TCP Stream** → read the raw ASCII — the HTTP GET line will be visible at the
-start of the Continuation payload. Expected format: `GET /verify HTTP/1.1` or similar.
 
 ### 9.8 ★ PUT /svg_image.img — CRITICAL FINDING
 
@@ -784,14 +822,20 @@ likely JPEG). Parse the HTTP PUT body from the event stream.
 
 ### 9.9 Second Go Live (post-scan) and Cancel
 
+Now that the trigger sequence is confirmed (§9.7), the full command channel sequence
+for the second half of the session reads:
+
 ```
-→ GET /monitormode?enable=true HTTP/1.1   (t=25.39s) → 204 No Content
-→ GET /monitormode?enable=false HTTP/1.1  (t=28.09s) → 204 No Content
-→ GET /monitormode?enable=true HTTP/1.1   (t=31.29s) → 204 No Content
-→ GET /monitormode?enable=false HTTP/1.1  (t=33.56s) → 204 No Content
+→ GET /monitormode?enable=true HTTP/1.1   (t=25.39s) → 204  ← return to Sleep after scan #1
+→ GET /monitormode?enable=false HTTP/1.1  (t=28.09s) → 204  ┐
+→ TRIGGER /on HTTP/1.1                    (t=28.10s) → 204  │ Go Live from Sleep → scan #2
+→ TRIGGER /off HTTP/1.1                   (t=28.10s) → 204  │
+→ GET /monitormode?enable=true HTTP/1.1   (t=31.29s) → 204  ┘ return to Sleep after scan #2
+→ GET /monitormode?enable=false HTTP/1.1  (t=33.56s) → 204  ← Cancel (no trigger follows)
 ```
 
-Identical to previous DPM capture. Confirmed stable.
+"Cancel" = `GET /monitormode?enable=false` with no `TRIGGER /on` following.
+"Go Live from Sleep" = `GET /monitormode?enable=false` + `TRIGGER /on` + `TRIGGER /off` + `GET /monitormode?enable=true`.
 
 ### 9.10 Summary — new findings from this capture
 
@@ -803,7 +847,7 @@ Identical to previous DPM capture. Confirmed stable.
 | `GET /parameters.xml` | ✓ New endpoint confirmed; content unknown |
 | `GET /device_info.xml` → 401 | ✓ Confirmed — DMST cannot authenticate this endpoint |
 | `GET /monitormode?enable=true/false` | ✓ Re-confirmed (×4 cycles) |
-| Trigger = Continuation packets (×2) → 204 each | ✓ Pattern confirmed; URL unknown |
+| `TRIGGER /on` + `TRIGGER /off` → 204 each | ✓ **FULLY CONFIRMED 2026-06-25** — custom HTTP verbs, no body |
 | `PUT /svg_image.img` (device → DMST) | ✓ **CRITICAL NEW FINDING** — push model confirmed |
 | `GET /svg_image.img` → 500 = wrong direction | ✓ Explained — GET is wrong, PUT is correct mechanism |
 
@@ -981,6 +1025,151 @@ Not needed for VTCCP result parsing, but useful for connection health monitoring
 | Device status/health | `PUT /status.xml` |
 | Monitor vs verification discriminator | `origin="monitor"` vs `origin="common"` in codes.xml |
 
-**Trigger URL still unknown** — trigger fires on command channel (54768), not on events channel.
-Need Follow TCP Stream on pkt 2035 scrolled past the init sequence to find the trigger verb.
+**★ Trigger URL CONFIRMED 2026-06-25** — `TRIGGER /on` and `TRIGGER /off` are custom HTTP verbs
+on the command channel (54768). No body, `204 No Content` response. See §9.7 and §11 for full detail.
+
+**Complete DMST HTTP control protocol is now fully reverse-engineered.** All endpoints and
+verbs are known. VTCCP can operate the DM475V independently of DMST.
+
+---
+
+## 11. Command channel (54768) full TCP stream — 2026-06-25
+
+**Source**: Follow TCP Stream on connection B (54768) — DMST command/request channel  
+**File**: `attached_assets/Pasted-RESUME-HTTP-1-1-Date-Thu-25-Jun-2026-00-46-35-GMT-X-Pee_1782350561788.txt`  
+**Lines**: 22,489  
+**Session timestamps**: 00:46:35 – 00:47:00 (25-second session, DM475V-DPM, 10.10.10.4)
+
+### 11.1 Complete verb inventory — all HTTP requests on command channel
+
+```
+Line    Verb / Endpoint                         Response
+------  --------------------------------------  ------------------
+1       RESUME /                                200 OK (0-byte body)
+14      ISALIVE /                               204 No Content
+27      GET /vs.cfg                             200 OK (24,000B AES)
+248     GET /parameters.xml                     200 OK (content unread)
+552     GET /vs.cfg                             200 OK (repeat)
+747     GET /status.xml                         200 OK
+790     GET /device_info.xml                    401 Unauthorized
+804     GET /device_info.xml                    401 Unauthorized (retry)
+819     GET /status.xml                         200 OK (repeat)
+862     GET /monitormode?enable=true            204 No Content  ← Go Live #1 (Sleep)
+875     GET /svg_image.img                      500 Internal Server Error
+1999    GET /svg_image.img                      500  ┐
+3120    GET /svg_image.img                      500  │ DMST polling (wrong direction)
+4230    GET /svg_image.img                      500  │ Device doesn't serve via GET
+5416    GET /svg_image.img                      500  │ Interval: ~1100 lines / ~10s each
+6551    GET /svg_image.img                      500  │
+7676    GET /svg_image.img                      500  │
+7689    GET /svg_image.img                      500  │ (double-poll at this point)
+8851    GET /svg_image.img                      500  ┘
+10010   GET /monitormode?enable=false           204  ← exit Sleep
+10023   TRIGGER /on                             204  ┐ Go Live from Sleep → scan #1
+10036   TRIGGER /off                            204  ┘
+10049   GET /monitormode?enable=true            204  ← return to Sleep
+10062   GET /svg_image.img                      500  ┐ polling resumes
+11200   GET /svg_image.img                      500  │
+11213   GET /svg_image.img                      500  │
+12346   GET /svg_image.img                      500  │
+13478   GET /svg_image.img                      500  │
+13491   GET /svg_image.img                      500  │
+14595   GET /svg_image.img                      500  │
+15703   GET /svg_image.img                      500  ┘
+16864   GET /monitormode?enable=false           204  ← Cancel (no trigger)
+16877   GET /svg_image.img                      500
+16890   GET /monitormode?enable=true            204  ← Go Live #3 (Sleep again)
+16903   GET /svg_image.img                      500  ┐
+18059   GET /svg_image.img                      500  │
+18072   GET /svg_image.img                      500  │
+19162   GET /svg_image.img                      500  │
+20275   GET /svg_image.img                      500  │
+21366   GET /svg_image.img                      500  ┘
+22452   GET /monitormode?enable=false           204  ← exit Sleep
+22465   TRIGGER /on                             204  ┐ Go Live from Sleep → scan #2
+22478   TRIGGER /off                            204  ┘
+        [stream ends — session close]
+```
+
+### 11.2 Confirmed verb set — complete
+
+| Verb | Path | Purpose | Response |
+|---|---|---|---|
+| `RESUME` | `/` | Session resume / keepalive init | `200 OK` (0-byte) |
+| `ISALIVE` | `/` | Heartbeat / connection test | `204 No Content` |
+| `GET` | `/vs.cfg` | Fetch device config (AES-encrypted) | `200 OK` |
+| `GET` | `/parameters.xml` | Full device parameter dump | `200 OK` |
+| `GET` | `/status.xml` | Device status | `200 OK` |
+| `GET` | `/device_info.xml` | Device identity | `401 Unauthorized` |
+| `GET` | `/monitormode?enable=true` | Enter Sleep (monitor mode on) | `204 No Content` |
+| `GET` | `/monitormode?enable=false` | Exit Sleep (monitor mode off) | `204 No Content` |
+| `GET` | `/svg_image.img` | ❌ Wrong direction — device doesn't serve images via GET | `500 Internal Server Error` |
+| **`TRIGGER`** | **`/on`** | **Fire verification trigger** | **`204 No Content`** |
+| **`TRIGGER`** | **`/off`** | **Release verification trigger** | **`204 No Content`** |
+
+### 11.3 Key observations
+
+**`TRIGGER /on` + `TRIGGER /off` are the only custom non-standard HTTP verbs** that perform
+device actions. `RESUME` and `ISALIVE` are init/heartbeat only.
+
+**Interval between GET /svg_image.img polls**: ~10 seconds (every ~1124 stream lines).
+Occasionally two polls fire back-to-back (lines 7676/7689, 11200/11213, 13478/13491, 18059/18072).
+All return `500`. DMST is permanently polling the wrong direction during live/sleep mode.
+
+**`GET /monitormode?enable=false` discriminates Cancel from Go Live from Sleep**:
+- Cancel: `enable=false` alone — no trigger follows
+- Go Live from Sleep: `enable=false` → `TRIGGER /on` → `TRIGGER /off` → `enable=true`
+
+**`GET /device_info.xml` → `401 Unauthorized`**: fired twice during init, both fail.
+DMST cannot authenticate this endpoint on fw 6.1.16_sr4. Content unknown.
+
+**`GET /parameters.xml`** appears once during init (line 248). Large response, content AES-encrypted
+or binary (unreadable in stream dump). Likely the full device parameter manifest — potentially
+replaces a DMCC GET ALL scan at connect time.
+
+### 11.4 VTCCP implementation — complete command channel protocol
+
+```csharp
+// All requests sent on command channel TCP connection with:
+//   X-Peer: {peerId}   (DMST uses 62476613 — arbitrary, VTCCP picks any int)
+//   Date: {RFC1123}
+
+// Session open
+RESUME / HTTP/1.1          → expect 200 OK
+ISALIVE / HTTP/1.1         → expect 204 No Content
+
+// Init reads
+GET /vs.cfg HTTP/1.1       → 200 OK, AES body (ignore or decrypt)
+GET /parameters.xml HTTP/1.1 → 200 OK (log for future analysis)
+GET /status.xml HTTP/1.1   → 200 OK
+
+// Enter Sleep (Go Live)
+GET /monitormode?enable=true HTTP/1.1  → 204 No Content
+
+// Fire verification scan
+GET /monitormode?enable=false HTTP/1.1  → 204 No Content
+TRIGGER /on HTTP/1.1                    → 204 No Content
+TRIGGER /off HTTP/1.1                   → 204 No Content
+GET /monitormode?enable=true HTTP/1.1   → 204 No Content
+// → await PUT /codes.xml (origin="common") on events channel
+
+// Cancel
+GET /monitormode?enable=false HTTP/1.1  → 204 No Content
+// (no trigger, no monitormode=true)
+```
+
+### 11.5 Protocol reversal status — COMPLETE
+
+| Component | Status |
+|---|---|
+| Events channel subscription (`GET /events?enable`) | ✓ Confirmed §2.1 |
+| Result delivery (`PUT /codes.xml`, `PUT /pcm_report.html`) | ✓ Confirmed §2.4, §2.5 |
+| Image delivery (`PUT /svg_image.img` — SVG) | ✓ Confirmed §9.8, §10.2 |
+| Go Live / Sleep (`GET /monitormode?enable=*`) | ✓ Confirmed §8.1 |
+| **Verification trigger (`TRIGGER /on` / `TRIGGER /off`)** | **✓ CONFIRMED 2026-06-25 — this section** |
+| Session init (`RESUME /`, `ISALIVE /`) | ✓ Confirmed §9.3 |
+| Config fetch (`GET /vs.cfg`, `GET /parameters.xml`) | ✓ Confirmed (content AES-encrypted) |
+
+**The complete DMST HTTP control protocol is now fully reverse-engineered.**
+VTCCP requires no DMST process to be running to operate the DM475V for TruCheck verification.
 

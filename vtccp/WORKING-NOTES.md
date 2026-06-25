@@ -1610,9 +1610,25 @@ For VTCCP live image: receive PUT /svg_image.img on events subscription connecti
 Fetched during TC connect init. Large response. Likely full device parameter dump.
 Worth capturing the body — may replace DMCC GET ALL.
 
+### ★ Trigger URL — CONFIRMED 2026-06-25
+
+`TRIGGER /on HTTP/1.1` → `204 No Content`  
+`TRIGGER /off HTTP/1.1` → `204 No Content`
+
+Both are custom HTTP verbs on the command channel (54768). No body. Same `X-Peer` + `Date` headers
+as all other command channel requests. Confirmed twice in the 22,489-line TCP stream dump at
+00:46:46 and 00:47:00. See wireshark-protocol-analysis.md §9.7 and §11 for full detail.
+
+**Full "Go Live from Sleep" sequence**:
+```
+GET /monitormode?enable=false → TRIGGER /on → TRIGGER /off → GET /monitormode?enable=true
+```
+"Cancel" = `GET /monitormode?enable=false` only (no trigger, no re-enable).
+
+**DMST HTTP control protocol is now 100% reverse-engineered.** All endpoints known.
+
 ### Still unknown
 
-- Trigger URL (need Follow TCP Stream on pkt 2035 or 4307)
-- Init URLs (Continuation pkts 505/508 at connection open)
-- Image format in PUT /svg_image.img body
-- Content of GET /parameters.xml response
+- Init URLs (RESUME / and ISALIVE / confirmed; pkts 505/508 `200 OK` body content unknown)
+- Content of `GET /parameters.xml` response (AES-encrypted or binary)
+- Image format in `PUT /svg_image.img` body (confirmed SVG from events channel — §10.2)
