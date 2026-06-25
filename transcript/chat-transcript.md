@@ -570,3 +570,11 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Explain what you meant by "On the DM475V, TruCheck appears to be always active — the DM475V is a dedicated verifier, not a reader with optional TruCheck bolted on."
 
 **Assistant:** Clarified: statement was an inference from the VERIFICATION.ENABLE platform list (DM8072V, DM370, DM390, DM470 — DM475V absent), not a confirmed fact. Reasoning was that DM475V is purpose-built as a verifier vs older models where TruCheck was an add-on feature. But that inference is likely wrong given user confirms DMST UI can disable verification on DM475V — meaning a DMCC command exists. Three alternatives: (1) VERIFICATION.ENABLE works on DM475V and the platform list is incomplete, (2) a different TRUCHECK.* command controls it on DM475V, (3) disabling switches to decode-only mode rather than removing TruCheck entirely. Correct next step: GET VERIFICATION.ENABLE on port 23 against live device to see if it responds or errors.
+
+---
+
+**`2026-06-25 — morning`**
+
+**User:** Shall we explore the behavior of toggling Verification on and off with Wireshark? I will need complete instructions.
+
+**Assistant:** Provided complete Wireshark capture instructions: (1) Capture filter: host 10.10.10.7, on the NIC that sees 10.10.10.x traffic. (2) Start capture, let 30s baseline accumulate. (3) Toggle Verification OFF in DMST, wait 5s. (4) Toggle back ON, wait 5s. (5) Stop, save as verification-toggle.pcapng. (6) Display filter tcp.port==44444, open Statistics→Conversations→TCP, follow each shorter-lived TCP stream (not the large long-lived HTTP result-push stream) looking for DMCC command XML with SET/GET text. (7) Also check port 23 for completeness. (8) Export each command stream as ASCII text and share. Target: find the SET command DMST sends when toggling verification — expected VERIFICATION.ENABLE or a TRUCHECK.* equivalent. Also look for MONITOR-MODE.ENABLE changes in the same capture.
