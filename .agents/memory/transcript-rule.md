@@ -18,7 +18,7 @@ description: Standing rule to append every conversation turn to transcript/chat-
 ---
 ```
 
-**Timestamp rule (standing — confirmed 2026-06-24):** Every single entry gets its own `**\`YYYY-MM-DD — time\`**` line — not just at session breaks, not just every few hours. **Every entry. No exceptions.**
+**Timestamp rule (standing — confirmed 2026-06-23):** Every single entry gets its own `**\`YYYY-MM-DD — time\`**` line — not just at session breaks, not just every few hours. **Every entry. No exceptions.**
 
 - Use HH:MM if known from device timestamps or logs
 - Use plain language (morning / afternoon / evening / night) when exact time is unknown

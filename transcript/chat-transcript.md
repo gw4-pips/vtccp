@@ -485,7 +485,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-24 — evening`**
+**`2026-06-23 — evening`**
 
 **User:** [Attached push XML, scan #18] QR IMAGE.LOAD Grade A on DPM unit with new pre-release firmware. Says "no post verif image" not seen on LBL unit. Also "You always forget" re: push XML being one line.
 
@@ -493,7 +493,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-24 — evening`**
+**`2026-06-23 — evening`**
 
 **User:** [Session Plan dump] — Full project status doc from v1.29 through scan #18 findings. No explicit action requested.
 
@@ -501,7 +501,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-24 — evening`**
+**`2026-06-23 — evening`**
 
 **User:** Corrected: ISO 29158:2025 on scan #18 was operator config error — should have selected ISO 15415 for this printed QR symbol. Grading standard is DMST operator setting, independent of symbology. No claim that DPM device applies 29158 to QR is valid.
 
@@ -509,7 +509,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-24 — evening`**
+**`2026-06-23 — evening`**
 
 **User:** Attached two QR IMAGE.LOAD scans on DPM device with ISO 15415:2011 (corrected standard). Same GUID symbol. Scan A = pass, scan B = fail.
 
@@ -517,7 +517,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-24 — evening`**
+**`2026-06-23 — evening`**
 
 **User:** Added scan #21 — QR IMAGE.LOAD Grade F but decoded (SymbolQuality=46). "F but not because of no decode."
 
@@ -525,7 +525,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-24 — evening`**
+**`2026-06-23 — evening`**
 
 **User:** CP was not open and was never a factor. Post-verif image problem was always in DMST TC. Resolved by config restore. All well.
 
@@ -533,15 +533,15 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-24 — evening`**
+**`2026-06-23 — evening`**
 
 **User:** I do not see any new date and timestamps in the transcript, as we agreed there would be. Make a permanent note. And go back to the beginning of our sessions today and add at least that one.
 
-**Assistant:** Retrofitted all of today's entries (scan #18 through CP/DMST correction) with `2026-06-24 — evening` timestamps. Updated transcript-rule.md: rule now requires a timestamp on EVERY single entry without exception, not just at session breaks — with explicit "no exceptions" language. MEMORY.md entry for transcript-rule already present; topic file updated to match.
+**Assistant:** Retrofitted all of today's entries (scan #18 through CP/DMST correction) with `2026-06-23 — evening` timestamps. Updated transcript-rule.md: rule now requires a timestamp on EVERY single entry without exception, not just at session breaks — with explicit "no exceptions" language. MEMORY.md entry for transcript-rule already present; topic file updated to match.
 
 ---
 
-**`2026-06-24 — evening`**
+**`2026-06-23 — evening`**
 
 **User:** Calling it a night. Can't fight these interface dev issues right now. Need to get some verification work done tomorrow.
 
@@ -549,7 +549,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-25 — morning`**
+**`2026-06-24 — morning`**
 
 **User:** Hello. Let's leave the Device add/edit issue aside and turn attention back to the live mode issue — being able to reproduce and control scanning outside DMST. Should you take a minute to review where we think we are?
 
@@ -557,7 +557,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-25 — morning`**
+**`2026-06-24 — morning`**
 
 **User:** Glenn thinks there may be DMCC commands that pertain but are outliers in naming — something like Monitor.Mode or Verification. Also challenging the "only live-view path is AES-encrypted HTTP" assertion: what is that based on and with what confidence? Also: if we can't find live-mode control, we could turn verification OFF (DMST UI control) and do a DMCC diff probe with it on vs off. Also, with verification disabled, live mode still transmits 3-4 images/sec.
 
@@ -565,7 +565,7 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-25 — morning`**
+**`2026-06-24 — morning`**
 
 **User:** Explain what you meant by "On the DM475V, TruCheck appears to be always active — the DM475V is a dedicated verifier, not a reader with optional TruCheck bolted on."
 
@@ -573,8 +573,24 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 
 ---
 
-**`2026-06-25 — morning`**
+**`2026-06-24 — morning`**
 
 **User:** Shall we explore the behavior of toggling Verification on and off with Wireshark? I will need complete instructions.
 
 **Assistant:** Provided complete Wireshark capture instructions: (1) Capture filter: host 10.10.10.7, on the NIC that sees 10.10.10.x traffic. (2) Start capture, let 30s baseline accumulate. (3) Toggle Verification OFF in DMST, wait 5s. (4) Toggle back ON, wait 5s. (5) Stop, save as verification-toggle.pcapng. (6) Display filter tcp.port==44444, open Statistics→Conversations→TCP, follow each shorter-lived TCP stream (not the large long-lived HTTP result-push stream) looking for DMCC command XML with SET/GET text. (7) Also check port 23 for completeness. (8) Export each command stream as ASCII text and share. Target: find the SET command DMST sends when toggling verification — expected VERIFICATION.ENABLE or a TRUCHECK.* equivalent. Also look for MONITOR-MODE.ENABLE changes in the same capture.
+
+---
+
+**`2026-06-24 — morning`** *(retroactive — this exchange preceded the live-mode discussion above; entry was not appended at the time)*
+
+**User:** [Session Plan dump] — Full project status doc v1.29 through v1.33 probe campaign complete, HTML scraper wired, GUI reference library in progress, Wireshark analysis complete. No explicit action requested.
+
+**Assistant:** Received and processed. Context reloaded from session plan. Awaiting specific instruction.
+
+---
+
+**`2026-06-24 — 20:15 EDT`**
+
+**User:** Housekeeping — all dates from yesterday were 1 day ahead (it was 2026-06-23, not 2026-06-24). We are on Eastern time (EDT) and it is 20:15 hrs. Please correct and add the most current chat transcript entries.
+
+**Assistant:** Corrected all yesterday's timestamps from `2026-06-24 — evening` to `2026-06-23 — evening` (7 entries). Corrected all today's timestamps from `2026-06-25 — morning` to `2026-06-24 — morning` (4 entries). Fixed matching prose reference in the retrofitting assistant message. Fixed transcript-rule.md "confirmed 2026-06-24" → "confirmed 2026-06-23". Appended missing Session Plan dump entry (retroactive) and this housekeeping turn.
