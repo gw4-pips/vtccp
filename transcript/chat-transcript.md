@@ -594,3 +594,11 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Housekeeping — all dates from yesterday were 1 day ahead (it was 2026-06-23, not 2026-06-24). We are on Eastern time (EDT) and it is 20:15 hrs. Please correct and add the most current chat transcript entries.
 
 **Assistant:** Corrected all yesterday's timestamps from `2026-06-24 — evening` to `2026-06-23 — evening` (7 entries). Corrected all today's timestamps from `2026-06-25 — morning` to `2026-06-24 — morning` (4 entries). Fixed matching prose reference in the retrofitting assistant message. Fixed transcript-rule.md "confirmed 2026-06-24" → "confirmed 2026-06-23". Appended missing Session Plan dump entry (retroactive) and this housekeeping turn.
+
+---
+
+**`2026-06-24 — 20:15 EDT`**
+
+**User:** For the record, the 475V-DPM is at 10.10.10.4. Which port are we looking at?
+
+**Assistant:** Logged DM475V-DPM IP as 10.10.10.4 (DM475V-LBL = 10.10.10.7). Corrected Wireshark capture filter: use `host 10.10.10.4` (DPM) or `host 10.10.10.4 or host 10.10.10.7` (both). Do NOT filter by port at capture time — DMST may send DMCC SET commands on port 44444 or possibly port 23; filtering at capture time risks missing it. Apply port filter in display filter after capture. Asked: which device is DMST connected to for this capture?
