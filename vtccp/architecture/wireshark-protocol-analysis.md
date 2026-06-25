@@ -961,15 +961,19 @@ From result id=12341 (trigger #2), decoded from `<full_string>`:
 </DMCCResponse>
 ```
 
-### 10.6 Push script v1.37 — new version on DPM device
+### 10.6 Push script v1.37 — confirmed on DPM device (already running on LBL)
 
 `<PushScriptDiag>v1.37 q=r.trucheck m=found</PushScriptDiag>`
 
-The DM475V-DPM (10.10.10.4) is running push script **v1.37**, 4 versions newer than the
-last confirmed v1.33 on DM475V-LBL (10.10.10.7). Key observation: `<EncodedCharacters>24`
-is present in v1.37 output — if this is now populated consistently, the v1.30 bug #1
-(EncodedCharacters dead path on fw 6.1.16_sr4) may be resolved in newer push script versions.
-Verify by comparing v1.37 DPM result vs DMST HTML report value for the same scan.
+The DM475V-DPM (10.10.10.4) is running push script **v1.37**. This is not a new version
+discovery — v1.37 was already confirmed on DM475V-LBL (10.10.10.7) at scan #16 (2026-06-20)
+and had been running on that device for an extended period before the DPM machine was brought
+into use. Both devices are on the same script version.
+
+Key observation: `<EncodedCharacters>24` is present in v1.37 output — if this is now
+populated consistently, the v1.30 bug #1 (EncodedCharacters dead path on fw 6.1.16_sr4)
+may be resolved in newer push script versions. Verify by comparing v1.37 result vs DMST
+HTML report value for the same scan.
 
 ### 10.7 codes.xml timing field
 

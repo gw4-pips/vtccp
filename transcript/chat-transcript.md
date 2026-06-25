@@ -706,3 +706,7 @@ Complete command channel verb inventory extracted (11 verbs: RESUME, ISALIVE, GE
 **DMST HTTP control protocol is now 100% reverse-engineered.**
 
 Updated: wireshark-protocol-analysis.md §§9.7, 9.9, 9.10, 10.10, +§11 (complete command channel stream analysis). WORKING-NOTES.md trigger section confirmed.
+
+**User**: Correction — v1.37 was running on the DM475V-LBL for an extended period before switching to the DPM machine. The note in §10.6 saying "4 versions newer than the last confirmed v1.33 on LBL" was wrong.
+
+**Assistant**: Corrected §10.6 in wireshark-protocol-analysis.md. The erroneous claim ("4 versions newer than the last confirmed v1.33 on DM475V-LBL") has been removed. Both devices (LBL and DPM) were running v1.37. v1.37 was first confirmed on LBL at scan #16 (2026-06-20) and had been running there for days before the DPM machine was introduced. The heading was also updated from "new version on DPM device" to "confirmed on DPM device (already running on LBL)."
