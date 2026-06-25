@@ -710,3 +710,14 @@ Updated: wireshark-protocol-analysis.md §§9.7, 9.9, 9.10, 10.10, +§11 (comple
 **User**: Correction — v1.37 was running on the DM475V-LBL for an extended period before switching to the DPM machine. The note in §10.6 saying "4 versions newer than the last confirmed v1.33 on LBL" was wrong.
 
 **Assistant**: Corrected §10.6 in wireshark-protocol-analysis.md. The erroneous claim ("4 versions newer than the last confirmed v1.33 on DM475V-LBL") has been removed. Both devices (LBL and DPM) were running v1.37. v1.37 was first confirmed on LBL at scan #16 (2026-06-20) and had been running there for days before the DPM machine was introduced. The heading was also updated from "new version on DPM device" to "confirmed on DPM device (already running on LBL)."
+
+**User**: Wants DMST to stay open alongside VTCCP for recovery/config access. FTP must be factored into the implementation sequence. Asking for a plan written while they start Wireshark investigation — concise, not exhaustive. Also: DMST-independent operation is a firm goal now that the protocol is fully reversed.
+
+**User** (Wireshark): Will investigate one action at a time — verification enable/disable first, then settings changes, disconnect/reconnect, etc. One action per capture session.
+
+**Assistant**: Wrote `vtccp/architecture/dmst-independent-plan.md` — 4-phase sequenced plan:
+- Phase 1: HttpEventsChannel (result delivery — codes.xml + pcm_report.html via HTTP PUT, no DMST)
+- Phase 2: HttpCommandChannel (DMST-independent trigger — TRIGGER /on/off sequence)
+- Phase 3: FTP-IMAGE server (full-frame image archival — embedded FTP listener, device pushes per scan)
+- Phase 4: Live SVG display (UI only — data already flowing from Phase 1)
+DMST coexistence confirmed as safe (multiple HTTP subscribers on port 44444). Two open questions before starting Phase 1: multiple-subscriber confirmation test, and FTP-IMAGE full-frame probe.
