@@ -807,3 +807,180 @@ Identical to previous DPM capture. Confirmed stable.
 | `PUT /svg_image.img` (device → DMST) | ✓ **CRITICAL NEW FINDING** — push model confirmed |
 | `GET /svg_image.img` → 500 = wrong direction | ✓ Explained — GET is wrong, PUT is correct mechanism |
 
+
+---
+
+## 10. Events channel (54767) full TCP stream — 2026-06-24 evening
+
+**Source**: Follow TCP Stream on connection A (54767) — `GET /events?enable` subscription channel  
+**File**: `attached_assets/Pasted-GET-events-enable-HTTP-1-1-…_1782349614260.txt`  
+**Lines**: 17,295
+
+### 10.1 Stream open sequence
+
+```
+→ GET /events?enable HTTP/1.1
+  Date: Thu, 25 Jun 2026 00:46:35 GMT
+  X-Peer: 62476613
+
+← HTTP/1.1 204 No Content
+  Server: DM475/6.1.16 (DeviceID=50)
+```
+
+Device immediately begins pushing `PUT /status.xml` (~4630 bytes, ~1/sec).
+
+### 10.2 ★ PUT /svg_image.img — format confirmed: SVG
+
+```
+PUT /svg_image.img HTTP/1.1
+Content-Type: image/svg+xml
+User-Agent: DM475/6.1.16 (DeviceID=50)
+```
+
+**The verification image is SVG, not JPEG.** The `.img` extension is misleading — the device
+delivers a vector SVG file. This is the annotated scan image shown in DMST's verification panel.
+
+Implications for VTCCP:
+- SVG is text-based XML — can be rendered in a WebView, embedded in HTML reports, or
+  parsed to extract grid/module annotation data
+- No JPEG decode needed — SVG can be displayed directly
+- The tail of the stream (lines 12805-12854) shows `<GridIntersection>` elements with
+  Center, IdealCenter, Mod, Grade, IsBlack — this is the per-module annotation data embedded
+  in the SVG body
+
+### 10.3 origin="monitor" vs origin="common" — confirmed in codes.xml
+
+| Value | Meaning | Count in this session |
+|---|---|---|
+| `origin="monitor"` | Background monitoring scan in sleep mode | 25 |
+| `origin="common"` | Full triggered TruCheck verification | 2 |
+
+Monitor scans carry a partial `<trucheck_verificaiton_result>` (DECODE=F only, no grade data).
+Common scans carry the full result including all ISO 15415 grade parameters.
+
+### 10.4 ★ `<full_string encoding="base64">` — push XML inside codes.xml
+
+Every `PUT /codes.xml` (both monitor and common) contains:
+
+```xml
+<full_string encoding="base64">PD94bWwg…</full_string>
+```
+
+This is the **complete DMCC push XML response** (`<DMCCResponse><DMSymVerResponse>…`),
+base64-encoded. Decoding it yields the same push XML that the DMCC push listener receives
+on a separate connection.
+
+**This means**: VTCCP can receive all grade data from the events channel `codes.xml` body
+alone, without needing a separate DMCC push listener TCP connection. The events channel
+delivers everything in a single stream.
+
+### 10.5 Decoded push XML from triggered verification (origin="common")
+
+From result id=12341 (trigger #2), decoded from `<full_string>`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<DMCCResponse>
+<DMSymVerResponse>
+  <DateTime>2026-06-24T20:47:00</DateTime>
+  <SymbologyName>Data Matrix</SymbologyName>
+  <DecodedData>gibgibgib…</DecodedData>
+  <SymbologyId>]d1</SymbologyId>
+  <SymbolQuality>42</SymbolQuality>
+  <SymbolAngle>359</SymbolAngle>
+  <ModuleSizePx>24.218093872070312</ModuleSizePx>
+  <PushScriptDiag>v1.37 q=r.trucheck m=found</PushScriptDiag>
+  <Source>DM475-DPM-866D76-VCCS-Verif-Lab</Source>
+  <FormalGrade>2/C</FormalGrade>
+  <OverallGrade>C</OverallGrade>
+  <OverallGradeNumeric>2</OverallGradeNumeric>
+  <GradingStandard>ISO 15415:2011</GradingStandard>
+  <ApplicationStandard>Custom</ApplicationStandard>
+  <ApplicationPass>Pass</ApplicationPass>
+  <ApertureRef>08</ApertureRef>
+  <Wavelength>660</Wavelength>
+  <Lighting>45Q</Lighting>
+  <UECPercent>42.9</UECPercent>  <UECGrade>C</UECGrade>
+  <SCPercent>81.3</SCPercent>    <SCGrade>A</SCGrade>
+  <MinReflectance>3</MinReflectance>
+  <MODGrade>A</MODGrade>
+  <RMGrade>C</RMGrade>
+  <ANUPercent>3.9</ANUPercent>   <ANUGrade>A</ANUGrade>
+  <GNUPercent>2.3</GNUPercent>   <GNUGrade>A</GNUGrade>
+  <FPDValue>4</FPDValue>         <FPDGrade>A</FPDGrade>
+  <DecodeGrade>A</DecodeGrade>
+  <MatrixSize>26x26</MatrixSize>
+  <HorizontalBWG>11</HorizontalBWG>
+  <VerticalBWG>10</VerticalBWG>
+  <EncodedCharacters>24</EncodedCharacters>   ← BUG #1 MAY BE RESOLVED IN v1.37
+</DMSymVerResponse>
+</DMCCResponse>
+```
+
+### 10.6 Push script v1.37 — new version on DPM device
+
+`<PushScriptDiag>v1.37 q=r.trucheck m=found</PushScriptDiag>`
+
+The DM475V-DPM (10.10.10.4) is running push script **v1.37**, 4 versions newer than the
+last confirmed v1.33 on DM475V-LBL (10.10.10.7). Key observation: `<EncodedCharacters>24`
+is present in v1.37 output — if this is now populated consistently, the v1.30 bug #1
+(EncodedCharacters dead path on fw 6.1.16_sr4) may be resolved in newer push script versions.
+Verify by comparing v1.37 DPM result vs DMST HTML report value for the same scan.
+
+### 10.7 codes.xml timing field
+
+```xml
+<trigger_time>572</trigger_time>   ← milliseconds from trigger command to scan complete
+<decode_time>532</decode_time>     ← ms for decode step
+```
+
+Both triggered scans: trigger_time = 572–578ms. Reliable field for scan latency monitoring.
+
+### 10.8 trucheck_verificaiton_result — complete structure (common scans)
+
+```xml
+<trucheck_verificaiton_result>
+  <status>valid</status>
+  <CalibrationDate>6/23/2026 2:12:00 AM</CalibrationDate>
+  <OpticalVariant>DM475V</OpticalVariant>
+  <SymbolData>
+    <CalibrationState>0</CalibrationState>
+    <SymbologyType>DataMatrix</SymbologyType>
+    <DecodedData>…</DecodedData>
+    <Base64Data>…</Base64Data>        ← decoded data as base64
+    <VerificaitonTime>455</VerificaitonTime>
+    <BlurTime>272</BlurTime>
+    <ThreshTime>29</ThreshTime>
+    <CanidateEvaluationTime>70</CanidateEvaluationTime>
+    <PostDecodeTime>60</PostDecodeTime>
+    <ReportSection sectionType="GradingInfo">   ← ISO + Custom grades
+    <ReportSection sectionType="GradeHistory">  ← pass/fail window history
+    <ReportSection sectionType="Table">         ← per-parameter table
+  </SymbolData>
+</trucheck_verificaiton_result>
+```
+
+### 10.9 status.xml — full body confirmed
+
+4630-byte XML, pushed ~1/sec in sleep mode. Contains:
+- `<read_stats>`: good/bad reads, trigger counts, decoded_symbols by read_setup index
+- `<monitored_values>`: image timing stats (request time, acquisition length/gap, etc.)
+- `<monitored_counters>`: PTP, MST (multi-scanner), buffer overflow counters
+
+Not needed for VTCCP result parsing, but useful for connection health monitoring.
+
+### 10.10 Summary — events channel is sufficient for full VTCCP result delivery
+
+| Data needed | Source on events channel |
+|---|---|
+| All ISO 15415 grade fields | `PUT /codes.xml` → `<full_string>` → base64 decode → push XML |
+| Formal grade / aperture / wavelength / lighting | Same |
+| Decoded data string | Same |
+| Verification image (SVG) | `PUT /svg_image.img` (`Content-Type: image/svg+xml`) |
+| HTML report | `PUT /pcm_report.html` |
+| Device status/health | `PUT /status.xml` |
+| Monitor vs verification discriminator | `origin="monitor"` vs `origin="common"` in codes.xml |
+
+**Trigger URL still unknown** — trigger fires on command channel (54768), not on events channel.
+Need Follow TCP Stream on pkt 2035 scrolled past the init sequence to find the trigger verb.
+

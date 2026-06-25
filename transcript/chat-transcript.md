@@ -655,3 +655,19 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** Date correction — from this point forward, all entries are 2026-06-24 evening. Leave device add/edit aside. Review status of live mode reproduction outside DMST.
 
 **Assistant:** Date corrected. Status review follows (see response in chat). Working on TCP traces.
+
+---
+
+**`2026-06-24 — evening`**
+
+**User:** Provided Follow TCP Stream from events channel (54767) — 17,295 lines. File: `Pasted-GET-events-enable-HTTP-1-1-…_1782349614260.txt`.
+
+**Assistant:** Full analysis. Critical findings:
+1. Image format = SVG (`Content-Type: image/svg+xml`). `PUT /svg_image.img` delivers SVG, not JPEG — `.img` extension is misleading.
+2. Push script **v1.37** on DPM device — newer than last confirmed v1.33 on LBL device.
+3. `<full_string encoding="base64">` in codes.xml contains the complete DMCC push XML response — VTCCP can get all grade data from events channel codes.xml alone.
+4. Decoded push XML from triggered (origin="common") result: FormalGrade=2/C, OverallGrade=C, full grade set, MatrixSize=26x26, **`<EncodedCharacters>24</EncodedCharacters>` IS PRESENT in v1.37** — bug #1 may be resolved in newer push script versions.
+5. `origin="monitor"` vs `origin="common"` discriminator working: 25 monitor scans, 2 triggered verifications.
+6. trigger_time=572-578ms in codes.xml — reliable timing field.
+7. Trigger URL still unknown — trigger fires on command channel (54768), not visible in this events stream.
+- Updated: wireshark-protocol-analysis.md §10, WORKING-NOTES.md
