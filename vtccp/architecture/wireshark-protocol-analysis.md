@@ -649,3 +649,161 @@ should be used to avoid interfering with the SDK connection.
 | Status.xml rate | ~1 per second, 4.6KB |
 | Codewords section | Per-codeword decimal values, *=error-corrected |
 | Encodation Analysis | Per-codeword Mode/Result table |
+
+---
+
+## 9. Full cold-start session capture — DPM device (2026-06-24)
+
+**Capture**: DMST cold start → TC connect → Go Live → Trigger scan → Go Live → Cancel  
+**Device**: DM475V-DPM at 10.10.10.4  
+**Total packets captured**: 3,581 lines  
+**Archived**: `attached_assets/Pasted-88-4-052788100-…_1782348465833.txt`
+
+### 9.1 UDP discovery — pre-connection broadcast
+
+Before DMST opens any TCP connection, the device broadcasts/unicasts on **UDP port 1069**:
+
+| Time | Source | Destination | Notes |
+|---|---|---|---|
+| t=4.05s | 10.10.10.4 | 10.10.10.19 (unicast) | 181-byte payload |
+| t=4.85s | 10.10.10.4 | 255.255.255.255 (broadcast) | 181-byte payload |
+| t=7.34s | 10.10.10.4 | 10.10.10.19 (unicast) | 181-byte payload |
+
+These precede the TCP connection by ~6 seconds. Likely device presence/heartbeat announcements
+that DMST uses to detect and list available devices. Not needed for VTCCP (device IP is known).
+
+### 9.2 TCP connection establishment — t=10.20s
+
+Two TCP connections opened simultaneously to port 44444:
+
+| Connection | Local port | Role | First request |
+|---|---|---|---|
+| A | **54767** | Event subscription channel | `GET /events?enable` → 204 |
+| B | **54768** | Command/request channel | Unknown (Continuation) → 200 / 204 |
+
+### 9.3 Initial handshake on command channel — unknown endpoints
+
+Immediately after connection B (54768) is established, two `Continuation`-labeled HTTP requests
+are sent and answered before `GET /events?enable` fires on connection A:
+
+| Packet | Time | Request | Response |
+|---|---|---|---|
+| 505 | t=10.23s | `Continuation` (130 bytes total) on 54768 | `HTTP/1.1 200 OK` (195 bytes) — returns content |
+| 508 | t=10.26s | `Continuation` (131 bytes total) on 54768 | `HTTP/1.1 204 No Content` |
+
+Wireshark labels these "Continuation" because it cannot decode the HTTP method/URL from the
+packet boundaries — the actual endpoint names are in the raw TCP payload. To determine the URLs,
+use Wireshark → Right-click stream → **Follow TCP Stream** on connection 54768 and read the
+first ~300 bytes. The first call returns `200 OK` (content), suggesting an auth or capability
+query; the second returns `204 No Content`.
+
+### 9.4 Subscription handshake — confirmed cold-start sequence
+
+```
+→ GET /events?enable HTTP/1.1  (conn A, t=10.28s)
+← HTTP/1.1 204 No Content
+```
+
+Device immediately begins periodic `PUT /status.xml` pushes on this connection.
+
+### 9.5 DMST initialization GET sequence — complete inventory
+
+All on command channel (conn B, 54768):
+
+| Request | Response | Notes |
+|---|---|---|
+| `GET /vs.cfg` | `200 OK` (~24KB) | First config fetch — AES body, unreadable |
+| `GET /parameters.xml` | `200 OK` (large) | **NEW** — never seen before; likely full device parameter list |
+| `GET /vs.cfg` | `200 OK` (~24KB) | Second config fetch |
+| `GET /status.xml` | `200 OK` (~3.9KB) | Device status snapshot |
+| `GET /device_info.xml` | `401 Unauthorized` | Auth required — DMST first attempt fails |
+| `GET /device_info.xml` | `401 Unauthorized` | Retry — also fails; DMST cannot authenticate this endpoint |
+| `GET /status.xml` | `200 OK` | Second status poll |
+
+**`GET /parameters.xml`** is a newly-discovered endpoint. The large response (~63KB based on
+TCP segment count) may be the complete device configuration parameter dump — equivalent to
+running `GET ALL` over DMCC. Worth examining in detail.
+
+**`GET /device_info.xml` → 401** is persistent. DMST either does not have credentials for
+this endpoint or the DM475V does not support it. Not needed for VTCCP.
+
+### 9.6 Go Live → Sleep — confirmed
+
+```
+→ GET /monitormode?enable=true HTTP/1.1   (t=16.64s)
+← HTTP/1.1 204 No Content
+```
+
+Device immediately pushes: `PUT /status.xml` ×2, `PUT /vs.cfg` (588B), then begins monitor
+scanning cycle (`PUT /codes.xml` + `PUT /status.xml` at ~300ms cadence).
+
+### 9.7 Trigger command — endpoint unknown, two-packet pattern
+
+When the user clicks **Go Live** from Sleep mode to trigger a verification scan, two
+`Continuation`-labeled HTTP requests fire in rapid succession on the command channel:
+
+| Packet | Time | Request | Response |
+|---|---|---|---|
+| 2035 | t=21.19s | `Continuation` (133 bytes) on 54768 | `HTTP/1.1 204 No Content` |
+| 2038 | t=21.23s | `Continuation` (134 bytes) on 54768 | `HTTP/1.1 204 No Content` |
+
+Both return `204 No Content` within ~2ms. The pattern matches other control commands
+(`/monitormode?enable=*`). Same pattern observed in second trigger (pkts 4307, 4310 at t=35.16s).
+
+**Scan result arrives ~550ms after trigger** as:
+1. `PUT /vs.cfg` (235B)
+2. `PUT /pcm_report.html` (full HTML verification report)
+3. `PUT /codes.xml` (verification result + base64 push XML)
+4. **`PUT /svg_image.img`** (scan image — see §9.8)
+5. `PUT /status.xml` ×2
+
+**To identify the trigger URL**: In Wireshark, right-click on pkt 2035 or 4307 →
+**Follow TCP Stream** → read the raw ASCII — the HTTP GET line will be visible at the
+start of the Continuation payload. Expected format: `GET /verify HTTP/1.1` or similar.
+
+### 9.8 ★ PUT /svg_image.img — CRITICAL FINDING
+
+**The device PUSHes the scan image to DMST.** It does NOT serve it via GET.
+
+```
+← PUT /svg_image.img HTTP/1.1   (device → DMST, on events channel 54767)
+```
+
+This appears in the scan result bundle immediately after `PUT /codes.xml`. The device sends
+the verification image (and live-mode frames) by PUTting them on the **subscription channel**
+(the same keep-alive TCP connection opened with `GET /events?enable`).
+
+| Observed | Explanation |
+|---|---|
+| `GET /svg_image.img` → `HTTP/1.1 500 Internal Server Error` | DMST polling the wrong direction — device does NOT serve images via GET |
+| `PUT /svg_image.img` (device → DMST) | Correct mechanism — device PUSHes image as HTTP PUT on events channel |
+
+**For VTCCP live image capture**: Subscribe via `GET /events?enable`, then receive
+`PUT /svg_image.img` events on the same TCP connection. The body is the image (format TBD —
+likely JPEG). Parse the HTTP PUT body from the event stream.
+
+### 9.9 Second Go Live (post-scan) and Cancel
+
+```
+→ GET /monitormode?enable=true HTTP/1.1   (t=25.39s) → 204 No Content
+→ GET /monitormode?enable=false HTTP/1.1  (t=28.09s) → 204 No Content
+→ GET /monitormode?enable=true HTTP/1.1   (t=31.29s) → 204 No Content
+→ GET /monitormode?enable=false HTTP/1.1  (t=33.56s) → 204 No Content
+```
+
+Identical to previous DPM capture. Confirmed stable.
+
+### 9.10 Summary — new findings from this capture
+
+| Finding | Status |
+|---|---|
+| UDP port 1069 device discovery/heartbeat | ✓ Confirmed |
+| `GET /events?enable` cold-start handshake | ✓ First time visible — confirmed |
+| Initial Continuation handshake (init endpoints) | ⚠ Present, URLs unknown — Follow TCP Stream needed |
+| `GET /parameters.xml` | ✓ New endpoint confirmed; content unknown |
+| `GET /device_info.xml` → 401 | ✓ Confirmed — DMST cannot authenticate this endpoint |
+| `GET /monitormode?enable=true/false` | ✓ Re-confirmed (×4 cycles) |
+| Trigger = Continuation packets (×2) → 204 each | ✓ Pattern confirmed; URL unknown |
+| `PUT /svg_image.img` (device → DMST) | ✓ **CRITICAL NEW FINDING** — push model confirmed |
+| `GET /svg_image.img` → 500 = wrong direction | ✓ Explained — GET is wrong, PUT is correct mechanism |
+

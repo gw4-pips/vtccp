@@ -1578,3 +1578,41 @@ Host: {device-ip}:44444\r\n
 
 Use a separate `TcpClient` — do NOT reuse the SDK DMCC connection.
 No `MONITOR-MODE.ENABLE` DMCC command required.
+
+---
+
+## Full cold-start session capture — DPM (10.10.10.4) — 2026-06-24
+
+**Capture**: DMST cold start → TC connect → Go Live → Trigger → Go Live → Cancel
+**Full analysis**: `vtccp/architecture/wireshark-protocol-analysis.md` §9
+
+### Complete connection sequence confirmed
+
+1. UDP port 1069 discovery broadcasts (device → before TCP)
+2. Two TCP connections: 54767 (events/sub) + 54768 (command)
+3. Continuations → 200 + 204 on 54768 (init, URLs unknown)
+4. `GET /events?enable` → 204 on 54767
+5. `GET /vs.cfg` ×2, `GET /parameters.xml` (NEW), `GET /status.xml` ×2, `GET /device_info.xml` → 401 ×2
+6. `GET /monitormode?enable=true` → Sleep
+7. Trigger: Continuation ×2 → 204 each (URL unknown)
+8. Scan result: vs.cfg + pcm_report.html + codes.xml + **svg_image.img** + status.xml ×2
+9. `GET /monitormode?enable=true` → Sleep (repeat)
+10. `GET /monitormode?enable=false` → Cancel
+
+### ★ PUT /svg_image.img — device PUSHES the image
+
+Device PUTs the scan/live image on the events channel (not DMST polling via GET).
+GET /svg_image.img → 500 because direction is wrong. PUT is correct.
+For VTCCP live image: receive PUT /svg_image.img on events subscription connection.
+
+### GET /parameters.xml — new, large, content unknown
+
+Fetched during TC connect init. Large response. Likely full device parameter dump.
+Worth capturing the body — may replace DMCC GET ALL.
+
+### Still unknown
+
+- Trigger URL (need Follow TCP Stream on pkt 2035 or 4307)
+- Init URLs (Continuation pkts 505/508 at connection open)
+- Image format in PUT /svg_image.img body
+- Content of GET /parameters.xml response

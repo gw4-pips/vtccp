@@ -627,3 +627,23 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 - Two-connection architecture confirmed: port 55653 (event subscription/receive), port 55654 (command channel). Same as LBL device.
 - PUT /vs.cfg pushed by device on each mode toggle (AES-encrypted config sync).
 - Updated: wireshark-protocol-analysis.md §8 (new DPM capture section), WORKING-NOTES.md (live mode control findings).
+
+---
+
+**`2026-06-24 — 20:30 EDT`**
+
+**User:** Provided full cold-start capture (DMST open → connect to TC → Go Live → trigger scan → Go Live → cancel). Sequence from DMST opening.
+
+**Assistant:** Full analysis of 3581-line capture. Major new findings:
+- UDP port 1069 discovery: device broadcasts/unicasts to DMST before TCP connects (×3 pre-connection)
+- Two TCP connections opened simultaneously (54767=events/subscription, 54768=command)
+- Initial `Continuation` packets (×2) on 54768 at cold start → 200 OK + 204 No Content (endpoints unknown — Wireshark can't decode them, likely auth/init)
+- `GET /events?enable` → 204 confirmed on 54767 (subscription handshake, first time visible)
+- DMST init sequence on 54768: GET /vs.cfg (×2), GET /parameters.xml (NEW), GET /status.xml (×2), GET /device_info.xml → 401 Unauthorized (×2, persistent failure, DMST can't auth)
+- Go Live → Sleep: `GET /monitormode?enable=true` confirmed again
+- **Trigger (Sleep → Active)**: Two `Continuation` packets → `204 No Content` each (~33ms apart); scan results arrive ~550ms later. Actual URL unknown — need Follow TCP Stream on Wireshark to see bytes.
+- **`PUT /svg_image.img` (device → DMST)**: CONFIRMED — device PUSHes the scan image via PUT on the events channel. DMST does NOT poll it. `GET /svg_image.img` → 500 is DMST trying the wrong direction. Live image delivery is via PUT on the subscription connection.
+- Scan result bundle: PUT /vs.cfg + PUT /pcm_report.html + PUT /codes.xml + PUT /svg_image.img + PUT /status.xml (×2)
+- Second Go Live after scan: same `GET /monitormode?enable=true`
+- Cancel: `GET /monitormode?enable=false`
+- Updated: wireshark-protocol-analysis.md §9 (full session sequence), WORKING-NOTES.md
