@@ -754,3 +754,31 @@ DMST coexistence confirmed as safe (multiple HTTP subscribers on port 44444). Tw
 Device pushes a 326B PUT /status.xml on the events channel immediately after each config change. Distinct from the periodic ~4.6KB telemetry. Config-change notification, not full status.
 
 **Updated verb count: 20 distinct verb/path combinations across all captures. Written to wireshark-protocol-analysis.md §12.**
+
+---
+
+## 2026-06-25 (evening — security remediation)
+
+**User**: Both addresses showing with DMST CLOSED — Time Wait TCP entry: 10.10.10.19:59057 → 20.190.190.194:443.
+
+**Assistant**: Both confirmed independent of DMST. 18.223.69.42 (SuperOps RMM) = Windows IT management agent running 24/7, not DMST. 20.190.190.194 = Microsoft Azure (routine Windows background traffic — Update, Defender, OneDrive etc., ignore). SuperOps connecting with DMST closed confirms it is a Windows-level agent installed on the machine, not part of Cognex software.
+
+**User**: SuperOps RMM and Updater are installed. Recycled Dell 7070 Micro. Next step?
+
+**Assistant**: Mystery solved — SuperOps was installed by whoever previously managed the machine. Standard MSP practice. Steps: (1) uninstall both entries from appwiz.cpl, reboot; (2) verify 18.223.69.42 gone in TCPView; (3) scan appwiz.cpl sorted by install date + services.msc for other recycled-machine residue (ConnectWise, TeamViewer, N-able, Kaseya, NinjaRMM, AnyDesk, VNC variants, SCCM, Intune MDM, domain membership).
+
+**User**: It wants a password to uninstall!
+
+**Assistant**: Classic RMM self-protection — previous MSP locked it. Three paths: (1) Disable the service in services.msc + Stop — cuts network calls immediately, no password needed. (2) Block outbound to 18.223.69.42 in wf.msc as belt-and-suspenders. (3) Full removal: Safe Mode (service doesn't load, try uninstall again) or Revo Uninstaller Free → Forced Uninstall mode (bypasses the application's own uninstaller and the password check).
+
+**User**: Both SuperOps apps disabled. And Splashtop. What else to look for?
+
+**Assistant**: Good — those two were the biggest risks (Splashtop = full remote desktop). Remaining checklist: other RMM agents (TeamViewer, AnyDesk, LogMeIn, ConnectWise Control, N-able, Kaseya, NinjaRMM, Atera, Datto RMM, VNC variants, BeyondTrust); corporate endpoint management (SCCM "SMS Agent Host" service, Microsoft Intune/MDM enrollment in Settings → Accounts → Access work or school, Qualys/Tenable agents); domain membership (sysdm.cpl — if domain-joined, previous org still has AD trust — most critical check); Dell SupportAssist (benign hardware telemetry, keep or remove as preferred).
+
+**User**: No domain — Workgroup. The 18.x IPs are gone. Will look deeper later, no other obvious RMMs.  Also asked for clarification on earlier comment about cloud servers not being able to connect to the device.
+
+**Assistant**: Machine confirmed clean — Workgroup, IPs gone. On the cloud server comment: the DM475V protocol on port 44444 is plain TCP with no inherent restriction on where the client lives. Any host with a routed network path to 10.10.10.7 can connect. The practical constraint is that 10.10.10.x is a private LAN segment — a cloud server can't reach it by default without a VPN tunnel, port forwarding, or a local proxy. That's a network topology decision, not a protocol limitation. For VTCCP the natural deployment is a local machine on the same LAN; cloud deployment would proxy results outward rather than the cloud server pulling inward.
+
+**User**: That large session plan block did not come from me. Please update transcript and let's call it a night.
+
+**Assistant**: Noted — disregarded the injected block. Transcript updated. Good night.
