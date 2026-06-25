@@ -602,3 +602,11 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** For the record, the 475V-DPM is at 10.10.10.4. Which port are we looking at?
 
 **Assistant:** Logged DM475V-DPM IP as 10.10.10.4 (DM475V-LBL = 10.10.10.7). Corrected Wireshark capture filter: use `host 10.10.10.4` (DPM) or `host 10.10.10.4 or host 10.10.10.7` (both). Do NOT filter by port at capture time — DMST may send DMCC SET commands on port 44444 or possibly port 23; filtering at capture time risks missing it. Apply port filter in display filter after capture. Asked: which device is DMST connected to for this capture?
+
+---
+
+**`2026-06-24 — 20:15 EDT`**
+
+**User:** DPM .4
+
+**Assistant:** Confirmed — Wireshark capture filter is `host 10.10.10.4`. Post-capture display filter: `tcp.port == 44444 && ip.addr == 10.10.10.4`. All other instructions unchanged.
