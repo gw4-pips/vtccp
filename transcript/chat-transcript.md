@@ -647,3 +647,11 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 - Second Go Live after scan: same `GET /monitormode?enable=true`
 - Cancel: `GET /monitormode?enable=false`
 - Updated: wireshark-protocol-analysis.md §9 (full session sequence), WORKING-NOTES.md
+
+---
+
+**`2026-06-24 — evening`**
+
+**User:** Date correction — from this point forward, all entries are 2026-06-24 evening. Leave device add/edit aside. Review status of live mode reproduction outside DMST.
+
+**Assistant:** Date corrected. Status review follows (see response in chat). Working on TCP traces.
