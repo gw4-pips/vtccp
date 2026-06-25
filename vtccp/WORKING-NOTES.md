@@ -1528,3 +1528,53 @@ This scan establishes the critical distinction between:
 Both still `''` on this scan (decoded, non-trivial error correction). Confirms these remain
 unresolvable from push XML. C# table lookup (bug #5/#6) still required.
 
+
+---
+
+## Wireshark capture #2 — DM475V-DPM (10.10.10.4) live mode toggle — 2026-06-24
+
+**Capture condition**: Verifier idle → live mode ON → OFF → ON → OFF (two complete cycles)  
+**Full analysis**: `vtccp/architecture/wireshark-protocol-analysis.md` §8
+
+### Live mode control — CONFIRMED
+
+```
+GET /monitormode?enable=true HTTP/1.1   →  HTTP/1.1 204 No Content
+GET /monitormode?enable=false HTTP/1.1  →  HTTP/1.1 204 No Content
+```
+
+- Port 44444, plain HTTP GET
+- **NOT** a raw DMCC text command
+- Response is immediate `204 No Content` — clean ack
+
+Four toggle events observed, all confirmed. Same protocol as LBL device.
+
+### VERIFICATION.ENABLE — ABSENT
+
+Not present anywhere in the capture. TruCheck verification is always active during monitor
+mode on the DM475V. There is no separate per-session verification enable/disable toggle.
+The DMCC reference `VERIFICATION.ENABLE` command applies to older models (DM370/DM390/DM470)
+and was not observed in any DM475V session capture.
+
+### GET /svg_image.img — CONFIRMED 500 on all polls
+
+Live image streaming is inaccessible to third-party HTTP clients. Every poll returns
+`HTTP/1.1 500 Internal Server Error`. DMST's live view uses a different mechanism.
+
+### Two-connection architecture — confirmed (DPM device, same as LBL)
+
+| Conn | Local port | Role |
+|---|---|---|
+| Subscription | 55653 | Device pushes PUT events here |
+| Command | 55654 | DMST sends GET /monitormode and GET /svg_image here |
+
+### For VTCCP live mode control (future)
+
+```
+GET /monitormode?enable=true HTTP/1.1\r\n
+Host: {device-ip}:44444\r\n
+\r\n
+```
+
+Use a separate `TcpClient` — do NOT reuse the SDK DMCC connection.
+No `MONITOR-MODE.ENABLE` DMCC command required.

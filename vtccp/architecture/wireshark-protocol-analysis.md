@@ -526,6 +526,101 @@ Log this as a future architecture option — fully unblocked.
 
 ---
 
+## 8. DPM device capture — live mode toggle analysis (2026-06-24)
+
+**Capture**: User-initiated, DM475V-DPM at 10.10.10.4  
+**Display filter**: `ip.addr == 10.10.10.4` (no port filter)  
+**Capture date**: 2026-06-24  
+**Condition**: Verifier idle at capture start; live mode toggled ON → OFF → ON → OFF twice  
+**Archived**: `attached_assets/Pasted-11-0-426049100-…_1782347481563.txt` (2256 lines)
+
+### 8.1 Live mode control endpoint — confirmed
+
+DMST uses an HTTP REST call (not raw DMCC text) to toggle live/monitor mode:
+
+| Action | Request | Response |
+|---|---|---|
+| Enable live mode | `GET /monitormode?enable=true HTTP/1.1` | `HTTP/1.1 204 No Content` |
+| Disable live mode | `GET /monitormode?enable=false HTTP/1.1` | `HTTP/1.1 204 No Content` |
+
+**Four complete toggle cycles observed** (all confirmed `204 No Content`):
+
+| Packet | Time (s) | Event |
+|---|---|---|
+| 575 | 23.676 | `GET /monitormode?enable=true` (ON #1) |
+| 590 | 23.683 | `204 No Content` |
+| 1779 | 27.009 | `GET /monitormode?enable=false` (OFF #1) |
+| 1787 | 27.024 | `204 No Content` |
+| 1955 | 31.209 | `GET /monitormode?enable=true` (ON #2) |
+| 1971 | 31.216 | `204 No Content` |
+| 3022 | 34.305 | `GET /monitormode?enable=false` (OFF #2) |
+| 3051 | 34.557 | `204 No Content` |
+
+### 8.2 What is NOT present in the capture
+
+| Expected / hypothesized | Actual |
+|---|---|
+| `MONITOR-MODE.ENABLE` DMCC raw text command | **Absent** — DMST uses HTTP REST, not raw DMCC |
+| `VERIFICATION.ENABLE` command (any form) | **Absent** — no separate verification toggle at all |
+| Any raw DMCC text command | **Absent** — zero raw DMCC traffic on port 44444 |
+| `GET /events?enable` subscription handshake | Not visible (capture started after connection was established) |
+
+**Conclusion on VERIFICATION.ENABLE**: TruCheck verification is always active during monitor
+mode. There is no separate per-session toggle. The DMCC reference lists `VERIFICATION.ENABLE`
+as applicable to DM8072V/DM370/DM390/DM470 — but the DM475V does not use it through this path.
+
+### 8.3 Live image streaming — confirmed failure mode
+
+Every `GET /svg_image.img` returns `HTTP/1.1 500 Internal Server Error` for non-DMST clients.
+This is consistent across all four live-mode active periods, multiple polls per period:
+
+```
+GET /svg_image.img HTTP/1.1   →   HTTP/1.1 500 Internal Server Error
+```
+
+DMST's live view works through a different mechanism (likely AES-keyed channel or SDK
+integration). Third-party access to the live video stream is not available via this endpoint.
+This is consistent with the prior finding that `/svg_image.img` is AES-encrypted.
+
+### 8.4 Device behavior on mode toggle
+
+Immediately after each `GET /monitormode?enable=true`:
+1. Device pushes `PUT /vs.cfg` (AES-encrypted config sync, ~490–620 bytes)
+2. Device begins pushing `PUT /codes.xml` (~every 300ms, `origin="monitor"`)
+3. Device continues `PUT /status.xml` (~every second)
+
+Immediately after each `GET /monitormode?enable=false`:
+1. Device pushes final `PUT /codes.xml` and `PUT /status.xml`
+2. Device pushes `PUT /vs.cfg` (config sync, ~235–476 bytes)
+3. Traffic returns to keep-alive only
+
+### 8.5 Two-connection architecture — confirmed on DPM device
+
+| Connection | Local port | Role |
+|---|---|---|
+| Subscription channel | 55653 | Long-lived; device pushes `PUT /status.xml`, `PUT /codes.xml` to DMST |
+| Command channel | 55654 | DMST sends `GET /monitormode?…` and `GET /svg_image.img` here |
+
+Both connect to port 44444 on the device. Identical architecture to the LBL device capture.
+
+### 8.6 Implications for VTCCP
+
+To control live mode on the DM475V independently of DMST, VTCCP needs:
+
+```
+GET /monitormode?enable=true HTTP/1.1\r\n
+Host: 10.10.10.4:44444\r\n
+\r\n
+```
+
+This is a plain HTTP GET on port 44444 — the same port as the DMCC SDK connection. The device
+accepts it on any TCP connection that speaks HTTP (not raw DMCC XML). A separate `TcpClient`
+should be used to avoid interfering with the SDK connection.
+
+**No `MONITOR-MODE.ENABLE` DMCC SET command is required.** The HTTP endpoint is the confirmed path.
+
+---
+
 ## 7. Confirmed facts from this capture
 
 | Finding | Value |

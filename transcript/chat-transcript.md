@@ -610,3 +610,20 @@ v1.36 running because CONFIG restore reverted to .dmb save state (v1.37 was post
 **User:** DPM .4
 
 **Assistant:** Confirmed — Wireshark capture filter is `host 10.10.10.4`. Post-capture display filter: `tcp.port == 44444 && ip.addr == 10.10.10.4`. All other instructions unchanged.
+
+---
+
+**`2026-06-24 — 20:20 EDT`**
+
+**User:** Provided Wireshark capture from DM475V-DPM (10.10.10.4), live mode toggled ON→OFF→ON→OFF during capture. Asked which port we're looking at (and confirmed DPM = .4 in prior turns).
+
+**Assistant:** Full HTTP-layer analysis of 2256-line capture. Key findings:
+- Live mode ON: `GET /monitormode?enable=true HTTP/1.1` → `204 No Content`
+- Live mode OFF: `GET /monitormode?enable=false HTTP/1.1` → `204 No Content`
+- Four complete toggle cycles observed, all confirmed.
+- VERIFICATION.ENABLE: **absent** — no separate verification toggle exists on DM475V; TruCheck is always active during monitor mode.
+- MONITOR-MODE.ENABLE raw DMCC text: **absent** — DMST uses HTTP REST, not DMCC text protocol.
+- GET /svg_image.img: returns `HTTP/1.1 500 Internal Server Error` on every poll — live image inaccessible to third-party HTTP clients.
+- Two-connection architecture confirmed: port 55653 (event subscription/receive), port 55654 (command channel). Same as LBL device.
+- PUT /vs.cfg pushed by device on each mode toggle (AES-encrypted config sync).
+- Updated: wireshark-protocol-analysis.md §8 (new DPM capture section), WORKING-NOTES.md (live mode control findings).
