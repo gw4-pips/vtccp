@@ -798,3 +798,7 @@ Device pushes a 326B PUT /status.xml on the events channel immediately after eac
 **User** (1 JUL 0948): Asked about time awareness — can a hard rule be set to check the web for current date/time at session start? Can I tell when a new session starts? Once told the date/time, can I track it?
 
 **Assistant**: Honest answer — no internal clock, no awareness of time between sessions. System-injected "Today is..." date is unreliable (demonstrated: system said June 25, actual was July 1). I CAN recognize session starts (fresh context + auto_memory block pattern). I CAN fetch current date/time via web search tool. I CAN track time within a session once anchored. Wrote standing rule to `.agents/memory/session-start-datetime.md` and indexed in MEMORY.md: fetch current date/time from web at every session start before writing any dated content. User explicit date/time always overrides. One honest caveat: if I'm deep into a first response before checking, occasional miss is possible — user's "date/time?" at session top is a reliable backstop.
+
+**User**: "Wait for me, not on me — you are not a restaurant server."
+
+**Assistant**: Noted and saved to user preferences in replit.md.
