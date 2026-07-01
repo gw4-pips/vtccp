@@ -1,5 +1,5 @@
 # Lighting Investigation Plan — DM475V-DPM
-**Version**: 1 — 2026-06-25
+**Version**: 1 — 2026-07-01
 **Device**: DM475V-DPM (10.10.10.4, fw 6.1.16_sr4)
 **Goals**:
 1. Identify the DMCC key(s) that control illumination geometry on the DM475V-DPM

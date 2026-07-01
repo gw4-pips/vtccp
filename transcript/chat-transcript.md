@@ -785,7 +785,7 @@ Device pushes a 326B PUT /status.xml on the events channel immediately after eac
 
 ---
 
-## 2026-06-26
+## 2026-07-01
 
 **User**: Has come to understand that a competing verifier manufacturer uses 30Q (not 45Q) lighting in one or more DPM models that also support ISO 15415 verification, on the basis that the lighting difference for label stock between 45Q and 30Q is inconsequential. Wants to (1) confirm the competitor's technical design and (2) empirically test whether 30Q produces materially different 15415 grading results than 45Q. Proposes Wireshark as the tool to find the DMCC lighting control key. Notes the DPM unit is required. Also wants to evaluate 30Q vs 45Q under ISO 29158 since the absence of 45Q hardware affects both standards simultaneously.
 
