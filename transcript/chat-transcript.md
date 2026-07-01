@@ -802,3 +802,11 @@ Device pushes a 326B PUT /status.xml on the events channel immediately after eac
 **User**: "Wait for me, not on me — you are not a restaurant server."
 
 **Assistant**: Noted and saved to user preferences in replit.md.
+
+---
+
+**Session: 2026-07-01 (continued)**
+
+**User**: I recently sent you screen shots of the WTC report file naming grid. Various data element fields on the left selected and moved to the right but with the addition of promotion/demotion capability. Please surface that if you have not already.
+
+**Assistant**: Surfaced the WTC "Define Report File Name Format" screenshot (TC0374_Report_File_Name_Screen). The WTC dialog shows: Available Fields list (Job Number, Company Name, Operator, Symbology, Data, Batch #, Product Name, Time Stamp) on the left; Selected Fields on the right; → / ← shuttle buttons; Remove All; Save / Cancel. No up/down reorder buttons in the WTC original. Confirmed that FileNameFormatBuilder.tsx already exists as a full mockup — dual panel (Available Fields / Selected Fields), → / ← shuttle, ▲▼ promote/demote buttons on the Selected Fields side, double-click to add/remove, template save/load/delete, token separator picker (underscore/hyphen/period/comma/space/none), extension selector (.html/.pdf), and live preview line with sample values. Placed the FileNameFormatBuilder iframe on the canvas.
