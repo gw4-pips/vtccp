@@ -18,3 +18,4 @@
 - [Transcript rule](transcript-rule.md) — append every user+assistant turn (text only, no tool detail) to transcript/chat-transcript.md at the end of every response; standing rule, never skip
 - [ISO/IEC 15424 reference](iso-15424-reference.md) — complete symbology identifier standard in vtccp/references/standards/iso-15424-symbology-identifiers.md; ]Q1 ECI correction logged
 - [EthSystemDiscoverer SDK stub](eth-system-discoverer.md) — class not in SDK v25.4.1; NetworkDiscoverer returns empty; restore when correct class name confirmed
+- [Session start date/time rule](session-start-datetime.md) — fetch current date/time from web at every session start before writing any dated content; system-injected date is unreliable
