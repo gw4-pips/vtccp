@@ -826,3 +826,15 @@ Device pushes a 326B PUT /status.xml on the events channel immediately after eac
 **User**: Wants RFID integration into Command Pilot — GoToTags E310 UHF reader coupled with barcode verifier to capture SGTIN-encoded RFID alongside UPC/EAN/GS1 DataMatrix scan and validate data match. Mounted near verifier, shielded/directed at target, CP-triggered.
 
 **Assistant**: Scoped E310 hardware (Impinj E310 chip, USB, internal antenna only — no external antenna port, ~1m range, FCC/EU variants). Flagged three candidate SDK paths (GoToTags .NET SDK [NFC/Barcode/I-O — unclear if UHF-capable], separate "E310 RFID Service API" PDF, Impinj Octane SDK/raw LLRP) as needing direct confirmation from GoToTags support before committing — genuine open blocker. Confirmed SGTIN-96 EPC Tag Data Standard is fully specified (96-bit: header+filter+partition+company prefix+item ref+38-bit serial) and decodes to the same GTIN+Serial pair already parsed from GS1 DataMatrix AI 01/21 — cross-validation is a solved data problem once EPC hex is in hand, independent of SDK choice. Proposed architecture: new DeviceInterface.Rfid module parallel to Dmcc, new "RFID Cross-Validation" report section matching existing Data Format Check table style. Offered to draft GoToTags support inquiry as the next concrete step.
+
+---
+
+**2026-07-02 (cont.)**
+
+**User**: Confirmed fetching gototags.com/desktop-app/features/integrations page. Desktop App natively supports UHF RFID (detect/read E310-class readers) and offers HTTP POST / File / Process / Clipboard integrations per tag read, configured via operation files. Caveat: integrations in Beta (data format may change), Desktop App is paid/subscription software requiring GoToTags Cloud account — not a free redistributable SDK.
+
+**Assistant**: Summarized: HTTP POST integration is best fit (CP API server could receive tag JSON as webhook), but flagged Beta instability + external paid-app dependency as real architecture concerns for a shippable product. Offered to check whether the same webhook contract is exposed via the licensed .NET SDK instead of requiring the separate Desktop App process.
+
+**User**: Dropping RFID integration for now — confirmed feasible ("can be done"), cost known (~$200 reader + Desktop App cost), but too deep a rabbit hole right now. Returning focus to finishing other in-progress work.
+
+**Assistant**: Acknowledged, parked RFID topic, no further action taken. Standing by for next task.
