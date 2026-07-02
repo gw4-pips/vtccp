@@ -818,3 +818,11 @@ Device pushes a 326B PUT /status.xml on the events channel immediately after eac
 **User**: This installation/wrapper is the same we would use for the full Command Pilot application, correct?
 
 **Assistant**: Yes — same installer/packaging stack (.NET 8 self-contained .exe, WiX MSI or NSIS, Windows startup registry/Task Scheduler, same code signing cert, same TFM net8.0-windows10.0.18362.0). Difference is UI shell only: standalone = NotifyIcon tray only; Command Pilot = full WPF main window. WiX project built for standalone becomes the base for Command Pilot installer — not duplicate work. Open question to resolve later: single installer with optional components vs. two separate MSIs — business/licensing decision, not technical.
+
+---
+
+**2026-07-02 16:43**
+
+**User**: Wants RFID integration into Command Pilot — GoToTags E310 UHF reader coupled with barcode verifier to capture SGTIN-encoded RFID alongside UPC/EAN/GS1 DataMatrix scan and validate data match. Mounted near verifier, shielded/directed at target, CP-triggered.
+
+**Assistant**: Scoped E310 hardware (Impinj E310 chip, USB, internal antenna only — no external antenna port, ~1m range, FCC/EU variants). Flagged three candidate SDK paths (GoToTags .NET SDK [NFC/Barcode/I-O — unclear if UHF-capable], separate "E310 RFID Service API" PDF, Impinj Octane SDK/raw LLRP) as needing direct confirmation from GoToTags support before committing — genuine open blocker. Confirmed SGTIN-96 EPC Tag Data Standard is fully specified (96-bit: header+filter+partition+company prefix+item ref+38-bit serial) and decodes to the same GTIN+Serial pair already parsed from GS1 DataMatrix AI 01/21 — cross-validation is a solved data problem once EPC hex is in hand, independent of SDK choice. Proposed architecture: new DeviceInterface.Rfid module parallel to Dmcc, new "RFID Cross-Validation" report section matching existing Data Format Check table style. Offered to draft GoToTags support inquiry as the next concrete step.
