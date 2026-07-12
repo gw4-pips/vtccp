@@ -19,12 +19,25 @@ Rev 1.1 — 2026-07-12
   command reference and source code (`ENUM_FLOW_CONTROL.INVENTORY_STATUS`).
 
 **GCP Length Table:** `vtccp/data/gcp-prefix-format-list.xml`
-- Provided file dated 2026-05-03, 200,108 entries, 8.7 MB
-- Semi-private URL for automatic update check to be provided by operator
-- Auto-update mechanism: on CP load, HEAD-fetch URL asynchronously; compare `date`
-  attribute in XML root; if newer, notify user in status bar and offer one-click download
-  to `%APPDATA%\VTCCP\gcp-prefix-format-list.xml`; runtime always prefers AppData
-  copy over bundled dev copy
+- Provided file dated 2026-05-03, 200,108 entries, 8.7 MB; bundled as dev/fallback copy
+- Update service base URL: `https://my2dir-resolver-bwa7agd0ctehbqf3.eastus2-01.azurewebsites.net`
+
+| Resource | URL path | Auth |
+|---|---|---|
+| Current month's data | `/tools/gcp/interop/current.xml` | `X-GCP-Interop-Key` header required |
+| Previous month's data | `/tools/gcp/interop/previous.xml` | `X-GCP-Interop-Key` header required |
+| Changelog / metadata | `/tools/gcp/interop/data.json` | No key required |
+
+- Auth key stored in environment variable `GCP_INTEROP_KEY` (Replit Secret); never in source
+- Auto-update logic at CP startup:
+  1. HEAD `current.xml` with `X-GCP-Interop-Key` header → read `Last-Modified` response header
+  2. Compare against date recorded in stored copy's XML root `date` attribute
+  3. If newer: notify user in status bar — "GCP prefix table update available (YYYY-MM-DD).
+     Update now?" — one-click GET downloads full `current.xml` to
+     `%APPDATA%\VTCCP\gcp-prefix-format-list.xml`; stored copy date updated in settings
+  4. Runtime loads: AppData copy if present → bundled `vtccp/data/` copy as fallback
+  5. If `GCP_INTEROP_KEY` is absent: skip update check silently; use bundled copy; no error shown
+  6. HEAD check is async and non-blocking — CP opens normally; notification appears in status bar
 
 ---
 

@@ -884,3 +884,9 @@ SDK native DLLs (Transfer.dll, ftd2xx.dll, rfid.dll) are 32-bit .NET Framework e
 Auto-update mechanism designed for GCP file: on CP load, HEAD-fetch semi-private URL (to be provided), compare `date` attribute in XML root, notify user and offer one-click download to %APPDATA%\VTCCP\gcp-prefix-format-list.xml if newer available.
 
 Scope document updated to Rev 1.1 — both prerequisites now marked resolved. Ready to begin Phase 0 build. Awaiting: GCP update URL from operator.
+
+---
+
+**User (2026-07-12):** Provided GCP update service details — URL: `https://my2dir-resolver-bwa7agd0ctehbqf3.eastus2-01.azurewebsites.net/tools/gcp/interop/current.xml`, auth header `X-GCP-Interop-Key`, also `/previous.xml` (keyed) and `/data.json` (no key). Asked how to pass the key.
+
+**Assistant (2026-07-12):** Instructed user to add key as Replit Secret named `GCP_INTEROP_KEY` — never in source code. Scope document updated with full endpoint table and auto-update logic: HEAD `current.xml` with key → read `Last-Modified` → compare against stored copy date → notify user in status bar if newer → one-click download to `%APPDATA%\VTCCP\`. `data.json` endpoint returned 404 (not live); update logic revised to use HEAD on `current.xml` only. If key is absent, check skipped silently. Check is async/non-blocking on startup.
