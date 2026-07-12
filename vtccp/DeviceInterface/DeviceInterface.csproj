@@ -21,6 +21,12 @@
     <PackageReference Include="System.Drawing.Common" Version="8.0.1" />
   </ItemGroup>
 
+  <!-- System.IO.Ports — for MtiLlcsEpcReader serial port communication.
+       Included in-box on .NET 8 Windows; explicit reference for portability. -->
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+  </ItemGroup>
+
   <!-- Cognex DataMan SDK — ships with DataMan Software (DMST).
        Port 44444 binary protocol; replaces our raw ASCII DmccClient. -->
   <ItemGroup>

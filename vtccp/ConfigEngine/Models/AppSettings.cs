@@ -38,6 +38,40 @@ public sealed class AppSettings
     /// <summary>Operator ID typed at last session start (pre-fills the session launcher).</summary>
     public string? LastOperatorId { get; set; }
 
+    // ── RFID cross-validation (Phase 0 POC) ──────────────────────────────────
+
+    /// <summary>
+    /// Serial port name for the MTI RU-824-100 UHF RFID reader (e.g. "COM3").
+    /// Null or empty = RFID feature disabled.
+    /// </summary>
+    public string? RfidComPort { get; set; }
+
+    /// <summary>
+    /// How long (ms) to hold the RFID scan window open after each barcode trigger.
+    /// Valid range: 500–10000. Default: 3000 ms.
+    /// </summary>
+    public int RfidScanWindowMs { get; set; } = 3000;
+
+    /// <summary>
+    /// When true, an RFID cross-validation failure (GTIN/serial mismatch or no tag)
+    /// is recorded as a soft flag in the RFID Scans sheet.
+    /// The barcode grade is never altered.
+    /// </summary>
+    public bool RfidFlagMismatch { get; set; } = true;
+
+    /// <summary>
+    /// Path to the local GS1 GCP Prefix Format List XML file.
+    /// Defaults to &lt;DefaultOutputDirectory&gt;\data\gcp-prefix-format-list.xml.
+    /// Set by GcpUpdateService on first download.
+    /// </summary>
+    public string? GcpDataPath { get; set; }
+
+    /// <summary>
+    /// Last-known date string from the GCPPrefixFormatList root element ("date" attribute).
+    /// Stored so the update check can compare without re-parsing the full 8 MB file.
+    /// </summary>
+    public string? GcpLastModified { get; set; }
+
     // ── Schema version awareness ──────────────────────────────────────────────
 
     /// <summary>App version that wrote this settings file.</summary>

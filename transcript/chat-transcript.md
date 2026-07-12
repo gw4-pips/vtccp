@@ -890,3 +890,27 @@ Scope document updated to Rev 1.1 — both prerequisites now marked resolved. Re
 **User (2026-07-12):** Provided GCP update service details — URL: `https://my2dir-resolver-bwa7agd0ctehbqf3.eastus2-01.azurewebsites.net/tools/gcp/interop/current.xml`, auth header `X-GCP-Interop-Key`, also `/previous.xml` (keyed) and `/data.json` (no key). Asked how to pass the key.
 
 **Assistant (2026-07-12):** Instructed user to add key as Replit Secret named `GCP_INTEROP_KEY` — never in source code. Scope document updated with full endpoint table and auto-update logic: HEAD `current.xml` with key → read `Last-Modified` → compare against stored copy date → notify user in status bar if newer → one-click download to `%APPDATA%\VTCCP\`. `data.json` endpoint returned 404 (not live); update logic revised to use HEAD on `current.xml` only. If key is absent, check skipped silently. Check is async/non-blocking on startup.
+
+---
+
+**User (2026-07-12):** Resumed session. Phase 0 RFID POC build — all protocol analysis complete from prior session. Requested writing of all remaining Phase 0 source files.
+
+**Assistant (2026-07-12):** Wrote all 17 Phase 0 files across five parallel write batches:
+
+*DeviceInterface/Rfid/Models/*: `EpcReadResult.cs`, `ParsedEpc.cs`, `RfidValidationResult.cs`
+*DeviceInterface/Rfid/*: `IEpcReader.cs`, `LlcsProtocol.cs`, `MtiLlcsEpcReader.cs`, `EpcReaderFactory.cs`, `EpcParser.cs`, `RfidValidator.cs`, `RfidScanCoordinator.cs`, `RfidTabWriter.cs`
+*DeviceInterface/Rfid/Schemes/*: `Sgtin96Decoder.cs`, `Sgtin198Decoder.cs`
+*DeviceInterface/Rfid/Gcp/*: `GcpLengthTable.cs`, `GcpValidator.cs`, `GcpUpdateService.cs`
+*ExcelEngine/Schema/*: `RfidTabSchema.cs`
+
+Key implementation decisions:
+- `MtiLlcsEpcReader`: pure managed `System.IO.Ports.SerialPort` at 115200 8N1; no MTI native DLLs required. Scans incoming bytes for 4-byte LLCS sync header (`?ITM`); dispatches to 16-byte (R/B/E) or 64-byte (I/A) packet paths. EPC extracted from `INFO_DATA[2..]` using PC-word upper-5-bit word count.
+- `LlcsProtocol.cs`: full protocol constants and CRC-16/CCITT (`poly=0x1021, init=0xFFFF, output=~crc`) matching `CrcCul()` from Linkage.cs source exactly.
+- `Sgtin96Decoder`: GS1 TDS Table 14-1 partition table; GTIN-14 = `GCP.PadLeft(L,'0') + ItemRef.PadLeft(K,'0') + GS1CheckDigit`; check digit weights confirmed with worked example.
+- `GcpLengthTable`: loads `<entry prefix="..." gcpLength="..."/>` XML format (confirmed against 2026-05-03 live file).
+- `GcpUpdateService`: HEAD `current.xml` with `X-GCP-Interop-Key` → compare `Last-Modified`; GET on explicit download; env var `GCP_INTEROP_KEY`.
+- `RfidTabWriter` placed in `DeviceInterface` (not `ExcelEngine`) to avoid circular project reference; uses correct `IExcelAdapter` API (`WriteString/WriteNumber/WriteDateTime/SetRowBold/SetRowBackground`).
+- `RfidTabSchema`: 16-column "RFID Scans" worksheet with colour-coded rows (Pass=no fill, Fail=red, NoTag=amber, Multiple=orange, ParseError=salmon, Skipped=grey).
+- `AppSettings`: added `RfidComPort`, `RfidScanWindowMs`, `RfidFlagMismatch`, `GcpDataPath`, `GcpLastModified`.
+- `DeviceInterface.csproj`: added `System.IO.Ports` v8.0.0 NuGet reference.
+- Note: `RfidScanCoordinator` is a skeleton — UI wiring (call from `DeviceSession` / `ExcelWriter.AppendRecord`, settings dialog, status-bar indicator) deferred to Phase 1.
