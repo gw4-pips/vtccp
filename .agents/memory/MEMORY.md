@@ -19,3 +19,4 @@
 - [ISO/IEC 15424 reference](iso-15424-reference.md) — complete symbology identifier standard in vtccp/references/standards/iso-15424-symbology-identifiers.md; ]Q1 ECI correction logged
 - [EthSystemDiscoverer SDK stub](eth-system-discoverer.md) — class not in SDK v25.4.1; NetworkDiscoverer returns empty; restore when correct class name confirmed
 - [Session start date/time rule](session-start-datetime.md) — fetch current date/time from web at every session start before writing any dated content; system-injected date is unreliable
+- [RFID standalone product strategy](rfid-standalone-strategy.md) — verifier-agnostic RFID bolt-on; raw hex = brand-agnostic contract; IEpcReader two-layer arch; full doc at vtccp/architecture/rfid-standalone-product.md
