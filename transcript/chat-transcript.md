@@ -870,3 +870,17 @@ Device pushes a 326B PUT /status.xml on the events channel immediately after eac
 **User**: Scope all phases as agreed and prioritize implementation for POC with CP as it exists, with standalone embodiment ready to go thereafter.
 
 **Assistant**: Full phased scope written to vtccp/architecture/rfid-implementation-scope.md. Five phases plus prerequisites: Phase 0 (POC — RFID into existing CP/DataMan, highest priority); Phase 1 (standalone tray app, shared Phase 0 library, immediate monetization path); Phase 2 (competitive verifier adapters — OMRON SQLite, Axicon CSV); Phase 3 (full EPC scheme coverage + GS1 DL QR input, Sunrise 2027 readiness); Phase 4 (CP as universal verifier-agnostic platform); Phase 5 (2D multi-mode verification, held). All core components (IEpcReader, EpcParser, GcpValidator, RfidValidator, Excel RFID tab, report injection) built in Phase 0 and reused across all phases. Two open prerequisites before Phase 0 build: RFID ME model number and GCP Length Table file.
+
+---
+
+**User (2026-07-12):** Read Me is a microelectronics technologies product. model is RU-824-100. It might or might not be triggerable. [Attached GCP prefix format list XML file dated 2026-05-03, 200,109 lines. Also asked: can you pull the docs from git? I have the reader.]
+
+**Assistant (2026-07-12):** GCP file copied to `vtccp/data/gcp-prefix-format-list.xml` (8.7 MB, 200,108 lines). MTI RFID Explorer GitHub repo cloned to `vtccp/references/mti-sdk/RFID_Explorer/` — includes `MTI RU-824 RFID Module Command Reference Manual v3.3.pdf` and all C# source code. Full source analysis completed:
+
+Reader architecture confirmed: MTI RU-824-100 uses FTDI USB chip → installs as virtual COM port under Windows. Communicates via MTI Low Level Command Set (LLCS) binary packet protocol over serial (115200 8N1). Is triggerable — LLCS includes explicit inventory start/stop commands confirmed in source code (ENUM_FLOW_CONTROL.INVENTORY_STATUS). NOT a keyboard wedge. NOT raw HID.
+
+SDK native DLLs (Transfer.dll, ftd2xx.dll, rfid.dll) are 32-bit .NET Framework era — not used in our .NET 8 integration. IEpcReader Phase 0 implementation is MtiLlcsEpcReader.cs using pure System.IO.Ports.SerialPort — no native DLL dependency.
+
+Auto-update mechanism designed for GCP file: on CP load, HEAD-fetch semi-private URL (to be provided), compare `date` attribute in XML root, notify user and offer one-click download to %APPDATA%\VTCCP\gcp-prefix-format-list.xml if newer available.
+
+Scope document updated to Rev 1.1 — both prerequisites now marked resolved. Ready to begin Phase 0 build. Awaiting: GCP update URL from operator.

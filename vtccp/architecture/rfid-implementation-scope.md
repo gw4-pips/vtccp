@@ -1,16 +1,30 @@
 # RFID Cross-Validation — Phased Implementation Scope
 
-Rev 1.0 — 2026-07-12
+Rev 1.1 — 2026-07-12
 
 ---
 
-## Open prerequisite (before Phase 0 build begins)
+## Prerequisites — resolved
 
-- **RFID ME model number** — needed to confirm HID vs. Virtual COM Port mode and pull
-  trigger/command documentation. Determines which `IEpcReader` implementation is built
-  first. Everything else is model-independent.
-- **GCP Length Table** — obtain copy via PIPS/VCCS (password-protected at GS1 as of
-  Jan 2026). Required for partition encoding validation feature in Phase 0.
+**RFID reader confirmed:** MTI RFID ME™ RU-824-100 (Microelectronics Technology Inc.)
+- Impinj R1000 chipset, EPC Class 1 Gen2, 902–928 MHz US-band, ~1 m range
+- USB interface via FTDI chip → installs as virtual COM port under Windows (VCP driver)
+- Communicates using MTI Low Level Command Set (LLCS) binary packet protocol
+- SDK source code + command reference manual cloned to:
+  `vtccp/references/mti-sdk/RFID_Explorer/`
+  Key file: `MTI RU-824 RFID Module Command Reference Manual v3.3.pdf`
+- SDK native DLLs (`Transfer.dll`, `ftd2xx.dll`) are 32-bit .NET Framework era and are
+  NOT used. Integration is direct LLCS over `SerialPort` — no native DLL dependency.
+- Triggerable: LLCS includes explicit inventory start/stop commands; confirmed from
+  command reference and source code (`ENUM_FLOW_CONTROL.INVENTORY_STATUS`).
+
+**GCP Length Table:** `vtccp/data/gcp-prefix-format-list.xml`
+- Provided file dated 2026-05-03, 200,108 entries, 8.7 MB
+- Semi-private URL for automatic update check to be provided by operator
+- Auto-update mechanism: on CP load, HEAD-fetch URL asynchronously; compare `date`
+  attribute in XML root; if newer, notify user in status bar and offer one-click download
+  to `%APPDATA%\VTCCP\gcp-prefix-format-list.xml`; runtime always prefers AppData
+  copy over bundled dev copy
 
 ---
 
@@ -24,19 +38,30 @@ component built here is reused in all subsequent phases.
 
 ### 0.1 — IEpcReader acquisition layer
 
-New interface and two concrete implementations:
+New interface and one concrete implementation for Phase 0 (MTI RU-824-100):
 
 ```
 vtccp/DeviceInterface/Rfid/
-  IEpcReader.cs          — interface: event EpcReceived(string hexString)
-  HidEpcReader.cs        — global WM_INPUT hook; captures CR-terminated hex from HID wedge
-  ComPortEpcReader.cs    — SerialPort.ReadLine(); supports trigger command if available
-  EpcReaderFactory.cs    — instantiates correct implementation per config
+  IEpcReader.cs             — interface: Connect(), Disconnect(), TriggerInventory(),
+                              event EpcReceived(string hexEpc), event ReadError(string msg)
+  MtiLlcsEpcReader.cs       — MTI RU-824-100 implementation:
+                                • opens configured COM port at 115200 8N1 (FTDI VCP)
+                                • sends LLCS Inventory Start packet on TriggerInventory()
+                                • reads LLCS response packets; extracts EPC from tag-read
+                                  packet payload; fires EpcReceived with raw hex string
+                                • sends Inventory Stop after time window expires
+                                • no native DLL; pure System.IO.Ports.SerialPort only
+  EpcReaderFactory.cs       — instantiates per config (MtiLlcs is the only Phase 0 impl;
+                              interface is open for future COM/HID variants)
 ```
 
-Configuration: reader mode (HID/COM), COM port name if applicable, prefix stripping
-(CRC+PC auto-detect: 28 hex chars → strip 4 bytes; 24 hex chars → raw EPC direct;
-configurable override). No reader brand/model dependency in any downstream class.
+LLCS packet format from command reference manual (v3.3, locally at
+`vtccp/references/mti-sdk/RFID_Explorer/MTI RU-824 RFID Module Command Reference Manual v3.3.pdf`).
+Exact command bytes confirmed during first test session with physical reader.
+
+EPC extraction: tag-read response packet contains EPC bank data at fixed byte offset
+per LLCS spec. Strip CRC+PC (4 bytes / 28-char hex → 24-char net EPC) if present;
+configurable. No reader brand/model reference in any downstream class.
 
 ### 0.2 — EPC parser and scheme dispatch
 
@@ -153,11 +178,12 @@ explicitly if trigger fired but no tag returned within time window.
 
 Minimal additions to existing CP settings:
 - RFID enabled (bool)
-- Reader mode: HID / COM Port
-- COM port name (if COM mode)
+- COM port name (FTDI VCP; e.g. COM5; auto-detect MTI VID:PID on open)
 - Read time window (seconds, default 3.0)
 - CRC+PC prefix mode: Auto / Strip / None
-- GCP table file path (or use bundled)
+- GCP table: use bundled / use AppData / custom path
+- GCP auto-update: enabled (bool); check on startup; notify when newer version available
+- GCP update URL: semi-private URL (provided by operator; stored in settings; not hardcoded)
 - RFID detail table in report (bool)
 
 ---
@@ -307,7 +333,7 @@ Significant scope — not scheduled until Phase 4 is complete and Cognex posture
 ## Summary: phase priority and dependencies
 
 ```
-Prerequisite: RFID ME model # → HID vs. COM determination; GCP table acquisition
+Prerequisites resolved: RU-824-100 = FTDI VCP + LLCS; GCP table 2026-05-03 in vtccp/data/
     │
     ▼
 Phase 0: RFID integrated into CP/DataMan POC ←── HIGHEST PRIORITY, build first

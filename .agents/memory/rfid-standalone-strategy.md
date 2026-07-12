@@ -14,9 +14,20 @@ regardless of brand, generation, or SDK. Designing to this contract means hardwa
 swappable without touching the parser/validator/report stack.
 
 ## How to apply
-- `IEpcReader` acquisition layer (HID keyboard hook OR ComPort SerialPort) delivers hex
+- `IEpcReader` acquisition layer delivers hex via `MtiLlcsEpcReader` (Phase 0 concrete impl)
 - Layer 2 (parser/validator) never references reader brand or SDK
 - Full architecture in: `vtccp/architecture/rfid-standalone-product.md`
+
+## MTI RU-824-100 integration — confirmed details
+- Reader = FTDI USB chip → virtual COM port (VCP driver) — NOT a keyboard wedge, NOT raw HID
+- Protocol = MTI LLCS binary packet format over serial at 115200 8N1
+- Integration = `System.IO.Ports.SerialPort` only; NO native DLL dependency
+- SDK native DLLs (`Transfer.dll`, `ftd2xx.dll`, `rfid.dll`) are 32-bit .NET Framework era;
+  do not use them; drive the COM port directly with documented LLCS packets
+- Command reference manual PDF cloned locally:
+  `vtccp/references/mti-sdk/RFID_Explorer/MTI RU-824 RFID Module Command Reference Manual v3.3.pdf`
+- Triggerable: LLCS has explicit Inventory Start/Stop commands confirmed in source code
+- **Why:** Avoids 32-bit native DLL dependency; keeps the entire stack .NET 8 pure-managed
 
 ## Key decisions
 - Standalone product targets competitive verifier accounts (Axicon, OMRON, Webscan, REA)
@@ -24,7 +35,8 @@ swappable without touching the parser/validator/report stack.
 - PoC (RFID ME USB reader + raw hex) is structurally the MVP standalone product
 - Partition value validated against GCP Length Table: flag encoding error + state correct
   value per GS1; never block the data comparison on a partition discrepancy
-- GCP Length Table now password-protected (Jan 2026); PIPS/VCCS supply as reference file
+- GCP Length Table: file `vtccp/data/gcp-prefix-format-list.xml` (2026-05-03, 8.7MB, 200K entries)
+  Auto-update: HEAD-fetch semi-private URL on CP startup; compare XML root `date` attr; notify user
 - Handheld combo readers (Zebra RFD, Honeywell) are NOT competitors: no ISO grade,
   no GCP validation, no extended reporting — different product category entirely
 - Separate USB barcode scanner (Tier 1 config) is aesthetically "kludgy" but accepted
