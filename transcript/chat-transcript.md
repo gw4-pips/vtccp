@@ -846,3 +846,11 @@ Device pushes a 326B PUT /status.xml on the events channel immediately after eac
 **User**: Thank you. Today is 12JUL26-0615 hrs. New approach.
 
 **Assistant**: Acknowledged date/time. Standing by to hear the new approach.
+
+---
+
+**2026-07-12 06:15 (cont.)**
+
+**User**: New approach for RFID PoC — use existing RFID ME USB reader, no SDK, parse raw hex EPC internally per GS1 EPC TDS. Focus on SGTIN-96 structure. Validate decoded GTIN+Serial against barcode (linear/GS1 DataMatrix/DL QR). Report in: (a) new child RFID tab in existing Excel file, (b) TruCheck-style HTML report header + optional RFID table, (c) CP native reports. User asked for analysis before scoping.
+
+**Assistant**: Full pre-scoping analysis provided. Key findings: (1) "RFID ME" brand not found in search — need model number; (2) critical unknown: HID keyboard wedge vs. Virtual COM Port mode — changes entire integration architecture; (3) SGTIN-96 parsing is solid (~150 lines C#, bit-field dispatch on header byte 0x30, partition table lookup, GTIN-14 reconstruction + check digit); (4) CRC+PC prefix gotcha — some readers prepend 4 extra bytes before EPC; (5) child RFID worksheet tab preferred over widening 167-column TruCheckCompatibleSchema; (6) report injection: generate RFID HTML block post-XSLT rather than modifying templates; (7) trigger coordination approach depends on reader mode. Single blocker before scoping: confirm COM port vs. HID mode via Windows Device Manager.
