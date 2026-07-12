@@ -914,3 +914,33 @@ Key implementation decisions:
 - `AppSettings`: added `RfidComPort`, `RfidScanWindowMs`, `RfidFlagMismatch`, `GcpDataPath`, `GcpLastModified`.
 - `DeviceInterface.csproj`: added `System.IO.Ports` v8.0.0 NuGet reference.
 - Note: `RfidScanCoordinator` is a skeleton — UI wiring (call from `DeviceSession` / `ExcelWriter.AppendRecord`, settings dialog, status-bar indicator) deferred to Phase 1.
+
+---
+
+**User (2026-07-12):** Described expected My2Dir.com /gcp/interop/ path structure: /interop/ protected zone root housing live/derived data; /current/ sub-dir housing the original GS1 file with date-stamped filename; /previous/ sub-dir housing prior GS1 file. All sub-dirs protected same as root. Also noted /current/ should house a diff report. Asked for opinion on this structure and security.
+
+**Assistant (2026-07-12):** Confirmed the structure is well-conceived. Documented the gap between what was expected and what the companion Replit actually built (flat current.xml/previous.xml + open data.json vs. sub-directories with original filenames). Key points: (1) preserving original GS1 date-stamped filename matters for provenance/authenticity; (2) single auth boundary at /interop/* is cleaner and safer; (3) structural tension exists — decoder page currently lives at /interop/ level and needs data.json without a key, but full auth-gating would break the decoder. Recommended decoder move to /tools/epc-decoder/ or similar, with a server-side proxy adding the key for browser use. VTCCP GcpUpdateService URL is trivially updatable.
+
+---
+
+**User (2026-07-12):** Confirmed VTCCP should receive and use the original GS1 XML file exactly as issued (full text, original date-stamped filename).
+
+**Assistant (2026-07-12):** Recommended receiving original GS1 XML. Reasons: authenticity/provenance via date attribute and filename; no lossy transformation risk; GcpLengthTable already parses the format; 8MB parsed once at startup is immaterial for a desktop app; update detection reads only the root date attribute (early-exit). Noted GcpUpdateService currently saves under a generic name — should preserve original GS1 filename on disk. Only open question was endpoint URL shape (flat alias vs. dated directory path); recommended flat alias for simplicity so VTCCP URL never changes on GS1 file rotation.
+
+---
+
+**User (2026-07-12):** Confirmed ResRepl can restructure. Noted public decoder has marketing tool value and potential informal PIPS license. Shared screenshot of GS1's own EPC encoder/decoder tool (TDS 1.13). Noted GS1 tool does not do GCP length validation — a differentiator. Stated cannot afford to go down the decoder rabbit hole. Asked whether one decoder (VTCCP C# vs. companion Replit JS) is superior.
+
+**Assistant (2026-07-12):** Direct comparison: GS1 tool adds bidirectional encoding, non-standard identifiers (USDoD/ADI/BIC/IMOVN), TID/User Memory decode, but has no GCP length validation. Companion Replit's JS decoder has 15 schemes + GCP validation + bit-stream visualiser — better as public utility. VTCCP C# decoder is narrower (SGTIN-96/198) but offline, integrated, and fit for purpose. Neither is objectively superior — they serve different contexts. "One logic" in practice means a shared test corpus of known EPC hex → decoded output pairs, validated against GS1's tool as ground truth. Recommended: extract ~10 test cases from GS1 tool before Resolver restructuring. GCP validation gap is a genuine marketing differentiator for the my2dir.com decoder.
+
+---
+
+**User (2026-07-12):** Realised the natural home for the decoder is My2DirRetail.com, a companion site to My2Dir.com. Asked whether this requires another Azure server instance and what it implies.
+
+**Assistant (2026-07-12):** Two paths: (A) Azure Static Web Apps — recommended; decoder is mostly browser-side JS, free tier, built-in Azure Functions for GCP proxy, global CDN, custom domain + managed SSL, GitHub CI/CD; (B) same App Service, second domain — zero incremental cost but sites coupled. Recommended Path A. Structural model: My2Dir.com (existing App Service) serves keyed /interop/* to VTCCP and to the retail proxy; My2DirRetail.com (new Static Web App) hosts decoder UI + thin Azure Function /api/gcp-data proxy that adds the key before calling My2Dir.com. Browser never sees the key.
+
+---
+
+**User (2026-07-12):** Thanks. Hold for now.
+
+**Assistant (2026-07-12):** Acknowledged. Thread parked. Transcript updated.
