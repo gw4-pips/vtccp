@@ -944,3 +944,51 @@ Key implementation decisions:
 **User (2026-07-12):** Thanks. Hold for now.
 
 **Assistant (2026-07-12):** Acknowledged. Thread parked. Transcript updated.
+
+---
+
+**User (2026-07-12):** Asked where to test the RFID reader (connected to workstation, outside of CP).
+
+**Assistant (2026-07-12):** Outlined three-stage approach: (1) Device Manager → find COM port; (2) PuTTY/Tera Term raw serial sanity check at 115200 8N1; (3) standalone C# console test harness project in VTCCP solution that references DeviceInterface directly. Recommended stages in order before involving any VTCCP code.
+
+---
+
+**User (2026-07-12):** Reader not showing in Device Manager (Ports COM & LPT or USB section) despite audible ding on connection. Shared before/after Device Manager screenshots.
+
+**Assistant (2026-07-12):** Diagnosed as driver issue — Windows detected USB VBUS but no driver match, so no COM port created. Recommended checking for yellow-triangle entry in "Other devices", identified likely CP210x chip, provided Silicon Labs VCP driver download link.
+
+---
+
+**User (2026-07-12):** Show hidden enabled, no Other category. Shared USB controller and Ports screenshots — lists identical before/after.
+
+**Assistant (2026-07-12):** USB list identical = device not enumerating at all (different from driver-missing scenario). Suspected power-only cable or USB port compatibility issue. Recommended wiggle test, different cable, USB 2.0 port, and checking HID section.
+
+---
+
+**User (2026-07-12):** Power LED lit. Cable is old USB Mini from Sony camera product.
+
+**Assistant (2026-07-12):** Sony camera cables are data cables but Sony era devices sometimes used non-standard Mini connectors. Recommended different cable (non-Sony), wiggle test at connector, USB 2.0 hub. Power LED confirms VBUS; data lines not connecting.
+
+---
+
+**User (2026-07-12):** On Win 7 PC with new cable: reader appeared in Other with VID entry, then disappeared; further testing showed +2 HID entries on plug/unplug. Back on Win 11, shared HID section before/after screenshots — cannot spot difference.
+
+**Assistant (2026-07-12):** Identified that image 1 (after) has ~2 more USB Input Device entries than image 2 (before) — reader IS appearing as HID on Win 11. Critical architectural finding: device presents as USB HID, not virtual COM port. MtiLlcsEpcReader SerialPort approach won't find it. Three paths identified: MTI SDK (recommended), USB HID direct via HidSharp, or RS-232 fallback (not available — no serial port). Asked about SDK/docs and non-USB ports on device.
+
+---
+
+**User (2026-07-12):** No other ports. SDK is on git. Asked if make/model was right.
+
+**Assistant (2026-07-12):** Found MTI SDK in vtccp/references/mti-sdk/ — confirmed already in repo. Read rfidInterface.cs (3486 lines), LakeChabot.cs, RFIDExplorer.cs, ReadMe.txt. Key findings: (1) SDK uses native rfid.dll for USB HID transport — no manual HID needed; (2) UART mode requires RFIDcomm.cfg + physical COM port; (3) Native DLLs (rfid.dll, Linkage.dll, RFIDInterface.dll, rfidtx.dll, cpl.dll) NOT committed to repo; (4) MSI installer present at vtccp/references/mti-sdk/RFID_Explorer/MTI RFID Explorer v2.0.1.msi (1.9MB).
+
+---
+
+**User (2026-07-12):** RFID Explorer not installed, not immediately available.
+
+**Assistant (2026-07-12):** Found MSI installer in local repo — no download needed. Corrected make/model: product line is READ ME (not "ME"), full correct name MTI READ ME RU-824-100. Recommended: install MSI from local repo on Win 11, use RFID Explorer to confirm hardware works, then copy 5 native DLLs into VTCCP project and rewrite MtiLlcsEpcReader to use LakeChabotReader SDK class. Noted RU-824 Command Reference Manual v3.3 also in repo.
+
+---
+
+**User (2026-07-12):** MSI likely on another PC. Best to wait until later. Good work today.
+
+**Assistant (2026-07-12):** Acknowledged. Session closed. Transcript and memory updated.
