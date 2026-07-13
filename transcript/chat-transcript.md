@@ -1045,3 +1045,9 @@ vtccp/references/gototags-e310/ — FTDI driver (CDM212364_Setup.zip, 2.2MB) and
 Build environment note: pre-existing Cognex SDK DLL missing (Linux env; Cognex SDK is Windows-only). New E310 files are clean and will compile on Windows dev machine.
 
 Hardware TODOs (verify on first plug-in): CRC round-trip, no-tag status code value.
+
+---
+
+**User:** That's good for tonight. More later this week.
+
+**Assistant:** Good night. Hardware expected Friday. FTDI driver install + ConnectAsync = live EPC read.
