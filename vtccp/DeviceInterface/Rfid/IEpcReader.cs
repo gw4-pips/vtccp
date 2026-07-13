@@ -4,7 +4,9 @@ namespace DeviceInterface.Rfid;
 
 /// <summary>
 /// Hardware abstraction for an RFID reader capable of EPC inventory.
-/// Implementations: <see cref="MtiLlcsEpcReader"/> (MTI RU-824 over serial/USB-VCP).
+/// Implementations:
+///   <see cref="GoToTagsE310Reader"/> — GoToTags Desktop E310 (Impinj E310 chipset, FTDI VCP, primary).
+///   <see cref="MtiLlcsEpcReader"/>   — MTI RU-824-100 (LLCS protocol, superseded).
 /// </summary>
 public interface IEpcReader : IAsyncDisposable
 {

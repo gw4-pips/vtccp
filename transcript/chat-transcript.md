@@ -1010,3 +1010,38 @@ Key implementation decisions:
 **User:** Done. It will maybe get here for 5 days at best. Today is Sunday. Hoping for Friday.
 
 **Assistant:** Good — hardware ordered, ETA Friday. Plan for the week: pull the communication protocol PDF and have a clean E310 reader skeleton ready so we can test same day it arrives.
+
+---
+
+**User:** Start now. But first, what can you do on the Axicon and LVS side. I have an Axicon 15500 and an older LVS 9510 that I can standup when needed.
+
+**Assistant:** 
+E310 protocol confirmed from PDF: FTDI VCP at 115,200 baud. Frame = FF | DataLen | CmdCode | Data | CRC-16. Single tag inventory opcode 0x21 (timeout + option in data field), returns EPC+TagCRC. Asynchronous mode (0xAA48/0xAA49) pushes tags as found — better for real-time. Factory default auto-boots to APP layer.
+
+LVS 9510 = Omron Microscan product (Microscan acquired by Omron ~2018). Camera-based USB desktop verifier, LVS-95XX software. Axicon 15500 = 15000 series, Axicon software v9.1 (ISO/IEC 15415:2024 + 15416:2025).
+
+Integration path for both: file-drop watcher + result parser (AxiconFileAdapter.cs, MicroscanLvsFileAdapter.cs), using same IVerifierResult interface as TruCheck. Axicon also has a Camera Verifier Software Plugins interface (details TBD). Asked user: what export format does each software write?
+
+---
+
+**User:** Start now. But first, what can you do on the Axicon and LVS side. I have an Axicon 15500 and an older LVS 9510 that I can standup when needed.
+
+[E310 protocol work began; Axicon/LVS research completed — full response in prior turn]
+
+**Session continued — E310 implementation built:**
+
+GoToTagsE310Protocol.cs — frame builder, CRC-16/CCITT (init=0xFFFF poly=0x1021 big-endian, computed over bytes[1..n-3] per Appendix 1), BuildSingleInventoryCmd(timeoutMs), TryExtractEpc(), VerifyCrc().
+
+GoToTagsE310Reader.cs — IEpcReader implementation. 0x21 loop strategy: 150ms slices, deadline-clamped, EPC de-duplication by hex string. TryReadResponseFrame() scans for 0xFF header then reads DataLen-determined frame. PingAsync uses 200ms 0x21 to confirm APP-layer readiness. No Cognex/Windows-specific references.
+
+EpcReaderFactory.cs — CreateGoToTagsE310() added as primary; CreateMtiLlcs() marked superseded.
+
+IEpcReader.cs — XML doc updated to reference E310 as primary.
+
+VtccpApp.csproj — bumped to 1.3.8.
+
+vtccp/references/gototags-e310/ — FTDI driver (CDM212364_Setup.zip, 2.2MB) and SETUP-NOTES.md committed.
+
+Build environment note: pre-existing Cognex SDK DLL missing (Linux env; Cognex SDK is Windows-only). New E310 files are clean and will compile on Windows dev machine.
+
+Hardware TODOs (verify on first plug-in): CRC round-trip, no-tag status code value.
