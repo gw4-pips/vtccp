@@ -992,3 +992,21 @@ Key implementation decisions:
 **User (2026-07-12):** MSI likely on another PC. Best to wait until later. Good work today.
 
 **Assistant (2026-07-12):** Acknowledged. Session closed. Transcript and memory updated.
+
+## 2026-07-13
+
+**User:** What does closed source commercial mean?
+
+**Assistant:** It means GoToTags keeps their application software source code private — you license it, you can't inspect or modify it. For us it doesn't matter: the communication protocol PDF (the serial frame spec) is what we need, and that's published. Analogy: the outlet manufacturer's process is proprietary, but the plug shape spec is public. The protocol PDF is our plug shape spec.
+
+---
+
+**User:** What's the provenance of this company?
+
+**Assistant:** GoToTags founded 2011 in Spokane WA. Started in NFC app software, expanded to UHF RFID and barcode hardware. 14 years in business, good documentation culture, US company. Key credibility factor: the E310 uses an Impinj E310 chipset — Impinj is the dominant UHF RFID silicon vendor, publicly traded (NASDAQ: PI). GoToTags packaged Impinj silicon into an accessible desktop form factor. For a $199 Phase 0 POC the risk profile is low.
+
+---
+
+**User:** Done. It will maybe get here for 5 days at best. Today is Sunday. Hoping for Friday.
+
+**Assistant:** Good — hardware ordered, ETA Friday. Plan for the week: pull the communication protocol PDF and have a clean E310 reader skeleton ready so we can test same day it arrives.
