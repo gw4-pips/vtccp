@@ -114,3 +114,10 @@ id = "KaY3YV29hZ_U_oesabfdt"
 uri = "file://vtccp-synthesis-docs.zip"
 type = "unspecified"
 title = "VTCCP Synthesis Docs — v1.1 (Feature Summary + HTML Report Template)"
+
+[[outputs]]
+id = "Oa79iQz6eRvMiXPLnZVep"
+uri = "file://CPIPM-Project-Outline-v1.0.docx"
+type = "word_document"
+title = "CP Inline — Project Outline v1.0"
+description = "Preliminary project outline for the Command Pilot Inline Production Module, incorporating all engineering feedback. 17 sections including indicator light states, 6-week timeline, trigger architecture, image policy, screen layout wireframe, and open items list."
