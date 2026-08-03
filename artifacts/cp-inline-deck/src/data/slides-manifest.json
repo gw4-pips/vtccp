@@ -1,0 +1,42 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "position": 1,
+    "filepath": "src/pages/slides/Slide1Title.tsx",
+    "title": "VCCS (PIPS) Command Pilot™ Inline",
+    "description": "Title slide — product intro, scanner, 6-week deployment",
+    "speakerNotes": ""
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "position": 2,
+    "filepath": "src/pages/slides/Slide2Gap.tsx",
+    "title": "The gap we're closing",
+    "description": "The customer already owns the scanner; full integration is out of budget; CP Inline bridges the gap",
+    "speakerNotes": ""
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440003",
+    "position": 3,
+    "filepath": "src/pages/slides/Slide3Features.tsx",
+    "title": "Everything the line needs",
+    "description": "7 capability cards: operator panel, indicator pole, conveyor interrupt, GS1 decode, Excel reports, JPEG archive, RAID storage",
+    "speakerNotes": ""
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440004",
+    "position": 4,
+    "filepath": "src/pages/slides/Slide4Foundation.tsx",
+    "title": "Built on a solid foundation",
+    "description": "Proven CP components, no new protocol work, ~70% complete on day one, RDP support, audit trail",
+    "speakerNotes": ""
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440005",
+    "position": 5,
+    "filepath": "src/pages/slides/Slide5Timeline.tsx",
+    "title": "6 weeks to go-live",
+    "description": "4-phase deployment timeline and two engineering prerequisites",
+    "speakerNotes": ""
+  }
+]

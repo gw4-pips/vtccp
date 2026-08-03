@@ -1,0 +1,28 @@
+kind = "slides"
+previewPath = "/cp-inline-deck/"
+title = "CP Inline Sales Deck"
+description = "A 5-slide customer-facing sales deck for CP Inline (Command Pilot Inline Production Module) — a UDI barcode inspection system for medical device labeling lines. Presents the product, the problem it solves, its capabilities, its proven foundation, and a 6-week deployment timeline."
+version = "1.0.0"
+id = "artifacts/cp-inline-deck"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/cp-inline-deck/" ]
+localPort = 22636
+
+[services.development]
+run = "pnpm --filter @workspace/cp-inline-deck run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cp-inline-deck", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/cp-inline-deck/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22636"
+BASE_PATH = "/cp-inline-deck/"
