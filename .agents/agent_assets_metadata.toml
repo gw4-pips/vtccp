@@ -155,3 +155,10 @@ uri = "file://vtccp/references/CPIPM-Project-Outline-v1.2.docx"
 type = "word_document"
 title = "Command Pilot Inline — Project Outline v1.2"
 description = "Table 1: 1-row cells = 0.25\", 2-row cells = 0.50\". TM fixed in title and first body use. All other tables unchanged from v1.1."
+
+[[outputs]]
+id = "P0PIZDwjavSdQxpHdhOib"
+uri = "file://vtccp/references/CPIPM-Project-Outline-v1.3.docx"
+type = "word_document"
+title = "Command Pilot Inline — Project Outline v1.3"
+description = "Title 28pt. Row heights: 0.25\" (1-row), (L×0.25−0.10)\" for L≥2 across all tables. Operator panel caveat in bold red. TM fixed throughout."

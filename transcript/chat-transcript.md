@@ -1083,3 +1083,23 @@ Built vtccp/InlineIo/ relay assembly stub (task #37): IRelayBoard interface, Moc
 **User:** Engineering brief final edits: add "for Serview, Inc." to the title. Finalize for download.
 
 **Assistant:** Title updated to "VCCS Command Pilot™ Inline — Engineering Brief for Serview, Inc." Document finalized as CP-Inline-Engineering-Brief-v1.0.docx in vtccp/references/.
+
+---
+**User:** heres what I can discern. version inside the doc was not incremented to 1.1. I have distilled that 1 row of text sittin in a .30" min row height cell is ample. arguably it could be .25". but then generalizing, thre are palces where 2 roes of text sit in a cell that seems to ahve been sixed for 3 rows and it look great. Normally, the clles with 2 rows of text are way to cramped. So, of a 1-row (or text) get .25, then of 2 rows get the equivalent of a 3-row cell, and a 3-row text gets a 4-row height cell that I think we can call it good enough. get it?
+
+**Assistant:** Got it — the height scales with visual text rows: 1 row → 0.25", 2 rows → 3× = 0.75", 3+ rows → 4× = 1.00". Ran the diagnostic for calibration and rebuilt as v1.1 with those tiers plus all terminology updates and TM bug noted.
+
+---
+**User:** still no TM in the header or first body copy use. What was your formula for determining cell height. It makes them way to tall. Only a 1-line text cell looks reasonable. Tell me what values are used for each cell based on your text line calcs. Tell me what those calcs are for all rows in the first table and I'll be able to sort this and move one. rev to 1.2 when we execute.
+
+**Assistant:** Showed exact Table 1 formula breakdown: 2-col table uses chars-per-line=75, visual_rows=ceil(chars/75). 4 rows got 0.75" (r02/r04/r06/r07 at 78–100 chars). Identified TM bug: title paragraph is exactly "CP Inline" with no \n so the \n-match rule never fired.
+
+---
+**User:** All calc text lines are accurate for this table. rerun at cell ht = calc text lines * .25. the ideal is probably (L*.25)-X fo L=>2 but lets keep it simple and see. for T1 only
+
+**Assistant:** Applied L×0.25" formula to Table 1 only as v1.2. 1-row cells stay 0.25", 2-row cells now 0.50". Fixed title TM (exact paragraph match) and first body-copy TM. Version and history row updated.
+
+---
+**User:** Much better. Reduce HEadline from 36 to 28 points. Make the cell ht formula (L*.25)-0.1 for L=>2 and rerun across the whole doc as v1.3. Add a noticible caveat in the opeator panel section head that his layout is a placeholder only and further design work is required. And we should be finished as v 1.3. Then off to bed.
+
+**Assistant:** Delivered v1.3: title 28pt, row heights (L×0.25−0.10)" for L≥2 whole doc, bold red placeholder caveat after Section 6 heading, TM fixed throughout, v1.3 history row added.

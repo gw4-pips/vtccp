@@ -1,55 +1,55 @@
 """
-Update CPIPM-Project-Outline-v1.0.docx → CPIPM-Project-Outline-v1.2.docx
+CPIPM-Project-Outline-v1.0.docx → CPIPM-Project-Outline-v1.3.docx
 
-Changes:
-  1. Title paragraph fix: "CP Inline" → "VCCS Command Pilot™ Inline"
-  2. First body-copy TM: first prose use of "Command Pilot Inline" → "Command Pilot™ Inline"
-  3. General terminology: remaining "CP Inline" → "Command Pilot Inline"
-  4. Version string: 1.0 → 1.2, date 2026-08-03 → 4 August 2026
-  5. TABLE 1 only — proportional height: calc_visual_rows × 0.25" (360 twips per row)
-     All other tables — previous H1/H2/H3 tier formula, unchanged.
-  6. Vertical-centre all table cells.
-  7. Version history table: append v1.2 row.
+v1.3 changes:
+  1. Title font: 36 pt → 28 pt
+  2. Title paragraph "CP Inline" → "VCCS Command Pilot™ Inline"
+  3. First prose TM: first body use of "Command Pilot Inline" → "Command Pilot™ Inline"
+  4. General terminology: remaining "CP Inline" → "Command Pilot Inline"
+  5. Version string: 1.0 → 1.3, date → 4 August 2026
+  6. Proportional row heights — WHOLE DOCUMENT:
+       L = 1       → 0.25"      (360 twips)
+       L >= 2      → (L×0.25 − 0.10)"  converted to twips
+  7. Vertical-centre all table cells
+  8. Caveat paragraph inserted after Section 6 heading (Operator Panel)
+  9. Version history table: append v1.3 row
 """
 
 import math, os, copy
 from docx import Document
+from docx.shared import Pt, RGBColor
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
 SRC = os.path.join(os.path.dirname(__file__), "..", "..", "CPIPM-Project-Outline-v1.0.docx")
-OUT = os.path.join(os.path.dirname(__file__), "..", "references", "CPIPM-Project-Outline-v1.2.docx")
+OUT = os.path.join(os.path.dirname(__file__), "..", "references", "CPIPM-Project-Outline-v1.3.docx")
 
-# ── Height constants for non-T1 tables (twips; 1440 = 1 inch) ────────────────
-H1 = 360    # 0.25"  — 1 visual row
-H2 = 1080   # 0.75"  — 2 visual rows (3×)
-H3 = 1440   # 1.00"  — 3+ visual rows (4×)
-TWIPS_PER_ROW = 360  # 0.25" — used for Table 1 proportional formula
-
-# Estimated usable characters per line by number of columns.
+TWIPS_PER_INCH = 1440
 CHARS_PER_LINE = {1: 90, 2: 75, 3: 60, 4: 45, 5: 35, 6: 25}
 CHARS_DEFAULT  = 20
 
-# ── Text replacements (order matters — most-specific first) ──────────────────
-# Note: title "CP Inline" is handled by exact-match in fix_paragraph()
+# ── Height formula ─────────────────────────────────────────────────────────────
+def calc_height_twips(visual_rows):
+    """L=1 → 0.25". L≥2 → (L×0.25 − 0.10)" × 1440."""
+    if visual_rows <= 1:
+        return round(0.25 * TWIPS_PER_INCH)          # 360
+    return round((visual_rows * 0.25 - 0.10) * TWIPS_PER_INCH)
+
+# ── Text replacements ──────────────────────────────────────────────────────────
 REPLACEMENTS = [
-    # Exact header/version line
-    ("Version 1.0   |   2026-08-03   |   DRAFT", "Version 1.2   |   4 August 2026   |   DRAFT"),
-    # Para [1]: "Command Pilot Inline Production Module" — already correct after below rules
-    # Uppercase wireframe
-    ("CP INLINE v1.0",  "Command Pilot Inline v1.0"),
-    ("CP INLINE",       "Command Pilot Inline"),
-    # Author
+    ("Version 1.0   |   2026-08-03   |   DRAFT",
+     "Version 1.3   |   4 August 2026   |   DRAFT"),
+    ("CP INLINE v1.0",   "Command Pilot Inline v1.0"),
+    ("CP INLINE",        "Command Pilot Inline"),
     ("CP / Engineering", "VCCS/PIPS / Engineering"),
-    # General CP Inline → Command Pilot Inline (all remaining forms)
-    ("CP Inline is",    "Command Pilot Inline is"),
-    ("CP Inline reuses","Command Pilot Inline reuses"),
-    ("CP Inline v",     "Command Pilot Inline v"),
-    ("CP Inline —",     "Command Pilot Inline —"),
-    ("CP Inline,",      "Command Pilot Inline,"),
-    ("CP Inline.",      "Command Pilot Inline."),
-    ("CP Inline ",      "Command Pilot Inline "),
-    ("CP Inline",       "Command Pilot Inline"),
+    ("CP Inline is",     "Command Pilot Inline is"),
+    ("CP Inline reuses", "Command Pilot Inline reuses"),
+    ("CP Inline v",      "Command Pilot Inline v"),
+    ("CP Inline —",      "Command Pilot Inline —"),
+    ("CP Inline,",       "Command Pilot Inline,"),
+    ("CP Inline.",       "Command Pilot Inline."),
+    ("CP Inline ",       "Command Pilot Inline "),
+    ("CP Inline",        "Command Pilot Inline"),
 ]
 
 def replace_text(text):
@@ -58,55 +58,42 @@ def replace_text(text):
     return text
 
 def fix_paragraph(para):
-    """Consolidate runs, apply replacements, restore into first run.
-       Special case: if the full text is exactly 'CP Inline' → title heading."""
-    full = "".join(r.text for r in para.runs)
+    """Apply replacements; handle title exact-match specially."""
     if not para.runs:
         return
-
-    # Title paragraph: exact match → VCCS Command Pilot™ Inline
-    if full.strip() == "CP Inline":
+    full = "".join(r.text for r in para.runs)
+    if full.strip() == "CP Inline":                        # title paragraph
         para.runs[0].text = "VCCS Command Pilot\u2122 Inline"
-        for r in para.runs[1:]:
-            r.text = ""
+        for r in para.runs[1:]: r.text = ""
         return
-
     new = replace_text(full)
-    if new == full:
-        return
-    para.runs[0].text = new
-    for r in para.runs[1:]:
-        r.text = ""
+    if new != full:
+        para.runs[0].text = new
+        for r in para.runs[1:]: r.text = ""
 
-# ── Row-height helpers ────────────────────────────────────────────────────────
+# ── Table helpers ──────────────────────────────────────────────────────────────
 def cell_visual_rows(cell, cpl):
     texts = [p.text.strip() for p in cell.paragraphs if p.text.strip()]
     if not texts:
         return 0
-    total = 0
-    for t in texts:
-        total += max(1, math.ceil(len(t) / cpl))
-    return total
+    return sum(max(1, math.ceil(len(t) / cpl)) for t in texts)
 
-def max_visual_rows_in_row(table_row, n_cols):
+def row_max_vr(table_row, n_cols):
     cpl  = CHARS_PER_LINE.get(n_cols, CHARS_DEFAULT)
     seen = set()
-    max_vr = 0
+    mx   = 0
     for cell in table_row.cells:
-        tc_id = id(cell._tc)
-        if tc_id in seen:
-            continue
-        seen.add(tc_id)
+        tid = id(cell._tc)
+        if tid in seen: continue
+        seen.add(tid)
         vr = cell_visual_rows(cell, cpl)
-        if vr > max_vr:
-            max_vr = vr
-    return max_vr
+        if vr > mx: mx = vr
+    return mx
 
 def set_row_height(row, twips):
     tr   = row._tr
     trPr = tr.get_or_add_trPr()
-    for el in trPr.findall(qn("w:trHeight")):
-        trPr.remove(el)
+    for el in trPr.findall(qn("w:trHeight")): trPr.remove(el)
     trH = OxmlElement("w:trHeight")
     trH.set(qn("w:val"),   str(twips))
     trH.set(qn("w:hRule"), "atLeast")
@@ -115,90 +102,138 @@ def set_row_height(row, twips):
 def set_cell_valign(cell, align="center"):
     tc   = cell._tc
     tcPr = tc.get_or_add_tcPr()
-    for el in tcPr.findall(qn("w:vAlign")):
-        tcPr.remove(el)
+    for el in tcPr.findall(qn("w:vAlign")): tcPr.remove(el)
     vA = OxmlElement("w:vAlign")
     vA.set(qn("w:val"), align)
     tcPr.append(vA)
 
-# ── Version-history row append ────────────────────────────────────────────────
+# ── Caveat paragraph insertion ─────────────────────────────────────────────────
+CAVEAT_TEXT = (
+    "\u26a0\u2002 PLACEHOLDER \u2014 The panel layout shown below is indicative only. "
+    "Zone structure, element placement, labels, and interaction behaviour all require "
+    "dedicated UI/UX design work before WPF implementation begins. Do not treat this "
+    "wireframe as a final specification."
+)
+
+def insert_paragraph_after(ref_para, text, bold=True, italic=False,
+                            color_hex="C00000", pt_size=10):
+    """Insert a new paragraph immediately after ref_para in the document body."""
+    new_p = OxmlElement("w:p")
+
+    # paragraph properties — keep default style
+    new_pPr = OxmlElement("w:pPr")
+    new_p.append(new_pPr)
+
+    # run
+    new_r = OxmlElement("w:r")
+    new_rPr = OxmlElement("w:rPr")
+
+    if bold:
+        b = OxmlElement("w:b"); new_rPr.append(b)
+    if italic:
+        i = OxmlElement("w:i"); new_rPr.append(i)
+    if color_hex:
+        col = OxmlElement("w:color")
+        col.set(qn("w:val"), color_hex)
+        new_rPr.append(col)
+    if pt_size:
+        sz = OxmlElement("w:sz")
+        sz.set(qn("w:val"), str(pt_size * 2))   # half-points
+        szCs = OxmlElement("w:szCs")
+        szCs.set(qn("w:val"), str(pt_size * 2))
+        new_rPr.append(sz); new_rPr.append(szCs)
+
+    new_r.append(new_rPr)
+
+    new_t = OxmlElement("w:t")
+    new_t.text = text
+    new_t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    new_r.append(new_t)
+    new_p.append(new_r)
+
+    ref_para._element.addnext(new_p)
+
+# ── Version-history row ────────────────────────────────────────────────────────
 def append_version_row(table, version, date, author, changes):
     new_tr = copy.deepcopy(table.rows[-1]._tr)
     table._tbl.append(new_tr)
     new_row = table.rows[-1]
     for cell, val in zip(new_row.cells, [version, date, author, changes]):
         for para in cell.paragraphs:
-            for run in para.runs:
-                run.text = ""
-        if cell.paragraphs:
-            p = cell.paragraphs[0]
-            if p.runs:
-                p.runs[0].text = val
-            else:
-                p.add_run(val)
+            for run in para.runs: run.text = ""
+        p = cell.paragraphs[0] if cell.paragraphs else cell.add_paragraph()
+        if p.runs: p.runs[0].text = val
+        else:      p.add_run(val)
         set_cell_valign(cell, "center")
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# ── Main ───────────────────────────────────────────────────────────────────────
 doc = Document(SRC)
 
-# 1. Body paragraphs — fix text, then find first body TM use
-tm_first_done = False
-for para_idx, para in enumerate(doc.paragraphs):
+# 1. Title font size: 36 pt → 28 pt
+title_para = doc.paragraphs[0]
+for run in title_para.runs:
+    run.font.size = Pt(28)
+
+# 2. Body paragraphs: terminology + first TM
+tm_done = False
+op_panel_para = None
+
+for idx, para in enumerate(doc.paragraphs):
     fix_paragraph(para)
-    # First prose paragraph (past title block at index ≤ 5) that contains
-    # "Command Pilot Inline" gets the ™ on its first occurrence.
-    if not tm_first_done and para_idx > 5:
+
+    # Capture operator panel heading reference (after fix so text is stable)
+    if ("6." in para.text and "Operator Panel" in para.text
+            and para.style and para.style.name == "Heading 1"):
+        op_panel_para = para
+
+    # First prose TM (past title block)
+    if not tm_done and idx > 5:
         for run in para.runs:
             if "Command Pilot Inline" in run.text:
                 run.text = run.text.replace(
                     "Command Pilot Inline", "Command Pilot\u2122 Inline", 1)
-                tm_first_done = True
+                tm_done = True
                 break
 
-# 2. Tables
+# 3. Insert caveat after operator panel heading
+if op_panel_para:
+    insert_paragraph_after(op_panel_para, CAVEAT_TEXT,
+                            bold=True, italic=False, color_hex="C00000", pt_size=10)
+else:
+    print("WARNING: Operator Panel heading not found — caveat not inserted")
+
+# 4. Tables: text + valign + proportional row heights
 tables = doc.tables
 for ti, table in enumerate(tables):
-    n_cols   = len(table.columns)
-    is_t1    = (ti == 0)
-    is_last  = (ti == len(tables) - 1)
+    n_cols  = len(table.columns)
+    is_last = (ti == len(tables) - 1)
 
     for row in table.rows:
         for cell in row.cells:
             for para in cell.paragraphs:
                 fix_paragraph(para)
             set_cell_valign(cell, "center")
-
-        vr = max_visual_rows_in_row(row, n_cols)
-
-        if is_t1:
-            # Table 1: proportional — each visual row = 0.25"
-            twips = max(1, vr) * TWIPS_PER_ROW
-        else:
-            # All other tables: H1/H2/H3 tier formula
-            if vr <= 1:   twips = H1
-            elif vr == 2: twips = H2
-            else:         twips = H3
-
+        vr    = row_max_vr(row, n_cols)
+        twips = calc_height_twips(vr)
         set_row_height(row, twips)
 
     if is_last:
         append_version_row(
             table,
-            "1.2", "4 August 2026", "VCCS/PIPS / Engineering",
-            "Table 1 row heights revised to calc-lines \u00d7 0.25\"; "
-            "title TM symbol fixed; first body-copy TM added."
+            "1.3", "4 August 2026", "VCCS/PIPS / Engineering",
+            "Title font 36 pt \u2192 28 pt; proportional row heights (L\u00d70.25\u2212 0.10 for L\u22652) "
+            "applied whole document; operator panel placeholder caveat added; "
+            "title TM and first body-copy TM fixed."
         )
 
-# 3. Save
+# 5. Save
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 doc.save(OUT)
 print(f"Saved: {OUT}")
 
-# Quick verification — print Table 1 heights for review
-print("\nTable 1 heights (v1.2):")
-cpl = CHARS_PER_LINE[2]
+# Spot-check: Table 1 heights
+print("\nTable 1 spot-check:")
 for ri, row in enumerate(doc.tables[0].rows):
-    vr = max_visual_rows_in_row(row, 2)
-    tw = max(1, vr) * TWIPS_PER_ROW
-    inch = tw / 1440
-    print(f"  r{ri:02d}  vr={vr}  {tw}tw  {inch:.3f}\"")
+    vr = row_max_vr(row, 2)
+    tw = calc_height_twips(vr)
+    print(f"  r{ri:02d}  vr={vr}  {tw}tw  {tw/TWIPS_PER_INCH:.3f}\"")
