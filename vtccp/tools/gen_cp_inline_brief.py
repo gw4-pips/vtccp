@@ -266,14 +266,18 @@ open_items = [
     ("Line-control mode",   "Fail = divert only (line keeps running) vs. fail = divert + stop.  "
                             "Consecutive-fail threshold (if any) TBD.  Red indicator may be momentary "
                             "rather than latched — confirm with customer."),
-    ("Indicator pole",      "Lamp count, colour mapping, steady vs. flash behaviour per grade band.  "
-                            "Current mapping is a working assumption; all thresholds negotiable."),
+    ("Indicator pole",      "Lamp count, colour mapping, steady vs. flash behaviour per grade band, "
+                            "and audible alarm channel.  Current mapping is a working assumption; "
+                            "all thresholds negotiable."),
     ("Trigger",             "Photosensor type and placement, end-of-carton detection (second sensor or "
                             "decode event), debounce timing."),
-    ("Grade threshold",     "Customer's pass/fail grade boundary for this specific product and "
-                            "regulatory context.  Default 1.5 assumed; confirm."),
-    ("Image policy",        "Which frames to archive (all / fail-only / none), storage path, "
-                            "DMST upload workflow for failures."),
+    ("Product recipe / config", "A per-product configuration file (approx. 6 products) is needed, "
+                            "capturing fixed product data (GTIN), grade pass/fail threshold, "
+                            "and line settings specific to that product.  Threshold is not a "
+                            "global setting — it is configurable per product by authorised personnel."),
+    ("Image policy",        "Which frames to archive (all / fail-only / none), at what resolution "
+                            "and compression quality, storage path and retention policy, "
+                            "and DMST upload workflow for failures."),
     ("Reader mounting",     "Stand adaptation for conveyor height and carton size; working distance and "
                             "FOV verification against carton footprint."),
 ]
@@ -292,8 +296,9 @@ p.paragraph_format.space_before = Pt(4)
 r = p.add_run(
     "This document describes the current working concept.  All line-control behaviours, "
     "channel assignments, and grade thresholds are provisional and subject to revision as "
-    "engineering requirements are confirmed.  Contact: VCCS / Product Identification and "
-    "Processing Systems, Inc."
+    "engineering requirements are confirmed.  "
+    "Contact: George Wright IV — VCCS / Product Identification and Processing Systems, Inc. "
+    "— gw4@pips.com"
 )
 r.font.size = Pt(8); r.italic = True; set_colour(r, GREY)
 
