@@ -134,3 +134,10 @@ uri = "file://vtccp/references/CP-Inline-Engineering-Brief-v1.0.docx"
 type = "word_document"
 title = "CP Inline Engineering Brief v1.0 — FINAL"
 description = "Final version: VCCS Command Pilot™ Inline — Engineering Brief for Serview, Inc."
+
+[[outputs]]
+id = "Pa5oZ4a7Ez_6KwOVny4sA"
+uri = "file://vtccp/references/CPIPM-TableStyle-Sample.docx"
+type = "word_document"
+title = "Table Style Sample — Option A vs Option B"
+description = "Table 1 shown twice: Option A (current tight), Option B (proposed open). Reply A, B, or suggest tweaks."
