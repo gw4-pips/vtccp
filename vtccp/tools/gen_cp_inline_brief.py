@@ -86,7 +86,7 @@ set_colour(r, NAVY)
 
 p2 = doc.add_paragraph()
 p2.paragraph_format.space_after = Pt(1)
-r2 = p2.add_run("Prospective project overview for engineering partners     |     Version 1.0  ·  August 2026     |     DRAFT — subject to revision")
+r2 = p2.add_run("Prospective project overview for engineering partners     |     Version 1.0  ·  3 August 2026     |     DRAFT — subject to revision")
 r2.font.size = Pt(8.5)
 r2.italic = True
 set_colour(r2, GREY)
@@ -100,12 +100,13 @@ heading("1.  What is VCCS Command Pilot\u2122?")
 
 body(
     "Command Pilot is a Windows desktop application — built on WPF / .NET 8 — "
-    "that VCCS/PIPS operates for GS1 DataMatrix barcode print-quality verification on "
-    "medical device and diagnostic-kit production lines.  Its core job is to receive a "
-    "scan result from a Cognex DataMan fixed-mount reader, decode the GS1 payload, "
-    "assess the ISO/IEC 15415 print-quality grade, log the result, and surface it to "
-    "an operator.  The platform has been in use on label-dispensing / verifier benches "
-    "and is now being adapted for inline conveyor operation."
+    "that VCCS/PIPS operates in its verification laboratory to assess barcode print "
+    "quality for pharmaceutical, medical device, and other customers.  It accepts scan "
+    "results from a Cognex DataMan fixed-mount reader, decodes GS1 linear and 2D "
+    "payloads (and direct-part marks), grades them against ISO/IEC 15415 and related "
+    "standards, logs each result to Excel and an event log, and presents the outcome "
+    "to a lab operator.  The application runs on a bench-top verifier station; "
+    "it is not a production-line application."
 )
 
 body(
