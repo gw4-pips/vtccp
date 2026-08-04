@@ -79,7 +79,7 @@ def rule():
 # ─────────────────────────────────────────────────────────────────────────────
 p = doc.add_paragraph()
 p.paragraph_format.space_after = Pt(2)
-r = p.add_run("VCCS Command Pilot™ Inline — Engineering Brief")
+r = p.add_run("VCCS Command Pilot\u2122 Inline — Engineering Brief for Serview, Inc.")
 r.bold = True
 r.font.size = Pt(15)
 set_colour(r, NAVY)

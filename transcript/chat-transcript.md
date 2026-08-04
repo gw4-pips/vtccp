@@ -1079,3 +1079,7 @@ Built vtccp/InlineIo/ relay assembly stub (task #37): IRelayBoard interface, Moc
 **User:** Engineering brief edits: (1) indicator pole should include audible alarm; (2) grade threshold is configurable by customer product — need a recipe/config file per product (~6), including GTIN and line settings; (3) image policy should specify which frames and what image quality; (4) contact footer: George Wright IV, gw4@pips.com. Approved overall with one more read-through pending.
 
 **Assistant:** Applied all four changes to CP-Inline-Engineering-Brief-v1.0.docx: indicator pole bullet updated to include audible alarm channel; Grade threshold open item replaced with "Product recipe / config" item (per-product config file, ~6 products, GTIN + grade threshold + line settings, threshold configurable per product by authorised personnel); image policy updated to include resolution and compression quality; footer contact updated to George Wright IV — VCCS / PIPS — gw4@pips.com. Regenerated and presented.
+
+**User:** Engineering brief final edits: add "for Serview, Inc." to the title. Finalize for download.
+
+**Assistant:** Title updated to "VCCS Command Pilot™ Inline — Engineering Brief for Serview, Inc." Document finalized as CP-Inline-Engineering-Brief-v1.0.docx in vtccp/references/.
