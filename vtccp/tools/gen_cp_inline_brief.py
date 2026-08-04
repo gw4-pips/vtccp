@@ -140,8 +140,11 @@ r.font.size = Pt(10); set_colour(r, BLACK)
 p = doc.add_paragraph(style="List Bullet")
 p.paragraph_format.space_after = Pt(3)
 rb = p.add_run("ConfigEngine — "); rb.bold = True; rb.font.size = Pt(10); set_colour(rb, NAVY)
-r  = p.add_run("Operator-configurable parameters (job name, operator ID, pass/fail "
-               "threshold, etc.) with optional PIN-based lockout for production-floor use.")
+r  = p.add_run("Operator-configurable parameters managed at multiple security levels. "
+               "Routine job settings (job name, operator ID, roll number, etc.) are "
+               "accessible to production operators; grading thresholds and other "
+               "quality-critical parameters are controlled at a more secure level, "
+               "separate from day-to-day job configuration.")
 r.font.size = Pt(10); set_colour(r, BLACK)
 
 p = doc.add_paragraph(style="List Bullet")
@@ -149,8 +152,9 @@ p.paragraph_format.space_after = Pt(3)
 rb = p.add_run("InlineIo  (new) — "); rb.bold = True; rb.font.size = Pt(10); set_colour(rb, TEAL)
 r  = p.add_run("Relay-board abstraction layer.  Exposes IRelayBoard (hardware-agnostic), "
                "MockRelayBoard (development/test), IndicatorPoleController, and "
-               "ConveyorInterruptController.  Channel assignments and exact line-control "
-               "behaviour are TBD Engineering.")
+               "ConveyorInterruptController.  Designed to accommodate indicator pole, "
+               "pusher-divert, emergency-stop (e-stop), and other output channels as "
+               "assignments are confirmed by Engineering.  Exact line-control behaviour TBD.")
 r.font.size = Pt(10); set_colour(r, BLACK)
 
 p = doc.add_paragraph(style="List Bullet")
