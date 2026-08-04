@@ -120,11 +120,6 @@ body(
 # ─────────────────────────────────────────────────────────────────────────────
 heading("2.  Platform architecture (relevant assemblies)")
 
-bullet("DeviceInterface — ", bold_prefix="DeviceInterface — ",
-       colour=NAVY)
-doc.paragraphs[-1].runs[-1].text = ""  # clear duplicate; rebuild cleanly
-
-# rebuild cleanly
 p = doc.add_paragraph(style="List Bullet")
 p.paragraph_format.space_after = Pt(3)
 rb = p.add_run("DeviceInterface — "); rb.bold = True; rb.font.size = Pt(10); set_colour(rb, NAVY)
