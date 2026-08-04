@@ -127,3 +127,10 @@ id = "owqbaKEs_rifKMnSgdjnA"
 uri = "file://.local/outputs/CP-Inline-Sales-Deck.pdf"
 type = "pdf"
 title = "CP Inline Sales Deck.pdf"
+
+[[outputs]]
+id = "CutKuR1mgMtm3h6APQr3Q"
+uri = "file://vtccp/references/CP-Inline-Engineering-Brief-v1.0.docx"
+type = "word_document"
+title = "CP Inline Engineering Brief v1.0 (revised)"
+description = "Updated: VCCS Command Pilot™ in major headings, Command Pilot elsewhere. No CP abbreviation."
