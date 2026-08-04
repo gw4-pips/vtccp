@@ -141,3 +141,10 @@ uri = "file://vtccp/references/CPIPM-TableStyle-Sample.docx"
 type = "word_document"
 title = "Table Style Sample — A / B / C row heights"
 description = "A = auto/original. B = 0.30\" min height, text centred. C = 0.40\" min height, text centred. Same font and margins throughout."
+
+[[outputs]]
+id = "K1wke3liMVxcYO5TSTdaB"
+uri = "file://vtccp/references/CPIPM-Project-Outline-v1.1.docx"
+type = "word_document"
+title = "Command Pilot Inline — Project Outline v1.1"
+description = "Option B row heights (0.30\" min, text vertically centred) applied to all 15 tables. Terminology updated throughout: CP Inline → Command Pilot Inline."
