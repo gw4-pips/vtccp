@@ -133,7 +133,8 @@ p.paragraph_format.space_after = Pt(3)
 rb = p.add_run("ExcelEngine — "); rb.bold = True; rb.font.size = Pt(10); set_colour(rb, NAVY)
 r  = p.add_run("Structured verification-record writer.  Produces session Excel workbooks "
                "(.xlsx / .xls) and an append-only JSONL event log.  Schema is "
-               "configurable; the same writer is reused without modification for inline operation.")
+               "configurable; this writer would likely be used for inline operation, "
+               "though other reporting options are also possible.")
 r.font.size = Pt(10); set_colour(r, BLACK)
 
 p = doc.add_paragraph(style="List Bullet")
