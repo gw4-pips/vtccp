@@ -158,6 +158,15 @@ r  = p.add_run("Relay-board abstraction layer.  Exposes IRelayBoard (hardware-ag
 r.font.size = Pt(10); set_colour(r, BLACK)
 
 p = doc.add_paragraph(style="List Bullet")
+p.paragraph_format.space_after = Pt(3)
+rb = p.add_run("ReportEngine — "); rb.bold = True; rb.font.size = Pt(10); set_colour(rb, NAVY)
+r  = p.add_run("Individual scan result reports can be printed or exported on demand — "
+               "during production or at any time thereafter — from the session record.  "
+               "Supported formats include Cognex DataMan, Webscan TruCheck, and hybrid "
+               "configurations.")
+r.font.size = Pt(10); set_colour(r, BLACK)
+
+p = doc.add_paragraph(style="List Bullet")
 p.paragraph_format.space_after = Pt(6)
 rb = p.add_run("Command Pilot Inline Operator Panel  (new) — "); rb.bold = True; rb.font.size = Pt(10); set_colour(rb, TEAL)
 r  = p.add_run("Full-screen WPF panel designed for production-floor use: grade result, "
@@ -275,9 +284,14 @@ open_items = [
                             "capturing fixed product data (GTIN), grade pass/fail threshold, "
                             "and line settings specific to that product.  Threshold is not a "
                             "global setting — it is configurable per product by authorised personnel."),
-    ("Image policy",        "Which frames to archive (all / fail-only / none), at what resolution "
-                            "and compression quality, storage path and retention policy, "
-                            "and DMST upload workflow for failures."),
+    ("Image policy",        "Which frames to archive (all / fail-only / none) and at what "
+                            "resolution and compression quality.  Both JPEG image and raw XML "
+                            "result file should be considered together — the XML carries the "
+                            "complete verifier measurement record and enables report regeneration "
+                            "at any time.  Also: whether to capture the full frame (vs. barcode "
+                            "crop only) for bona fide ISO/IEC regrading and offline analysis.  "
+                            "Storage path, retention policy, and DMST upload workflow for "
+                            "failures also TBD."),
     ("Reader mounting",     "Stand adaptation for conveyor height and carton size; working distance and "
                             "FOV verification against carton footprint."),
 ]
