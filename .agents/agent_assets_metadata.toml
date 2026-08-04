@@ -148,3 +148,10 @@ uri = "file://vtccp/references/CPIPM-Project-Outline-v1.1.docx"
 type = "word_document"
 title = "Command Pilot Inline — Project Outline v1.1"
 description = "Proportional row heights: 0.25\" (1-row), 0.75\" (2-row), 1.00\" (3+ row). Version bumped to 1.1, v1.1 history row added, CP Inline → Command Pilot Inline throughout."
+
+[[outputs]]
+id = "6th0Tl3Aa6uudWCAcEP1p"
+uri = "file://vtccp/references/CPIPM-Project-Outline-v1.2.docx"
+type = "word_document"
+title = "Command Pilot Inline — Project Outline v1.2"
+description = "Table 1: 1-row cells = 0.25\", 2-row cells = 0.50\". TM fixed in title and first body use. All other tables unchanged from v1.1."
