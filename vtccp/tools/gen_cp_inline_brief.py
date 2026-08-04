@@ -217,9 +217,10 @@ heading("4.  Reuse and new-build scope")
 rows = [
     ("DeviceInterface (reader comms, trigger, image)",    "Reuse as-is",          "High"),
     ("ExcelEngine (Excel + JSONL reporting)",             "Reuse as-is",          "High"),
+    ("ReportEngine (individual scan reports, print/export)", "Reuse / extend",    "Medium"),
     ("ConfigEngine (operator config, PIN lock)",          "Reuse as-is",          "High"),
     ("InlineIo relay board layer",                        "New — stub complete",  "—"),
-    ("Command Pilot Inline Operator Panel (WPF)",          "New build",            "—"),
+    ("Command Pilot Inline Operator Panel (WPF)",         "New build",            "—"),
     ("Line-control integration (divert, stop, etc.)",     "TBD Engineering",      "—"),
     ("Relay board hardware + wiring",                     "TBD Engineering",      "—"),
 ]
