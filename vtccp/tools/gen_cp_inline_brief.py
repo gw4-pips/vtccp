@@ -102,11 +102,11 @@ body(
     "Command Pilot is a Windows desktop application — built on WPF / .NET 8 — "
     "that VCCS/PIPS operates in its verification laboratory to assess barcode print "
     "quality for pharmaceutical, medical device, and other customers.  It accepts scan "
-    "results from a Cognex DataMan fixed-mount reader, decodes GS1 linear and 2D "
+    "results from a Cognex DataMan verifier, decodes GS1 linear and 2D "
     "payloads (and direct-part marks), grades them against ISO/IEC 15415 and related "
     "standards, logs each result to Excel and an event log, and presents the outcome "
     "to a lab operator.  The application runs on a bench-top verifier station; "
-    "it is not a production-line application."
+    "it currently runs on a bench-top verifier station, not on a production line."
 )
 
 body(
