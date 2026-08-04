@@ -1065,3 +1065,9 @@ Hardware TODOs (verify on first plug-in): CRC round-trip, no-tag status code val
 **User:** Confirmed slide content outline for CP Inline deck (with edits): VCCS (PIPS) Command Pilot™ Inline title, The gap we're closing, Everything the line needs, Built on a solid foundation, 6 weeks to go-live. Selected Analytics Dashboard visual style.
 
 **Assistant:** Built 5-slide CP Inline customer deck (task #38). Analytics Dashboard template: #FAFBFC background, #1E3A5F navy, #0D9488 teal, Inter font. Slides: (1) Title with AI-generated hero scanner image, (2) The gap with 3 numbered problem cards + solution panel, (3) Everything the line needs — 7 capability cards in 2-column grid, (4) Built on a solid foundation with ~70% complete stat callout, (5) 6 weeks to go-live with 4-phase timeline + 2 prerequisites. Artifact: artifacts/cp-inline-deck. Added wouter to pnpm workspace catalog (was missing). Validation passed (5 slides).
+
+**User:** Proceed with the InlineIo C# stub (task #37). Also: how do I download the slide deck?
+
+**Assistant:** Download answer: use browser File → Print → Save as PDF from the deck preview. Task #45 (PPTX export) is already queued for a proper PowerPoint file.
+
+Built vtccp/InlineIo/ relay assembly stub (task #37): IRelayBoard interface, MockRelayBoard (8-channel in-memory mock, thread-safe, console logging), IndicatorPoleController (grade→colour mapping per spec, STEADY/FLASH modes with background timer task, SetForGradeAsync/SetForNoDecodeAsync/ClearAsync, static ClassifyGrade + RequiresConveyorStop helpers), ConveyorInterruptController (single- and dual-channel wiring modes, StopAsync/ResumeAsync with momentary restart pulse, safety resume on dispose). Models: IndicatorColour enum, IndicatorMode enum, RelayChannelMap record (all channels documented with engineering TODOs). Added InlineIoFixture.cs to TestHarness with 6 test scenarios. InlineIo added to VTCCP.sln and VtccpWindows.sln. Build: 0 errors 0 warnings.

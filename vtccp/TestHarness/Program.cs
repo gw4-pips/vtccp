@@ -2890,3 +2890,6 @@ Console.WriteLine("Phase 5 complete.");
 // ── Overall exit code ─────────────────────────────────────────────────────────
 bool allPass = p3Pass && p4Pass && p5Pass;
 if (!allPass) Environment.Exit(1);
+
+// ── InlineIo relay assembly fixture ──────────────────────────────────────────
+await TestHarness.Fixtures.InlineIoFixture.RunAsync();

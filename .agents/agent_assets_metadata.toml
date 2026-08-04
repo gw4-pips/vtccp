@@ -121,3 +121,9 @@ uri = "file://CPIPM-Project-Outline-v1.0.docx"
 type = "word_document"
 title = "CP Inline — Project Outline v1.0"
 description = "Preliminary project outline for the Command Pilot Inline Production Module, incorporating all engineering feedback. 17 sections including indicator light states, 6-week timeline, trigger architecture, image policy, screen layout wireframe, and open items list."
+
+[[outputs]]
+id = "owqbaKEs_rifKMnSgdjnA"
+uri = "file://.local/outputs/CP-Inline-Sales-Deck.pdf"
+type = "pdf"
+title = "CP Inline Sales Deck.pdf"

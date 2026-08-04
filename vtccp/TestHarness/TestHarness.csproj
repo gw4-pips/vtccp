@@ -17,6 +17,7 @@
     <ProjectReference Include="..\ExcelEngine\ExcelEngine.csproj" />
     <ProjectReference Include="..\DeviceInterface\DeviceInterface.csproj" />
     <ProjectReference Include="..\ConfigEngine\ConfigEngine.csproj" />
+    <ProjectReference Include="..\InlineIo\InlineIo.csproj" />
   </ItemGroup>
 
 </Project>
