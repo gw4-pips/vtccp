@@ -100,7 +100,7 @@ heading("1.  What is VCCS Command Pilot\u2122?")
 
 body(
     "Command Pilot is a Windows desktop application — built on WPF / .NET 8 — "
-    "that VCCS/PIPS operates in its verification laboratory to assess barcode print "
+    "that VCCS/PIPS designed, built, and operates in its verification laboratory to assess barcode print "
     "quality for pharmaceutical, medical device, and other customers.  It accepts scan "
     "results from a Cognex DataMan verifier, decodes GS1 linear and 2D "
     "payloads (and direct-part marks), grades them against ISO/IEC 15415 and related "
