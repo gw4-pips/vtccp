@@ -1,0 +1,493 @@
+﻿# DM475V-DPM  866D76  10.10.10.4  fw:6.1.16_tc9  dump:2026-08-05 18:08:16
+# ----------------------------------------------------------------------
+
+# -- AZTEC -------------------------------------------------------
+AZTEC.TRAINED-MODEL                                  = (no response)
+
+# -- BEEP --------------------------------------------------------
+BEEP.DATAVALID-FAIL                                  = 2 0
+BEEP.DATAVALID-FAIL-OL                               = (no response)
+BEEP.GLOBAL-ENABLE                                   = (no response)
+BEEP.GOOD                                            = 1 1
+BEEP.GOOD-OL                                         = (no response)
+BEEP.NO-READ                                         = 0 0
+BEEP.NO-READ-OL                                      = (no response)
+
+# -- BEEPER ------------------------------------------------------
+BEEPER.ENABLED                                       = ON
+
+# -- C11 ---------------------------------------------------------
+C11.CHKCHAR                                          = (no response)
+C11.CHKCHAR-OPTION                                   = (no response)
+C11.CODESIZE                                         = (no response)
+C11.QZ-SIZE                                          = (no response)
+C11.VERIFICATION                                     = (no response)
+
+# -- C128 --------------------------------------------------------
+C128.CODESIZE                                        = ON 3 40
+C128.QZ-SIZE                                         = (no response)
+C128.VERIFICATION                                    = (no response)
+
+# -- C25 ---------------------------------------------------------
+C25.CHKCHAR                                          = OFF
+C25.CODESIZE                                         = OFF 3 40
+C25.QZ-SIZE                                          = 100
+C25.VERIFICATION                                     = (no response)
+C25.XMTCHK                                           = OFF
+
+# -- C39 ---------------------------------------------------------
+C39.ASCII                                            = OFF
+C39.CHKCHAR                                          = OFF
+C39.CODESIZE                                         = ON 3 40
+C39.QZ-SIZE                                          = (no response)
+C39.VERIFICATION                                     = (no response)
+C39.XMTCHK                                           = OFF
+
+# -- C93 ---------------------------------------------------------
+C93.CODESIZE                                         = ON 3 40
+C93.VERIFICATION                                     = (no response)
+
+# -- CODABAR -----------------------------------------------------
+CODABAR.CHKCHAR                                      = OFF
+CODABAR.CODESIZE                                     = OFF 3 40
+CODABAR.QZ-SIZE                                      = 100
+CODABAR.VERIFICATION                                 = (no response)
+CODABAR.XMTCHK                                       = OFF
+
+# -- UCC ---------------------------------------------------------
+UCC.CC-C                                             = (no response)
+UCC.XMTMODE                                          = (no response)
+
+# -- CAMERA ------------------------------------------------------
+CAMERA.AUTO-REGULATION                               = ON
+CAMERA.BURST-LENGTH                                  = 2
+CAMERA.EXPOSURE                                      = 178
+CAMERA.EXPOSURE-LIMIT-US                             = 8000
+CAMERA.EXPOSURE-US                                   = ON 128 178 100
+CAMERA.FOV                                           = 0 2448 0 2048
+CAMERA.FOV-ENABLED                                   = OFF
+CAMERA.FULL-BLACK-LEVEL-CORRECTION                   = (no response)
+CAMERA.GAIN                                          = 1.00
+CAMERA.GAIN-LIMIT                                    = 251.18
+CAMERA.HDR-MODE                                      = 0
+CAMERA.INTERVAL-US                                   = 200000
+CAMERA.MAX-EXPOSURE-US                               = 8000
+CAMERA.MIRROR-HORIZONTAL                             = OFF
+CAMERA.MIRROR-VERTICAL                               = ON
+CAMERA.TARGET-BRIGHTNESS                             = (no response)
+CAMERA.XPAND-ROI                                     = (no response)
+CAMERA.XPAND-ROI-TYPE                                = 0
+
+# -- CLIENT ------------------------------------------------------
+CLIENT.CLIENT-PORT                                   = (no response)
+CLIENT.CLOSE-CONNECTION                              = (no response)
+CLIENT.CONNECTION-TIMEOUT                            = (no response)
+CLIENT.ENABLED                                       = (no response)
+CLIENT.HOST-ADDRESS                                  = (no response)
+CLIENT.HOST-PORT                                     = (no response)
+CLIENT.IDLE-TIMEOUT                                  = (no response)
+CLIENT.LINGER-TIME                                   = (no response)
+CLIENT.OPEN-CONNECTION                               = (no response)
+CLIENT.PROTOCOL                                      = (no response)
+CLIENT.RECONNECT-DELAY                               = (no response)
+
+# -- CMD ---------------------------------------------------------
+CMD.COMMAND-FOOTER                                   = (no response)
+CMD.COMMAND-HEADER                                   = (no response)
+CMD.ECHO                                             = (no response)
+CMD.TRIGGER                                          = (no response)
+CMD.TRIGGER-OFF                                      = (no response)
+CMD.TRIGGER-ON                                       = (no response)
+
+# -- COM ---------------------------------------------------------
+COM.BAUD-RATE                                        = 1
+COM.BUFFER-AUTO-FLUSH                                = (no response)
+COM.BUFFER-DATA                                      = (no response)
+COM.BUFFER-MODE                                      = (no response)
+COM.COMMUNICATIONS-MODULE                            = (no response)
+COM.DATA-BITS                                        = 8
+COM.DMCC-CHECKSUM                                    = 0
+COM.DMCC-DEFAULT-TARGET                              = (no response)
+COM.DMCC-HEADER                                      = 0
+COM.DMCC-RESPONSE                                    = 0
+COM.DMCC-TARGET                                      = (no response)
+COM.MULTI-PORT                                       = OFF
+COM.PARITY                                           = 0
+COM.PROTOCOL                                         = (no response)
+COM.READER-IN-CRADLE                                 = (no response)
+COM.SCRIPT                                           = 467
+// Default script for custom communication protocol
+function CommHandler()
+{
+	return {
+		onConnect: function (peerName)
+		{
+			// Disable the handler for this connection:
+			return false;
+		},
+		onDisconnect: function ()
+		{
+		},
+		onError: function (errorMsg)
+		{
+		},
+		onExpectedData: function (inputString) {
+			return true;
+		},
+		onUnexpectedData: function (inputString) {
+			return true;
+		},
+		onTimer: function () {
+		},
+		onEncoder: function () {
+		}
+	};
+}
+COM.SCRIPT-ENABLED                                   = OFF
+COM.SCRIPT-ERROR                                     = (no response)
+COM.STOP-BITS                                        = 1
+COM.XLATEPRNT                                        = OFF
+
+# -- CODE --------------------------------------------------------
+CODE.INFO                                            = (no response)
+
+# -- CQ ----------------------------------------------------------
+CQ.CALIB-DATE                                        = (no response)
+CQ.ILLUMINATION                                      = (no response)
+CQ.METRICS                                           = 0
+CQ.MINPASS                                           = (no response)
+CQ.PROCESSM                                          = (no response)
+CQ.RESET-CALIBRATION                                 = (no response)
+CQ.UNITS                                             = (no response)
+
+# -- DATA --------------------------------------------------------
+DATA.IMAGE-TYPE                                      = 0
+DATA.RESULT-ALWAYSSEND                               = 513
+DATA.RESULT-ENCODING                                 = 0
+DATA.RESULT-TYPE                                     = 513
+
+# -- DATABAR -----------------------------------------------------
+DATABAR.EXPANDED                                     = ON
+DATABAR.GROUP                                        = ON
+DATABAR.LIMITED                                      = ON
+
+# -- DATAMATRIX --------------------------------------------------
+DATAMATRIX.ALGORITHM-VERSION                         = 0
+DATAMATRIX.DAMAGE                                    = 4
+DATAMATRIX.EXTREME-PRINT-GROWTH                      = (no response)
+DATAMATRIX.LEARNING-NUMROWS-NUMCOLS                  = 10 10
+DATAMATRIX.LEARNING-PARTIAL-MODEL                    = OFF
+DATAMATRIX.LEARNING-PARTIAL-MODEL-GRIDS              = (no response)
+DATAMATRIX.LOW-RES-2D                                = OFF
+DATAMATRIX.PERSPECTIVE-DISTORTION                    = 1
+DATAMATRIX.PRINT-DEFORMATION                         = 1
+DATAMATRIX.QUALITY-METRICS                           = 0
+DATAMATRIX.SYMBOL-DIFFICULTY                         = (no response)
+DATAMATRIX.TRAINED-FLEX-GRID                         = OFF
+DATAMATRIX.TRAINED-IGNORE-MIRROR                     = OFF
+DATAMATRIX.TRAINED-IGNORE-POLARITY                   = OFF
+DATAMATRIX.TRAINED-MODEL                             = (no response)
+DATAMATRIX.USAGE                                     = (no response)
+
+# -- DECODER -----------------------------------------------------
+DECODER.AI-ENHANCER                                  = (no response)
+DECODER.ALLOW-ALL-MST-RESULTS                        = (no response)
+DECODER.CENTERING-WINDOW                             = 50 50 10 10
+DECODER.DISPLAY-TARGET                               = ON
+DECODER.MAC-SCAN-TIMEOUT                             = (no response)
+DECODER.NO-READ-FEEDBACK                             = (no response)
+DECODER.REREAD-BASED-ON-SYMBOLOGY                    = OFF
+DECODER.REREAD-MODE                                  = 0
+DECODER.REREAD-NEVER2X                               = OFF
+DECODER.REREAD-NOT-LAST-N                            = 0
+DECODER.REREAD-TIME                                  = 0
+DECODER.ROI                                          = 0 2448 0 2048
+DECODER.TARGET-DECODING                              = (no response)
+DECODER.TIMEOUT                                      = 6000
+DECODER.USE-CENTERING                                = (no response)
+
+# -- DETECT ------------------------------------------------------
+DETECT.MAX-SPEED                                     = (no response)
+DETECT.MIN-SPEED                                     = (no response)
+DETECT.PHOTO-EYE-DISTANCE                            = (no response)
+
+# -- DETECTION ---------------------------------------------------
+DETECTION.ACTIVE                                     = (no response)
+DETECTION.ENABLE                                     = (no response)
+DETECTION.SENSITIVITY                                = (no response)
+
+# -- DEVICE ------------------------------------------------------
+DEVICE.BACKUP                                        = (no response)
+DEVICE.CHARGE-PROFILES-ENABLE                        = (no response)
+DEVICE.DEFAULT                                       = (no response)
+DEVICE.DESCRIPTION                                   = (no response)
+DEVICE.FEATURE-KEYS                                  = DPM_IDMax, ImageDownload, IDQuick, BarCode, PostalCode, 2DCode, Validation, Omnidirectional, ImageFiltering, LadderAndPicket, 2DCodeQuality, 1DCodeQuality, DotCode, FullSpeed, Scripting, IntImageBuffer, 1DExtendedRes, 1DDataStitching, PowerGrid, SymbolDiagnostics, HDRPlus, TCVerification
+DEVICE.FIRMWARE-VER                                  = 6.1.16_tc9
+DEVICE.LENS-SERIAL                                   = (no response)
+DEVICE.LOG                                           = 231
+2026-08-05T16:20:19.823637-04:00 Starting Cognex DataMan
+2026-08-05T16:20:27.507551-04:00 SD-Card config automatically saved
+2026-08-05T16:20:27.510303-04:00 DataMan started.
+2026-08-05T18:08:30.482174-04:00 Device log downloaded.
+DEVICE.MAC-ADDRESS                                   = 00-D0-24-86-6D-76
+DEVICE.NAME                                          = DM475-866D76
+DEVICE.REBOOT                                        = (no response)
+DEVICE.RESTORE                                       = (no response)
+DEVICE.SERIAL-NUMBER                                 = 1A2134PP482281
+DEVICE.TIMEZONE                                      = UTC
+DEVICE.TYPE                                          = DM475
+DEVICE.UPTIME                                        = (no response)
+
+# -- DOTCODE -----------------------------------------------------
+DOTCODE.TRAINED-MODEL                                = (no response)
+DOTCODE.USAGE                                        = (no response)
+
+# -- ETH ---------------------------------------------------------
+ETH.DHCP                                             = (no response)
+ETH.GATEWAY                                          = (no response)
+ETH.IP-ADDRESS                                       = (no response)
+ETH.MAC-ADDRESS                                      = (no response)
+ETH.MTU                                              = (no response)
+ETH.SUBNET-MASK                                      = (no response)
+ETH.VLAN-ENABLE                                      = (no response)
+ETH.VLAN-ID                                          = (no response)
+
+# -- EVENT -------------------------------------------------------
+EVENT.ENABLED                                        = (no response)
+EVENT.PORT                                           = (no response)
+EVENT.RESULT                                         = (no response)
+EVENT.RESULT-ENCODING                                = (no response)
+
+# -- FILTER ------------------------------------------------------
+FILTER.ENABLE                                        = (no response)
+FILTER.FILTER1                                       = (no response)
+FILTER.FILTER2                                       = (no response)
+FILTER.FILTER3                                       = (no response)
+FILTER.FILTER4                                       = (no response)
+FILTER.FILTER5                                       = (no response)
+FILTER.FILTER6                                       = (no response)
+FILTER.FILTER7                                       = (no response)
+FILTER.FILTER8                                       = (no response)
+FILTER.MODE                                          = (no response)
+
+# -- FORMAT ------------------------------------------------------
+FORMAT.ENABLE                                        = (no response)
+FORMAT.FORMAT                                        = (no response)
+
+# -- GENERAL -----------------------------------------------------
+GENERAL.IP-ADDR                                      = (no response)
+GENERAL.IP-PORT                                      = (no response)
+
+# -- HDR ---------------------------------------------------------
+HDR.MODE                                             = (no response)
+
+# -- I2O5 --------------------------------------------------------
+I2O5.CHKCHAR                                         = OFF
+I2O5.CODESIZE                                        = OFF 6 40
+I2O5.QZ-SIZE                                         = 100
+I2O5.VERIFICATION                                    = (no response)
+I2O5.XMTCHK                                          = OFF
+
+# -- IMAGE -------------------------------------------------------
+IMAGE.FORMAT                                         = 1
+IMAGE.QUALITY                                        = 50
+IMAGE.SEND                                           = (no response)
+IMAGE.SIZE                                           = 1
+IMAGE.TRANSFER-FORMAT                                = (no response)
+
+# -- IO ----------------------------------------------------------
+IO.DEBOUNCE-TIME                                     = (no response)
+IO.INPUT-LOGIC                                       = (no response)
+IO.LINE-STATE                                        = (no response)
+IO.OUTPUT-LOGIC                                      = (no response)
+IO.OUTPUT-PULSE-DURATION                             = (no response)
+IO.OUTPUT-STATE                                      = (no response)
+IO.TREND-ANALYSIS-FAIL                               = (no response)
+IO.TREND-ANALYSIS-PASS                               = (no response)
+IO.TREND-ANALYSIS-WARN                               = (no response)
+
+# -- LIVEIMG -----------------------------------------------------
+LIVEIMG.MODE                                         = 0
+LIVEIMG.SEND                                         = (no response)
+
+# -- MATCH -------------------------------------------------------
+MATCH.MATCH-STRING                                   = (no response)
+MATCH.MASTER-DATABASE                                = (no response)
+MATCH.MODE                                           = (no response)
+MATCH.STRING-COUNT                                   = (no response)
+
+# -- MAXCODE -----------------------------------------------------
+MAXCODE.TRAINED-MODEL                                = (no response)
+
+# -- MICRO-QR ----------------------------------------------------
+MICRO-QR.TRAINED-MODEL                               = (no response)
+
+# -- MST ---------------------------------------------------------
+MST.DMST-LISTEN-PORT                                 = (no response)
+MST.DMST-SEND-HOST                                   = (no response)
+MST.ENABLE                                           = (no response)
+MST.RESULT-ALWAYSSEND                                = (no response)
+MST.RESULT-DETAIL                                    = (no response)
+
+# -- NTP ---------------------------------------------------------
+NTP.ENABLE                                           = OFF
+NTP.SERVER1                                          = (no response)
+NTP.SERVER2                                          = (no response)
+
+# -- OCR ---------------------------------------------------------
+OCR.CHARSET                                          = (no response)
+OCR.ENABLE                                           = (no response)
+OCR.FONT                                             = (no response)
+OCR.LINESCAN-MODE                                    = (no response)
+OCR.MODE                                             = (no response)
+OCR.NOREAD-THRESHOLD                                 = (no response)
+OCR.REGION                                           = (no response)
+OCR.RESULT-DISPLAY                                   = (no response)
+OCR.TRAINED-MODEL                                    = (no response)
+
+# -- PDF417 ------------------------------------------------------
+PDF417.CODESIZE                                      = (no response)
+PDF417.MACRO                                         = (no response)
+PDF417.MICRO                                         = (no response)
+PDF417.TRAINED-MODEL                                 = (no response)
+PDF417.VERIFICATION                                  = (no response)
+
+# -- POWERUP -----------------------------------------------------
+POWERUP.LINE-STATE                                   = (no response)
+POWERUP.TRIGGER                                      = (no response)
+
+# -- QR ----------------------------------------------------------
+QR.CODESIZE                                          = (no response)
+QR.MODEL                                             = (no response)
+QR.TRAINED-MODEL                                     = (no response)
+QR.USAGE                                             = (no response)
+
+# -- RESULT ------------------------------------------------------
+RESULT.DETAIL                                        = (no response)
+RESULT.DISPLAY                                       = (no response)
+RESULT.EXTERNAL                                      = (no response)
+RESULT.MULTICODE-MODE                                = (no response)
+RESULT.MULTICODE-TIMEOUT                             = (no response)
+RESULT.NOREAD-ENABLED                                = (no response)
+RESULT.PARTIALLY-DECODED                             = (no response)
+RESULT.SEND                                          = (no response)
+RESULT.SEPARATOR                                     = (no response)
+RESULT.SORT                                          = (no response)
+RESULT.STORE                                         = (no response)
+
+# -- STATISTICS --------------------------------------------------
+STATISTICS.CLEAR                                     = (no response)
+STATISTICS.ENABLED                                   = (no response)
+STATISTICS.FAIL-COUNT                                = (no response)
+STATISTICS.GOOD-COUNT                                = (no response)
+STATISTICS.MATCH                                     = (no response)
+STATISTICS.NOREAD-COUNT                              = (no response)
+STATISTICS.PASS-COUNT                                = (no response)
+STATISTICS.TOTAL-COUNT                               = (no response)
+STATISTICS.TREND-WINDOW                              = (no response)
+STATISTICS.WARN-COUNT                                = (no response)
+
+# -- SYMBOL ------------------------------------------------------
+SYMBOL.C128                                          = ON
+SYMBOL.C39                                           = ON
+SYMBOL.C93                                           = ON
+SYMBOL.CODABAR                                       = ON
+SYMBOL.DATABAR                                       = OFF
+SYMBOL.DATAMATRIX                                    = ON
+SYMBOL.DOTCODE                                       = OFF
+SYMBOL.I2O5                                          = ON
+SYMBOL.PDF417                                        = OFF
+SYMBOL.PHARMACODE                                    = (no response)
+SYMBOL.QR                                            = OFF
+SYMBOL.UPC-EAN                                       = ON
+
+# -- TRAIN -------------------------------------------------------
+TRAIN.AUTO-DISABLE                                   = ON
+TRAIN.MAX-CODES                                      = (no response)
+TRAIN.MODE                                           = (no response)
+TRAIN.MULTICODE-ORDERING                             = (no response)
+TRAIN.PITCH-ANGLE                                    = (no response)
+TRAIN.POLARITY                                       = (no response)
+TRAIN.POSITION-TOLERANCE                             = (no response)
+TRAIN.TRAINED                                        = (no response)
+
+# -- TRIGGER -----------------------------------------------------
+TRIGGER.BURST-LENGTH                                 = (no response)
+TRIGGER.DELAY                                        = 0
+TRIGGER.ENABLED                                      = (no response)
+TRIGGER.END-FRAME                                    = (no response)
+TRIGGER.GATE-DELAY                                   = (no response)
+TRIGGER.GATE-ENABLED                                 = (no response)
+TRIGGER.GATE-LENGTH                                  = (no response)
+TRIGGER.IN-QUEUE                                     = (no response)
+TRIGGER.MAX-ON-TIME                                  = (no response)
+TRIGGER.MIN-INTERVAL                                 = (no response)
+TRIGGER.OVERLAP                                      = (no response)
+TRIGGER.START-FRAME                                  = (no response)
+TRIGGER.TIMEOUT                                      = (no response)
+TRIGGER.TYPE                                         = 0
+
+# -- TRUCHECK ----------------------------------------------------
+TRUCHECK.APERTURE                                    = 0
+TRUCHECK.APERTURE-SIZE                               = 50
+TRUCHECK.APPLICATION-CUSTOM-MAXIMUM-X-DIM            = 300
+TRUCHECK.APPLICATION-CUSTOM-MINIMUM-X-DIM            = 50
+TRUCHECK.APPLICATION-CUSTOM-PASS-GRADE               = 15
+TRUCHECK.APPLICATION-GS1-TABLE                       = 0
+TRUCHECK.APPLICATION-STANDARD                        = 5
+TRUCHECK.AUTO-BATCH                                  = OFF
+TRUCHECK.BATCH-NUMBER                                = (no response)
+TRUCHECK.CALIBRATE-CUSTOM-ON                         = (no response)
+TRUCHECK.CALIBRATE-OFF                               = (no response)
+TRUCHECK.CALIBRATE-ON                                = (no response)
+TRUCHECK.CALIBRATION-DATE                            = Not Calibrated
+TRUCHECK.COMPANY-NAME                                = (no response)
+TRUCHECK.CUSTOM-NOTE                                 = (no response)
+TRUCHECK.DECODE-GRADE                                = (no response)
+TRUCHECK.DOT-PEEN                                    = OFF
+TRUCHECK.FPD                                         = (no response)
+TRUCHECK.FPD-GRADE                                   = (no response)
+TRUCHECK.GNU                                         = (no response)
+TRUCHECK.GNU-GRADE                                   = (no response)
+TRUCHECK.GRADING-STANDARD                            = 0
+TRUCHECK.ISO15415-VERSION                            = 1
+TRUCHECK.ISO15416-VERSION                            = 1
+TRUCHECK.ISO29158-VERSION                            = 2
+TRUCHECK.METRIC-UNITS                                = OFF
+TRUCHECK.MOD-GRADE                                   = (no response)
+TRUCHECK.OPERATOR-NAME                               = (no response)
+TRUCHECK.REPORT-SECTION                              = (no response)
+TRUCHECK.REPORT-SECTION-ENABLED                      = (no response)
+TRUCHECK.RM-GRADE                                    = (no response)
+TRUCHECK.SC                                          = (no response)
+TRUCHECK.SC-GRADE                                    = (no response)
+TRUCHECK.UEC                                         = (no response)
+TRUCHECK.UEC-GRADE                                   = (no response)
+
+# -- TUNE --------------------------------------------------------
+TUNE.EXCLUDE-AMBIENT-RESULTS                         = OFF
+TUNE.STATUS                                          = OFF
+TUNE.TRAIN-CODE                                      = ON
+TUNE.TUNE-FILTERS                                    = (no response)
+TUNE.TUNE-LIGHT-BANKS                                = ON
+TUNE.TUNE-LIGHT-COLORS                               = (no response)
+TUNE.TUNE-LIGHT-COMBINATIONS                         = OFF
+
+# -- UPC-EAN -----------------------------------------------------
+UPC-EAN.SUPPLEMENT                                   = 0
+UPC-EAN.SUPPLEMENT-REQUIRED                          = (no response)
+UPC-EAN.VERIFICATION                                 = (no response)
+
+# -- VERIFICATION ------------------------------------------------
+VERIFICATION.ENABLE                                  = ON
+
+# -- WEBHMI ------------------------------------------------------
+WEBHMI.ACTIONS                                       = OFF
+WEBHMI.ENABLE                                        = OFF
+WEBHMI.LANGUAGE                                      = 0
+WEBHMI.MATCH-STRING                                  = OFF
+WEBHMI.SETTINGS                                      = OFF
+WEBHMI.VERIFICATION                                  = ON
+
+# -- WEBUI -------------------------------------------------------
+WEBUI.ENABLE                                         = OFF
