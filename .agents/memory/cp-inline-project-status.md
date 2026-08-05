@@ -16,6 +16,10 @@ CP (Command Pilot) was abandoned as the approach for the UDI DM-475V-LBL **inlin
 - Factory-defaulted via DataMan Setup Tool
 - Firmware: 6.1.16_tc9
 - Feature keys include TCVerification — grading engine intact
+- **Calibrated 2026-08-05**: 54-scan TruCheck sequence against GS1 DM Grade-4-A reference target; PPM stable at 33.36; brief B-grade dip scans 31–42 (illumination hunting), resolved to A and held
+- Factory-default DMCC baseline: `vtccp/references/DM475V-DPM_866D76_factory-default-baseline_2026-08-05.txt`
+- Calibration record + PDF archive: `vtccp/references/DM475V-DPM_866D76_calibration-2026-08-05.md`
+- All CP Inline tasks cancelled (user action, 5 Aug 2026)
 - Device profile needs to be re-applied from Command Pilot (Apply to Device) before use
 
 ## Live image at DM TC level
