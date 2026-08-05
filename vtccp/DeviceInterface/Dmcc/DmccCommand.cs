@@ -391,7 +391,10 @@ public static class DmccCommand
 
     /// <summary>
     /// Gets/sets the active Application Standard.
-    /// 0=GS1, 1=HIBCC, 2=UDI (HIBCC+GS1), 3=UID, 4=Auto, 5=Custom, 6=Cryptocode.
+    /// 0=GS1, 1=HIBCC, 2=UDI (HIBCC+GS1), 3=UID, 4=?, 5=Auto, 6=Cryptocode.
+    /// NOTE: DMCC reference (rev 26.1.0.27) documents 4=Auto, 5=Custom — but DM475V fw 6.1.16_tc9
+    /// returns 5 for a unit showing "Auto" in the TruCheck Verification Settings UI.
+    /// Observed behaviour overrides the reference: treat 5=Auto until Cognex clarifies.
     /// </summary>
     public const string GetApplicationStandard  = "GET TRUCHECK.APPLICATION-STANDARD";
     public static string SetApplicationStandard(int std) => $"SET TRUCHECK.APPLICATION-STANDARD {std}";
