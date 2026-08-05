@@ -1103,3 +1103,33 @@ Built vtccp/InlineIo/ relay assembly stub (task #37): IRelayBoard interface, Moc
 **User:** Much better. Reduce HEadline from 36 to 28 points. Make the cell ht formula (L*.25)-0.1 for L=>2 and rerun across the whole doc as v1.3. Add a noticible caveat in the opeator panel section head that his layout is a placeholder only and further design work is required. And we should be finished as v 1.3. Then off to bed.
 
 **Assistant:** Delivered v1.3: title 28pt, row heights (L×0.25−0.10)" for L≥2 whole doc, bold red placeholder caveat after Section 6 heading, TM fixed throughout, v1.3 history row added.
+
+---
+**User:** 05 AUG 2026, 1543. Hello, back at the 437V-LBL, need to demo Command Pilot in 15 minutes. Need the environment we work in and a refresher.
+
+**Assistant:** Fast briefing: Replit workspace = web artifacts + vtccp C# source (Windows-only, not runnable in Replit). Command Pilot = WPF desktop barcode verifier. CP Inline = new inline variant, in-development. DM-475V key facts: DMCC on port 23, results via HTTP port 44444, software trigger = TRIGGER ON, LIVEIMG.SEND dead at firmware level.
+
+---
+**User:** I need the app available to run.
+
+**Assistant:** Command Pilot is WPF/Windows-only — cannot run in Replit. Run via `dotnet run` from vtccp\VtccpApp\ on Windows, or open vtccp\VTCCP.sln in Visual Studio.
+
+---
+**User:** Not sure where that dir is on this PC.
+
+**Assistant:** PowerShell search: `Get-ChildItem -Path C:\Users -Recurse -Filter "VtccpApp.csproj"`. Likely locations listed. Asked what C:\Users\Administrator\Documents\ shows.
+
+---
+**User:** Got it open via VS. Can you confirm the path. [screenshot attached — app running, Build 1.3.7]
+
+**Assistant:** App is up and ready — Build 1.3.7, Session Launcher, DM475V profile loaded. Pre-demo checklist: Read from Device, then Start Session → Trigger Scan.
+
+---
+**User:** [Uploaded factory-defaults .dmb file for DPM unit — 866D76, fw 6.1.16_tc9]. CP Inline abandoned for this UDI 475V-LBL inline application. Back to focus on CP as desktop tool. Neither unit showed live image at native DM TC level.
+
+**Assistant:** config.cfg and backup.cdc are binary — not readable without Cognex tooling. descriptor.xml confirms: DM475-866D76, firmware 6.1.16_tc9, TCVerification feature key present. Live image failure explained as likely post-factory-reset config mismatch.
+
+---
+**User:** The lack of a live image was at the native DM TC level, nothing to do with CP.
+
+**Assistant:** Acknowledged and corrected. Live image failure was in DataMan's own TC interface, not CP-related.

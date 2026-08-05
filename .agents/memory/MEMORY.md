@@ -26,3 +26,4 @@
 - [GCP interop architecture](gcp-interop-architecture.md) — /interop/* fully auth-gated; original GS1 XML filename preserved; GCP_INTEROP_KEY set as Replit secret; decoder → My2DirRetail.com eventually
 - [GoToTags E310 protocol & integration](gototags-e310-protocol.md) — FTDI VCP 115200 8N1; CRC-CCITT 0x1021/0xFFFF big-endian over bytes[1..n-3]; 0x21 loop strategy; driver zip in references/gototags-e310/
 - [Axicon 15500 and LVS 9510 verifiers](axicon-lvs-verifiers.md) — LVS=Omron Microscan (not Webscan); both use file-export integration path; need user to confirm export format before building adapters
+- [CP Inline project status](cp-inline-project-status.md) — CP Inline abandoned for Serview 475V-LBL inline application (5 Aug 2026); CP continues as desktop tool; DPM unit factory-reset to fw 6.1.16_tc9
