@@ -14,8 +14,8 @@ _log() {
     echo "[$TIMESTAMP] $*" >> "$STATUS_FILE"
 }
 
-# Resolve PAT — prefer GITHUB_PAT2, fall back to GITHUB_PAT, then GITHUB_TOKEN
-PAT="${GITHUB_PAT2:-${GITHUB_PAT:-${GITHUB_TOKEN:-}}}"
+# Resolve PAT — try every known secret name in priority order
+PAT="${GITHUB_PAT2:-${GITHUB_TOKEN2:-${GITHUB_PAT:-${GITHUB_TOKEN:-}}}}"
 
 if [ -z "$PAT" ]; then
     _log "No GitHub PAT found (tried GITHUB_PAT2, GITHUB_PAT, GITHUB_TOKEN) — skipping push."
