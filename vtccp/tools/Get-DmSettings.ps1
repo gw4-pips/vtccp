@@ -481,7 +481,7 @@ foreach ($key in $params) {
     $prefix = $key.Split('.')[0]
     if ($prefix -ne $currentPrefix) {
         $currentPrefix = $prefix
-        $grpLine = "`n# ── $prefix " + ("─" * [Math]::Max(1, 60 - $prefix.Length))
+        $grpLine = "`n# -- $prefix " + ("-" * [Math]::Max(1, 60 - $prefix.Length))
         $lines  += $grpLine
         Write-Host $grpLine -ForegroundColor DarkGray
     }
