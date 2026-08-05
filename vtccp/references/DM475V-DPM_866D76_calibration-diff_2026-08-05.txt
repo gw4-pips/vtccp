@@ -1,0 +1,16 @@
+# DM475V-DPM 866D76 — Calibration diff
+# Before: factory-default-baseline_2026-08-05.txt
+# After:  post-calibration_2026-08-05.txt
+# Changed params: 4 (1 housekeeping, 3 substantive)
+# -------------------------------------------------------
+
+CAMERA.EXPOSURE          178          ->  2175
+CAMERA.EXPOSURE-US       ON 128 178 100  ->  ON 128 2175 100
+TRUCHECK.CALIBRATION-DATE  Not Calibrated  ->  8/5/2026 10:20:42 PM
+DEVICE.LOG               (length 231)  ->  (length 287)   [housekeeping — log grew]
+
+# Summary:
+# Calibration raised exposure from 178 µs to 2175 µs (~12× increase).
+# No aperture, gain, or any other parameter was altered.
+# TRUCHECK.CALIBRATION-DATE confirms calibration timestamp: 8 May 2026 22:20:42 UTC
+# (device clock is UTC; local time was 18:20:42 EDT).

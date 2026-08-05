@@ -53,12 +53,21 @@ to grade A and held there for the final 12 scans, confirming a stable calibrated
 
 ---
 
-## TRUCHECK parameters after calibration
+## Parameters changed by calibration
 
-Run `Get-DmSettings.ps1 -DeviceIp 10.10.10.4` post-calibration and diff against  
-`DM475V-DPM_866D76_factory-default-baseline_2026-08-05.txt` to capture what changed.  
-Expected changes: `TRUCHECK.CALIBRATION-DATE`, `TRUCHECK.APERTURE`,
-`TRUCHECK.APERTURE-SIZE`, and possibly `CAMERA.EXPOSURE` / `CAMERA.GAIN`.
+Post-calibration dump captured immediately after calibration, nothing else changed.
+Full diff: `DM475V-DPM_866D76_calibration-diff_2026-08-05.txt`
+
+| Parameter | Before (factory) | After (calibrated) |
+|---|---|---|
+| `CAMERA.EXPOSURE` | 178 | **2175** (~12× increase) |
+| `CAMERA.EXPOSURE-US` | `ON 128 178 100` | `ON 128 2175 100` |
+| `TRUCHECK.CALIBRATION-DATE` | `Not Calibrated` | `8/5/2026 10:20:42 PM` (UTC) |
+| `DEVICE.LOG` | length 231 | length 287 (housekeeping) |
+
+**Only the exposure changed.** No aperture, gain, or other parameter was altered.
+The 12× exposure increase reflects the DPM illumination requirements vs the default
+factory setting (which is optimised for a different working distance/target).
 
 ---
 
