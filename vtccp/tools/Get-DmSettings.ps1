@@ -2,7 +2,7 @@
 .SYNOPSIS
     Full DMCC parameter dump for a Cognex DataMan 475V unit.
     629 parameters extracted from the DataMan Communications Reference (dmcc-html/).
-    Unsupported params are recorded as "(unsupported)" — not errors.
+    Unsupported params are recorded as "(unsupported)" - not errors.
 
 .USAGE
     .\Get-DmSettings.ps1
@@ -20,9 +20,9 @@ param(
 )
 
 $params = @(
-    # ── AZTEC ─────────────────────────────────────────────────────────────────
+    # -- AZTEC -----------------------------------------------------------------
     "AZTEC.TRAINED-MODEL"
-    # ── BEEP ──────────────────────────────────────────────────────────────────
+    # -- BEEP ------------------------------------------------------------------
     "BEEP.DATAVALID-FAIL"
     "BEEP.DATAVALID-FAIL-OL"
     "BEEP.GLOBAL-ENABLE"
@@ -31,7 +31,7 @@ $params = @(
     "BEEP.NO-READ"
     "BEEP.NO-READ-OL"
     "BEEPER.ENABLED"
-    # ── 1D SYMBOLOGIES ────────────────────────────────────────────────────────
+    # -- 1D SYMBOLOGIES --------------------------------------------------------
     "C11.CHKCHAR"
     "C11.CHKCHAR-OPTION"
     "C11.CODESIZE"
@@ -60,7 +60,7 @@ $params = @(
     "CODABAR.XMTCHK"
     "UCC.CC-C"
     "UCC.XMTMODE"
-    # ── CAMERA ────────────────────────────────────────────────────────────────
+    # -- CAMERA ----------------------------------------------------------------
     "CAMERA.AUTO-REGULATION"
     "CAMERA.BURST-LENGTH"
     "CAMERA.EXPOSURE"
@@ -79,7 +79,7 @@ $params = @(
     "CAMERA.TARGET-BRIGHTNESS"
     "CAMERA.XPAND-ROI"
     "CAMERA.XPAND-ROI-TYPE"
-    # ── CLIENT (TCP outbound) ─────────────────────────────────────────────────
+    # -- CLIENT (TCP outbound) -------------------------------------------------
     "CLIENT.CLIENT-PORT"
     "CLIENT.CLOSE-CONNECTION"
     "CLIENT.CONNECTION-TIMEOUT"
@@ -91,14 +91,14 @@ $params = @(
     "CLIENT.OPEN-CONNECTION"
     "CLIENT.PROTOCOL"
     "CLIENT.RECONNECT-DELAY"
-    # ── CMD ───────────────────────────────────────────────────────────────────
+    # -- CMD -------------------------------------------------------------------
     "CMD.COMMAND-FOOTER"
     "CMD.COMMAND-HEADER"
     "CMD.ECHO"
     "CMD.TRIGGER"
     "CMD.TRIGGER-OFF"
     "CMD.TRIGGER-ON"
-    # ── COM ───────────────────────────────────────────────────────────────────
+    # -- COM -------------------------------------------------------------------
     "COM.BAUD-RATE"
     "COM.BUFFER-AUTO-FLUSH"
     "COM.BUFFER-DATA"
@@ -119,7 +119,7 @@ $params = @(
     "COM.SCRIPT-ERROR"
     "COM.STOP-BITS"
     "COM.XLATEPRNT"
-    # ── CODE QUALITY ──────────────────────────────────────────────────────────
+    # -- CODE QUALITY ----------------------------------------------------------
     "CODE.INFO"
     "CQ.CALIB-DATE"
     "CQ.ILLUMINATION"
@@ -128,16 +128,16 @@ $params = @(
     "CQ.PROCESSM"
     "CQ.RESET-CALIBRATION"
     "CQ.UNITS"
-    # ── DATA ──────────────────────────────────────────────────────────────────
+    # -- DATA ------------------------------------------------------------------
     "DATA.IMAGE-TYPE"
     "DATA.RESULT-ALWAYSSEND"
     "DATA.RESULT-ENCODING"
     "DATA.RESULT-TYPE"
-    # ── DATABAR ───────────────────────────────────────────────────────────────
+    # -- DATABAR ---------------------------------------------------------------
     "DATABAR.EXPANDED"
     "DATABAR.GROUP"
     "DATABAR.LIMITED"
-    # ── DATAMATRIX ────────────────────────────────────────────────────────────
+    # -- DATAMATRIX ------------------------------------------------------------
     "DATAMATRIX.ALGORITHM-VERSION"
     "DATAMATRIX.DAMAGE"
     "DATAMATRIX.EXTREME-PRINT-GROWTH"
@@ -154,7 +154,7 @@ $params = @(
     "DATAMATRIX.TRAINED-IGNORE-POLARITY"
     "DATAMATRIX.TRAINED-MODEL"
     "DATAMATRIX.USAGE"
-    # ── DECODER ───────────────────────────────────────────────────────────────
+    # -- DECODER ---------------------------------------------------------------
     "DECODER.AI-ENHANCER"
     "DECODER.ALLOW-ALL-MST-RESULTS"
     "DECODER.CENTERING-WINDOW"
@@ -170,14 +170,14 @@ $params = @(
     "DECODER.TARGET-DECODING"
     "DECODER.TIMEOUT"
     "DECODER.USE-CENTERING"
-    # ── DETECTION ─────────────────────────────────────────────────────────────
+    # -- DETECTION -------------------------------------------------------------
     "DETECT.MAX-SPEED"
     "DETECT.MIN-SPEED"
     "DETECT.PHOTO-EYE-DISTANCE"
     "DETECTION.ACTIVE"
     "DETECTION.ENABLE"
     "DETECTION.SENSITIVITY"
-    # ── DEVICE ────────────────────────────────────────────────────────────────
+    # -- DEVICE ----------------------------------------------------------------
     "DEVICE.BACKUP"
     "DEVICE.CHARGE-PROFILES-ENABLE"
     "DEVICE.DEFAULT"
@@ -194,10 +194,10 @@ $params = @(
     "DEVICE.TIMEZONE"
     "DEVICE.TYPE"
     "DEVICE.UPTIME"
-    # ── DOTCODE ───────────────────────────────────────────────────────────────
+    # -- DOTCODE ---------------------------------------------------------------
     "DOTCODE.TRAINED-MODEL"
     "DOTCODE.USAGE"
-    # ── ETHERNET / NETWORK ────────────────────────────────────────────────────
+    # -- ETHERNET / NETWORK ----------------------------------------------------
     "ETH.DHCP"
     "ETH.GATEWAY"
     "ETH.IP-ADDRESS"
@@ -206,12 +206,12 @@ $params = @(
     "ETH.SUBNET-MASK"
     "ETH.VLAN-ENABLE"
     "ETH.VLAN-ID"
-    # ── EVENT ─────────────────────────────────────────────────────────────────
+    # -- EVENT -----------------------------------------------------------------
     "EVENT.ENABLED"
     "EVENT.PORT"
     "EVENT.RESULT"
     "EVENT.RESULT-ENCODING"
-    # ── FILTER ────────────────────────────────────────────────────────────────
+    # -- FILTER ----------------------------------------------------------------
     "FILTER.ENABLE"
     "FILTER.FILTER1"
     "FILTER.FILTER2"
@@ -222,27 +222,27 @@ $params = @(
     "FILTER.FILTER7"
     "FILTER.FILTER8"
     "FILTER.MODE"
-    # ── FORMAT / FORMATTING ───────────────────────────────────────────────────
+    # -- FORMAT / FORMATTING ---------------------------------------------------
     "FORMAT.ENABLE"
     "FORMAT.FORMAT"
-    # ── GENERAL ───────────────────────────────────────────────────────────────
+    # -- GENERAL ---------------------------------------------------------------
     "GENERAL.IP-ADDR"
     "GENERAL.IP-PORT"
-    # ── HDR ───────────────────────────────────────────────────────────────────
+    # -- HDR -------------------------------------------------------------------
     "HDR.MODE"
-    # ── I2O5 ──────────────────────────────────────────────────────────────────
+    # -- I2O5 ------------------------------------------------------------------
     "I2O5.CHKCHAR"
     "I2O5.CODESIZE"
     "I2O5.QZ-SIZE"
     "I2O5.VERIFICATION"
     "I2O5.XMTCHK"
-    # ── IMAGE ─────────────────────────────────────────────────────────────────
+    # -- IMAGE -----------------------------------------------------------------
     "IMAGE.FORMAT"
     "IMAGE.QUALITY"
     "IMAGE.SEND"
     "IMAGE.SIZE"
     "IMAGE.TRANSFER-FORMAT"
-    # ── IO ────────────────────────────────────────────────────────────────────
+    # -- IO --------------------------------------------------------------------
     "IO.DEBOUNCE-TIME"
     "IO.INPUT-LOGIC"
     "IO.LINE-STATE"
@@ -252,29 +252,29 @@ $params = @(
     "IO.TREND-ANALYSIS-FAIL"
     "IO.TREND-ANALYSIS-PASS"
     "IO.TREND-ANALYSIS-WARN"
-    # ── LIVEIMG ───────────────────────────────────────────────────────────────
+    # -- LIVEIMG ---------------------------------------------------------------
     "LIVEIMG.MODE"
     "LIVEIMG.SEND"
-    # ── MATCH ─────────────────────────────────────────────────────────────────
+    # -- MATCH -----------------------------------------------------------------
     "MATCH.MATCH-STRING"
     "MATCH.MASTER-DATABASE"
     "MATCH.MODE"
     "MATCH.STRING-COUNT"
-    # ── MAXCODE ───────────────────────────────────────────────────────────────
+    # -- MAXCODE ---------------------------------------------------------------
     "MAXCODE.TRAINED-MODEL"
-    # ── MICRO-QR ──────────────────────────────────────────────────────────────
+    # -- MICRO-QR --------------------------------------------------------------
     "MICRO-QR.TRAINED-MODEL"
-    # ── MST ───────────────────────────────────────────────────────────────────
+    # -- MST -------------------------------------------------------------------
     "MST.DMST-LISTEN-PORT"
     "MST.DMST-SEND-HOST"
     "MST.ENABLE"
     "MST.RESULT-ALWAYSSEND"
     "MST.RESULT-DETAIL"
-    # ── NTP ───────────────────────────────────────────────────────────────────
+    # -- NTP -------------------------------------------------------------------
     "NTP.ENABLE"
     "NTP.SERVER1"
     "NTP.SERVER2"
-    # ── OCR ───────────────────────────────────────────────────────────────────
+    # -- OCR -------------------------------------------------------------------
     "OCR.CHARSET"
     "OCR.ENABLE"
     "OCR.FONT"
@@ -284,21 +284,21 @@ $params = @(
     "OCR.REGION"
     "OCR.RESULT-DISPLAY"
     "OCR.TRAINED-MODEL"
-    # ── PDF417 ────────────────────────────────────────────────────────────────
+    # -- PDF417 ----------------------------------------------------------------
     "PDF417.CODESIZE"
     "PDF417.MACRO"
     "PDF417.MICRO"
     "PDF417.TRAINED-MODEL"
     "PDF417.VERIFICATION"
-    # ── POWERUP ───────────────────────────────────────────────────────────────
+    # -- POWERUP ---------------------------------------------------------------
     "POWERUP.LINE-STATE"
     "POWERUP.TRIGGER"
-    # ── QR ────────────────────────────────────────────────────────────────────
+    # -- QR --------------------------------------------------------------------
     "QR.CODESIZE"
     "QR.MODEL"
     "QR.TRAINED-MODEL"
     "QR.USAGE"
-    # ── RESULT ────────────────────────────────────────────────────────────────
+    # -- RESULT ----------------------------------------------------------------
     "RESULT.DETAIL"
     "RESULT.DISPLAY"
     "RESULT.EXTERNAL"
@@ -310,7 +310,7 @@ $params = @(
     "RESULT.SEPARATOR"
     "RESULT.SORT"
     "RESULT.STORE"
-    # ── STATISTICS ────────────────────────────────────────────────────────────
+    # -- STATISTICS ------------------------------------------------------------
     "STATISTICS.CLEAR"
     "STATISTICS.ENABLED"
     "STATISTICS.FAIL-COUNT"
@@ -321,7 +321,7 @@ $params = @(
     "STATISTICS.TOTAL-COUNT"
     "STATISTICS.TREND-WINDOW"
     "STATISTICS.WARN-COUNT"
-    # ── SYMBOL ────────────────────────────────────────────────────────────────
+    # -- SYMBOL ----------------------------------------------------------------
     "SYMBOL.C128"
     "SYMBOL.C39"
     "SYMBOL.C93"
@@ -334,7 +334,7 @@ $params = @(
     "SYMBOL.PHARMACODE"
     "SYMBOL.QR"
     "SYMBOL.UPC-EAN"
-    # ── TRAIN ─────────────────────────────────────────────────────────────────
+    # -- TRAIN -----------------------------------------------------------------
     "TRAIN.AUTO-DISABLE"
     "TRAIN.MAX-CODES"
     "TRAIN.MODE"
@@ -343,7 +343,7 @@ $params = @(
     "TRAIN.POLARITY"
     "TRAIN.POSITION-TOLERANCE"
     "TRAIN.TRAINED"
-    # ── TRIGGER ───────────────────────────────────────────────────────────────
+    # -- TRIGGER ---------------------------------------------------------------
     "TRIGGER.BURST-LENGTH"
     "TRIGGER.DELAY"
     "TRIGGER.ENABLED"
@@ -358,7 +358,7 @@ $params = @(
     "TRIGGER.START-FRAME"
     "TRIGGER.TIMEOUT"
     "TRIGGER.TYPE"
-    # ── TRUCHECK ──────────────────────────────────────────────────────────────
+    # -- TRUCHECK --------------------------------------------------------------
     "TRUCHECK.APERTURE"
     "TRUCHECK.APERTURE-SIZE"
     "TRUCHECK.APPLICATION-CUSTOM-MAXIMUM-X-DIM"
@@ -394,7 +394,7 @@ $params = @(
     "TRUCHECK.SC-GRADE"
     "TRUCHECK.UEC"
     "TRUCHECK.UEC-GRADE"
-    # ── TUNE ──────────────────────────────────────────────────────────────────
+    # -- TUNE ------------------------------------------------------------------
     "TUNE.EXCLUDE-AMBIENT-RESULTS"
     "TUNE.STATUS"
     "TUNE.TRAIN-CODE"
@@ -402,13 +402,13 @@ $params = @(
     "TUNE.TUNE-LIGHT-BANKS"
     "TUNE.TUNE-LIGHT-COLORS"
     "TUNE.TUNE-LIGHT-COMBINATIONS"
-    # ── UPC-EAN ───────────────────────────────────────────────────────────────
+    # -- UPC-EAN ---------------------------------------------------------------
     "UPC-EAN.SUPPLEMENT"
     "UPC-EAN.SUPPLEMENT-REQUIRED"
     "UPC-EAN.VERIFICATION"
-    # ── VERIFICATION ──────────────────────────────────────────────────────────
+    # -- VERIFICATION ----------------------------------------------------------
     "VERIFICATION.ENABLE"
-    # ── WEB HMI / UI ──────────────────────────────────────────────────────────
+    # -- WEB HMI / UI ----------------------------------------------------------
     "WEBHMI.ACTIONS"
     "WEBHMI.ENABLE"
     "WEBHMI.LANGUAGE"
@@ -418,13 +418,13 @@ $params = @(
     "WEBUI.ENABLE"
 )
 
-# ── Output file ───────────────────────────────────────────────────────────────
+# -- Output file ---------------------------------------------------------------
 if ($OutputFile -eq "") {
     $ts         = Get-Date -Format "yyyy-MM-dd_HHmmss"
     $OutputFile = "DM475V-DPM_866D76_${ts}.txt"
 }
 
-# ── DMCC GET helper ───────────────────────────────────────────────────────────
+# -- DMCC GET helper -----------------------------------------------------------
 function Send-DmccGet {
     param($Stream, $Key)
     $cmd   = "||>GET $Key`r`n"
@@ -449,7 +449,7 @@ function Send-DmccGet {
     return "(no response)"
 }
 
-# ── Connect ───────────────────────────────────────────────────────────────────
+# -- Connect -------------------------------------------------------------------
 Write-Host "Connecting to $DeviceIp`:$Port ..." -ForegroundColor Cyan
 $tcp = New-Object System.Net.Sockets.TcpClient
 $tcp.Connect($DeviceIp, $Port)
@@ -491,7 +491,7 @@ foreach ($key in $params) {
     $lines += $line
 
     $pct = [int](($i / $total) * 100)
-    Write-Progress -Activity "Reading DMCC parameters" -Status "$i / $total — $key" -PercentComplete $pct
+    Write-Progress -Activity "Reading DMCC parameters" -Status "$i / $total - $key" -PercentComplete $pct
     Write-Host $line
 }
 
