@@ -1,0 +1,55 @@
+PS C:\Users\Administrator\vtccp\vtccp\tools> .\Get-DmSettings.ps1
+Connecting to 10.10.10.7:23 ...
+# DM Settings dump - 10.10.10.7 - 2026-08-05 17:42:27
+------------------------------------------------------------
+LIVEIMG.MODE                                       = 0
+DATA.IMAGE-TYPE                                    = 0
+DATA.RESULT-TYPE                                   = 513
+DATA.RESULT-ENCODING                               = 0
+DATA.RESULT-ALWAYSSEND                             = 513
+COM.DMCC-RESPONSE                                  = 0
+COM.DMCC-CHECKSUM                                  = 0
+COM.DMCC-HEADER                                    = 0
+IMAGE.FORMAT                                       = 0
+IMAGE.SIZE                                         = 0
+TRIGGER.TYPE                                       = 0
+CAMERA.MIRROR-HORIZONTAL                           = ON
+CAMERA.MIRROR-VERTICAL                             = ON
+DEVICE.TYPE                                        = DM475
+DEVICE.FIRMWARE-VER                                = 6.1.16_tc9
+DEVICE.NAME                                        = DM475-LBL-63530E-PIPS-Verif-Lab
+DEVICE.SERIAL-NUMBER                               = 1A1903PP010754
+TRAIN.AUTO-DISABLE                                 = ON
+UPC-EAN.SUPPLEMENT                                 = 0
+SYMBOL.DATAMATRIX                                  = ON
+SYMBOL.QR                                          = ON
+SYMBOL.C128                                        = ON
+SYMBOL.C93                                         = ON
+SYMBOL.C39                                         = ON
+SYMBOL.CODABAR                                     = ON
+SYMBOL.I2O5                                        = ON
+SYMBOL.UPC-EAN                                     = ON
+SYMBOL.PDF417                                      = OFF
+SYMBOL.DATABAR                                     = OFF
+TRUCHECK.APPLICATION-STANDARD                      = 4
+TRUCHECK.GRADING-STANDARD                          = 0
+TRUCHECK.APERTURE                                  = 1
+TRUCHECK.APERTURE-SIZE                             = 200
+TRUCHECK.DOT-PEEN                                  = OFF
+TRUCHECK.METRIC-UNITS                              = OFF
+TRUCHECK.APPLICATION-CUSTOM-PASS-GRADE             = 15
+TRUCHECK.APPLICATION-CUSTOM-MINIMUM-X-DIM          = 50
+TRUCHECK.APPLICATION-CUSTOM-MAXIMUM-X-DIM          = 300
+TRUCHECK.AUTO-BATCH                                = OFF
+TRUCHECK.BATCH-NUMBER                              = (no response)
+TRUCHECK.OPERATOR-NAME                             = GW4
+TRUCHECK.COMPANY-NAME                              = Product Identification and Processing Systems, Inc.
+TRUCHECK.CUSTOM-NOTE                               = (no response)
+NTP.ENABLE                                         = ON
+NTP.SERVER1                                        = time.nist.gov
+NTP.SERVER2                                        = 132.163.96.1
+DEVICE.TIMEZONE                                    = America/New_York
+
+Saved to: DM-Settings_2026-08-05_174227.txt
+Run again after reset and diff the two files.
+PS C:\Users\Administrator\vtccp\vtccp\tools>
