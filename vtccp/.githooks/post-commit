@@ -27,9 +27,10 @@ GITHUB_URL="https://${PAT}@github.com/gw4-pips/vtccp.git"
 LOCAL_SHA=$(git --no-optional-locks rev-parse --short HEAD)
 _log "Pushing commit $LOCAL_SHA to GitHub..."
 
-# -c credential.helper="" disables replit-git-askpass so the token embedded
-# in GITHUB_URL is used directly without being overridden by system helpers.
-git -c credential.helper="" push --force "$GITHUB_URL" HEAD:main > "$TMPFILE" 2>&1
+# Unset GIT_ASKPASS and disable credential helpers so the token embedded in
+# GITHUB_URL is used directly — Replit sets GIT_ASKPASS=replit-git-askpass in
+# the environment which otherwise intercepts every push attempt.
+GIT_ASKPASS="" git -c credential.helper="" push --force "$GITHUB_URL" HEAD:main > "$TMPFILE" 2>&1
 PUSH_EXIT=$?
 
 # Redact token before printing output.
