@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Settings>
+  <OptionEntry Type="string" Key="ApplicationLanguageCode" Value="en-US" Category="Language" />
+  <OptionEntry Type="string" Key="connectionCtrl_SelectedGrouping" Value="InterfaceType" Category="Layout" />
+  <OptionEntry Type="string" Key="Cognex.DataMan.SetupTool.Core.DeviceMaintenanceCtrl_SelectedGrouping" Value="InterfaceType" Category="Layout" />
+  <OptionEntry Type="string" Key="Cognex.DataMan.SetupTool.Core.BackupCtrl_SelectedGrouping" Value="InterfaceType" Category="Layout" />
+  <OptionEntry Type="string" Key="Cognex.DataMan.SetupTool.Core.RestoreCtrl_SelectedGrouping" Value="InterfaceType" Category="Layout" />
+  <OptionEntry Type="string" Key="Cognex.DataMan.SetupTool.Core.FirmwareUploadCtrl_SelectedGrouping" Value="InterfaceType" Category="Layout" />
+  <OptionEntry Type="string" Key="connectionCtrl_CollapsedStates" Value="" Category="Layout" />
+  <OptionEntry Type="string" Key="Cognex.DataMan.SetupTool.Core.DeviceMaintenanceCtrl_CollapsedStates" Value="" Category="Layout" />
+  <OptionEntry Type="string" Key="Cognex.DataMan.SetupTool.Core.BackupCtrl_CollapsedStates" Value="" Category="Layout" />
+  <OptionEntry Type="string" Key="Cognex.DataMan.SetupTool.Core.RestoreCtrl_CollapsedStates" Value="" Category="Layout" />
+  <OptionEntry Type="string" Key="Cognex.DataMan.SetupTool.Core.FirmwareUploadCtrl_CollapsedStates" Value="" Category="Layout" />
+  <OptionEntry Type="int" Key="WindowStateSettings.Location.X" Value="200" Category="Layout" />
+  <OptionEntry Type="int" Key="WindowStateSettings.Location.Y" Value="100" Category="Layout" />
+  <OptionEntry Type="int" Key="WindowStateSettings.Size.X" Value="1520" Category="Layout" />
+  <OptionEntry Type="int" Key="WindowStateSettings.Size.Y" Value="832" Category="Layout" />
+  <OptionEntry Type="int" Key="WindowStateSettings.State" Value="0" Category="Layout" />
+  <OptionEntry Type="string" Key="VirtualDevices" Value="" Category="VirtualDevices" />
+  <OptionEntry Type="string" Key="connectionCtrl_LastConnectedDeviceIds" Value="NET_00D024866D76" Category="Communication" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.Result.Visible" Value="True" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.Result.Width" Value="150" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.Result.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.ResultStatus.Visible" Value="True" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ResultStatus.Width" Value="80" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ResultStatus.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.ArrivalTime.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ArrivalTime.Width" Value="60" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ArrivalTime.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.DecodeTime.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.DecodeTime.Width" Value="60" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.DecodeTime.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.TriggerTime.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.TriggerTime.Width" Value="60" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.TriggerTime.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.Symbology.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.Symbology.Width" Value="80" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.Symbology.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.ImageId.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ImageId.Width" Value="40" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ImageId.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.DeviceName.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.DeviceName.Width" Value="100" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.DeviceName.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.ReadSetupId.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ReadSetupId.Width" Value="100" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ReadSetupId.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.ModuleSize.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ModuleSize.Width" Value="100" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ModuleSize.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.TriggerIndex.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.TriggerIndex.Width" Value="100" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.TriggerIndex.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.VerificationTime.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.VerificationTime.Width" Value="100" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.VerificationTime.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="bool" Key="ResultHistoryToolViewColumns.ResultLength.Visible" Value="False" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ResultLength.Width" Value="100" Category="Layout" />
+  <OptionEntry Type="int" Key="ResultHistoryToolViewColumns.ResultLength.DisplayIndex" Value="0" Category="Layout" />
+  <OptionEntry Type="int" Key="CodePageForCodeDisplay" Value="1252" Category="CodePage" />
+  <OptionEntry Type="string" Key="ColorScheme" Value="Office2010Silver" Category="Layout" />
+  <OptionEntry Type="string" Key="BackupFolder" Value="C:\Users\Administrator\Documents\Cognex\DataMan\Backups" Category="DefaultFolders" />
+  <OptionEntry Type="string" Key="CFSFolderPath" Value="C:\Users\Administrator\Documents\Cognex\DataMan" Category="DefaultFolders" />
+  <OptionEntry Type="string" Key="ImageBufferingAndTransferSettings.PathImageTransfer" Value="C:\Users\Administrator\Documents\DataMan Images" Category="DefaultFolders" />
+  <OptionEntry Type="int" Key="Beep_Frequency" Value="2750" Category="BeeperSettings" />
+  <OptionEntry Type="int" Key="Beep_Duration" Value="15" Category="BeeperSettings" />
+  <OptionEntry Type="bool" Key="DataLoggingSettings.EnableOverlayGraphicsInReports" Value="False" Category="DataLogging" />
+  <OptionEntry Type="bool" Key="DataLoggingSettings.EnableOverlayGraphicsInDecodedImages" Value="False" Category="DataLogging" />
+  <OptionEntry Type="bool" Key="DataLoggingSettings.EnableOverlayGraphicsInNoreadImages" Value="False" Category="DataLogging" />
+  <OptionEntry Type="int" Key="DataLoggingSettings.ReportFileNameStructure" Value="0" Category="DataLogging" />
+  <OptionEntry Type="string" Key="DataLoggingSettings.ReportFileNamePreferredExtension" Value=".pdf" Category="DataLogging" />
+  <OptionEntry Type="string" Key="DataLoggingSettings.PathCodeLogging" Value="C:\Users\Administrator\Documents" Category="DataLogging" />
+  <OptionEntry Type="string" Key="DataLoggingSettings.PathReportStorage" Value="C:\Users\Administrator\Documents\DM Reports &amp; Decoded Images" Category="DataLogging" />
+  <OptionEntry Type="string" Key="DataLoggingSettings.PathDecodedImages" Value="C:\Users\Administrator\Documents\DM Reports &amp; Decoded Images" Category="DataLogging" />
+  <OptionEntry Type="string" Key="DataLoggingSettings.PathFailedImages" Value="C:\Users\Administrator\Documents" Category="DataLogging" />
+  <OptionEntry Type="string" Key="DataLoggingSettings.CodeLoggingFileName" Value="" Category="DataLogging" />
+  <OptionEntry Type="string" Key="DataLoggingSettings.PrefixReportFileName" Value="{Data}" Category="DataLogging" />
+  <OptionEntry Type="string" Key="DataLoggingSettings.PrefixDecodedImageName" Value="VSNB-DM50-2604-00-MASTER-90" Category="DataLogging" />
+  <OptionEntry Type="string" Key="DataLoggingSettings.PrefixFailedImageName" Value="" Category="DataLogging" />
+  <OptionEntry Type="bool" Key="Ribbon_Expanded" Value="True" Category="Layout" />
+  <OptionEntry Type="string" Key="SaveConfigFileLocation" Value="C:\Users\Administrator\Documents\DM475-866D76\Settings Backups" Category="DefaultFolders" />
+  <OptionEntry Type="string" Key="Cognex.DataMan.SetupTool.Core.DeviceMaintenanceCtrl_LastConnectedDeviceIds" Value="NET_00D024866D76" Category="Communication" />
+</Settings>
