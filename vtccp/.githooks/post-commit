@@ -15,6 +15,7 @@ _log() {
 }
 
 # Resolve PAT — try every known secret name in priority order
+# GITHUB_PAT confirmed working 2026-08-06; GITHUB_TOKEN is expired/revoked.
 PAT="${GITHUB_PAT2:-${GITHUB_TOKEN2:-${GITHUB_PAT:-${GITHUB_TOKEN:-}}}}"
 
 if [ -z "$PAT" ]; then
@@ -26,7 +27,9 @@ GITHUB_URL="https://${PAT}@github.com/gw4-pips/vtccp.git"
 LOCAL_SHA=$(git --no-optional-locks rev-parse --short HEAD)
 _log "Pushing commit $LOCAL_SHA to GitHub..."
 
-git push --force "$GITHUB_URL" HEAD:main > "$TMPFILE" 2>&1
+# -c credential.helper="" disables replit-git-askpass so the token embedded
+# in GITHUB_URL is used directly without being overridden by system helpers.
+git -c credential.helper="" push --force "$GITHUB_URL" HEAD:main > "$TMPFILE" 2>&1
 PUSH_EXIT=$?
 
 # Redact token before printing output.
