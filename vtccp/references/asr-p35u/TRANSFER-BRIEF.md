@@ -89,11 +89,43 @@ export those too. They will become unit tests in the C# implementation.
 
 ---
 
-## Packaging instruction for the GS1 Resolver agent
+## Delivery instruction for the GS1 Resolver agent
 
-Please zip all of the above into a single file named:
+**Do not create a zip.** Push the files directly to GitHub so the vtccp agent can
+pull them without any manual download/upload step by the user.
 
-`VCCS-RFID-FlexWedge-transfer-2026-08-06.zip`
+### Target repository
+`https://github.com/gw4-pips/vtccp.git`
 
-and make it available for download from the GS1 Resolver project's file panel.
-The user will download it there and upload it into the vtccp project here.
+### Target branch (already created — do not create it yourself)
+`rfid-flexwedge-transfer`
+
+### Target path inside the repo
+`vtccp/references/asr-p35u/`
+
+Place all exported files under that path. Use whatever subdirectory structure
+mirrors the GS1 Resolver project layout — keep it intact so nothing is lost.
+
+### How to push
+
+You will need a GitHub PAT. The user should have added one as a secret named
+`GITHUB_PAT` in this project. Use it like this (bash):
+
+```bash
+PAT="${GITHUB_PAT:-}"
+git clone "https://gw4-pips:${PAT}@github.com/gw4-pips/vtccp.git" /tmp/vtccp-transfer
+cd /tmp/vtccp-transfer
+git checkout rfid-flexwedge-transfer
+
+# Copy your files into the target directory
+cp -r /path/to/flexwedge-source/* vtccp/references/asr-p35u/
+
+git add vtccp/references/asr-p35u/
+git commit -m "Transfer: VCCS RFID FlexWedge Pro ASR-P35U source from GS1 Resolver"
+GIT_ASKPASS="" git -c credential.helper="" push \
+  "https://gw4-pips:${PAT}@github.com/gw4-pips/vtccp.git" \
+  rfid-flexwedge-transfer
+```
+
+### When done
+Reply to the user confirming the push SHA so the vtccp agent knows to pull.
