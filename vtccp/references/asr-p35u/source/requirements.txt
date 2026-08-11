@@ -1,0 +1,5 @@
+pythonnet>=3.0.3
+pyserial>=3.5
+pynput>=1.7.6
+pystray>=0.19.5
+pillow>=10.0.0
