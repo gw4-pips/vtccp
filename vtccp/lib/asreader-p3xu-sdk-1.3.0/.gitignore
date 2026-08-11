@@ -1,0 +1,3 @@
+# AsReader SDK DLL — vendor binary, not redistributable; must be obtained separately.
+# See PLACE-DLL-HERE.md for placement instructions.
+*.dll
