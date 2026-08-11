@@ -1,38 +1,43 @@
 ---
-name: SGTIN-96 GTIN-14 reconstruction formula
-description: Exact formula for reconstructing GTIN-14 from SGTIN-96 EPC fields — confirmed from GS1 TDS and verified with worked example
+name: SGTIN-96 GTIN-14 formula
+description: Correct GS1 GTIN-14 reconstruction from SGTIN-96 EPC fields; previous version had wrong field order.
 ---
 
-**Partition table** (GS1 TDS Table 14-1) — M = GCP bits, L = GCP digits, N = ItemRef bits, K = ItemRef digits:
+## Rule
+
+GTIN-14 = indicator(1) + GCP.PadLeft(L, '0') + item_body.PadLeft(K-1, '0') + GS1CheckDigit(payload13)
+
+Where:
+- indicator = ItemRef / 10^(K-1)  (MSB decimal digit of the ItemReference field)
+- item_body = ItemRef % 10^(K-1)  (remaining K-1 digits)
+- payload13 = indicator.ToString() + GCP.PadLeft(L) + item_body.PadLeft(K-1)
+
+The indicator digit precedes the GCP — this is the common mistake.
+
+**Wrong (old):** payload13 = GCP.PadLeft(L) + ItemRef.PadLeft(K)
+
+**Why:** GS1 GTIN-14 structure is [indicator][GCP][item reference body][check digit]. The ItemReference field in the EPC encodes (indicator × 10^(K-1) + body), so the indicator must be extracted and placed before the GCP in the output, not left concatenated after it.
+
+**How to apply:** Both Sgtin96Decoder and Sgtin198Decoder use this formula. Any future scheme decoder that reconstructs a GTIN must split ItemRef into indicator + body before building the payload string.
+
+## Check digit weight rule
+
+For a 13-digit payload: weight = 3 if (12 - i) % 2 == 0, else 1, for i = 0..12 (left to right).
+
+## Partition table (L+K=13, L+K always=13)
 
 | P | M  | L  | N  | K |
 |---|----|----|----|----|
-| 0 | 40 | 12 |  4 | 1  |
-| 1 | 37 | 11 |  7 | 2  |
-| 2 | 34 | 10 | 10 | 3  |
-| 3 | 30 |  9 | 14 | 4  |
-| 4 | 27 |  8 | 17 | 5  |
-| 5 | 24 |  7 | 20 | 6  |
-| 6 | 20 |  6 | 24 | 7  |
+| 0 | 40 | 12 |  4 |  1 |
+| 1 | 37 | 11 |  7 |  2 |
+| 2 | 34 | 10 | 10 |  3 |
+| 3 | 30 |  9 | 14 |  4 |
+| 4 | 27 |  8 | 17 |  5 |
+| 5 | 24 |  7 | 20 |  6 |
+| 6 | 20 |  6 | 24 |  7 |
 
-L + K = 13 always. M + N = 44 always.
+M = GCP bits, L = GCP decimal digits, N = ItemRef bits, K = ItemRef decimal digits.
 
-**Key insight:** The Item Reference field (K digits) in SGTIN-96 encoding INCLUDES the GTIN indicator/packaging digit as its leading digit. It is NOT a separate field. So GTIN-14 needs no separate indicator term.
+## Test vector note
 
-**GTIN-14 reconstruction:**
-```
-payload13 = GCP_value.ToString().PadLeft(L, '0') + ItemRef_value.ToString().PadLeft(K, '0')
-GTIN-14   = payload13 + GS1CheckDigit(payload13)
-```
-
-**GS1 Check digit formula** (for 13-char input, 0-indexed from left):
-```
-weight_i = ((12 - i) % 2 == 0) ? 3 : 1
-sum = Σ (digit_i × weight_i)
-check = (10 - (sum % 10)) % 10
-```
-Verified: payload "0001234567890" → sum=85 → check=5 → GTIN-14 "00012345678905" ✓
-
-**Why:** GS1 EPC TDS §6.3.1 states "The Item Reference includes the leading Indicator Digit from the GTIN." Naively the table's K values seem to give L+K=13 digits (not 12), which confused the analysis — but the indicator IS those extra digits.
-
-**SGTIN-198 serial:** 140 bits of packed 7-bit ASCII (20 chars max), null-terminated. Extract with `GetBits(data, startBit + c*7, 7)` for each character, stop at `'\0'`.
+The JSON test-vector file (references/asr-p35u/test-vectors/epc-decode-vectors.json) has incorrect serial values for live-B and live-C, and an incorrect GCP for the defect-repro vector. These were created from an earlier Python decoder with its own bug. The EpcParserTests assertions use bit-correct values (verified by hand from the EPC bytes).

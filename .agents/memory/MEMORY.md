@@ -21,7 +21,7 @@
 - [Session start date/time rule](session-start-datetime.md) — fetch current date/time from web at every session start before writing any dated content; system-injected date is unreliable
 - [RFID standalone product strategy](rfid-standalone-strategy.md) — verifier-agnostic RFID bolt-on; raw hex = brand-agnostic contract; IEpcReader two-layer arch; full doc at vtccp/architecture/rfid-standalone-product.md
 - [ExcelEngine circular dep rule](excel-circular-dep.md) — sub-writers referencing DeviceInterface types must live in DeviceInterface, not ExcelEngine; dep direction is DeviceInterface → ExcelEngine, never reversed
-- [SGTIN-96 GTIN-14 formula](sgtin96-gtin14-formula.md) — L+K=13 always (item ref includes GTIN indicator digit); GTIN-14 = GCP.PadLeft(L) + ItemRef.PadLeft(K) + GS1CheckDigit; weight = 3 if (12-i)%2==0 else 1
+- [SGTIN-96 GTIN-14 formula](sgtin96-gtin14-formula.md) — indicator+GCP+item_body+check (NOT GCP+ItemRef+check); indicator is MSB decimal digit of ItemReference; weight=3 if (12-i)%2==0
 - [MTI READ ME RU-824-100 USB HID](mti-ru824-usb-hid.md) — device is USB HID not VCP; MtiLlcsEpcReader must be rewritten to LakeChabotReader SDK; MSI installer in repo; 5 native DLLs needed
 - [GCP interop architecture](gcp-interop-architecture.md) — /interop/* fully auth-gated; original GS1 XML filename preserved; GCP_INTEROP_KEY set as Replit secret; decoder → My2DirRetail.com eventually
 - [GoToTags E310 protocol & integration](gototags-e310-protocol.md) — SUPERSEDED: E310 rejected; AsReader ASR-P35U is canonical RFID hardware; FlexWedge Pro (GS1 Resolver project) is the protocol reference
