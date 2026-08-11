@@ -2887,8 +2887,14 @@ if (!p5Pass)
 Console.WriteLine();
 Console.WriteLine("Phase 5 complete.");
 
+// ══════════════════════════════════════════════════════════════════════════════
+//  Phase 6 — EPC Parser / Partition Table / GCP Validation / RfidValidator
+//  Sub-checks: 6-A through 6-M
+// ══════════════════════════════════════════════════════════════════════════════
+bool p6Pass = await TestHarness.Fixtures.EpcParserFixture.RunAsync();
+
 // ── Overall exit code ─────────────────────────────────────────────────────────
-bool allPass = p3Pass && p4Pass && p5Pass;
+bool allPass = p3Pass && p4Pass && p5Pass && p6Pass;
 if (!allPass) Environment.Exit(1);
 
 // ── InlineIo relay assembly fixture ──────────────────────────────────────────
