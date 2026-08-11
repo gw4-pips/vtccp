@@ -11,11 +11,18 @@
 
 Command Pilot (vtccp) is a .NET 8 Windows application for barcode verification with
 RFID cross-validation. It needs to integrate the AsReader ASR-P35U UHF RFID reader
-via a C# `IEpcReader` implementation. The Python FlexWedge code in GS1 Resolver is
-the authoritative protocol reference for that implementation.
+via a C# `IEpcReader` implementation.
 
-The GoToTags E310 reader has been rejected. The ASR-P35U is the canonical hardware
-going forward.
+**Status of FlexWedge:** VCCS RFID FlexWedge Pro is a development prototype — not a
+released product. Its core (AsReader P35U reader communication and EPC parameter
+capture/parsing) is solid and fully tested. Surrounding app structure, UI, and output
+formatting may be incomplete or rough. That is fine — we are importing it as a
+**protocol reference and engineering specification**, not as production code to copy
+wholesale. Export whatever exists; completeness of the app shell is not required.
+
+The GoToTags E310 reader has been evaluated and rejected. The ASR-P35U is the
+canonical hardware going forward. FlexWedge is the authoritative source for how to
+talk to it.
 
 ---
 
