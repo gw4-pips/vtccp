@@ -1,6 +1,6 @@
 # RFID Cross-Validation — Standalone Product Architecture & Strategy
 
-Rev 1.0 — 2026-07-12
+Rev 1.1 — 2026-08-11
 
 ## Strategic premise
 
@@ -10,7 +10,7 @@ the feature can be productized as a standalone offering targeting the global ins
 base of competitive verifier accounts — Axicon, OMRON LVS, Webscan TruCheck, REA, and
 others — without requiring Command Pilot or any DataMan integration.
 
-The PoC work (RFID ME USB reader + raw hex parse + SGTIN decode + barcode comparison +
+The PoC work (ASR-P35U USB reader + raw hex parse + SGTIN decode + barcode comparison +
 report output) is structurally the minimum viable standalone product, not just a feature
 demo. Build it right and it ships.
 
@@ -75,12 +75,25 @@ be parsed as a fallback.
 
 ### Layer 1 — Acquisition (thin, reader-specific, swappable)
 Interface: `IEpcReader` — delivers a hex string per read event.
-- `HidEpcReader` — global raw-input hook; captures CR-terminated hex string from
-  HID keyboard-wedge reader; no driver; works with any plug-and-play UHF reader
-- `ComPortEpcReader` — opens configurable COMx SerialPort; reads lines; supports
-  trigger command if reader exposes one
 
-Both deliver the same upward contract: a raw EPC hex string.
+**Confirmed Phase 0 implementation — AsReader ASR-P35U (unit KE00048):**
+- `AsReaderP35UEpcReader` ✅ — SDK-based VCP implementation (AsReaderP3xU.dll v1.3.0)
+  - FW 1.8.0; VID=0x339C / PID=0x271B; 115200 8N1; REGION_US; TX power 13–27 dBm
+  - All 6 SDK delegates registered in one `SetDelegate()` call before `ConnectWithVCP`
+  - `StartInventory(maxTags:1)` for triggered single-tag mode
+  - FW 1.8.0 defect workaround: `ReadMemory` results arrive via `CallBackReadTagData`
+    (not `CallBackCommandData`); `_pendingTidCb` one-shot hook handles TID reads
+  - DLL placement: `vtccp/lib/asreader-p3xu-sdk-1.3.0/AsReaderP3xU.dll`
+    (not committed — obtain from AsReader SDK zip; see `PLACE-DLL-HERE.md`)
+  - SDK protocol reference: `vtccp/references/asr-p35u/docs/PROTOCOL-NOTES.md`
+
+**Future acquisition variants (same `IEpcReader` contract):**
+- `HidEpcReader` — global raw-input hook; captures CR-terminated hex string from any
+  HID keyboard-wedge UHF reader; no driver required
+- `ComPortEpcReader` — opens configurable COMx `SerialPort`; reads lines; supports
+  trigger command if reader exposes one via AT/plain-text protocol
+
+All implementations deliver the same upward contract: a raw EPC hex string.
 Raw hex as the interface contract makes the feature brand- and model-agnostic;
 virtually any UHF RFID reader can output hex, regardless of brand or generation.
 

@@ -1,22 +1,27 @@
 # RFID Cross-Validation — Phased Implementation Scope
 
-Rev 1.1 — 2026-07-12
+Rev 1.2 — 2026-08-11
 
 ---
 
 ## Prerequisites — resolved
 
-**RFID reader confirmed:** MTI RFID ME™ RU-824-100 (Microelectronics Technology Inc.)
-- Impinj R1000 chipset, EPC Class 1 Gen2, 902–928 MHz US-band, ~1 m range
-- USB interface via FTDI chip → installs as virtual COM port under Windows (VCP driver)
-- Communicates using MTI Low Level Command Set (LLCS) binary packet protocol
-- SDK source code + command reference manual cloned to:
-  `vtccp/references/mti-sdk/RFID_Explorer/`
-  Key file: `MTI RU-824 RFID Module Command Reference Manual v3.3.pdf`
-- SDK native DLLs (`Transfer.dll`, `ftd2xx.dll`) are 32-bit .NET Framework era and are
-  NOT used. Integration is direct LLCS over `SerialPort` — no native DLL dependency.
-- Triggerable: LLCS includes explicit inventory start/stop commands; confirmed from
-  command reference and source code (`ENUM_FLOW_CONTROL.INVENTORY_STATUS`).
+**RFID reader confirmed:** AsReader ASR-P35U UHF RFID Desktop Reader (unit KE00048)
+- EPC Class 1 Gen2, 902–928 MHz US-band (REGION_US), TX power 13–27 dBm
+- USB → VCP (Virtual COM Port); VID=0x339C / PID=0x271B; 115200 8N1
+  No FTDI driver required — AsReader proprietary USB CDC driver installs via Windows Update
+  or from the SDK zip. **Never open the COM port directly** — the SDK manages it internally.
+- Communicates via AsReader SDK (`AsReaderP3xU.dll`, v1.3.0, 2026-02-13); namespace
+  `AsReaderP3xU`; main class `AsReader`
+- SDK DLL placement: `vtccp/lib/asreader-p3xu-sdk-1.3.0/AsReaderP3xU.dll`
+  (not committed to repo — obtain from AsReader SDK zip; see `PLACE-DLL-HERE.md` in that dir)
+- Protocol notes: `vtccp/references/asr-p35u/docs/PROTOCOL-NOTES.md`
+- Confirmed firmware: Main FW 1.8.0 (updated 2026-08-10); RFID module FW RED4S_v2.2.2_K_SD
+- Known FW 1.8.0 defect: `CallBackCommandData` never fires for `ReadMemory`; results arrive
+  via `CallBackReadTagData` instead. Workaround implemented in `AsReaderP35UEpcReader.cs`
+  (`_pendingTidCb` one-shot hook). Vendor notified 2026-08-08.
+- Triggerable: `StartInventory(maxTags:1)` for single-tag mode; `StopInventory()` for
+  continuous mode. Hardware trigger button also exposed via `CallBackTriggerHandler`.
 
 **GCP Length Table:** `vtccp/data/gcp-prefix-format-list.xml`
 - Provided file dated 2026-05-03, 200,108 entries, 8.7 MB; bundled as dev/fallback copy
@@ -49,32 +54,39 @@ This integrates the RFID cross-validation feature directly into the existing VTC
 Command Pilot codebase, using the DataMan verifier as the barcode source. Every
 component built here is reused in all subsequent phases.
 
-### 0.1 — IEpcReader acquisition layer
+### 0.1 — IEpcReader acquisition layer  ✅ BUILT
 
-New interface and one concrete implementation for Phase 0 (MTI RU-824-100):
+Interface and Phase 0 concrete implementation are complete:
 
 ```
 vtccp/DeviceInterface/Rfid/
-  IEpcReader.cs             — interface: Connect(), Disconnect(), TriggerInventory(),
-                              event EpcReceived(string hexEpc), event ReadError(string msg)
-  MtiLlcsEpcReader.cs       — MTI RU-824-100 implementation:
-                                • opens configured COM port at 115200 8N1 (FTDI VCP)
-                                • sends LLCS Inventory Start packet on TriggerInventory()
-                                • reads LLCS response packets; extracts EPC from tag-read
-                                  packet payload; fires EpcReceived with raw hex string
-                                • sends Inventory Stop after time window expires
-                                • no native DLL; pure System.IO.Ports.SerialPort only
-  EpcReaderFactory.cs       — instantiates per config (MtiLlcs is the only Phase 0 impl;
-                              interface is open for future COM/HID variants)
+  IEpcReader.cs              — interface: ConnectAsync(), DisconnectAsync(),
+                               TriggerInventoryAsync(timeout) → IReadOnlyList<EpcReadResult>,
+                               CancelAsync(), IsConnected; IAsyncDisposable
+  AsReaderP35UEpcReader.cs   — ✅ ASR-P35U implementation (unit KE00048, FW 1.8.0, SDK 1.3.0):
+                                 • ConnectWithVCP(comPort) via AsReaderP3xU.dll SDK
+                                 • SetDelegate (all 6 callbacks in one call, before connect)
+                                 • SetRegion(REGION_US) + SetTxPower(20 dBm default)
+                                 • StartInventory(maxTags:1) for single-tag triggered reads
+                                 • EPC extracted from CallBackReadTagData (uppercase hex)
+                                 • PC word + RSSI captured; two's complement RSSI correction applied
+                                 • FW 1.8.0 defect: ReadMemory result via cbTag not cbCommand;
+                                   ReadTidAsync(_pendingTidCb one-shot hook) implements workaround
+                                 • Thread-safe: _lock (public methods), _stateLock (SDK callbacks)
+  EpcReaderFactory.cs        — instantiates per config (ASR-P35U is the Phase 0 impl;
+                               interface open for future HID/COM-line variants)
 ```
 
-LLCS packet format from command reference manual (v3.3, locally at
-`vtccp/references/mti-sdk/RFID_Explorer/MTI RU-824 RFID Module Command Reference Manual v3.3.pdf`).
-Exact command bytes confirmed during first test session with physical reader.
+**DLL prerequisite:** `AsReaderP3xU.dll` (SDK 1.3.0) must be placed at
+`vtccp/lib/asreader-p3xu-sdk-1.3.0/AsReaderP3xU.dll` before building. The DLL is not
+committed to the repo — obtain from the AsReader SDK zip. A `PLACE-DLL-HERE.md` placeholder
+should be present in that directory.
 
-EPC extraction: tag-read response packet contains EPC bank data at fixed byte offset
-per LLCS spec. Strip CRC+PC (4 bytes / 28-char hex → 24-char net EPC) if present;
-configurable. No reader brand/model reference in any downstream class.
+SDK protocol reference: `vtccp/references/asr-p35u/docs/PROTOCOL-NOTES.md`
+
+EPC extraction: `result.tagdata.epc` delivers uppercase hex with no spaces. PC word arrives
+as hex string (e.g. `"3000"`). Strip CRC+PC by length (28 hex chars = has CRC+PC; 24 = net
+EPC) or leave as configured. No reader brand/model reference in any downstream class.
 
 ### 0.2 — EPC parser and scheme dispatch
 
@@ -191,7 +203,8 @@ explicitly if trigger fired but no tag returned within time window.
 
 Minimal additions to existing CP settings:
 - RFID enabled (bool)
-- COM port name (FTDI VCP; e.g. COM5; auto-detect MTI VID:PID on open)
+- COM port name (ASR-P35U VCP; e.g. COM4; auto-detect VID=0x339C / PID=0x271B via WMI)
+- TX power dBm (int, 13–27; default 20)
 - Read time window (seconds, default 3.0)
 - CRC+PC prefix mode: Auto / Strip / None
 - GCP table: use bundled / use AppData / custom path
@@ -346,11 +359,11 @@ Significant scope — not scheduled until Phase 4 is complete and Cognex posture
 ## Summary: phase priority and dependencies
 
 ```
-Prerequisites resolved: RU-824-100 = FTDI VCP + LLCS; GCP table 2026-05-03 in vtccp/data/
+Prerequisites resolved: ASR-P35U SDK VCP; AsReaderP35UEpcReader.cs built; GCP table 2026-05-03 in vtccp/data/
     │
     ▼
-Phase 0: RFID integrated into CP/DataMan POC ←── HIGHEST PRIORITY, build first
-    │  (validates all core components: acquisition, parse, validate, Excel, report)
+Phase 0: RFID integrated into CP/DataMan POC ←── HIGHEST PRIORITY (acquisition layer built ✅)
+    │  (validates all core components: acquisition ✅, parse, validate, Excel, report)
     │
     ▼
 Phase 1: Standalone product (thin tray app, shared Phase 0 library)
