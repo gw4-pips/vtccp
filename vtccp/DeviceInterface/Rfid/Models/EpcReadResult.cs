@@ -22,4 +22,13 @@ public sealed record EpcReadResult
 
     /// <summary>RSSI or signal strength if available; null otherwise.</summary>
     public int? Rssi { get; init; }
+
+    /// <summary>
+    /// Tag Identifier (TID) hex string from the tag's TID memory bank, if read.
+    /// Populated either automatically (when the reader delivers TID in the inventory
+    /// callback) or explicitly via <c>AsReaderP35UEpcReader.ReadTidAsync</c>.
+    /// Null if TID reading was not requested, timed out, or the DLL defect prevented
+    /// delivery (see AsReader TID defect report).
+    /// </summary>
+    public string? Tid { get; init; }
 }

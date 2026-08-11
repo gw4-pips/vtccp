@@ -4,9 +4,13 @@ namespace DeviceInterface.Rfid;
 
 /// <summary>
 /// Hardware abstraction for an RFID reader capable of EPC inventory.
+///
 /// Implementations:
-///   <see cref="GoToTagsE310Reader"/> — GoToTags Desktop E310 (Impinj E310 chipset, FTDI VCP, primary).
-///   <see cref="MtiLlcsEpcReader"/>   — MTI RU-824-100 (LLCS protocol, superseded).
+///   <see cref="AsReaderP35UEpcReader"/> — AsReader ASR-P35U (SDK DLL, VCP; canonical hardware).
+///   <see cref="GoToTagsE310Reader"/>    — GoToTags Desktop E310 (FTDI VCP; rejected 2026-08).
+///   <see cref="MtiLlcsEpcReader"/>      — MTI RU-824-100 (LLCS; discontinued hardware).
+///
+/// Use <see cref="EpcReaderFactory.CreateAsReaderP35U"/> for all new work.
 /// </summary>
 public interface IEpcReader : IAsyncDisposable
 {

@@ -1,0 +1,62 @@
+---
+name: AsReader ASR-P35U SDK Architecture
+description: Key SDK facts, callback model, FW defects, and C# integration decisions for AsReaderP35UEpcReader.
+---
+
+## SDK basics
+- DLL: `AsReaderP3xU.dll` v1.3.0 (place in `vtccp\lib\asreader-p3xu-sdk-1.3.0\`)
+- Namespace: `AsReaderP3xU`; main class: `AsReader`; enums in `Types`
+- Connection: VCP (no FTDI needed). VID=0x339C / PID=0x271B. COM4 on dev laptop.
+- SDK manages the serial port — never open the port directly (leaves device locked ~5s)
+
+## Init sequence (must follow this order)
+1. `new AsReader()`
+2. `dev.SetDelegate(...)` — all six callbacks in one call, BEFORE ConnectWithVCP
+3. `dev.ConnectWithVCP("COM4")` → returns 0 on success
+4. `dev.SetRegion(Types.RegionType.REGION_US)` — required before StartInventory
+5. `dev.SetTxPower(dBm)` — valid range 13–27 dBm (REGION_US)
+
+## StartInventory signature
+`StartInventory(bool rssiEnabled, int maxTags, int maxSecs, int maxCycles, int antenna)`
+- maxTags=1 → hardware auto-stops after first tag (eliminates timer race)
+- antenna=1 (int, not bool)
+
+## Callbacks (six, all mandatory in SetDelegate)
+| Delegate | Param | Notes |
+|---|---|---|
+| CallBackReadTagData | InventoryResult result | result.tagdata.epc (string hex), .pc (hex string), .tid, .data; result.rssi (float); result.antenna (int) |
+| CallBackErrorCode | int errorCode | Non-zero during active inventory = hardware disconnect |
+| CallBackSuccessCode | int code | 40=PermaLock, 41=Lock, 42=Unlock (CheckTagStatus) |
+| CallBackCommandData | byte[] data | **NEVER fires for ReadMemory on FW 1.8.0** (confirmed DLL defect) |
+| CallBackReadComplete | bool completeStatus | true + _hwStopExpected = clean auto-stop; false = unexpected disconnect |
+| CallBackTriggerHandler | int state | 1=button pressed, 0=released |
+
+## Critical FW 1.8.0 defect: CallBackCommandData never fires for ReadMemory
+- **ReadMemory result arrives via CallBackReadTagData** (tagdata.data or tagdata.tid)
+- Workaround: register a one-shot `_pendingTidCb` on the next cbTag before calling ReadMemory
+- TID sequence: StartInventory(maxTags=1) → cbTag(EPC) → cbComplete → ReadMemory → next cbTag(TID)
+- Vendor notified 2026-08-08; unresolved as of 2026-08-11
+- Defect report: `vtccp/references/asr-p35u/docs/ASREADER_TID_DEFECT.md`
+
+## RSSI correction
+Values 128–255 from SDK = negative dBm via two's complement: `rssi_dbm = raw - 256`
+
+## C# implementation
+- `AsReaderP35UEpcReader.cs` — implements IEpcReader
+- Callback-to-async bridge: `TaskCompletionSource<bool>` + `_stateLock` + `_pendingResults` list
+- `_pendingTidCb`: volatile Action field for one-shot ReadMemory result hook
+- `ReadTidAsync(byte[] epcBytes, TimeSpan timeout)`: explicit TID read with defect workaround
+- `EpcReadResult.Tid`: nullable string field added for TID hex string
+- `EpcReaderFactory.CreateAsReaderP35U()`: primary factory; E310/MTI marked [Obsolete]
+
+## Build requirement
+DLL must be placed at `vtccp\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll` before building.
+Same pattern as Cognex SDK reference in DeviceInterface.csproj.
+
+**Why:** DLL is .NET Framework 4.x vendor binary; not on NuGet; not redistributable.
+
+## Reference files
+- Protocol notes: `vtccp/references/asr-p35u/docs/PROTOCOL-NOTES.md`
+- Python reference: `vtccp/references/asr-p35u/source/reader.py`
+- Test vectors: `vtccp/references/asr-p35u/test-vectors/epc-decode-vectors.json`
+- TID defect: `vtccp/references/asr-p35u/docs/ASREADER_TID_DEFECT.md`

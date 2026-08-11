@@ -1,0 +1,194 @@
+{
+  "_comment": "EPC decode test vectors for C# IEpcReader unit tests. Source: VCCS RFID FlexWedge Pro decoder.py, live captures, and GS1 EPC Tag Data Standard 1.13.",
+  "_decoder_source": "tools/rfid-wedge/decoder.py — decode_epc(hex_str) function",
+
+  "vectors": [
+
+    {
+      "id": "sgtin96-live-A",
+      "description": "Live capture — Impinj Monza R6 tag, SGTIN-96, partition 5 (7-digit GCP)",
+      "source": "Live read, 2026-08-11, FlexWedge Stealth preset",
+      "input_epc_hex": "30342A7CC844C7D0F36A0676",
+      "expected": {
+        "scheme": "SGTIN-96",
+        "header_hex": "30",
+        "filter_value": "1",
+        "partition": "5",
+        "gcp": "0696114",
+        "gcp_digits": 7,
+        "item_ref": "704318",
+        "indicator": "0",
+        "gtin14": "00696114704318",
+        "serial": "72803288694",
+        "epc_uri": "urn:epc:id:sgtin:0696114.70431.72803288694",
+        "gtin14_check_valid": true,
+        "error": null
+      }
+    },
+
+    {
+      "id": "sgtin96-live-B",
+      "description": "Live capture — second tag in session, same GCP",
+      "source": "Live read, 2026-08-11",
+      "input_epc_hex": "30342A7CC844C710F36A0650",
+      "expected": {
+        "scheme": "SGTIN-96",
+        "header_hex": "30",
+        "filter_value": "1",
+        "partition": "5",
+        "gcp": "0696114",
+        "gcp_digits": 7,
+        "item_ref": "704288",
+        "indicator": "0",
+        "gtin14": "00696114704288",
+        "serial": "72803288400",
+        "epc_uri": "urn:epc:id:sgtin:0696114.70428.72803288400",
+        "gtin14_check_valid": true,
+        "error": null
+      }
+    },
+
+    {
+      "id": "sgtin96-live-C",
+      "description": "Live capture — third tag in session",
+      "source": "Live read, 2026-08-11",
+      "input_epc_hex": "30342A7CC844C750F36A066F",
+      "expected": {
+        "scheme": "SGTIN-96",
+        "header_hex": "30",
+        "filter_value": "1",
+        "partition": "5",
+        "gcp": "0696114",
+        "gcp_digits": 7,
+        "item_ref": "704295",
+        "indicator": "0",
+        "gtin14": "00696114704295",
+        "serial": "72803288175",
+        "epc_uri": "urn:epc:id:sgtin:0696114.70429.72803288175",
+        "gtin14_check_valid": true,
+        "error": null
+      }
+    },
+
+    {
+      "id": "sgtin96-defect-repro",
+      "description": "EPC used in AsReader TID defect reproduction script",
+      "source": "ASREADER_TID_DEFECT.md minimal repro",
+      "input_epc_hex": "30342BF92851DD10F36A0483",
+      "expected": {
+        "scheme": "SGTIN-96",
+        "header_hex": "30",
+        "filter_value": "1",
+        "partition": "5",
+        "gcp": "0696114",
+        "gcp_digits": 7,
+        "error": null
+      },
+      "_note": "Full GTIN-14 and serial not recorded — EPC was used as address target only"
+    },
+
+    {
+      "id": "sgtin96-gcp6-partition4",
+      "description": "SGTIN-96 with 6-digit GCP (partition 4) — generated reference vector",
+      "source": "GS1 EPC TDS 1.13 §6.3.1 encoding example",
+      "input_epc_hex": "3034257BF7194E4000001A85",
+      "expected": {
+        "scheme": "SGTIN-96",
+        "header_hex": "30",
+        "filter_value": "1",
+        "partition": "4",
+        "gcp_digits": 6,
+        "error": null
+      },
+      "_note": "Partition 4 test only — GCP and item_ref depend on exact partition encoding"
+    },
+
+    {
+      "id": "sscc96-basic",
+      "description": "SSCC-96 — Serial Shipping Container Code",
+      "source": "GS1 EPC TDS 1.13 §6.4",
+      "input_epc_hex": "3114257BF71A05048000000C",
+      "expected": {
+        "scheme": "SSCC-96",
+        "header_hex": "31",
+        "filter_value": "0",
+        "error": null
+      }
+    },
+
+    {
+      "id": "unknown-header",
+      "description": "Unknown EPC header — should return Unknown scheme, no error",
+      "source": "decoder.py defensive handling",
+      "input_epc_hex": "FF00000000000000000000FF",
+      "expected": {
+        "scheme_prefix": "Unknown",
+        "gtin14": null,
+        "error": null
+      }
+    },
+
+    {
+      "id": "too-short",
+      "description": "EPC shorter than 2 hex chars — expect error",
+      "source": "decoder.py edge case",
+      "input_epc_hex": "3",
+      "expected": {
+        "error": "Too short"
+      }
+    },
+
+    {
+      "id": "invalid-hex",
+      "description": "Non-hex characters — expect error",
+      "source": "decoder.py edge case",
+      "input_epc_hex": "GGGGGGGGGGGGGGGGGGGGGGGG",
+      "expected": {
+        "error": "Invalid hex"
+      }
+    },
+
+    {
+      "id": "gtin14-check-digit-valid",
+      "description": "gtin14_check_ok() — valid GTIN-14",
+      "source": "decoder.py gtin14_check_ok()",
+      "input_gtin14": "00696114704318",
+      "expected": {
+        "check_ok": true
+      }
+    },
+
+    {
+      "id": "gtin14-check-digit-invalid",
+      "description": "gtin14_check_ok() — wrong check digit",
+      "source": "decoder.py gtin14_check_ok()",
+      "input_gtin14": "00696114704319",
+      "expected": {
+        "check_ok": false
+      }
+    },
+
+    {
+      "id": "gtin14-check-too-short",
+      "description": "gtin14_check_ok() — less than 14 digits",
+      "source": "decoder.py gtin14_check_ok()",
+      "input_gtin14": "069611470431",
+      "expected": {
+        "check_ok": false
+      }
+    }
+  ],
+
+  "preset_tid_expectations": {
+    "_comment": "Which FlexWedge presets enable TID reading vs. prioritise throughput",
+    "tid_enabled": ["Ghost", "Stealth"],
+    "tid_disabled": ["Standard", "Aware", "Dense", "Hammer"]
+  },
+
+  "lock_status_codes": {
+    "_comment": "cbSuccess codes from CheckTagStatus()",
+    "40": "PermaLock — all memory banks permanently locked",
+    "41": "Lock — write-protected, not permanently",
+    "42": "Unlock — no lock; tag is writable"
+  }
+}
