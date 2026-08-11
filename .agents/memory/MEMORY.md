@@ -25,6 +25,7 @@
 - [MTI READ ME RU-824-100 USB HID](mti-ru824-usb-hid.md) — device is USB HID not VCP; MtiLlcsEpcReader must be rewritten to LakeChabotReader SDK; MSI installer in repo; 5 native DLLs needed
 - [GCP interop architecture](gcp-interop-architecture.md) — /interop/* fully auth-gated; original GS1 XML filename preserved; GCP_INTEROP_KEY set as Replit secret; decoder → My2DirRetail.com eventually
 - [GoToTags E310 protocol & integration](gototags-e310-protocol.md) — SUPERSEDED: E310 rejected; AsReader ASR-P35U is canonical RFID hardware; FlexWedge Pro (GS1 Resolver project) is the protocol reference
+- [ASR-P35U SDK architecture](asr-p35u-sdk-architecture.md) — SDK DLL (not raw serial); 6-delegate SetDelegate before connect; ReadMemory→cbTag defect on FW 1.8.0; _pendingTidCb hook pattern
 - [Axicon 15500 and LVS 9510 verifiers](axicon-lvs-verifiers.md) — LVS=Omron Microscan (not Webscan); both use file-export integration path; need user to confirm export format before building adapters
 - [CP Inline project status](cp-inline-project-status.md) — CP Inline abandoned for Serview 475V-LBL inline application (5 Aug 2026); CP continues as desktop tool; DPM unit factory-reset to fw 6.1.16_tc9
 - [TRUCHECK.APPLICATION-STANDARD mapping](trucheck-app-standard-mapping.md) — DMCC ref says 4=Auto/5=Custom but fw 6.1.16_tc9 returns 5 for a unit showing "Auto" in UI; treat 5=Auto until Cognex clarifies
