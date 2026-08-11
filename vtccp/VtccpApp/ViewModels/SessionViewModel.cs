@@ -6,6 +6,8 @@ using ConfigEngine;
 using ConfigEngine.Models;
 using DeviceInterface;
 using DeviceInterface.Dmst;
+using DeviceInterface.Rfid;
+using DeviceInterface.Rfid.Models;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
 using ExcelEngine.Session;
@@ -51,6 +53,9 @@ public sealed class SessionViewModel : ViewModelBase
     private int                                 _recordCount;
     private LiveFeedWindow?                     _liveFeedWindow;
     private StitchingWindow?                    _stitchingWindow;
+
+    // ── RFID ──────────────────────────────────────────────────────────────────
+    private RfidScanCoordinator? _rfidCoordinator;
 
     // ── OCR ───────────────────────────────────────────────────────────────────
 
@@ -381,6 +386,39 @@ public sealed class SessionViewModel : ViewModelBase
             _history.ClearHistory();
             _recordCount = 0; OnPropertyChanged(nameof(RecordCount));
             IsRunning    = true;
+
+            // ── RFID coordinator (optional) ───────────────────────────────────
+            // Enabled when AppSettings.RfidComPort is set; silently skipped otherwise.
+            // Connection failure is non-fatal — session continues without RFID.
+            string? rfidPort = _repo.Settings.RfidComPort;
+            if (!string.IsNullOrWhiteSpace(rfidPort))
+            {
+                try
+                {
+                    var rfidSettings = new RfidScanCoordinatorSettings
+                    {
+                        Enabled              = true,
+                        ScanWindowMs         = _repo.Settings.RfidScanWindowMs,
+                        FlagMismatchInReport = _repo.Settings.RfidFlagMismatch,
+                    };
+                    var reader    = EpcReaderFactory.CreateAsReaderP35U();
+                    var validator = new RfidValidator();
+                    _rfidCoordinator = new RfidScanCoordinator(reader, validator, rfidSettings);
+                    _rfidCoordinator.ValidationCompleted += OnRfidValidationCompletedAsync;
+                    await reader.ConnectAsync(rfidPort, _pollCts.Token);
+                    System.Diagnostics.Debug.WriteLine($"[RFID] Coordinator started on {rfidPort}.");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[RFID] Coordinator startup failed: {ex.Message}");
+                    if (_rfidCoordinator is not null)
+                    {
+                        _rfidCoordinator.ValidationCompleted -= OnRfidValidationCompletedAsync;
+                        await _rfidCoordinator.DisposeAsync();
+                        _rfidCoordinator = null;
+                    }
+                }
+            }
 
             string triggerNote = string.Empty;
             if (_deviceSession is not null && _deviceSession.OriginalTriggerType is { } origTrig)
@@ -759,6 +797,16 @@ public sealed class SessionViewModel : ViewModelBase
         string grade     = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
         string num       = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
         string ocrSuffix = record.OcrResult?.Tier is { Length: > 0 } t ? $"  | OCR: {t}" : string.Empty;
+
+        // ── RFID cross-validation (fire-and-forget) ───────────────────────────
+        // Fires after the barcode record is written to Excel so the RFID window
+        // runs in parallel with the operator picking up the next product.
+        // ValidationCompleted will append the RFID outcome to StatusMessage.
+        if (_rfidCoordinator is { } coordinator)
+        {
+            var rfidCt = _pollCts?.Token ?? default;
+            _ = coordinator.OnBarcodeScannedAsync(record, rfidCt);
+        }
         if (savedToDisk)
             StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}";
         else
@@ -970,9 +1018,48 @@ public sealed class SessionViewModel : ViewModelBase
             await _pushHttpSubscriber.StopAsync();
             _pushHttpSubscriber = null;
         }
+        if (_rfidCoordinator is not null)
+        {
+            _rfidCoordinator.ValidationCompleted -= OnRfidValidationCompletedAsync;
+            await _rfidCoordinator.DisposeAsync();
+            _rfidCoordinator = null;
+        }
         _sessionMgr?.Dispose();
         _sessionMgr = null;
         _pollCts?.Dispose();
         _pollCts = null;
+    }
+
+    // ── RFID coordinator callback ─────────────────────────────────────────────
+
+    private Task OnRfidValidationCompletedAsync(
+        object sender,
+        (RfidValidationResult Result, VerificationRecord BarcodeRecord) args)
+    {
+        var result = args.Result;
+
+        string rfidStatus = result.Status switch
+        {
+            RfidValidationStatus.Pass                =>
+                $"✓ RFID: {result.RfidGtin14}",
+            RfidValidationStatus.Fail                =>
+                $"✗ RFID mismatch — {result.MismatchDetail}",
+            RfidValidationStatus.NoTag               =>
+                $"⚠ RFID: no tag in {result.ScanWindowMs} ms window",
+            RfidValidationStatus.ParseError          =>
+                "⚠ RFID: EPC parse error",
+            RfidValidationStatus.MultipleTagsDetected =>
+                "⚠ RFID: multiple tags detected",
+            _                                        => string.Empty,
+        };
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[RFID] ValidationCompleted: {result.Status}  detail={result.MismatchDetail ?? "-"}");
+
+        if (rfidStatus.Length > 0)
+            Application.Current.Dispatcher.Invoke(
+                () => StatusMessage += $"  [{rfidStatus}]");
+
+        return Task.CompletedTask;
     }
 }

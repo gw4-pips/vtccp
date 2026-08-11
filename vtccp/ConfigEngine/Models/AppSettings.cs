@@ -41,7 +41,7 @@ public sealed class AppSettings
     // ── RFID cross-validation (Phase 0 POC) ──────────────────────────────────
 
     /// <summary>
-    /// Serial port name for the MTI RU-824-100 UHF RFID reader (e.g. "COM3").
+    /// Serial port name for the AsReader ASR-P35U UHF RFID reader (e.g. "COM3").
     /// Null or empty = RFID feature disabled.
     /// </summary>
     public string? RfidComPort { get; set; }
