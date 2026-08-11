@@ -254,6 +254,17 @@ public static class TruCheckCompatibleSchema
         cols.Add(Col("OcrTessText","OCR Tess",   30, SymbologyGroup.Universal));
         cols.Add(Col("OcrMatch",   "OCR Match",  10, SymbologyGroup.Universal));
 
+        // ── Block K: RFID Cross-Validation ────────────────────────────────────
+        // Populated when AppSettings.RfidComPort is set and an ASR-P35U is connected.
+        // All columns are null when RFID is not configured or the scan was skipped.
+        cols.Add(Col("RfidStatus",         "RFID Status",      14, SymbologyGroup.Universal));
+        cols.Add(Col("RfidEpcHex",         "RFID EPC",         26, SymbologyGroup.Universal));
+        cols.Add(Col("RfidGtin14",         "RFID GTIN-14",     16, SymbologyGroup.Universal));
+        cols.Add(Col("RfidSerial",         "RFID Serial",      22, SymbologyGroup.Universal));
+        cols.Add(Col("RfidMismatchDetail", "RFID Mismatch",    50, SymbologyGroup.Universal));
+        cols.Add(Col("RfidScanWindowMs",   "RFID Window (ms)", 14, SymbologyGroup.Universal));
+        cols.Add(Col("RfidGcpValid",       "RFID GCP Valid",   12, SymbologyGroup.Universal));
+
         return cols;
     }
 

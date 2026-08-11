@@ -28,23 +28,39 @@
   </ItemGroup>
 
   <!-- Cognex DataMan SDK — ships with DataMan Software (DMST).
-       Port 44444 binary protocol; replaces our raw ASCII DmccClient. -->
-  <ItemGroup>
+       Port 44444 binary protocol; replaces our raw ASCII DmccClient.
+       Excluded from build when the DLL is absent (CI / Linux / test runs). -->
+  <ItemGroup Condition="Exists('C:\Program Files (x86)\Cognex\DataMan\DataMan Software v25.4.1\Cognex.DataMan.SDK.PC.dll')">
     <Reference Include="Cognex.DataMan.SDK.PC">
       <HintPath>C:\Program Files (x86)\Cognex\DataMan\DataMan Software v25.4.1\Cognex.DataMan.SDK.PC.dll</HintPath>
       <Private>true</Private>
     </Reference>
   </ItemGroup>
+  <!-- Exclude SDK-dependent files when the Cognex DLL is absent so the pure C#
+       core (EpcParser, decoders, models, validators) builds for unit tests on
+       non-Windows / CI machines. -->
+  <ItemGroup Condition="!Exists('C:\Program Files (x86)\Cognex\DataMan\DataMan Software v25.4.1\Cognex.DataMan.SDK.PC.dll')">
+    <Compile Remove="Dmcc/DataManSdkClient.cs" />
+    <Compile Remove="DeviceSession.cs" />
+    <Compile Remove="NetworkDiscoverer.cs" />
+  </ItemGroup>
 
   <!-- AsReader ASR-P35U SDK — canonical VCCS RFID reader hardware (confirmed 2026-08-06).
        DLL not committed; place AsReaderP3xU.dll in vtccp\lib\asreader-p3xu-sdk-1.3.0\
        before building — see PLACE-DLL-HERE.md in that folder.
-       Targets .NET Framework 4.x; compatible with .NET 8 via framework compatibility shim. -->
-  <ItemGroup>
+       Targets .NET Framework 4.x; compatible with .NET 8 via framework compatibility shim.
+       Excluded from build when the DLL is absent (CI / Linux / test runs). -->
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)..\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll')">
     <Reference Include="AsReaderP3xU">
       <HintPath>..\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll</HintPath>
       <Private>true</Private>
     </Reference>
+  </ItemGroup>
+  <!-- Exclude AsReaderP35UEpcReader and EpcReaderFactory (which references it)
+       when the SDK DLL is absent. -->
+  <ItemGroup Condition="!Exists('$(MSBuildThisFileDirectory)..\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll')">
+    <Compile Remove="Rfid/AsReaderP35UEpcReader.cs" />
+    <Compile Remove="Rfid/EpcReaderFactory.cs" />
   </ItemGroup>
 
 </Project>

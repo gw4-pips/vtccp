@@ -413,6 +413,39 @@ public sealed record class VerificationRecord
     /// </summary>
     public CodewordValuesData? CodewordValues { get; init; }
 
+    // ─── RFID Cross-Validation ────────────────────────────────────────────────
+    // Populated after the RFID scan window closes. Null on all fields when RFID
+    // is not configured (RfidComPort empty) or when the scan is skipped.
+
+    /// <summary>Raw EPC hex string from the selected tag, e.g. "30342A7CC844C7D0F36A0676".</summary>
+    public string? RfidEpcHex { get; init; }
+
+    /// <summary>GTIN-14 decoded from the EPC (14 digits). Null if decode failed or no tag.</summary>
+    public string? RfidGtin14 { get; init; }
+
+    /// <summary>Serial number decoded from the EPC. Null if not present or decode failed.</summary>
+    public string? RfidSerial { get; init; }
+
+    /// <summary>
+    /// Cross-validation outcome: "Pass", "Fail", "NoTag", "ParseError",
+    /// "MultipleTagsDetected", or "Skipped".
+    /// </summary>
+    public string? RfidStatus { get; init; }
+
+    /// <summary>
+    /// Semicolon-separated mismatch description, e.g. "GTIN14:RFID=…,BC=…;Serial:RFID=…,BC=…".
+    /// Null on Pass or when no comparison was possible.
+    /// </summary>
+    public string? RfidMismatchDetail { get; init; }
+
+    /// <summary>Duration of the RFID scan window in milliseconds.</summary>
+    public int? RfidScanWindowMs { get; init; }
+
+    /// <summary>
+    /// True = GCP registered in GS1 table; false = not found; null = GCP check not run.
+    /// </summary>
+    public bool? RfidGcpValid { get; init; }
+
     // ─── Helper Properties ────────────────────────────────────────────────────
 
     /// <summary>

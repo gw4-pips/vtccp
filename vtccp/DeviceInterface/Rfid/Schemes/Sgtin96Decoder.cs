@@ -25,8 +25,12 @@ namespace DeviceInterface.Rfid.Schemes;
 ///   6 | 20 |  6 | 24 |  7
 ///
 /// GTIN-14 reconstruction:
-///   payload13 = GCP.PadLeft(L,'0') + ItemRef.PadLeft(K,'0')  [13 digits]
+///   indicator = ItemRef / 10^(K-1)          [1 digit  — GTIN packaging tier]
+///   item_body = ItemRef % 10^(K-1)          [K-1 digits]
+///   payload13 = indicator + GCP.PadLeft(L,'0') + item_body.PadLeft(K-1,'0')
 ///   GTIN-14   = payload13 + GS1CheckDigit(payload13)          [14 digits]
+///
+/// Note: the indicator precedes the GCP — a common source of off-by-one bugs.
 /// </summary>
 public static class Sgtin96Decoder
 {
@@ -72,12 +76,17 @@ public static class Sgtin96Decoder
         ulong itemRefRaw = GetBits(epcBytes, 14 + M,   N);
         ulong serialRaw  = GetBits(epcBytes, 14 + M + N, 38);
 
-        string gcpStr     = gcpRaw.ToString().PadLeft(L, '0');
-        string itemRefStr = itemRefRaw.ToString().PadLeft(K, '0');
-        string serial     = serialRaw.ToString();
+        string gcpStr  = gcpRaw.ToString().PadLeft(L, '0');
+        string serial  = serialRaw.ToString();
 
-        string payload13  = gcpStr + itemRefStr;
+        // GS1 GTIN-14: indicator(1) + GCP(L) + item_body(K-1) + check(1)
+        // The indicator digit is the leading decimal digit of ItemReference.
+        ulong pow10Km1    = Pow10(K - 1);
+        int   indicator   = (int)(itemRefRaw / pow10Km1);
+        string itemBody   = (itemRefRaw % pow10Km1).ToString().PadLeft(K - 1, '0');
+        string payload13  = indicator.ToString() + gcpStr + itemBody;
         string gtin14     = payload13 + Gs1CheckDigit(payload13);
+        string itemRefStr = indicator.ToString() + itemBody; // K digits (indicator + body)
 
         return new ParsedEpc
         {
@@ -110,6 +119,14 @@ public static class Sgtin96Decoder
     }
 
     private static byte GetBits8(byte[] data, int startBit) => (byte)GetBits(data, startBit, 8);
+
+    /// <summary>Returns 10^n as a ulong. n must be 0–12.</summary>
+    private static ulong Pow10(int n)
+    {
+        ulong result = 1;
+        for (int i = 0; i < n; i++) result *= 10;
+        return result;
+    }
 
     // ── GS1 check digit (mod-10) ──────────────────────────────────────────────
 

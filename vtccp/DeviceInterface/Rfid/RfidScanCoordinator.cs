@@ -44,17 +44,19 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
     /// <summary>
     /// Called when a barcode scan completes. Opens the RFID scan window,
     /// waits for tags, validates, then fires <see cref="ValidationCompleted"/>.
-    /// Returns immediately if the coordinator is disabled or already in a scan cycle.
+    /// Returns the <see cref="RfidValidationResult"/> so callers can embed it
+    /// directly in the <see cref="VerificationRecord"/> before writing to Excel.
+    /// Returns null if the coordinator is disabled or already in a scan cycle.
     /// </summary>
-    public async Task OnBarcodeScannedAsync(
+    public async Task<RfidValidationResult?> OnBarcodeScannedAsync(
         VerificationRecord barcodeRecord,
         CancellationToken ct = default)
     {
-        if (!_settings.Enabled) return;
+        if (!_settings.Enabled) return null;
 
         // Skip if already scanning (non-blocking trylock)
         if (!await _scanLock.WaitAsync(0, ct).ConfigureAwait(false))
-            return;
+            return null;
 
         try
         {
@@ -66,7 +68,7 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
             {
                 reads = await _reader.TriggerInventoryAsync(timeout, ct).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) { return; }
+            catch (OperationCanceledException) { return null; }
             catch (Exception ex)
             {
                 reads = [];
@@ -79,6 +81,8 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
 
             if (ValidationCompleted is { } handler)
                 await handler(this, (result, barcodeRecord)).ConfigureAwait(false);
+
+            return result;
         }
         finally
         {

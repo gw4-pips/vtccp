@@ -210,6 +210,15 @@ public static class ISO15416Mapper
         d["OcrTessText"]= r.OcrResult?.TesseractText;
         d["OcrMatch"]   = r.OcrResult?.EncodedDataMatch;
 
+        // ── Block K: RFID Cross-Validation ────────────────────────────────────
+        d["RfidStatus"]         = r.RfidStatus;
+        d["RfidEpcHex"]         = r.RfidEpcHex;
+        d["RfidGtin14"]         = r.RfidGtin14;
+        d["RfidSerial"]         = r.RfidSerial;
+        d["RfidMismatchDetail"] = r.RfidMismatchDetail;
+        d["RfidScanWindowMs"]   = r.RfidScanWindowMs.HasValue ? (object)r.RfidScanWindowMs.Value : null;
+        d["RfidGcpValid"]       = r.RfidGcpValid.HasValue ? (object)r.RfidGcpValid.Value : null;
+
         return d;
     }
 

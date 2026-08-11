@@ -49,10 +49,15 @@ public static class Sgtin198Decoder
         // Serial: 140 bits of packed 7-bit ASCII starting at bit (14+M+N)
         string serial = Extract7BitAsciiSerial(epcBytes, 14 + M + N, 140);
 
-        string gcpStr     = gcpRaw.ToString().PadLeft(L, '0');
-        string itemRefStr = itemRefRaw.ToString().PadLeft(K, '0');
-        string payload13  = gcpStr + itemRefStr;
-        string gtin14     = payload13 + Sgtin96Decoder.Gs1CheckDigit(payload13);
+        string gcpStr = gcpRaw.ToString().PadLeft(L, '0');
+
+        // GS1 GTIN-14: indicator(1) + GCP(L) + item_body(K-1) + check(1)
+        ulong pow10Km1   = Pow10((ulong)(K - 1));
+        int   indicator  = (int)(itemRefRaw / pow10Km1);
+        string itemBody  = (itemRefRaw % pow10Km1).ToString().PadLeft(K - 1, '0');
+        string payload13 = indicator.ToString() + gcpStr + itemBody;
+        string gtin14    = payload13 + Sgtin96Decoder.Gs1CheckDigit(payload13);
+        string itemRefStr = indicator.ToString() + itemBody;
 
         return new ParsedEpc
         {
@@ -79,6 +84,8 @@ public static class Sgtin198Decoder
         }
         return sb.ToString();
     }
+
+    private static ulong Pow10(ulong n) { ulong r = 1; for (ulong i = 0; i < n; i++) r *= 10; return r; }
 
     private static (int M, int L, int N, int K) GetPartition(int p) => p switch
     {

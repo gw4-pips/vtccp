@@ -24,7 +24,7 @@ public static class UnknownSchemeDecoder
     /// </summary>
     public static ParsedEpc Decode(byte[] epcBytes)
     {
-        byte header = epcBytes.Length > 0 ? epcBytes[0] : 0;
+        byte header = epcBytes.Length > 0 ? epcBytes[0] : (byte)0;
 
         Dbg($"Unrecognised EPC header 0x{header:X2} — raw: {Convert.ToHexString(epcBytes)}");
 
