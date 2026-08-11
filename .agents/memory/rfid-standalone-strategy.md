@@ -18,7 +18,16 @@ swappable without touching the parser/validator/report stack.
 - Layer 2 (parser/validator) never references reader brand or SDK
 - Full architecture in: `vtccp/architecture/rfid-standalone-product.md`
 
-## MTI RU-824-100 integration — confirmed details
+## Canonical RFID hardware — AsReader ASR-P35U
+
+The **AsReader ASR-P35U** is the confirmed canonical RFID reader (2026-08-06).
+- GoToTags E310: evaluated and rejected (see gototags-e310-protocol.md)
+- MTI RU-824-100: earlier candidate, also superseded
+- Protocol reference: VCCS RFID FlexWedge Pro (Python) in GS1 Resolver Replit project
+- Transfer brief at: vtccp/references/asr-p35u/TRANSFER-BRIEF.md
+- C# implementation target: AsReaderP35UEpcReader.cs implementing IEpcReader
+
+## MTI RU-824-100 — archived (superseded)
 - Reader = FTDI USB chip → virtual COM port (VCP driver) — NOT a keyboard wedge, NOT raw HID
 - Protocol = MTI LLCS binary packet format over serial at 115200 8N1
 - Integration = `System.IO.Ports.SerialPort` only; NO native DLL dependency
