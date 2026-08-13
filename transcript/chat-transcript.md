@@ -1148,3 +1148,13 @@ Built vtccp/InlineIo/ relay assembly stub (task #37): IRelayBoard interface, Moc
 - `DeviceInterface/Reports/HybridReportGenerator.cs` — `Generate(VerificationRecord)` + `SaveAsync(record, dir)`. Mirrors Webscan TruCheck HTML structure exactly (same inline CSS, same black-header table sections). Adds RFID status badge in header and "RFID Validation — VCCS FlexWedge™" section after Verification Grades. Symbol image embedded as base64 data URI. @media print support for direct PDF export.
 - `ConfigEngine/Models/AppSettings.cs` — added `GenerateHybridReport` (bool, default true) and `HybridReportOutputDirectory` (string?).
 - `VtccpApp/ViewModels/SessionViewModel.cs` — captures `_sessionOutputDir`, calls `HybridReportGenerator.SaveAsync` fire-and-forget after each `AddRecord`. Commit: e33576c.
+
+---
+
+**User:** Frustrated that tables are full-width instead of matching Webscan's 2-column PDF layout. Uploaded PDF (D61423AFE1783_1786643136628.pdf) and screenshot showing Image + Quality Parameters side-by-side, Data Format Check + General Characteristics side-by-side.
+
+**Assistant:** Investigated XSLT (UTF-16 encoded — grep required iconv conversion). Found the 2-column layout mechanism: the XSLT has `display:inline-block`, `float:left`, and `-moz-column-count:2` in CSS CDO/CDC comment wrappers, plus `span="all"` on full-width divs. The net effect: Summary/OverallGrades span full width; `<lu><li>` items without `span="all"` flow into a 2-column grid. Restructured the generator to use explicit `<table>` 2-column layouts instead of replicating the CSS column trick:
+- Full-width: Report Summary, Verification Grades, GradingInfoSection
+- 2-column: Image (left 3.5in) | ISO Quality Parameters (right)
+- 2-column: Data Format Check (left) | RFID Validation (right)
+Rewrote HybridReportGenerator.cs (v2.1) with `ImageAndQualityTable()` and `FormatAndRfidTable()` paired section builders. Generated and presented sample v4.

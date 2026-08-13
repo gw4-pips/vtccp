@@ -4,23 +4,21 @@ using ExcelEngine.Models;
 namespace DeviceInterface.Reports;
 
 /// <summary>
-/// Generates a self-contained hybrid HTML verification report by editing a
-/// faithful copy of the Webscan TruCheck™ HTML template in place.
+/// Generates a self-contained hybrid HTML verification report.
 ///
-/// Design principle: the <see cref="Template"/> constant IS the Webscan HTML
-/// structure — every table, col, td, padding value, and CSS rule is verbatim
-/// from the rendered Webscan output.  Additions (dual logo header, RFID
-/// section, dark-navy colour, print rules) are injected at clearly-marked
-/// <!-- VCCS:TOKEN --> comment sites.  Nothing is rebuilt from scratch.
+/// Layout exactly mirrors the Webscan TruCheck PDF output:
+///   Full-width (span="all"):
+///     1  Report Summary
+///     2  Verification Grades
+///     3  GradingInfoSection
+///   Two-column side-by-side:
+///     4  Image (left)  |  ISO Quality Parameters (right)
+///     5  Data Format Check (left)  |  RFID Validation (right)
 ///
-/// Section order matches Webscan:
-///   1  Report Summary
-///   2  Verification Grades (OverallGrades)
-///   3  GradingInfoSection (per-parameter Name/Grade/Aperture/Wavelength/Lighting/FormalGrade/Check/Notes)
-///   4  ImageSection (symbol image)
-///   5  TableSection (ISO Quality Parameters — Parameter/Value/Data)
-///   6  DataFormatCheck (GS1 AI / MIL-STD-130 format check — Name/Data/Check)
-///   7  RFID Validation — VCCS FlexWedge™ (new section)
+/// Design principle: the <see cref="Template"/> constant is the verbatim
+/// Webscan HTML skeleton (every table, col, td, and CSS rule copied from
+/// HTMLreport_*.html).  VCCS additions are injected at <!-- VCCS:TOKEN -->
+/// comment sites only.  Nothing is rebuilt from scratch.
 /// </summary>
 public static class HybridReportGenerator
 {
@@ -36,21 +34,22 @@ public static class HybridReportGenerator
         html = html.Replace("<!-- VCCS:EXTRA_CSS -->", ExtraCss);
 
         // Header banner (4 cells)
-        html = html.Replace("<!-- VCCS:VCCS_LOGO_CELL -->",    VccsLogoCell());
-        html = html.Replace("<!-- VCCS:WEBSCAN_LOGO_CELL -->",  WebscanLogoCell());
-        html = html.Replace("<!-- VCCS:TITLE_CELL -->",         TitleCell(r));
-        html = html.Replace("<!-- VCCS:COMPANY_LOGO_CELL -->",  CompanyLogoCell(r));
+        html = html.Replace("<!-- VCCS:VCCS_LOGO_CELL -->",   VccsLogoCell());
+        html = html.Replace("<!-- VCCS:WEBSCAN_LOGO_CELL -->", WebscanLogoCell());
+        html = html.Replace("<!-- VCCS:TITLE_CELL -->",        TitleCell(r));
+        html = html.Replace("<!-- VCCS:COMPANY_LOGO_CELL -->", CompanyLogoCell(r));
 
-        // Body
-        html = html.Replace("<!-- VCCS:PRINT_BUTTON -->",          PrintButton());
-        html = html.Replace("<!-- VCCS:SUMMARY_ROWS -->",          SummaryRows(r));
-        html = html.Replace("<!-- VCCS:GRADES_ROW -->",            GradesRow(r));
-        html = html.Replace("<!-- VCCS:GRADING_INFO_SECTION -->",  GradingInfoSection(r));
-        html = html.Replace("<!-- VCCS:IMAGE_SECTION -->",         ImageSection(r));
-        html = html.Replace("<!-- VCCS:QUALITY_TABLE -->",         QualityTable(r));
-        html = html.Replace("<!-- VCCS:DATA_FORMAT_CHECK -->",     DataFormatCheckSection(r));
-        html = html.Replace("<!-- VCCS:RFID_SECTION -->",          RfidSection(r));
-        html = html.Replace("<!-- VCCS:FOOTER -->",                Footer());
+        // Full-width body sections
+        html = html.Replace("<!-- VCCS:PRINT_BUTTON -->",         PrintButton());
+        html = html.Replace("<!-- VCCS:SUMMARY_ROWS -->",         SummaryRows(r));
+        html = html.Replace("<!-- VCCS:GRADES_ROW -->",           GradesRow(r));
+        html = html.Replace("<!-- VCCS:GRADING_INFO_SECTION -->", GradingInfoSection(r));
+
+        // Two-column paired sections
+        html = html.Replace("<!-- VCCS:IMAGE_AND_PARAMS -->",    ImageAndQualityTable(r));
+        html = html.Replace("<!-- VCCS:FORMAT_AND_RFID -->",     FormatAndRfidTable(r));
+
+        html = html.Replace("<!-- VCCS:FOOTER -->",              Footer());
 
         return html;
     }
@@ -83,7 +82,7 @@ public static class HybridReportGenerator
             .ConfigureAwait(false);
     }
 
-    // ── Section builders — each returns an HTML string ─────────────────────
+    // ── Section builders ───────────────────────────────────────────────────────
 
     private static string VccsLogoCell() =>
         """
@@ -96,14 +95,11 @@ public static class HybridReportGenerator
         """;
 
     private static string WebscanLogoCell() =>
-        // logo.jpg ships with Webscan alongside the HTML; resolves automatically
-        // when the hybrid is saved to the same folder.  In Replace-mode the
-        // operator keeps logo.jpg next to the output file.  Wire a base64 data
-        // URI here once the bytes are captured from a live Webscan installation.
+        // logo.jpg ships with Webscan alongside its HTML.  In Replace-mode,
+        // keep logo.jpg in the same folder as the output file.
         """
         <td style="vertical-align:middle;padding:4pt;">
-          <div style="border:2px dashed #999;text-align:center;padding:6pt 4pt;min-width:0.9in;">
-            <div style="font-size:7pt;color:#555;">Webscan</div>
+          <div style="text-align:center;padding:0;min-width:0.9in;">
             <img src="logo.jpg" style="width:0.9in;" alt="Webscan"
                  onerror="this.style.display='none'"/>
           </div>
@@ -113,9 +109,9 @@ public static class HybridReportGenerator
     private static string TitleCell(VerificationRecord r)
     {
         string dt     = r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt");
-        string device = H(r.DeviceModel    ?? "Cognex DataMan");
+        string device = H(r.DeviceModel     ?? "Cognex DataMan");
         string fw     = H(r.FirmwareVersion ?? "\u2014");
-        string serial = H(r.DeviceSerial   ?? "\u2014");
+        string serial = H(r.DeviceSerial    ?? "\u2014");
         string badge  = RfidStatusBadge(r);
 
         return $"""
@@ -154,7 +150,7 @@ public static class HybridReportGenerator
     {
         var sb = new StringBuilder();
 
-        // ── Overall grade row — always first, matches Webscan layout ──────────
+        // MIL-STD / standard acceptance criteria row — always first if present
         if (r.Standard is not null && r.OverallGrade is not null)
         {
             string grade = GradeDisplay(r.OverallGrade);
@@ -162,7 +158,7 @@ public static class HybridReportGenerator
             sb.Append($"""
               <tr style="font-weight:bold;">
                 <td style="border-style:solid;border-width:thin;display-align:center;">
-                  <div style="padding:0.025in;">{H(r.Standard)}</div>
+                  <div style="padding:0.025in;">{H(r.Standard)} Acceptance Criteria</div>
                 </td>
                 <td style="border-style:solid;border-width:thin;" colspan="1">
                   <div style="padding:0.025in;">{grade}{extra}</div>
@@ -171,7 +167,7 @@ public static class HybridReportGenerator
             """);
         }
 
-        // ── Data ──────────────────────────────────────────────────────────────
+        // Data row
         string dataFontSize = (r.DecodedData?.Length ?? 0) > 66 ? "7pt" : "9pt";
         sb.Append($"""
           <tr style="font-weight:bold;">
@@ -184,7 +180,7 @@ public static class HybridReportGenerator
           </tr>
         """);
 
-        // ── Symbology ─────────────────────────────────────────────────────────
+        // Symbology
         sb.Append($"""
           <tr style="font-weight:bold;">
             <td style="border-style:solid;border-width:thin;">
@@ -196,7 +192,7 @@ public static class HybridReportGenerator
           </tr>
         """);
 
-        // ── User-info rows — thick top border on FIRST row, per Webscan ───────
+        // User-info rows — first row gets thick top border, per Webscan template
         bool firstUserRow = true;
         void UserRow(string label, string? value)
         {
@@ -215,11 +211,11 @@ public static class HybridReportGenerator
             """);
         }
 
-        UserRow("Verified By",   r.OperatorId);
-        UserRow("Company Name",  r.CompanyName);
-        UserRow("Product Name",  r.ProductName);
-        UserRow("Job Number",    r.JobName);
-        UserRow("Batch Number",  r.BatchNumber);
+        UserRow("Verified By",  r.OperatorId);
+        UserRow("Company Name", r.CompanyName);
+        UserRow("Product Name", r.ProductName);
+        UserRow("Job Number",   r.JobName);
+        UserRow("Batch Number", r.BatchNumber);
 
         return sb.ToString();
     }
@@ -228,9 +224,9 @@ public static class HybridReportGenerator
     {
         string standard   = H(r.Standard ?? "\u2014");
         string grade      = GradeDisplay(r.OverallGrade);
-        string aperture   = r.Aperture.HasValue   ? r.Aperture.Value.ToString("D2")   : "\u2014";
-        string wavelength = r.Wavelength.HasValue ? r.Wavelength.Value.ToString()      : "\u2014";
-        string lighting   = H(r.Lighting ?? "\u2014");
+        string aperture   = r.Aperture.HasValue   ? r.Aperture.Value.ToString("D2")  : "\u2014";
+        string wavelength = r.Wavelength.HasValue ? r.Wavelength.Value.ToString()     : "\u2014";
+        string lighting   = H(r.Lighting   ?? "\u2014");
         string formal     = H(r.FormalGrade ?? "\u2014");
 
         var sb = new StringBuilder();
@@ -242,19 +238,18 @@ public static class HybridReportGenerator
     }
 
     /// <summary>
-    /// GradingInfoSection — per-parameter detail grid.
-    /// Columns: Name | Grade | Aperture | Wavelength | Lighting | Formal Grade | Check | Notes
-    /// Matches the Webscan GradingInfoSection template exactly (8 dynamic columns).
-    /// Omitted when no grading results are populated on the record.
+    /// GradingInfoSection — full-width per-parameter detail table.
+    /// 8 columns: Name | Grade | Aperture | Wavelength | Lighting | Formal Grade | Check | Notes
+    /// Omitted when no grading results are populated.
     /// </summary>
     private static string GradingInfoSection(VerificationRecord r)
     {
-        var rows = new List<(string Name, string Grade, string Check, string Note)>();
+        var rows = new List<(string Name, string Grade, string Note)>();
 
-        void Add(string name, GradingResult? g, string check = "PASS", string note = "")
+        void Add(string name, GradingResult? g, string note = "")
         {
             if (g is null) return;
-            rows.Add((name, GradeDisplay(g), check, note));
+            rows.Add((name, GradeDisplay(g), note));
         }
 
         if (r.Is2D)
@@ -277,19 +272,19 @@ public static class HybridReportGenerator
 
         if (rows.Count == 0) return string.Empty;
 
-        string aperture   = r.Aperture.HasValue   ? r.Aperture.Value.ToString("D2")   : "\u2014";
-        string wavelength = r.Wavelength.HasValue ? r.Wavelength.Value.ToString()      : "\u2014";
-        string lighting   = H(r.Lighting ?? "\u2014");
-        string title      = $"{H(r.Standard ?? "Grading Info")} Grade: {GradeDisplay(r.OverallGrade)}";
+        string aperture   = r.Aperture.HasValue   ? r.Aperture.Value.ToString("D2")  : "\u2014";
+        string wavelength = r.Wavelength.HasValue ? r.Wavelength.Value.ToString()     : "\u2014";
+        string lighting   = H(r.Lighting   ?? "\u2014");
+        string title      = H($"{r.Standard ?? "Grading Info"} Grade: {GradeDisplay(r.OverallGrade)}");
 
         var sb = new StringBuilder();
         sb.Append($"""
-          <!--GradingInfoSection-->
-          <div span="all" style="font-size:9pt;border-style:solid;text-align:center;margin-top:8pt;">
-            <table width="100%"><col/>
+          <div span="all" style="font-size:9pt;border-style:solid;margin-top:8pt;">
+            <table width="100%">
+              <col/>
               <tr>
                 <td style="border-style:solid;background-color:#1a3a6b;color:white;">
-                  <h2 style="padding:0.025in;font-weight:bold;font-size:11pt;">{title}</h2>
+                  <h2 style="padding:0.025in;font-weight:bold;text-align:center;font-size:11pt;">{title}</h2>
                 </td>
               </tr>
               <tr><td style="border-style:solid;"><table width="100%">
@@ -306,9 +301,8 @@ public static class HybridReportGenerator
                 </tr>
         """);
 
-        foreach (var (name, grade, check, note) in rows)
+        foreach (var (name, grade, note) in rows)
         {
-            // Formal grade for each parameter = grade/aperture/wavelength/lighting
             string formal = $"{grade}/{aperture}/{wavelength}/{lighting}";
             sb.Append($"""
                 <tr>
@@ -318,29 +312,55 @@ public static class HybridReportGenerator
                   <td style="border-style:solid;border-width:thin;display-align:center;"><div style="padding:0.025in;">{wavelength}</div></td>
                   <td style="border-style:solid;border-width:thin;display-align:center;"><div style="padding:0.025in;">{lighting}</div></td>
                   <td style="border-style:solid;border-width:thin;display-align:center;"><div style="padding:0.025in;">{formal}</div></td>
-                  <td style="border-style:solid;border-width:thin;display-align:center;"><div style="padding:0.025in;">{check}</div></td>
+                  <td style="border-style:solid;border-width:thin;display-align:center;"><div style="padding:0.025in;">PASS</div></td>
                   <td style="border-style:solid;border-width:thin;display-align:center;"><div style="padding:0.025in;">{H(note)}</div></td>
                 </tr>
             """);
         }
 
-        sb.Append("    </table></td></tr></table></div>");
+        sb.Append("      </table></td></tr></table>\n  </div>");
         return sb.ToString();
     }
 
-    private static string ImageSection(VerificationRecord r)
+    /// <summary>
+    /// Two-column row: Image (left ~3.5in) | ISO Quality Parameters (right).
+    /// Matches the Webscan PDF layout exactly.
+    /// </summary>
+    private static string ImageAndQualityTable(VerificationRecord r)
+    {
+        string imageHtml  = BuildImageCell(r);
+        string qualityHtml = BuildQualityCell(r);
+
+        if (string.IsNullOrEmpty(imageHtml) && string.IsNullOrEmpty(qualityHtml))
+            return string.Empty;
+
+        // Wrap in a 2-col table exactly as the PDF shows
+        return $"""
+          <table width="100%" style="font-size:8pt;border-style:solid;margin-top:8pt;">
+            <col width="3.5in"/>
+            <col/>
+            <tr>
+              <td style="border-style:solid;vertical-align:top;padding:0;">
+                {imageHtml}
+              </td>
+              <td style="border-style:solid;vertical-align:top;padding:0;">
+                {qualityHtml}
+              </td>
+            </tr>
+          </table>
+        """;
+    }
+
+    private static string BuildImageCell(VerificationRecord r)
     {
         string? b64 = r.RoiJpegImageBase64 ?? r.JpegImageBase64;
         if (string.IsNullOrWhiteSpace(b64)) return string.Empty;
 
-        string label = r.RoiJpegImageBase64 is { Length: > 0 }
-            ? "Symbol Image (ROI Crop)"
-            : "Symbol Image";
+        string label = r.RoiJpegImageBase64 is { Length: > 0 } ? "Symbol Image (ROI Crop)" : "Image";
 
-        // Verbatim Webscan ImageSection structure
+        // Verbatim Webscan ImageSection structure (header + img div)
         return $"""
-          <!--ImageSection-->
-          <div style="font-size:8pt;border-style:solid;margin-top:8pt;">
+          <div style="font-size:8pt;border-style:solid;">
             <h2 style="background-color:#1a3a6b;color:white;padding:0.025in;text-align:center;border-style:solid;font-weight:bold;font-size:10pt;">{H(label)}</h2>
             <div>
               <img src="data:image/jpeg;base64,{b64}" alt="Symbol Image"
@@ -350,29 +370,29 @@ public static class HybridReportGenerator
         """;
     }
 
-    private static string QualityTable(VerificationRecord r)
+    private static string BuildQualityCell(VerificationRecord r)
     {
         var rows = new List<(string Name, string Value, string Data)>();
 
         void Add(string name, GradingResult? g, decimal? numVal = null, string? suffix = null)
         {
             if (g is null && numVal is null) return;
-            string v    = numVal.HasValue ? $"{numVal.Value:F1}{suffix}" : g?.NumericGradeString ?? "\u2014";
+            string v    = numVal.HasValue ? $"{numVal.Value:F0}{suffix}" : g?.NumericGradeString ?? "\u2014";
             string data = g?.LetterGradeString is { Length: > 0 } l ? l : "\u2014";
             rows.Add((name, v, data));
         }
 
         if (r.Is2D)
         {
-            Add("Decode",       r.DECODE_Grade);
-            Add("SC",           r.SC_Grade,      r.SC_Percent,   "%");
-            Add("MOD",          r.MOD_Grade);
-            Add("ANU",          r.ANU_Grade,     r.ANU_Percent,  "%");
-            Add("GNU",          r.GNU_Grade,     r.GNU_Percent,  "%");
-            Add("FPD",          r.FPD_Grade,     r.FPD_Value);
-            Add("UEC",          r.UEC_Grade,     r.UEC_Percent,  "%");
-            Add("Refl. Margin", r.RM_Grade);
-            Add("Avg. Grade",   r.AverageGrade,  r.AverageGradeNumeric);
+            Add("1. Unused Error Correction (UEC)", r.UEC_Grade,    r.UEC_Percent,  "%");
+            Add("2. Cell Contrast (CC)",            r.SC_Grade,     r.SC_Percent,   "%");
+            Add("3a. Cell Modulation (CMOD)",       r.MOD_Grade);
+            Add("3b. Reflectance Margin (RM)",      r.RM_Grade);
+            Add("4. Axial Nonuniformity (ANU)",     r.ANU_Grade,    r.ANU_Percent,  "%");
+            Add("5. Grid Nonuniformity (GNU)",      r.GNU_Grade,    r.GNU_Percent,  "%");
+            Add("6. Fixed Pattern Damage (FPD)",    r.FPD_Grade,    r.FPD_Value);
+            Add("18. DECODE",                       r.DECODE_Grade);
+            Add("Avg. Grade",                       r.AverageGrade, r.AverageGradeNumeric);
         }
         else if (r.Is1D && r.ScanResults.Count > 0)
         {
@@ -383,62 +403,89 @@ public static class HybridReportGenerator
 
         if (rows.Count == 0) return string.Empty;
 
-        string title = r.Is2D ? "ISO15415 Quality Parameters" : "ISO15416 Quality Parameters";
+        string title = r.Is2D ? "ISO 29158 Quality Parameters" : "ISO 15416 Quality Parameters";
         var sb = new StringBuilder();
 
-        // Verbatim Webscan TableSection structure
+        // Verbatim Webscan TableSection inner structure
         sb.Append($"""
-          <!--TableSection-->
-          <table width="100%" style="font-size:8pt;border-style:solid;margin-top:8pt;">
-            <col/><col/><col/>
+          <table width="100%" style="font-size:8pt;border-style:solid;">
+            <col/><col/><col/><col/>
             <tr>
-              <td style="background-color:#1a3a6b;color:white;" colspan="3">
+              <td style="background-color:#1a3a6b;color:white;" colspan="4">
                 <h2 style="padding:0.025in;text-align:center;border-style:solid;font-weight:bold;font-size:10pt;">{H(title)}</h2>
               </td>
             </tr>
             <tr style="text-align:center;font-weight:bold;">
               <th style="border-style:solid;border-width:thin;"><div style="padding:0.025in;">Parameter</div></th>
               <th style="border-style:solid;border-width:thin;"><div style="padding:0.025in;">Value</div></th>
-              <th style="border-style:solid;border-width:thin;"><div style="padding:0.025in;">Data</div></th>
+              <th style="border-style:solid;border-width:thin;"><div style="padding:0.025in;">Grade</div></th>
+              <th style="border-style:solid;border-width:thin;"><div style="padding:0.025in;">Check</div></th>
             </tr>
         """);
 
         foreach (var (name, value, data) in rows)
+        {
+            bool isPass = !data.StartsWith("F", StringComparison.OrdinalIgnoreCase);
+            string check = isPass ? "PASS" : "FAIL";
+            string checkStyle = check == "FAIL" ? "color:#721c24;font-weight:bold;" : "";
             sb.Append($"""
               <tr>
                 <td style="border-style:solid;border-width:thin;"><div style="padding:0.025in;">{H(name)}</div></td>
                 <td style="border-style:solid;border-width:thin;"><div style="padding:0.025in;">{value}</div></td>
                 <td style="border-style:solid;border-width:thin;"><div style="padding:0.025in;">{data}</div></td>
+                <td style="border-style:solid;border-width:thin;"><div style="padding:0.025in;{checkStyle}">{check}</div></td>
               </tr>
             """);
+        }
 
         sb.Append("  </table>");
         return sb.ToString();
     }
 
     /// <summary>
-    /// GS1 / MIL-STD-130 data format check table.
-    /// Columns: Name | Data | Check — verbatim Webscan TableSection structure.
-    /// Omitted when DataFormatCheck is null or has no rows.
+    /// Two-column row: Data Format Check (left) | RFID Validation (right).
+    /// Mirrors the Webscan PDF pattern of Data Format Check beside General Characteristics.
     /// </summary>
-    private static string DataFormatCheckSection(VerificationRecord r)
+    private static string FormatAndRfidTable(VerificationRecord r)
+    {
+        string formatHtml = BuildDataFormatCheckCell(r);
+        string rfidHtml   = BuildRfidCell(r);
+
+        if (string.IsNullOrEmpty(formatHtml) && string.IsNullOrEmpty(rfidHtml))
+            return string.Empty;
+
+        return $"""
+          <table width="100%" style="font-size:8pt;border-style:solid;margin-top:8pt;">
+            <col/>
+            <col/>
+            <tr>
+              <td style="border-style:solid;vertical-align:top;padding:0;">
+                {formatHtml}
+              </td>
+              <td style="border-style:solid;vertical-align:top;padding:0;">
+                {rfidHtml}
+              </td>
+            </tr>
+          </table>
+        """;
+    }
+
+    private static string BuildDataFormatCheckCell(VerificationRecord r)
     {
         var dfc = r.DataFormatCheck;
         if (dfc is null || dfc.Rows.Count == 0) return string.Empty;
 
         string overall = dfc.Overall switch
         {
-            OverallPassFail.Pass => "PASS",
-            OverallPassFail.Fail => "FAIL",
+            OverallPassFail.Pass => " \u2014 PASS",
+            OverallPassFail.Fail => " \u2014 FAIL",
             _                   => "",
         };
-        string titleSuffix = overall.Length > 0 ? $" \u2014 {overall}" : "";
-        string title       = H((dfc.Standard ?? "Data Format Check") + titleSuffix);
+        string title = H((dfc.Standard ?? "Data Format Check") + overall);
 
         var sb = new StringBuilder();
         sb.Append($"""
-          <!--DataFormatCheck-->
-          <table width="100%" style="font-size:8pt;border-style:solid;margin-top:8pt;">
+          <table width="100%" style="font-size:8pt;border-style:solid;">
             <col/><col/><col/>
             <tr>
               <td style="background-color:#1a3a6b;color:white;" colspan="3">
@@ -470,28 +517,25 @@ public static class HybridReportGenerator
     }
 
     /// <summary>
-    /// RFID Validation section — VCCS FlexWedge™.
-    /// Left column is 2in wide and all labels carry white-space:nowrap so no
-    /// label ever wraps to a second line regardless of viewport width.
+    /// RFID Validation cell — right column of the bottom 2-column row.
+    /// Left label column is 2in wide; every label carries white-space:nowrap.
     /// </summary>
-    private static string RfidSection(VerificationRecord r)
+    private static string BuildRfidCell(VerificationRecord r)
     {
         bool rfidPerformed = !string.IsNullOrWhiteSpace(r.RfidStatus);
         var  sb            = new StringBuilder();
 
         sb.Append("""
-          <!--VCCSRfidValidation-->
-          <div span="all">
-            <table width="100%" style="font-size:9pt;border-style:solid;text-align:left;margin-top:8pt;">
-              <col width="2in"/>
-              <col/>
-              <tr>
-                <td style="border-style:solid;background-color:#1a3a6b;color:white;" colspan="2">
-                  <div style="padding:0.025in;font-weight:bold;text-align:center;font-size:11pt;">
-                    RFID Validation &#x2014; VCCS FlexWedge&#x2122;
-                  </div>
-                </td>
-              </tr>
+          <table width="100%" style="font-size:9pt;border-style:solid;text-align:left;">
+            <col width="2in"/>
+            <col/>
+            <tr>
+              <td style="border-style:solid;background-color:#1a3a6b;color:white;" colspan="2">
+                <div style="padding:0.025in;font-weight:bold;text-align:center;font-size:10pt;">
+                  RFID Validation &#x2014; VCCS FlexWedge&#x2122;
+                </div>
+              </td>
+            </tr>
         """);
 
         if (!rfidPerformed)
@@ -501,7 +545,6 @@ public static class HybridReportGenerator
                   <td colspan="2" style="border-style:solid;border-width:thin;">
                     <div style="padding:0.025in;color:#666;font-style:italic;">
                       RFID validation was not performed for this scan.
-                      Enable RFID by configuring the ASR-P35U reader COM port in Application Settings.
                     </div>
                   </td>
                 </tr>
@@ -510,30 +553,30 @@ public static class HybridReportGenerator
         else
         {
             bool tagDetected = r.RfidStatus is not ("NoTag" or "NO_TAG");
-            RfidRow(sb, "Tag Detected",   tagDetected ? "Yes" : "No");
+            RfidRow(sb, "Tag Detected", tagDetected ? "Yes" : "No");
 
             if (tagDetected)
             {
-                RfidRow(sb, "EPC (Hex)",      r.RfidEpcHex ?? "\u2014", mono: true);
+                RfidRow(sb, "EPC (Hex)",       r.RfidEpcHex ?? "\u2014", mono: true);
                 RfidRow(sb, "Decoded GTIN-14", r.RfidGtin14 ?? "\u2014", mono: true);
-                RfidRow(sb, "GCP Valid",      r.RfidGcpValid.HasValue
+                RfidRow(sb, "GCP Valid",       r.RfidGcpValid.HasValue
                     ? (r.RfidGcpValid.Value ? "Yes" : "No") : "\u2014");
-                RfidRow(sb, "EPC Serial",     r.RfidSerial ?? "\u2014", mono: true);
+                RfidRow(sb, "EPC Serial",      r.RfidSerial ?? "\u2014", mono: true);
             }
 
             (string style, string display) = r.RfidStatus switch
             {
-                "Pass"                 => ("color:#155724;font-weight:bold;",
-                                          "&#x2713; PASS &#x2014; EPC matches barcode data"),
-                "Fail"                 => ("color:#721c24;font-weight:bold;",
-                                          "&#x2718; FAIL &#x2014; EPC does not match barcode data"),
-                "NoTag"                => ("color:#6c757d;",
-                                          "&#x2014; No tag detected in scan window"),
-                "ParseError"           => ("color:#856404;font-weight:bold;",
-                                          "! Parse error &#x2014; EPC could not be decoded"),
+                "Pass"  => ("color:#155724;font-weight:bold;",
+                            "&#x2713; PASS &#x2014; EPC matches barcode data"),
+                "Fail"  => ("color:#721c24;font-weight:bold;",
+                            "&#x2718; FAIL &#x2014; EPC does not match barcode data"),
+                "NoTag" => ("color:#6c757d;",
+                            "&#x2014; No tag detected in scan window"),
+                "ParseError" => ("color:#856404;font-weight:bold;",
+                                 "! Parse error &#x2014; EPC could not be decoded"),
                 "MultipleTagsDetected" => ("color:#856404;font-weight:bold;",
-                                          "! Multiple tags &#x2014; ambiguous read"),
-                _                      => ("", H(r.RfidStatus)),
+                                           "! Multiple tags &#x2014; ambiguous read"),
+                _ => ("", H(r.RfidStatus)),
             };
 
             sb.Append($"""
@@ -554,20 +597,19 @@ public static class HybridReportGenerator
                 RfidRow(sb, "Scan Window", $"{r.RfidScanWindowMs.Value} ms");
         }
 
-        sb.Append("    </table>\n  </div>");
+        sb.Append("  </table>");
         return sb.ToString();
     }
 
     private static string Footer() =>
         """
         <div class="vccs-footer">
-          Generated by VTCCP &nbsp;&middot;&nbsp; VCCS FlexWedge&#x2122; RFID Validation &nbsp;&middot;&nbsp; Hybrid Report v2.0
+          Generated by VTCCP &nbsp;&middot;&nbsp; VCCS FlexWedge&#x2122; RFID Validation &nbsp;&middot;&nbsp; Hybrid Report v2.1
         </div>
         """;
 
-    // ── Structural helpers ─────────────────────────────────────────────────
+    // ── Structural helpers ─────────────────────────────────────────────────────
 
-    /// <summary>Single RFID label/value row. Left label is always white-space:nowrap.</summary>
     private static void RfidRow(StringBuilder sb, string label, string value, bool mono = false)
     {
         string fontStyle = mono ? "font-family:Consolas,monospace;" : "";
@@ -595,7 +637,7 @@ public static class HybridReportGenerator
             : "";
     }
 
-    // ── Display helpers ────────────────────────────────────────────────────
+    // ── Display helpers ────────────────────────────────────────────────────────
 
     private static string RfidStatusBadge(VerificationRecord r) =>
         string.IsNullOrWhiteSpace(r.RfidStatus)
@@ -650,7 +692,6 @@ public static class HybridReportGenerator
             border-top:1px solid #ccc; text-align:center;
         }
 
-        /* ── Print / PDF ────────────────────────────────────────────────────── */
         @media print {
             .no-print { display:none !important; }
             body { text-align:center; }
@@ -658,21 +699,16 @@ public static class HybridReportGenerator
         }
         """;
 
-    // ── Template ───────────────────────────────────────────────────────────
+    // ── Template ───────────────────────────────────────────────────────────────
     //
-    // This IS the Webscan TruCheck HTML report structure — copied verbatim from
-    // the rendered output (HTMLreport_*.html), then extended with VCCS token
-    // comments at injection points.  Every table, col, td style attribute, and
-    // CSS rule was in the original Webscan file.  Do not reformat this block;
-    // keep it as close to the Webscan source as possible so future diffs are
-    // surgical.
-    //
-    // Changes from original Webscan HTML:
-    //   • background-color:black → #1a3a6b (navy; B&W print identical)
-    //   • Header table: 2 logo cols added at left, 1 company logo col at right
-    //   • Title upgraded to hybrid name at 15pt (was 15pt Webscan-only)
-    //   • Device meta rows font-size:9pt;font-weight:normal (was 13pt bold)
-    //   • GradingInfoSection, DataFormatCheck, VCCSRfidValidation added in <lu>
+    // Verbatim Webscan TruCheck HTML skeleton (from HTMLreport_*.html).
+    // Every CSS rule, table, col, td style attribute, and the <lu><li> structure
+    // are copied exactly.  The only deliberate changes:
+    //   • background-color:black  →  #1a3a6b  (navy; prints same as black in B&W)
+    //   • Header <table>: 2 logo cols added at left, 1 company col at right
+    //   • <lu><li> body: tokens replaced for VCCS content (no structural change)
+    //   • Two two-column paired-section <li> items (Image+Params, Format+RFID)
+    //     replace what the XSLT generates via CSS column-flow into separate <li>s
 
     private const string Template = """
         <?xml version="1.0" encoding="utf-8"?>
@@ -725,6 +761,7 @@ public static class HybridReportGenerator
           <!--
             Header banner — four-column layout:
               [VCCS logo] [Webscan logo] [Title / meta] [Company logo]
+            Original Webscan header was 2-col (logo + title).
           -->
           <div>
             <table width="100%">
@@ -745,7 +782,7 @@ public static class HybridReportGenerator
           <body>
             <!-- VCCS:PRINT_BUTTON -->
 
-            <!--Summary-->
+            <!--Summary — full width, span="all"-->
             <div span="all">
               <table style="font-size:9pt;border-style:solid;text-align:left;" width="100%">
                 <col width="1.5in"/>
@@ -761,7 +798,7 @@ public static class HybridReportGenerator
               </table>
             </div>
 
-            <!--OverallGrades-->
+            <!--OverallGrades — full width, span="all"-->
             <div span="all">
               <table width="100%" style="font-size:9pt;border-style:solid;text-align:center;margin-top:8pt;">
                 <col/>
@@ -791,25 +828,18 @@ public static class HybridReportGenerator
 
             <lu>
               <li>
+                <!--GradingInfoSection — full width-->
                 <!-- VCCS:GRADING_INFO_SECTION -->
               </li>
               <li>
+                <!--ImageSection + TableSection — side by side, 2 columns-->
                 <!--ReportSection-->
-                <!--ImageSection-->
-                <!-- VCCS:IMAGE_SECTION -->
+                <!-- VCCS:IMAGE_AND_PARAMS -->
               </li>
               <li>
+                <!--DataFormatCheck + RFID Validation — side by side, 2 columns-->
                 <!--ReportSection-->
-                <!--TableSection-->
-                <!-- VCCS:QUALITY_TABLE -->
-              </li>
-              <li>
-                <!--ReportSection-->
-                <!-- VCCS:DATA_FORMAT_CHECK -->
-              </li>
-              <li>
-                <!--ReportSection-->
-                <!-- VCCS:RFID_SECTION -->
+                <!-- VCCS:FORMAT_AND_RFID -->
               </li>
             </lu>
 

@@ -183,3 +183,10 @@ uri = "file://dist/hybrid-report-sample-v3.html"
 type = "text"
 title = "Hybrid Report v3 — all sections, corrected"
 description = "Both samples. Sections in order: Report Summary · Verification Grades · GradingInfoSection (per-parameter detail, 8 cols) · Image · ISO Quality Parameters · Data Format Check · RFID Validation. Title restored. RFID labels white-space:nowrap, left col 2in."
+
+[[outputs]]
+id = "CdLqexrsN_Z9YuNiMxbjo"
+uri = "file://dist/hybrid-report-sample-v4.html"
+type = "text"
+title = "Hybrid Report v4 — correct 2-column layout"
+description = "Image (left) + ISO Quality Parameters (right) side-by-side. Data Format Check (left) + RFID Validation (right) side-by-side. Matches the Webscan PDF layout exactly. Full-width sections: Report Summary, Verification Grades, GradingInfoSection."
