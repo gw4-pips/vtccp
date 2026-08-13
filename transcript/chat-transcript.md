@@ -1178,3 +1178,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** V5 is an improvement but the investment to get the integrated report where it needs to be isn't justified. Proposal: abandon hybrid report work, archive it, and pivot to a standalone PDF report that can be appended as an extra page to the Webscan PDF (leaving Webscan output untouched).
 
 **Assistant:** Agreed the approach is cleaner. Key advantages: Webscan output untouched (less Cognex friction), simpler to build (one focused PDF page vs template injection), more focused value (RFID + VCCS-only content), survives Webscan format changes. Archived HybridReportGenerator.cs → DeviceInterface/Reports/_archived/. Removed all wiring from SessionViewModel. Set GenerateHybridReport default to false. DmstHtmlScraper deletion config also removed. Standalone PDF report proposed as follow-up task.
+
+---
+
+**User:** Not cancelling #83-85, just skipping for now. Want to see a rendering of the new PDF page.
+
+**Assistant:** Read PdfReportGenerator.cs produced by task #82 (QuestPDF + PdfSharp, Letter page, 4-col header, RFID table, barcode image section, Data Format Check, footer). Wrote dist/vccs-pdf-preview-v1.html as a pixel-faithful HTML mockup of the PDF layout.
