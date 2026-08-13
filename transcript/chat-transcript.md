@@ -1138,3 +1138,13 @@ Built vtccp/InlineIo/ relay assembly stub (task #37): IRelayBoard interface, Moc
 **User:** [Task #64 assigned] Build the EPC parser so SGTIN-96 tags can be decoded end-to-end before the first live read.
 
 **Assistant:** Built the remaining Phase 0.2–0.4 EPC parser components: `PartitionTable.cs` (standalone 7-row TDS 2.3 table), `EpcSchemeDispatcher.cs` (header-byte dispatcher, extracted from EpcParser), `Schemes/Sscc96Decoder.cs` (Phase 3 stub), `Schemes/UnknownSchemeDecoder.cs` (logs unrecognised headers). Updated `EpcParser.cs` to delegate to EpcSchemeDispatcher and added `ParseHex(string)` convenience overload. Added TestHarness Phase 6 (`EpcParserFixture.cs`) with 13 sub-tests covering SGTIN-96 decode at partitions 0/5/6, PartitionTable invariants (L+K=13, M+N=44), GcpLengthTable load, GcpValidator match/mismatch, RfidValidator Pass/Fail/NoTag, and ParseHex edge cases. All three test vectors independently verified correct in Python before writing. Proposed follow-ups: #65 (RfidScanCoordinator trigger coordination), #66 (RfidTabWriter Excel output), #67 (remaining TDS scheme decoders).
+
+---
+## Session: 2026-08-13 — Hybrid TruCheck + RFID Report
+
+**User:** Uploaded four Webscan TruCheck files (HTML sample report + 3 XSLT stylesheets). Asked to design a "Hybrid Webscan TruCheck™ Verification Report with VCCS FlexWedge™ RFID Validation." Selected Option C (standalone hybrid HTML). Key requirements: match Webscan structure exactly, RFID data in header, separate RFID section, PDF-printable, optional alongside or replacing original.
+
+**Assistant:** Analysed all four files (HTML structure, XSLT template pipeline, XML data model). Confirmed no Handlebars engine in VTCCP codebase — built a C# generator instead. Implemented:
+- `DeviceInterface/Reports/HybridReportGenerator.cs` — `Generate(VerificationRecord)` + `SaveAsync(record, dir)`. Mirrors Webscan TruCheck HTML structure exactly (same inline CSS, same black-header table sections). Adds RFID status badge in header and "RFID Validation — VCCS FlexWedge™" section after Verification Grades. Symbol image embedded as base64 data URI. @media print support for direct PDF export.
+- `ConfigEngine/Models/AppSettings.cs` — added `GenerateHybridReport` (bool, default true) and `HybridReportOutputDirectory` (string?).
+- `VtccpApp/ViewModels/SessionViewModel.cs` — captures `_sessionOutputDir`, calls `HybridReportGenerator.SaveAsync` fire-and-forget after each `AddRecord`. Commit: e33576c.

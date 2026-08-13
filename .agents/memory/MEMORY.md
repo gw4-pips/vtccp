@@ -30,3 +30,4 @@
 - [CP Inline project status](cp-inline-project-status.md) — CP Inline abandoned for Serview 475V-LBL inline application (5 Aug 2026); CP continues as desktop tool; DPM unit factory-reset to fw 6.1.16_tc9
 - [TRUCHECK.APPLICATION-STANDARD mapping](trucheck-app-standard-mapping.md) — DMCC ref says 4=Auto/5=Custom but fw 6.1.16_tc9 returns 5 for a unit showing "Auto" in UI; treat 5=Auto until Cognex clarifies
 - [git push hook](git-push-hook.md) — real hook is workspace root .githooks/post-commit; vtccp/ is a subdir not a separate repo; must unset GIT_ASKPASS before push
+- [Hybrid Report generator](hybrid-report-generator.md) — DeviceInterface/Reports/HybridReportGenerator.cs; fire-and-forget from SessionViewModel after AddRecord; mirrors Webscan TruCheck CSS exactly; RFID block after Verification Grades
