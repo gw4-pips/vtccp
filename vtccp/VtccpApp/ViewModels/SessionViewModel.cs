@@ -6,6 +6,7 @@ using ConfigEngine;
 using ConfigEngine.Models;
 using DeviceInterface;
 using DeviceInterface.Dmst;
+using DeviceInterface.Reports;
 using DeviceInterface.Rfid;
 using DeviceInterface.Rfid.Models;
 using ExcelEngine.Models;
@@ -56,6 +57,14 @@ public sealed class SessionViewModel : ViewModelBase
 
     // ── RFID ──────────────────────────────────────────────────────────────────
     private RfidScanCoordinator? _rfidCoordinator;
+
+    // ── Hybrid report ──────────────────────────────────────────────────────────
+    /// <summary>
+    /// Output directory for the current session.
+    /// Set in OnStartAsync and used by AcceptRecordInnerAsync to write hybrid
+    /// HTML reports alongside the Excel workbook.
+    /// </summary>
+    private string? _sessionOutputDir;
 
     // ── OCR ───────────────────────────────────────────────────────────────────
 
@@ -317,6 +326,7 @@ public sealed class SessionViewModel : ViewModelBase
         string outputDir = !string.IsNullOrWhiteSpace(SelectedTemplate.OutputDirectory)
             ? SelectedTemplate.OutputDirectory
             : _repo.Settings.DefaultOutputDirectory;
+        _sessionOutputDir = outputDir;   // captured for hybrid report generation
 
         SessionState state = SelectedTemplate.ToSessionState(outputDir);
         if (!string.IsNullOrWhiteSpace(OperatorOverride))
@@ -819,6 +829,23 @@ public sealed class SessionViewModel : ViewModelBase
 
         _history.AddRecord(record);
         _recordCount++; OnPropertyChanged(nameof(RecordCount));
+
+        // ── Hybrid HTML report (fire-and-forget) ──────────────────────────────
+        // Generates a self-contained report combining barcode grades + RFID data.
+        // Runs on the thread-pool; failures are silently swallowed so they never
+        // interfere with the scan loop.  Report lands in the session output dir
+        // (or in HybridReportOutputDirectory if configured in AppSettings).
+        if (_repo.Settings.GenerateHybridReport && _sessionOutputDir is { } sessionDir)
+        {
+            string reportDir = !string.IsNullOrWhiteSpace(_repo.Settings.HybridReportOutputDirectory)
+                ? _repo.Settings.HybridReportOutputDirectory
+                : sessionDir;
+            _ = Task.Run(async () =>
+            {
+                try   { await HybridReportGenerator.SaveAsync(record, reportDir); }
+                catch { /* report write failure must never affect the scan loop */ }
+            });
+        }
         string grade     = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
         string num       = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
         string ocrSuffix = record.OcrResult?.Tier is { Length: > 0 } t ? $"  | OCR: {t}" : string.Empty;

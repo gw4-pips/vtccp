@@ -72,6 +72,22 @@ public sealed class AppSettings
     /// </summary>
     public string? GcpLastModified { get; set; }
 
+    // ── Hybrid report ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// When true, VTCCP generates a self-contained hybrid HTML report for every
+    /// accepted scan.  The report merges the Webscan TruCheck™ barcode grading
+    /// data with the VCCS FlexWedge™ RFID validation result.  It can be
+    /// opened in any browser and printed directly to PDF.
+    /// </summary>
+    public bool GenerateHybridReport { get; set; } = true;
+
+    /// <summary>
+    /// Optional directory for hybrid HTML reports.
+    /// Null or empty = session output directory (same folder as the Excel workbook).
+    /// </summary>
+    public string? HybridReportOutputDirectory { get; set; }
+
     // ── Schema version awareness ──────────────────────────────────────────────
 
     /// <summary>App version that wrote this settings file.</summary>
