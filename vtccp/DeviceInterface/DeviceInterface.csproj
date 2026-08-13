@@ -27,6 +27,18 @@
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
   </ItemGroup>
 
+  <!-- QuestPDF — MIT-licensed PDF layout and generation library.
+       Used by PdfReportGenerator to produce the per-scan VCCS RFID validation page. -->
+  <ItemGroup>
+    <PackageReference Include="QuestPDF" Version="2024.10.4" />
+  </ItemGroup>
+
+  <!-- PdfSharp-MigraDoc-GDI — MIT-licensed PDF manipulation.
+       Used by PdfReportGenerator.MergeAsync to append the VCCS page to the Webscan PDF. -->
+  <ItemGroup>
+    <PackageReference Include="PdfSharp-MigraDoc-GDI" Version="6.2.0" />
+  </ItemGroup>
+
   <!-- Cognex DataMan SDK — ships with DataMan Software (DMST).
        Port 44444 binary protocol; replaces our raw ASCII DmccClient.
        Excluded from build when the DLL is absent (CI / Linux / test runs). -->

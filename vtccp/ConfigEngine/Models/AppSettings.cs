@@ -117,6 +117,25 @@ public sealed class AppSettings
     /// </summary>
     public HybridReportMode HybridReportMode { get; set; } = HybridReportMode.Alongside;
 
+    // ── VCCS PDF report ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// When true, VTCCP generates a single-page VCCS RFID Validation PDF for every
+    /// accepted scan.  The page covers RFID tag detection, EPC decode, barcode-vs-EPC
+    /// match result, GCP validity, and VCCS FlexWedge™ attribution.
+    ///
+    /// The Webscan PDF is left completely untouched.  When <see cref="WebscanSourcePath"/>
+    /// is available on the record, the VCCS page is appended to the Webscan PDF so the
+    /// final document is one file, with authorship unambiguous for Cognex and customer audits.
+    /// </summary>
+    public bool GenerateVccsReport { get; set; } = true;
+
+    /// <summary>
+    /// Optional directory for VCCS PDF reports.
+    /// Null or empty = session output directory (same folder as the Excel workbook).
+    /// </summary>
+    public string? VccsReportOutputDirectory { get; set; }
+
     // ── Schema version awareness ──────────────────────────────────────────────
 
     /// <summary>App version that wrote this settings file.</summary>

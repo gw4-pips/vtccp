@@ -58,7 +58,10 @@ public sealed class SessionViewModel : ViewModelBase
     // ── RFID ──────────────────────────────────────────────────────────────────
     private RfidScanCoordinator? _rfidCoordinator;
 
-    // (Hybrid HTML report fields removed — feature archived 2026-08-13)
+    // ── Session output directory ───────────────────────────────────────────────
+    // Captured at OnStartAsync so fire-and-forget report generators have the path
+    // without relying on mutable session-manager state after the session closes.
+    private string _sessionOutputDir = string.Empty;
 
     // ── OCR ───────────────────────────────────────────────────────────────────
 
@@ -825,7 +828,23 @@ public sealed class SessionViewModel : ViewModelBase
         _history.AddRecord(record);
         _recordCount++; OnPropertyChanged(nameof(RecordCount));
 
-        // (Hybrid HTML report call removed — feature archived 2026-08-13)
+        // ── VCCS PDF report (fire-and-forget) ────────────────────────────────────
+        // Non-fatal: PDF generation failures are caught inside GenerateAsync and
+        // logged to Debug output.  The record has already been written to Excel above.
+        if (_repo.Settings.GenerateVccsReport)
+        {
+            string pdfDir = !string.IsNullOrWhiteSpace(_repo.Settings.VccsReportOutputDirectory)
+                ? _repo.Settings.VccsReportOutputDirectory
+                : _sessionOutputDir;
+
+            // WebscanSourcePath is non-null only when DMST correlated an HTML/PDF file;
+            // MergeAsync inside GenerateAsync checks for .pdf extension automatically.
+            string? wsPath = record.WebscanSourcePath;
+
+            _ = DeviceInterface.Reports.PdfReportGenerator.GenerateAsync(
+                record, pdfDir, wsPath, _pollCts?.Token ?? default);
+        }
+
         string grade     = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
         string num       = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
         string ocrSuffix = record.OcrResult?.Tier is { Length: > 0 } t ? $"  | OCR: {t}" : string.Empty;
@@ -1049,11 +1068,6 @@ public sealed class SessionViewModel : ViewModelBase
         {
             await _pushHttpSubscriber.StopAsync();
             _pushHttpSubscriber = null;
-        }
-        if (_htmlWatcher is not null)
-        {
-            _htmlWatcher.Stop();
-            _htmlWatcher = null;
         }
         if (_rfidCoordinator is not null)
         {
