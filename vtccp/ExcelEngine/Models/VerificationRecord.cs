@@ -446,6 +446,21 @@ public sealed record class VerificationRecord
     /// </summary>
     public bool? RfidGcpValid { get; init; }
 
+    // ─── Pipeline metadata ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Full path of the Webscan TruCheck HTML file that <see cref="DeviceInterface.Dmst.DmstHtmlScraper"/>
+    /// correlated and parsed for this record.  Set on the record at the moment of correlation
+    /// (inside <c>DeviceSession.TriggerAndGetResultAsync</c>) so the path travels atomically
+    /// with the record through the acceptance pipeline without relying on mutable scraper state.
+    ///
+    /// Used exclusively by <c>SessionViewModel</c> in Replace mode: the hybrid HTML report is
+    /// written to this exact path so downstream tools see the enriched file in the same location.
+    /// Null when no HTML file was correlated (Alongside mode, .pdf extension, or DMST closed).
+    /// Not written to the Excel workbook.
+    /// </summary>
+    public string? WebscanSourcePath { get; init; }
+
     // ─── Helper Properties ────────────────────────────────────────────────────
 
     /// <summary>

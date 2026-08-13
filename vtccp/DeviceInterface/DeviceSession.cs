@@ -43,6 +43,33 @@ public sealed class DeviceSession : IAsyncDisposable
     public string? OriginalTriggerType => _originalTriggerType;
 
     /// <summary>
+    /// Registers <paramref name="path"/> with the internal <see cref="DmstHtmlScraper"/> so
+    /// that the FileSystemWatcher suppresses the Created event triggered by VTCCP's own write
+    /// of a hybrid report to the CodeQuality folder (Replace mode).
+    ///
+    /// Call this immediately before writing the hybrid file to prevent the scraper from
+    /// re-parsing and deleting the newly written report.  No-op when no scraper is running.
+    /// </summary>
+    public void RegisterOwnedHybridPath(string path) => _scraper?.RegisterOwnedPath(path);
+
+    /// <summary>
+    /// Configures whether the internal <see cref="DmstHtmlScraper"/> deletes Webscan HTML
+    /// files from the CodeQuality folder after parsing them.
+    ///
+    /// Pass <c>true</c> (Replace mode) to delete after parse — the hybrid report will be
+    /// written back to the same path.  Pass <c>false</c> (Alongside mode) to leave the
+    /// original Webscan HTML on disk so both files coexist.
+    ///
+    /// Must be called after <see cref="ConnectAsync"/> but before the first scan.
+    /// No-op when no scraper is running.
+    /// </summary>
+    public void ConfigureScraperDeletion(bool deleteAfterParse)
+    {
+        if (_scraper is not null)
+            _scraper.DeleteAfterParse = deleteAfterParse;
+    }
+
+    /// <summary>
     /// Device information queried during <see cref="ConnectAsync"/>.
     /// Populated fields: Type, Serial, Name, FirmwareVersion, CalibrationDate.
     /// Use these to pre-fill <see cref="SessionState"/> before opening an Excel session.
@@ -313,9 +340,9 @@ public sealed class DeviceSession : IAsyncDisposable
 
         var record = DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo());
         record = await AttachRoiImageAsync(record, ct);
-        return _scraper is not null
-            ? await _scraper.TryMergeAsync(record, ct)
-            : record;
+        if (_scraper is null) return record;
+        var (merged, sourcePath) = await _scraper.TryMergeAsync(record, ct);
+        return sourcePath is not null ? merged with { WebscanSourcePath = sourcePath } : merged;
     }
 
     // ── Replay mode (image already loaded) ───────────────────────────────────
@@ -344,9 +371,9 @@ public sealed class DeviceSession : IAsyncDisposable
 
         var record = DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo());
         record = await AttachRoiImageAsync(record, ct);
-        return _scraper is not null
-            ? await _scraper.TryMergeAsync(record, ct)
-            : record;
+        if (_scraper is null) return record;
+        var (merged, sourcePath) = await _scraper.TryMergeAsync(record, ct);
+        return sourcePath is not null ? merged with { WebscanSourcePath = sourcePath } : merged;
     }
 
     /// <summary>
@@ -381,9 +408,9 @@ public sealed class DeviceSession : IAsyncDisposable
 
         record = record with { OpticsSource = "StitchedImage" };
         record = await AttachRoiImageAsync(record, ct);
-        return _scraper is not null
-            ? await _scraper.TryMergeAsync(record, ct)
-            : record;
+        if (_scraper is null) return record;
+        var (merged, sourcePath) = await _scraper.TryMergeAsync(record, ct);
+        return sourcePath is not null ? merged with { WebscanSourcePath = sourcePath } : merged;
     }
 
     // ── Push mode ─────────────────────────────────────────────────────────────
@@ -417,8 +444,11 @@ public sealed class DeviceSession : IAsyncDisposable
                 }
                 _ = Task.Run(async () =>
                 {
-                    var enriched = await scraper.TryMergeAsync(rec);
-                    ResultReceived?.Invoke(this, enriched);
+                    var (enriched, sourcePath) = await scraper.TryMergeAsync(rec);
+                    var result = sourcePath is not null
+                        ? enriched with { WebscanSourcePath = sourcePath }
+                        : enriched;
+                    ResultReceived?.Invoke(this, result);
                 });
             });
 
@@ -469,7 +499,33 @@ public sealed class DeviceSession : IAsyncDisposable
             _cfg.Port,
             _map,
             sessionContext ?? ContextFromDeviceInfo(),
-            rec => ResultReceived?.Invoke(this, rec));
+            rec =>
+            {
+                // Mirror StartPushListenerAsync: when the file-system scraper is running
+                // (Manual/AutoPoll mode with DMST open), call TryMergeAsync so the pending
+                // HTML report is drained from the scraper's queue and its source path is
+                // propagated onto the record.  In Replace mode this path is the write
+                // target for the hybrid report; in Alongside mode the scraper leaves the
+                // original file on disk (DeleteAfterParse = false) so both coexist.
+                // HttpEventSubscriber already merges HTML data inline from PUT /pcm_report.html;
+                // TryMergeAsync here simply adds the filesystem source path, with a short
+                // effective wait because the HTML is already in _pending by the time
+                // PUT /codes.xml fires the callback.
+                var scraper = _scraper;
+                if (scraper is null)
+                {
+                    ResultReceived?.Invoke(this, rec);
+                    return;
+                }
+                _ = Task.Run(async () =>
+                {
+                    var (enriched, sourcePath) = await scraper.TryMergeAsync(rec);
+                    var result = sourcePath is not null
+                        ? enriched with { WebscanSourcePath = sourcePath }
+                        : enriched;
+                    ResultReceived?.Invoke(this, result);
+                });
+            });
 
         await _httpSubscriber.StartAsync(ct);
         System.Diagnostics.Debug.WriteLine(

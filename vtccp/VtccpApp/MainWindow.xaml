@@ -23,6 +23,9 @@
         <DataTemplate DataType="{x:Type vm:HistoryViewModel}">
             <views:HistoryView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <views:SettingsView />
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>
@@ -73,6 +76,12 @@
                                 Converter={StaticResource NavStyleConverter},
                                 ConverterParameter=Templates}"
                         Command="{Binding NavTemplatesCommand}" />
+
+                <Button Content="⚙  Settings"
+                        Style="{Binding CurrentPageKey,
+                                Converter={StaticResource NavStyleConverter},
+                                ConverterParameter=Settings}"
+                        Command="{Binding NavSettingsCommand}" />
 
                 <!-- Spacer -->
                 <Rectangle Height="1" Margin="20,24,20,16" Fill="#2C3E50" />

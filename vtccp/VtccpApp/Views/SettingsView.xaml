@@ -1,0 +1,103 @@
+<UserControl x:Class="VtccpApp.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="24" MaxWidth="700" HorizontalAlignment="Left">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />  <!-- header -->
+                <RowDefinition Height="Auto" />  <!-- hybrid report card -->
+            </Grid.RowDefinitions>
+
+            <!-- ── Page header ──────────────────────────────────────── -->
+            <TextBlock Grid.Row="0"
+                       Text="Settings"
+                       Style="{StaticResource SectionHeader}"
+                       Margin="0,0,0,16" />
+
+            <!-- ── Hybrid Report card ────────────────────────────────── -->
+            <Border Grid.Row="1" Style="{StaticResource Card}">
+                <StackPanel>
+
+                    <!-- Section title -->
+                    <TextBlock Text="HYBRID REPORT"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,0,0,12" />
+
+                    <!-- Enable/disable toggle -->
+                    <CheckBox IsChecked="{Binding GenerateHybridReport, Mode=TwoWay}"
+                              Content="Generate a hybrid HTML report for every accepted scan"
+                              Margin="0,0,0,4" />
+
+                    <TextBlock Text="Merges Webscan TruCheck™ barcode grades with VCCS FlexWedge™ RFID data into a self-contained HTML file that can be opened in any browser and printed to PDF."
+                               FontSize="11" FontStyle="Italic"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Margin="20,0,0,16" />
+
+                    <!-- Sub-options (hidden when generate is off) -->
+                    <StackPanel Visibility="{Binding IsHybridConfigVisible,
+                                    Converter={StaticResource BoolToVisibility}}">
+
+                        <!-- ── Output mode ──────────────────────────────── -->
+                        <TextBlock Text="OUTPUT MODE"
+                                   Style="{StaticResource FieldLabel}"
+                                   Margin="0,0,0,8" />
+
+                        <!-- Alongside -->
+                        <RadioButton IsChecked="{Binding IsAlongsideMode, Mode=TwoWay}"
+                                     VerticalAlignment="Top"
+                                     Margin="0,0,0,4">
+                            <StackPanel>
+                                <TextBlock Text="Alongside — keep both files"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="The original Webscan HTML stays in the CodeQuality folder. The hybrid report is written to the output directory below."
+                                           FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,2,0,0" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- Replace -->
+                        <RadioButton IsChecked="{Binding IsReplaceMode, Mode=TwoWay}"
+                                     VerticalAlignment="Top"
+                                     Margin="0,8,0,12">
+                            <StackPanel>
+                                <TextBlock Text="Replace — hybrid overwrites the Webscan file"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="After the Webscan HTML is parsed, the hybrid report is written back to the same filename in the CodeQuality folder. Downstream tools see only the enriched file. Recommended for production inline environments."
+                                           FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,2,0,0" />
+                            </StackPanel>
+                        </RadioButton>
+
+                        <!-- ── Custom output directory (Alongside only) ─── -->
+                        <StackPanel Visibility="{Binding IsAlongsideMode,
+                                        Converter={StaticResource BoolToVisibility}}">
+
+                            <TextBlock Text="CUSTOM OUTPUT DIRECTORY (optional)"
+                                       Style="{StaticResource FieldLabel}"
+                                       Margin="0,0,0,4" />
+
+                            <TextBox Text="{Binding HybridReportOutputDirectory,
+                                             UpdateSourceTrigger=LostFocus}"
+                                     HorizontalAlignment="Stretch" />
+
+                            <TextBlock Text="Leave empty to write hybrid reports into the session output directory alongside the Excel workbook."
+                                       FontSize="11" FontStyle="Italic"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,4,0,0" />
+                        </StackPanel>
+
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </ScrollViewer>
+</UserControl>

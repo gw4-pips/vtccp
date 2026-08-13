@@ -75,8 +75,9 @@ public sealed class DmstHtmlScraper : IDisposable
 
     private readonly string                  _watchDirectory;
     private FileSystemWatcher?               _watcher;
-    private readonly List<PendingHtmlReport> _pending = [];
-    private readonly object                  _lock    = new();
+    private readonly List<PendingHtmlReport> _pending   = [];
+    private readonly HashSet<string>         _ownedPaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object                  _lock      = new();
 
     // ── Construction ──────────────────────────────────────────────────────────
 
@@ -166,8 +167,13 @@ public sealed class DmstHtmlScraper : IDisposable
     ///
     /// Returns the original record unmodified if no correlated HTML arrives in time
     /// (e.g. DMST extension is still .pdf, or DMST is closed).
+    ///
+    /// The <c>SourcePath</c> element of the returned tuple is the
+    /// <see cref="DmstHtmlReport.SourceFilePath"/> of the matched report, or <c>null</c>
+    /// when no match was found.  It is returned as part of the per-call result so that
+    /// concurrent callers each get their own atomic path without reading shared state.
     /// </summary>
-    public async Task<VerificationRecord> TryMergeAsync(
+    public async Task<(VerificationRecord Record, string? SourcePath)> TryMergeAsync(
         VerificationRecord record,
         CancellationToken  ct = default)
     {
@@ -177,6 +183,7 @@ public sealed class DmstHtmlScraper : IDisposable
         while (!timeoutCts.Token.IsCancellationRequested)
         {
             PendingHtmlReport? match = null;
+            string?            sourcePath;
 
             lock (_lock)
             {
@@ -187,7 +194,14 @@ public sealed class DmstHtmlScraper : IDisposable
                         <= CorrelationWindow.TotalSeconds);
 
                 if (match is not null)
+                {
                     _pending.Remove(match);
+                    sourcePath = match.Report.SourceFilePath;
+                }
+                else
+                {
+                    sourcePath = null;
+                }
             }
 
             if (match is not null)
@@ -195,7 +209,7 @@ public sealed class DmstHtmlScraper : IDisposable
                 System.Diagnostics.Debug.WriteLine(
                     $"[VTCCP-SCRAPER] Correlated HTML report to scan at " +
                     $"{record.VerificationDateTime:HH:mm:ss}. Running merge+validate.");
-                return DmstReportValidator.MergeAndValidate(record, match.Report);
+                return (DmstReportValidator.MergeAndValidate(record, match.Report), sourcePath);
             }
 
             try { await Task.Delay(50, timeoutCts.Token); }
@@ -207,7 +221,7 @@ public sealed class DmstHtmlScraper : IDisposable
             $"scan at {record.VerificationDateTime:HH:mm:ss}. " +
             "Check DMST Options → Reporting → File Extension is set to .html.");
 
-        return record;
+        return (record, null);
     }
 
     // ── Diagnostic capture ────────────────────────────────────────────────────
@@ -218,6 +232,18 @@ public sealed class DmstHtmlScraper : IDisposable
     /// Set to true temporarily to capture an HTML sample for parser diagnostics.
     /// ParseHtml() is fully implemented and validated against the 2026-05-25 live sample.
     /// </summary>
+    /// <summary>
+    /// When <c>true</c> (default), the Webscan HTML file is deleted from the
+    /// CodeQuality folder immediately after parsing.  Data is retained in memory.
+    ///
+    /// Set to <c>false</c> in Alongside mode so the original Webscan report remains
+    /// on disk alongside the separately-written hybrid HTML.  In Replace mode keep
+    /// the default (<c>true</c>) — the file is deleted and the hybrid takes its place.
+    ///
+    /// Thread-safe to toggle between scans; respected on every call to OnFileCreated.
+    /// </summary>
+    public bool DeleteAfterParse { get; set; } = true;
+
     public bool DiagnosticCaptureEnabled { get; set; } = false;
 
     /// <summary>
@@ -234,6 +260,20 @@ public sealed class DmstHtmlScraper : IDisposable
 
     // ── FileSystemWatcher callback ────────────────────────────────────────────
 
+    /// <summary>
+    /// Registers <paramref name="path"/> as a file that VTCCP itself will write (Replace mode).
+    /// When the <see cref="FileSystemWatcher"/> fires for this path, <see cref="OnFileCreated"/>
+    /// skips it instead of parsing and deleting it, so the hybrid report written by
+    /// <c>HybridReportGenerator.SaveToPathAsync</c> is preserved in the CodeQuality folder.
+    ///
+    /// Call this immediately before writing the hybrid file.  The path is removed from the
+    /// set on first match so it is re-processed normally on any subsequent appearance.
+    /// </summary>
+    public void RegisterOwnedPath(string path)
+    {
+        lock (_lock) { _ownedPaths.Add(path); }
+    }
+
     private void OnFileCreated(object sender, FileSystemEventArgs e)
     {
         _ = Task.Run(async () =>
@@ -241,20 +281,30 @@ public sealed class DmstHtmlScraper : IDisposable
             // Brief settle — DMST may not have finished flushing the file.
             await Task.Delay(150);
 
+            // ── Skip files written by VTCCP itself (Replace mode hybrid reports) ──
+            // RegisterOwnedPath is called before SaveToPathAsync; if this path is in
+            // the set, the watcher is seeing the hybrid we just wrote — don't re-parse
+            // or delete it.  The entry is removed on first match (one-shot suppression).
+            lock (_lock)
+            {
+                if (_ownedPaths.Remove(e.FullPath))
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SCRAPER] Skipping owned hybrid path: '{Path.GetFileName(e.FullPath)}'");
+                    return;
+                }
+            }
+
             try
             {
                 string html   = await File.ReadAllTextAsync(e.FullPath);
                 var    report = ParseHtml(html, e.FullPath);
-
-                lock (_lock) { _pending.Add(new PendingHtmlReport(report)); }
 
                 System.Diagnostics.Debug.WriteLine(
                     $"[VTCCP-SCRAPER] Parsed '{Path.GetFileName(e.FullPath)}': " +
                     $"ok={report.ParseSucceeded}, dt={report.ScanDateTime?.ToString("HH:mm:ss") ?? "null"}");
 
                 // ── Diagnostic capture (first sample only) ──────────────────
-                // Preserves the raw HTML for parser implementation.
-                // Disable DiagnosticCaptureEnabled once ParseHtml is implemented.
                 if (DiagnosticCaptureEnabled && !_diagnosticCaptured)
                 {
                     _diagnosticCaptured = true;
@@ -272,8 +322,20 @@ public sealed class DmstHtmlScraper : IDisposable
                     }
                 }
 
-                // Delete the transient DMST output — data is held in memory.
-                File.Delete(e.FullPath);
+                // Delete the transient DMST output before making the parsed data
+                // available to TryMergeAsync.  This ordering is critical for Replace mode:
+                // if the original were added to _pending first, TryMergeAsync could consume
+                // the entry and write the hybrid while this callback's File.Delete was still
+                // pending — the delete would then silently remove the freshly written hybrid.
+                // By deleting here (BEFORE the _pending.Add below), the original is always
+                // gone before any caller can register a write path or write the replacement.
+                // In Alongside mode DeleteAfterParse is false; the original stays on disk.
+                if (DeleteAfterParse)
+                    File.Delete(e.FullPath);
+
+                // Make the parsed report available to TryMergeAsync only after the
+                // original has been deleted (or preserved, in Alongside mode).
+                lock (_lock) { _pending.Add(new PendingHtmlReport(report)); }
             }
             catch (Exception ex)
             {

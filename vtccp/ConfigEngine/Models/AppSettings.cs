@@ -1,6 +1,26 @@
 namespace ConfigEngine.Models;
 
 /// <summary>
+/// Controls how the hybrid HTML report interacts with the original Webscan HTML output.
+/// </summary>
+public enum HybridReportMode
+{
+    /// <summary>
+    /// Keep the Webscan HTML in the CodeQuality folder and write the hybrid HTML
+    /// to the session output directory (or <see cref="AppSettings.HybridReportOutputDirectory"/>).
+    /// This is the default — both files coexist.
+    /// </summary>
+    Alongside,
+
+    /// <summary>
+    /// After the DmstHtmlScraper parses and removes the Webscan HTML, write the
+    /// hybrid HTML back to the same path (same folder, same filename) so downstream
+    /// tools watching the CodeQuality folder see only the enriched report.
+    /// </summary>
+    Replace,
+}
+
+/// <summary>
 /// Application-wide preferences persisted alongside device profiles and job templates.
 /// </summary>
 public sealed class AppSettings
@@ -85,8 +105,17 @@ public sealed class AppSettings
     /// <summary>
     /// Optional directory for hybrid HTML reports.
     /// Null or empty = session output directory (same folder as the Excel workbook).
+    /// Ignored when <see cref="HybridReportMode"/> is <see cref="HybridReportMode.Replace"/>,
+    /// because the hybrid is written to the Webscan CodeQuality folder in that mode.
     /// </summary>
     public string? HybridReportOutputDirectory { get; set; }
+
+    /// <summary>
+    /// Controls whether the hybrid report is written alongside the Webscan original
+    /// (Alongside, default) or replaces it in the CodeQuality folder (Replace).
+    /// Only relevant when <see cref="GenerateHybridReport"/> is true.
+    /// </summary>
+    public HybridReportMode HybridReportMode { get; set; } = HybridReportMode.Alongside;
 
     // ── Schema version awareness ──────────────────────────────────────────────
 

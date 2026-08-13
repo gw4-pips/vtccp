@@ -17,6 +17,7 @@ public sealed class MainViewModel : ViewModelBase
     public TemplatesViewModel TemplatesVM { get; }
     public SessionViewModel   SessionVM   { get; }
     public HistoryViewModel   HistoryVM   { get; }
+    public SettingsViewModel  SettingsVM  { get; }
 
     // ── Navigation ────────────────────────────────────────────────────────────
 
@@ -39,6 +40,7 @@ public sealed class MainViewModel : ViewModelBase
     public RelayCommand NavTemplatesCommand { get; }
     public RelayCommand NavSessionCommand   { get; }
     public RelayCommand NavHistoryCommand   { get; }
+    public RelayCommand NavSettingsCommand  { get; }
 
     // ── Title bar ─────────────────────────────────────────────────────────────
 
@@ -52,11 +54,13 @@ public sealed class MainViewModel : ViewModelBase
         SessionVM   = new SessionViewModel(Repository, HistoryVM);
         DevicesVM   = new DevicesViewModel(Repository,  onListChanged: SessionVM.Reload);
         TemplatesVM = new TemplatesViewModel(Repository, onListChanged: SessionVM.Reload);
+        SettingsVM  = new SettingsViewModel(Repository);
 
         NavDevicesCommand   = new RelayCommand(() => Navigate("Devices"));
         NavTemplatesCommand = new RelayCommand(() => Navigate("Templates"));
         NavSessionCommand   = new RelayCommand(() => Navigate("Session"));
         NavHistoryCommand   = new RelayCommand(() => Navigate("History"));
+        NavSettingsCommand  = new RelayCommand(() => Navigate("Settings"));
 
         Navigate("Session");   // default page
 
@@ -74,6 +78,7 @@ public sealed class MainViewModel : ViewModelBase
             "Templates" => TemplatesVM,
             "Session"   => SessionVM,
             "History"   => HistoryVM,
+            "Settings"  => SettingsVM,
             _           => SessionVM,
         };
     }
@@ -88,6 +93,7 @@ public sealed class MainViewModel : ViewModelBase
             DevicesVM.Reload();
             TemplatesVM.Reload();
             SessionVM.Reload();
+            SettingsVM.Reload();
         }
         catch { /* first run — defaults in effect */ }
     }

@@ -48,23 +48,44 @@ public static class HybridReportGenerator
     /// <summary>
     /// Generates the hybrid HTML and writes it to <paramref name="outputDir"/>.
     /// The filename is derived from <see cref="VerificationRecord.VerificationDateTime"/>.
-    /// Supply <paramref name="filenameOverride"/> (without extension) to use a custom name.
     /// Does nothing if <paramref name="outputDir"/> is null or whitespace.
     /// </summary>
     public static async Task SaveAsync(
         VerificationRecord r,
         string             outputDir,
-        string?            filenameOverride = null,
-        CancellationToken  ct               = default)
+        CancellationToken  ct = default)
     {
         if (string.IsNullOrWhiteSpace(outputDir)) return;
 
         string html     = Generate(r);
-        string filename = (filenameOverride is { Length: > 0 } s ? s : null)
-            ?? $"{r.VerificationDateTime:yyyy-MM-dd_HH-mm-ss}_hybrid_report.html";
+        string filename = $"{r.VerificationDateTime:yyyy-MM-dd_HH-mm-ss}_hybrid_report.html";
         Directory.CreateDirectory(outputDir);
         string path = Path.Combine(outputDir, filename);
         await File.WriteAllTextAsync(path, html, System.Text.Encoding.UTF8, ct)
+                  .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Generates the hybrid HTML and writes it to the exact <paramref name="outputPath"/>
+    /// (full path including filename and <c>.html</c> extension).
+    /// The parent directory is created if it does not exist.
+    /// Does nothing if <paramref name="outputPath"/> is null or whitespace.
+    ///
+    /// Use this overload in Replace mode, where the hybrid must overwrite the
+    /// original Webscan HTML file at its exact path in the CodeQuality folder.
+    /// </summary>
+    public static async Task SaveToPathAsync(
+        VerificationRecord r,
+        string             outputPath,
+        CancellationToken  ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(outputPath)) return;
+
+        string html      = Generate(r);
+        string parentDir = Path.GetDirectoryName(outputPath)!;
+        if (!string.IsNullOrEmpty(parentDir))
+            Directory.CreateDirectory(parentDir);
+        await File.WriteAllTextAsync(outputPath, html, System.Text.Encoding.UTF8, ct)
                   .ConfigureAwait(false);
     }
 

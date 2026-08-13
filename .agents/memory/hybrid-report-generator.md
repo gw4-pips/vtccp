@@ -5,31 +5,24 @@ description: Self-contained HTML report merging Webscan TruCheck barcode grades 
 
 # Hybrid Report Generator
 
-## What it does
-`DeviceInterface/Reports/HybridReportGenerator.cs` — static class, two public methods:
-- `Generate(VerificationRecord)` → returns complete HTML string
-- `SaveAsync(record, outputDir, filenameOverride?, ct)` → writes `yyyy-MM-dd_HH-mm-ss_hybrid_report.html`
+## Mode-aware write paths (HybridReportMode)
 
-## Where it's called
-`VtccpApp/ViewModels/SessionViewModel.cs` — fire-and-forget Task.Run after `_sessionMgr.AddRecord(record)`. Never blocks the scan loop. Output dir = `_sessionOutputDir` (same as Excel file) unless `AppSettings.HybridReportOutputDirectory` overrides it.
+Two public write methods exist:
+- `SaveAsync(record, outputDir, ct)` — writes a timestamped filename to `outputDir` (Alongside mode)
+- `SaveToPathAsync(record, outputPath, ct)` — writes to an exact full path including `.html` extension (Replace mode)
 
-## Settings (ConfigEngine/Models/AppSettings.cs)
-- `GenerateHybridReport` (bool, default **true**)
-- `HybridReportOutputDirectory` (string?, null = session dir)
+## Replace mode ordering constraint (critical)
 
-## HTML structure — exact Webscan TruCheck match
-Same inline CSS (`border-style:solid`, `padding:0.025in`, black-header `background-color:black;color:white`), same section order:
-1. Report header (logo placeholder, title, date/time, device/fw/serial, **RFID status badge**)
-2. Report Summary table (Data, Symbology, optional job context rows)
-3. Verification Grades table (Standard/Grade/Aperture/Wavelength/Lighting/Formal Grade)
-4. **RFID Validation — VCCS FlexWedge™** section (Tag Detected, EPC Hex, GTIN-14, GCP Valid, Serial, Validation Result [colour-coded], Mismatch Detail, Scan Window)
-5. Symbol Image (base64 data URI, ROI crop preferred over full-frame)
-6. ISO 15415 / ISO 15416 Quality Parameters table
-7. VCCS footer + Print/Save as PDF button (hidden during print)
+In `DmstHtmlScraper.OnFileCreated`, the file **must be deleted before** `_pending.Add(report)`. If the pending entry were added first, `TryMergeAsync` could consume it and trigger a hybrid write while the watcher's `File.Delete` was still queued — silently deleting the freshly-written replacement. The ordering "read → parse → diagnostic copy → delete → _pending.Add" is intentional and must be preserved.
 
-## PDF export
-`@media print { .no-print: display:none; @page { margin: 0.65in; } }` — operator opens HTML in browser, Ctrl+P → Save as PDF.
+**Why:** This prevents a race where the hybrid write and the original delete execute concurrently on the same path, with the delete winning and leaving no file.
 
-**Why:** No Handlebars engine exists in the VTCCP codebase; plain C# StringBuilder avoids any dependency. Webscan-matching CSS is lifted verbatim from html_stylesheet.xslt analysis.
+**How to apply:** Any future change to `OnFileCreated` must keep `_pending.Add` as the last step, after all file I/O on `e.FullPath` is complete.
 
-**How to apply:** If the HTML structure needs to change, edit `AppendXxx` private methods in `HybridReportGenerator.cs`. The `BaseCss` const at the bottom holds all styles — Webscan base block first, VCCS additions second.
+## Alongside vs Replace scraper behaviour
+
+- `DmstHtmlScraper.DeleteAfterParse = true` (Replace): original Webscan HTML is deleted; hybrid writes to same path via `SaveToPathAsync`
+- `DmstHtmlScraper.DeleteAfterParse = false` (Alongside): original stays on disk; hybrid written to session/custom dir via `SaveAsync`
+- `RegisterOwnedPath(path)` suppresses the FileSystemWatcher `Created` event for VTCCP-written hybrid files (one-shot per path)
+
+**Why:** Both `StartHttpSubscriberAsync` and `StartPushListenerAsync` call `TryMergeAsync` when `_scraper` is active; `WebscanSourcePath` travels on `VerificationRecord` so it is atomic and pipeline-safe through all subsequent awaits.
