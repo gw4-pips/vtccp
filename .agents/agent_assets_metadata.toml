@@ -176,3 +176,10 @@ uri = "file://dist/hybrid-report-sample-v2.html"
 type = "text"
 title = "Hybrid Report v2 — template-based preview"
 description = "Both sample reports: MATCHED (full max config) and MISMATCH. Four-column header, dark navy section headers, verbatim Webscan table structure throughout. Open in browser → Ctrl+P to verify print layout."
+
+[[outputs]]
+id = "VG_wBRFyL-C1Df-N0vQ-1"
+uri = "file://dist/hybrid-report-sample-v3.html"
+type = "text"
+title = "Hybrid Report v3 — all sections, corrected"
+description = "Both samples. Sections in order: Report Summary · Verification Grades · GradingInfoSection (per-parameter detail, 8 cols) · Image · ISO Quality Parameters · Data Format Check · RFID Validation. Title restored. RFID labels white-space:nowrap, left col 2in."
