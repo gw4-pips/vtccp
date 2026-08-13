@@ -169,3 +169,10 @@ uri = "file://dist/hybrid-report-sample.html"
 type = "text"
 title = "Hybrid Report — MATCHED + MISMATCH preview"
 description = "Exact output of HybridReportGenerator.Generate() with representative data. Shows both RFID MATCHED and MISMATCH scenarios side-by-side. Open in a browser, then Ctrl+P → Save as PDF to test print layout."
+
+[[outputs]]
+id = "O5uQSbD0ibrMGeSkLznj2"
+uri = "file://dist/hybrid-report-sample-v2.html"
+type = "text"
+title = "Hybrid Report v2 — template-based preview"
+description = "Both sample reports: MATCHED (full max config) and MISMATCH. Four-column header, dark navy section headers, verbatim Webscan table structure throughout. Open in browser → Ctrl+P to verify print layout."
