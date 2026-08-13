@@ -1172,3 +1172,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** "I don't even see a new report to open." — clarified they meant a sample file in the project (like prior sessions produced), not a runtime output. They know they need to rebuild on Windows.
 
 **Assistant:** Confirmed all model field names correct. Wrote dist/hybrid-report-sample-v5.html — fully populated static sample with realistic GS1 DataMatrix passing scan data, RFID MATCHED, all sections rendered.
+
+---
+
+**User:** V5 is an improvement but the investment to get the integrated report where it needs to be isn't justified. Proposal: abandon hybrid report work, archive it, and pivot to a standalone PDF report that can be appended as an extra page to the Webscan PDF (leaving Webscan output untouched).
+
+**Assistant:** Agreed the approach is cleaner. Key advantages: Webscan output untouched (less Cognex friction), simpler to build (one focused PDF page vs template injection), more focused value (RFID + VCCS-only content), survives Webscan format changes. Archived HybridReportGenerator.cs → DeviceInterface/Reports/_archived/. Removed all wiring from SessionViewModel. Set GenerateHybridReport default to false. DmstHtmlScraper deletion config also removed. Standalone PDF report proposed as follow-up task.

@@ -1,3 +1,11 @@
+// ╔══════════════════════════════════════════════════════════════════════════╗
+// ║  ARCHIVED 2026-08-13                                                     ║
+// ║  Hybrid HTML report approach abandoned in favour of a standalone PDF     ║
+// ║  appended to the Webscan report.  All wiring removed from               ║
+// ║  SessionViewModel.  GenerateHybridReport default set to false.           ║
+// ║  See: vtccp/DeviceInterface/Reports/ for the new PdfReportGenerator.     ║
+// ╚══════════════════════════════════════════════════════════════════════════╝
+
 using System.Text;
 using ExcelEngine.Models;
 

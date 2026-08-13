@@ -58,23 +58,7 @@ public sealed class SessionViewModel : ViewModelBase
     // ── RFID ──────────────────────────────────────────────────────────────────
     private RfidScanCoordinator? _rfidCoordinator;
 
-    // ── Hybrid report ──────────────────────────────────────────────────────────
-    /// <summary>
-    /// Output directory for the current session.
-    /// Set in OnStartAsync and used by AcceptRecordInnerAsync to write hybrid
-    /// HTML reports alongside the Excel workbook.
-    /// </summary>
-    private string? _sessionOutputDir;
-
-    /// <summary>
-    /// FileSystem watcher (DmstHtmlScraper) started only in Push mode when
-    /// <see cref="ConfigEngine.Models.HybridReportMode.Replace"/> is active.
-    /// Watches the CodeQuality folder, parses and deletes the Webscan HTML files,
-    /// and makes them available (by timestamp correlation) so AcceptRecordInnerAsync
-    /// can write the hybrid report back to the original file path.
-    /// Not used in Manual/AutoPoll mode — DeviceSession owns the scraper there.
-    /// </summary>
-    private DeviceInterface.Dmst.DmstHtmlScraper? _htmlWatcher;
+    // (Hybrid HTML report fields removed — feature archived 2026-08-13)
 
     // ── OCR ───────────────────────────────────────────────────────────────────
 
@@ -385,21 +369,6 @@ public sealed class SessionViewModel : ViewModelBase
                     cfg.Host, cfg.Port, _xmlMap, ctx, OnPushRecord);
                 await _pushHttpSubscriber.StartAsync(_pollCts.Token);
 
-                // ── Replace mode: watch the CodeQuality folder in Push mode ───
-                // In Push mode, DeviceSession (and its built-in DmstHtmlScraper) is
-                // not used.  When Replace mode is active, start a standalone scraper
-                // here so we can correlate the Webscan HTML file by timestamp, record
-                // its path, and write the hybrid report back to the same location.
-                if (_repo.Settings.GenerateHybridReport &&
-                    _repo.Settings.HybridReportMode == ConfigEngine.Models.HybridReportMode.Replace &&
-                    SelectedDevice.Name is { Length: > 0 } devName)
-                {
-                    var watchPath = DeviceInterface.Dmst.DmstHtmlScraper.BuildReportPath(devName);
-                    _htmlWatcher = new DeviceInterface.Dmst.DmstHtmlScraper(watchPath);
-                    _htmlWatcher.Start();
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-REPLACE] HTML watcher started: '{watchPath}'");
-                }
             }
             else
             {
@@ -408,16 +377,6 @@ public sealed class SessionViewModel : ViewModelBase
                 var cfg = SelectedDevice.ToDeviceConfig();
                 _deviceSession = new DeviceSession(cfg, _xmlMap);
                 await _deviceSession.ConnectAsync();
-
-                // Configure whether the internal DmstHtmlScraper deletes Webscan HTML
-                // files after parsing.  Replace mode deletes (hybrid takes its place);
-                // Alongside mode preserves the original so both files coexist.
-                if (_repo.Settings.GenerateHybridReport)
-                {
-                    bool replace = _repo.Settings.HybridReportMode
-                        == ConfigEngine.Models.HybridReportMode.Replace;
-                    _deviceSession.ConfigureScraperDeletion(deleteAfterParse: replace);
-                }
 
                 // Subscribe to the device's HTTP result push channel — same channel
                 // DMST uses for all TC verification results (codes.xml origin="common").
@@ -866,104 +825,7 @@ public sealed class SessionViewModel : ViewModelBase
         _history.AddRecord(record);
         _recordCount++; OnPropertyChanged(nameof(RecordCount));
 
-        // ── Hybrid HTML report (fire-and-forget) ──────────────────────────────
-        // Generates a self-contained report combining barcode grades + RFID data.
-        // Runs on the thread-pool; failures are silently swallowed so they never
-        // interfere with the scan loop.
-        //
-        // Alongside mode (default):
-        //   Report lands in the session output dir (or HybridReportOutputDirectory).
-        //
-        // Replace mode:
-        //   The original Webscan HTML was parsed and deleted by DmstHtmlScraper.
-        //   The hybrid report is written back to the same path (same folder, same
-        //   filename) so downstream tools watching the CodeQuality folder see only
-        //   the enriched version.  The original file path is captured synchronously
-        //   here (before firing the task) to avoid a race with the next incoming scan.
-        if (_repo.Settings.GenerateHybridReport && _sessionOutputDir is { } sessionDir)
-        {
-            var hybridSettings = _repo.Settings;
-            bool isReplace = hybridSettings.HybridReportMode == ConfigEngine.Models.HybridReportMode.Replace;
-
-            // In Manual/AutoPoll mode, DeviceSession.TriggerAndGetResultAsync sets
-            // WebscanSourcePath on the record atomically from the TryMergeAsync tuple
-            // result before returning — the path travels with the record through every
-            // subsequent await (OCR, RFID, workbook write) with no shared-state reads.
-            //
-            // In Push mode, the path is not yet known at this point (TryMergeAsync on
-            // the _htmlWatcher runs inside the task below, where it is also captured
-            // from the per-call tuple, not from any shared property).
-            string? capturedSourcePath = isReplace ? record.WebscanSourcePath : null;
-
-            // Snapshot the watcher reference so the task closure is safe even if
-            // CleanupAsync nulls _htmlWatcher between scheduling and execution.
-            var htmlWatcherSnap = isReplace ? _htmlWatcher : null;
-
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    string?            targetPath   = capturedSourcePath;
-                    VerificationRecord reportRecord = record;   // may be replaced with merged below
-
-                    if (isReplace && targetPath is null && htmlWatcherSnap is not null)
-                    {
-                        // Push mode Replace: wait for the Webscan HTML file to land and
-                        // be parsed by the watcher (up to DmstHtmlScraper.FileArrivalTimeout).
-                        // Source path comes from the per-call tuple — each concurrent scan
-                        // task gets its own result without reading any shared property.
-                        //
-                        // The merged record is used for the hybrid report so HTML-derived
-                        // supplemental fields (ECLevel, DataMaskPattern, etc.) are included.
-                        var (mergedRecord, resolvedPath) = await htmlWatcherSnap.TryMergeAsync(record);
-                        targetPath   = resolvedPath;
-                        reportRecord = mergedRecord;
-                    }
-
-                    if (targetPath is { Length: > 0 })
-                    {
-                        // Replace mode — write hybrid to the exact same path as the original
-                        // Webscan HTML (same folder, same filename, same .html extension).
-                        //
-                        // RegisterOwnedPath / RegisterOwnedHybridPath MUST be called before
-                        // SaveToPathAsync so the FileSystemWatcher's OnFileCreated suppresses
-                        // the Created event triggered by VTCCP's own write and does not
-                        // re-parse and delete the freshly written hybrid report.
-                        //
-                        // Two separate scrapers may be watching the CodeQuality folder:
-                        //   htmlWatcherSnap  — standalone watcher started in Push mode Replace
-                        //   _deviceSession   — internal watcher in Manual/AutoPoll mode
-                        // Both must suppress the hybrid file.
-                        htmlWatcherSnap?.RegisterOwnedPath(targetPath);
-                        _deviceSession?.RegisterOwnedHybridPath(targetPath);
-                        await HybridReportGenerator.SaveToPathAsync(reportRecord, targetPath);
-
-                        System.Diagnostics.Debug.WriteLine(
-                            $"[VTCCP-REPLACE] Hybrid report written → '{targetPath}'");
-                    }
-                    else if (!isReplace)
-                    {
-                        // Alongside mode: write hybrid to the configured/session directory.
-                        // The original Webscan HTML stays in CodeQuality (DeleteAfterParse=false).
-                        string reportDir = !string.IsNullOrWhiteSpace(hybridSettings.HybridReportOutputDirectory)
-                            ? hybridSettings.HybridReportOutputDirectory
-                            : sessionDir;
-                        await HybridReportGenerator.SaveAsync(reportRecord, reportDir);
-                    }
-                    else
-                    {
-                        // Replace mode but no Webscan HTML correlated within timeout
-                        // (e.g. DMST is closed, HTML extension not set, or scan arrived
-                        // after FileArrivalTimeout).  Skip the hybrid report rather than
-                        // silently producing a file in the wrong location.
-                        System.Diagnostics.Debug.WriteLine(
-                            "[VTCCP-REPLACE] No Webscan HTML correlated — hybrid report skipped " +
-                            $"for scan at {record.VerificationDateTime:HH:mm:ss}.");
-                    }
-                }
-                catch { /* report write failure must never affect the scan loop */ }
-            });
-        }
+        // (Hybrid HTML report call removed — feature archived 2026-08-13)
         string grade     = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
         string num       = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
         string ocrSuffix = record.OcrResult?.Tier is { Length: > 0 } t ? $"  | OCR: {t}" : string.Empty;

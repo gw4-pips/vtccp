@@ -100,7 +100,7 @@ public sealed class AppSettings
     /// data with the VCCS FlexWedge™ RFID validation result.  It can be
     /// opened in any browser and printed directly to PDF.
     /// </summary>
-    public bool GenerateHybridReport { get; set; } = true;
+    public bool GenerateHybridReport { get; set; } = false; // archived 2026-08-13
 
     /// <summary>
     /// Optional directory for hybrid HTML reports.
