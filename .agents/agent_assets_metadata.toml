@@ -162,3 +162,10 @@ uri = "file://vtccp/references/CPIPM-Project-Outline-v1.3.docx"
 type = "word_document"
 title = "Command Pilot Inline — Project Outline v1.3"
 description = "Title 28pt. Row heights: 0.25\" (1-row), (L×0.25−0.10)\" for L≥2 across all tables. Operator panel caveat in bold red. TM fixed throughout."
+
+[[outputs]]
+id = "uTUiWos_5CVaTH7C1-X4R"
+uri = "file://dist/hybrid-report-sample.html"
+type = "text"
+title = "Hybrid Report — MATCHED + MISMATCH preview"
+description = "Exact output of HybridReportGenerator.Generate() with representative data. Shows both RFID MATCHED and MISMATCH scenarios side-by-side. Open in a browser, then Ctrl+P → Save as PDF to test print layout."
