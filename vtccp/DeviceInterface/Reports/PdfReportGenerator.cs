@@ -38,6 +38,44 @@ public static class PdfReportGenerator
     private static readonly string WarnHex  = "#856404";
     private static readonly string GrayHex  = "#6c757d";
 
+    // ── Brand lookup table ────────────────────────────────────────────────────
+    // Maps known model substrings (case-insensitive) to all-caps brand names.
+    // Order matters: more-specific patterns must appear before broader ones.
+    // Extend this table when new verifier hardware is added.
+    private static readonly (string Substring, string Brand)[] BrandPatterns =
+    [
+        // Cognex DataMan family (DataMan 100, 260, 370, 390, 395V, 470, 475V, …)
+        ("DataMan",  "COGNEX"),
+        // Axicon verifiers (Axicon 6000, 7000, 9000, etc.)
+        ("Axicon",   "AXICON"),
+        // Omron Microscan LVS verifiers (LVS-9510, LVS-7510, etc.)
+        ("LVS",      "OMRON/LVS"),
+        ("Omron",    "OMRON/LVS"),
+        ("Microscan","OMRON/LVS"),
+        // Webscan TruCheck verifiers
+        ("Webscan",  "WEBSCAN"),
+        ("TruCheck", "WEBSCAN"),
+    ];
+
+    /// <summary>
+    /// Resolves the all-caps verifier brand name from a <see cref="VerificationRecord.DeviceModel"/>
+    /// string using the static <see cref="BrandPatterns"/> lookup table.
+    /// Returns <see langword="null"/> when the model string is empty or matches no known pattern,
+    /// so callers can decide on their own fallback (rather than silently defaulting to COGNEX).
+    /// </summary>
+    private static string? ResolveBrand(string? deviceModel)
+    {
+        if (string.IsNullOrWhiteSpace(deviceModel)) return null;
+
+        foreach (var (substring, brand) in BrandPatterns)
+        {
+            if (deviceModel.Contains(substring, StringComparison.OrdinalIgnoreCase))
+                return brand;
+        }
+
+        return null;
+    }
+
     // ── Public API ────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -217,20 +255,13 @@ public static class PdfReportGenerator
 
     private static void BuildVerificationSummarySection(IContainer c, VerificationRecord r)
     {
-        // Brand derived from DeviceModel — all-caps, verifier-appropriate.
-        // Current approach: substring match on DeviceModel (sufficient for DataMan).
-        // Future: replace with a static lookup table (model prefix → brand) populated
-        // from the Cognex/Webscan/Axicon/Omron model catalogue, or read from the
-        // Webscan PDF report header when WebscanSourcePath is available.
-        string brand = (r.DeviceModel ?? string.Empty) switch
-        {
-            var m when m.Contains("DataMan",  StringComparison.OrdinalIgnoreCase) => "COGNEX",
-            var m when m.Contains("Webscan",  StringComparison.OrdinalIgnoreCase) => "WEBSCAN",
-            var m when m.Contains("Axicon",   StringComparison.OrdinalIgnoreCase) => "AXICON",
-            var m when m.Contains("LVS",      StringComparison.OrdinalIgnoreCase)
-                    || m.Contains("Omron",    StringComparison.OrdinalIgnoreCase) => "OMRON/LVS",
-            _ => "COGNEX",   // safe default — all current hardware is DataMan
-        };
+        // Brand derived from DeviceModel via the static BrandPatterns lookup table.
+        // ResolveBrand returns null when the model is unknown; we fall back to "COGNEX"
+        // only as a last resort because all current deployed hardware is DataMan.
+        // When a Webscan PDF source is present its filename also carries brand signal
+        // (e.g. "TruCheck_…") which is already handled by the "TruCheck" pattern in
+        // BrandPatterns should the DeviceModel ever contain that substring.
+        string brand = ResolveBrand(r.DeviceModel) ?? "COGNEX";
         // Both this header and the "Barcode Verification Grades" sub-header use the
         // same subdued style (#2c5296, 8pt) to visually defer to the RFID section.
         string sectionTitle = $"{brand} TruCheck Barcode Verification Results Summary";
