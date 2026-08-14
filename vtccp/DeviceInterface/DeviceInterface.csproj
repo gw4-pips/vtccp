@@ -75,4 +75,10 @@
     <Compile Remove="Rfid/EpcReaderFactory.cs" />
   </ItemGroup>
 
+  <!-- Exclude archived files — they are kept for reference only and must never
+       block clean builds (e.g. raw-string-literal whitespace errors in CS files). -->
+  <ItemGroup>
+    <Compile Remove="Reports/_archived/**/*.cs" />
+  </ItemGroup>
+
 </Project>

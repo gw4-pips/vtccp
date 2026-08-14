@@ -167,7 +167,7 @@ public static class PdfReportGenerator
         c.Background("#edf1f7").BorderBottom(2).BorderColor(NavyHex).PaddingBottom(6).PaddingTop(4).Row(row =>
         {
             // Col 1: VCCS logo placeholder
-            row.ConstantItem(90).Border(1).BorderColor("#999999").BorderStyle(BorderStyle.Dashed)
+            row.ConstantItem(90).Border(1).BorderColor("#999999")
                .AlignCenter().AlignMiddle().Padding(6).Column(col =>
                {
                    col.Item().AlignCenter().Text("VCCS")
@@ -200,7 +200,7 @@ public static class PdfReportGenerator
             });
 
             // Col 4: company placeholder
-            row.ConstantItem(90).Border(1).BorderColor("#999999").BorderStyle(BorderStyle.Dashed)
+            row.ConstantItem(90).Border(1).BorderColor("#999999")
                .AlignCenter().AlignMiddle().Padding(6)
                .Text(r.CompanyName ?? "Company Logo").FontSize(7).FontColor(GrayHex);
         });
