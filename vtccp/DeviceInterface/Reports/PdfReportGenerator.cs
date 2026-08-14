@@ -104,6 +104,7 @@ public static class PdfReportGenerator
                 {
                     col.Spacing(8);
 
+                    col.Item().Element(c => BuildVerificationSummarySection(c, r));
                     col.Item().Element(c => BuildRfidTable(c, r));
 
                     string? imgB64 = r.RoiJpegImageBase64 ?? r.JpegImageBase64;
@@ -125,7 +126,7 @@ public static class PdfReportGenerator
 
     private static void BuildHeader(IContainer c, VerificationRecord r)
     {
-        c.BorderBottom(1).BorderColor(NavyHex).PaddingBottom(6).Row(row =>
+        c.Background("#edf1f7").BorderBottom(2).BorderColor(NavyHex).PaddingBottom(6).PaddingTop(4).Row(row =>
         {
             // Col 1: VCCS logo placeholder
             row.ConstantItem(90).Border(1).BorderColor("#999999").BorderStyle(BorderStyle.Dashed)
@@ -210,6 +211,111 @@ public static class PdfReportGenerator
         c.Background(bgColor).Border(1).BorderColor(fgColor)
          .PaddingHorizontal(8).PaddingVertical(3)
          .Text(label).Bold().FontSize(9).FontColor(fgColor);
+    }
+
+    // ── Verification Results Summary + Barcode Grades ────────────────────────
+
+    private static void BuildVerificationSummarySection(IContainer c, VerificationRecord r)
+    {
+        // Title varies by device family
+        string verifier = (r.DeviceModel ?? string.Empty)
+            .Contains("DataMan", StringComparison.OrdinalIgnoreCase)
+            ? "DataMan TruCheck"
+            : "Webscan TruCheck";
+        string sectionTitle = $"{verifier} Verification Results Summary";
+
+        // Application Specification row  (standard name + PASS/FAIL)
+        string appSpec = !string.IsNullOrWhiteSpace(r.ApplicationStandard)
+            ? r.ApplicationStandard
+            : r.Standard ?? "\u2014";
+        string appResult = r.OverallGrade?.PassFail switch
+        {
+            OverallPassFail.Pass => "PASS",
+            OverallPassFail.Fail => "FAIL",
+            _                   => "\u2014",
+        };
+
+        // Report name: Webscan source file name if known, else timestamped default
+        string reportName = !string.IsNullOrWhiteSpace(r.WebscanSourcePath)
+            ? Path.GetFileName(r.WebscanSourcePath)
+            : $"{r.VerificationDateTime:yyyy-MM-dd_HH-mm-ss}_vccs_rfid.pdf";
+
+        // Grades row values
+        string gradeStandard   = r.Standard ?? "\u2014";
+        string gradeGrade      = r.OverallGrade is { } og
+            ? $"{og.LetterGradeString} ({og.NumericGrade?.ToString("F1") ?? "\u2014"})"
+            : "\u2014";
+        string gradeAperture   = r.Aperture.HasValue   ? r.Aperture.Value.ToString("D2")  : "\u2014";
+        string gradeWavelength = r.Wavelength.HasValue ? r.Wavelength.Value.ToString()     : "\u2014";
+        string gradeLighting   = r.Lighting   ?? "\u2014";
+        string gradeFormal     = r.FormalGrade ?? "\u2014";
+
+        c.Column(col =>
+        {
+            // ── Main section header ───────────────────────────────────────────
+            col.Item()
+               .Background(NavyHex).Padding(4)
+               .Text(sectionTitle).Bold().FontSize(10).FontColor(Colors.White);
+
+            // ── Summary rows (2-col label | value) ───────────────────────────
+            col.Item().Border(1).BorderColor(NavyHex).Table(table =>
+            {
+                table.ColumnsDefinition(cols =>
+                {
+                    cols.ConstantColumn(160);
+                    cols.RelativeColumn();
+                });
+
+                void Row(string label, string? value)
+                {
+                    table.Cell().BorderBottom(1).BorderColor("#dddddd").Padding(4)
+                         .Text(label).FontSize(9);
+                    table.Cell().BorderBottom(1).BorderColor("#dddddd").Padding(4)
+                         .Text(value ?? "\u2014").FontSize(9);
+                }
+
+                Row("Symbology",              r.Symbology);
+                Row("Encoded Data",           r.DecodedData ?? "NO DECODE");
+                Row("Application Specification", $"{appSpec} \u2014 {appResult}");
+                Row("Report Name",            reportName);
+                Row("Report Timestamp",       r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt"));
+            });
+
+            // ── Sub-header: Barcode Verification Grades (smaller banner) ─────
+            col.Item().PaddingTop(6)
+               .Background("#2c5296").Padding(3)
+               .Text("Barcode Verification Grades").Bold().FontSize(8).FontColor(Colors.White);
+
+            // ── 6-column grades table — matching Webscan TruCheck style ──────
+            col.Item().Border(1).BorderColor(NavyHex).Table(table =>
+            {
+                table.ColumnsDefinition(cols =>
+                {
+                    cols.RelativeColumn(2.0f);  // Standard
+                    cols.RelativeColumn(1.5f);  // Grade
+                    cols.RelativeColumn(1.0f);  // Aperture
+                    cols.RelativeColumn(1.0f);  // Wavelength
+                    cols.RelativeColumn(2.0f);  // Lighting
+                    cols.RelativeColumn(2.5f);  // Formal Grade
+                });
+
+                // Bold bordered column headers (Webscan style)
+                foreach (string h in new[] { "Standard", "Grade", "Aperture", "Wavelength", "Lighting", "Formal Grade" })
+                {
+                    table.Cell().Border(1).BorderColor("#999999")
+                         .Padding(4).AlignCenter()
+                         .Text(h).Bold().FontSize(8);
+                }
+
+                // Single data row
+                foreach (string v in new[] { gradeStandard, gradeGrade, gradeAperture, gradeWavelength, gradeLighting, gradeFormal })
+                {
+                    table.Cell().Border(1).BorderColor("#dddddd")
+                         .Padding(4).AlignCenter()
+                         .Text(v).FontSize(8);
+                }
+            });
+        });
     }
 
     // ── RFID Validation table ─────────────────────────────────────────────────

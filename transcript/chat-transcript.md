@@ -1184,3 +1184,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Not cancelling #83-85, just skipping for now. Want to see a rendering of the new PDF page.
 
 **Assistant:** Read PdfReportGenerator.cs produced by task #82 (QuestPDF + PdfSharp, Letter page, 4-col header, RFID table, barcode image section, Data Format Check, footer). Wrote dist/vccs-pdf-preview-v1.html as a pixel-faithful HTML mockup of the PDF layout.
+
+---
+
+**User (14 Aug 2026, 1524):** Uploaded screenshot of Webscan "Verification Grades" table. Issues: (1) report headers/colors not evident in PDF rendering; (2) add a new section directly above RFID Validation: "[Device] TruCheck Verification Results Summary" with rows Symbology, Encoded Data, Application Specification (Pass/Fail), Report Name, Report Timestamp; sub-section "Barcode Verification Grades" formatted exactly as the Webscan screenshot (Standard | Grade | Aperture | Wavelength | Lighting | Formal Grade).
+
+**Assistant:** Read screenshot — dark section header, bold bordered 6-col table matching Webscan style. Changes: (1) Header background fix: added #edf1f7 background + 2px navy bottom border to BuildHeader in C# and HTML preview. (2) Added BuildVerificationSummarySection to PdfReportGenerator.cs — DeviceModel-aware title, 5-row summary table, "Barcode Verification Grades" sub-header (#2c5296), 6-col grades table matching screenshot exactly. Wired before BuildRfidTable. Updated dist/vccs-pdf-preview-v1.html with all sections.
