@@ -499,6 +499,53 @@ public sealed record class VerificationRecord
     /// </summary>
     public string? WebscanSourcePath { get; init; }
 
+    // ─── Linear Symbol (Multi-mode) ───────────────────────────────────────────
+    // Populated when the verifier runs in multi-mode (EAN/UPC + 2D simultaneously).
+    // When present, the PDF grades table shows two rows (linear first, then 2D).
+    // The primary Symbology / OverallGrade / etc. fields hold the 2D symbol data.
+
+    /// <summary>Symbology name of the linear symbol, e.g. "EAN-13", "UPC-A".</summary>
+    public string? LinearSymbology { get; init; }
+
+    /// <summary>Decoded payload of the linear symbol (GTIN digits without GS1 AI prefix).</summary>
+    public string? LinearDecodedData { get; init; }
+
+    /// <summary>ISO/IEC 15416 overall grade for the linear symbol.</summary>
+    public GradingResult? LinearOverallGrade { get; init; }
+
+    /// <summary>
+    /// Formal grade string for the linear symbol, e.g. "A/06/660/Diffuse".
+    /// Mirrors <see cref="FormalGrade"/> but for the EAN/UPC symbol.
+    /// </summary>
+    public string? LinearFormalGrade { get; init; }
+
+    /// <summary>Aperture setting used for linear-symbol grading.</summary>
+    public int? LinearAperture { get; init; }
+
+    /// <summary>Wavelength (nm) used for linear-symbol grading.</summary>
+    public int? LinearWavelength { get; init; }
+
+    /// <summary>Lighting mode used for linear-symbol grading, e.g. "Diffuse".</summary>
+    public string? LinearLighting { get; init; }
+
+    /// <summary>
+    /// Grading standard for the linear symbol — always "ISO/IEC 15416" when populated.
+    /// </summary>
+    public string? LinearStandard { get; init; }
+
+    /// <summary>
+    /// Level-1 barcode-crop JPEG (base64) for the linear symbol.
+    /// Shown side-by-side with the 2D image in the PDF Barcode Image section when both are present.
+    /// </summary>
+    public string? LinearJpegImageBase64 { get; init; }
+
+    /// <summary>
+    /// Data Format Check rows for the linear symbol (GTIN, check digit).
+    /// When present alongside <see cref="DataFormatCheck"/>, the PDF DFC section renders
+    /// both under separate sub-headers: "2D Symbol" and "Linear Symbol (EAN/UPC)".
+    /// </summary>
+    public DataFormatCheckResult? LinearDataFormatCheck { get; init; }
+
     // ─── Helper Properties ────────────────────────────────────────────────────
 
     /// <summary>

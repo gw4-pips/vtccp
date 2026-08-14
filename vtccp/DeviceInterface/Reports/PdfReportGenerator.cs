@@ -240,12 +240,20 @@ public static class PdfReportGenerator
                     col.Item().Element(c => BuildVerificationSummarySection(c, r));
                     col.Item().Element(c => BuildRfidTable(c, r));
 
-                    string? imgB64 = r.RoiJpegImageBase64 ?? r.JpegImageBase64;
-                    if (!string.IsNullOrWhiteSpace(imgB64))
-                        col.Item().Element(c => BuildImageSection(c, imgB64));
+                    // Barcode Image section — side-by-side when multi-mode
+                    string? img2D     = r.RoiJpegImageBase64 ?? r.JpegImageBase64;
+                    string? imgLinear = r.LinearJpegImageBase64;
+                    bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
+                    if (multiMode && !string.IsNullOrWhiteSpace(img2D) && !string.IsNullOrWhiteSpace(imgLinear))
+                        col.Item().Element(c => BuildDualImageSection(c, imgLinear, img2D, r.LinearSymbology!, r.Symbology));
+                    else if (!string.IsNullOrWhiteSpace(img2D))
+                        col.Item().Element(c => BuildImageSection(c, img2D));
 
-                    if (r.DataFormatCheck is { Rows.Count: > 0 } dfc)
-                        col.Item().Element(c => BuildDataFormatSection(c, dfc));
+                    // Data Format Check — with 2D + linear sub-sections when multi-mode
+                    bool has2DdFc     = r.DataFormatCheck       is { Rows.Count: > 0 };
+                    bool hasLinearDfc = r.LinearDataFormatCheck  is { Rows.Count: > 0 };
+                    if (has2DdFc || hasLinearDfc)
+                        col.Item().Element(c => BuildDataFormatSection(c, r.DataFormatCheck, r.LinearDataFormatCheck));
                 });
 
                 page.Footer().Element(c => BuildFooter(c, r));
@@ -444,6 +452,8 @@ public static class PdfReportGenerator
                .Text("Barcode Verification Grades").Bold().FontSize(8).FontColor(Colors.White);
 
             // ── 7-column grades table — matching Webscan TruCheck style ──────
+            // In multi-mode the linear (EAN/UPC) symbol occupies row 1; 2D symbol row 2.
+            // In single-mode there is only one row (whichever symbol was graded).
             col.Item().Border(1).BorderColor(NavyHex).Table(table =>
             {
                 table.ColumnsDefinition(cols =>
@@ -457,9 +467,7 @@ public static class PdfReportGenerator
                     cols.RelativeColumn(2.5f);  // Formal Grade
                 });
 
-                // Column headers — bottom border as row separator, right border as column
-                // divider.  No left/right outer borders: outer table navy provides those.
-                // "Symbology" is the new leading column (EAN-13 / UPC-A / GS1 DataMatrix / QR Code).
+                // Column headers
                 var hdrs = new[] { "Symbology", "Standard", "Grade", "Aperture", "Wavelength", "Lighting", "Formal Grade" };
                 for (int i = 0; i < hdrs.Length; i++)
                 {
@@ -470,20 +478,53 @@ public static class PdfReportGenerator
                     hCell.Padding(3).AlignCenter().Text(hdrs[i]).Bold().FontSize(8);
                 }
 
-                // Single data row — right border for internal column dividers only.
-                // No bottom border (outer table navy closes the bottom).
-                // No left/right outer cell borders (outer table navy provides those).
-                // Symbology derives from r.Symbology (e.g. "EAN-13", "GS1 DataMatrix", "QR Code").
-                // A second row is added in Task #97 (multi-mode two-symbol support).
-                string gradeSymbology = r.Symbology ?? "\u2014";
-                var dataVals = new[] { gradeSymbology, gradeStandard, gradeGrade, gradeAperture, gradeWavelength, gradeLighting, gradeFormal };
-                for (int i = 0; i < dataVals.Length; i++)
+                // Helper: emit one data row with internal right-border column dividers.
+                // The last row in the table has no bottom border (outer navy closes it).
+                void GradeRow(TableDescriptor tbl, string[] vals, bool addBottomBorder)
                 {
-                    IContainer dCell = table.Cell();
-                    if (i < dataVals.Length - 1)
-                        dCell = dCell.BorderRight(1).BorderColor("#dddddd");
-                    dCell.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .AlignCenter().Text(dataVals[i]).FontSize(8);
+                    for (int i = 0; i < vals.Length; i++)
+                    {
+                        IContainer dc = table.Cell();
+                        if (addBottomBorder)
+                            dc = dc.BorderBottom(1).BorderColor("#dddddd");
+                        if (i < vals.Length - 1)
+                            dc = dc.BorderRight(1).BorderColor("#dddddd");
+                        dc.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                          .AlignCenter().Text(vals[i]).FontSize(8);
+                    }
+                }
+
+                bool hasLinear = !string.IsNullOrWhiteSpace(r.LinearSymbology);
+
+                if (hasLinear)
+                {
+                    // Row 1 — linear (EAN/UPC) symbol
+                    string linGrade = r.LinearOverallGrade is { } lg
+                        ? $"{lg.LetterGradeString} ({lg.NumericGrade?.ToString("F1") ?? "\u2014"})"
+                        : "\u2014";
+                    string linAperture   = r.LinearAperture.HasValue   ? r.LinearAperture.Value.ToString("D2") : "\u2014";
+                    string linWavelength = r.LinearWavelength.HasValue  ? r.LinearWavelength.Value.ToString()  : "\u2014";
+                    GradeRow(table,
+                        new[] { r.LinearSymbology!, r.LinearStandard ?? "ISO/IEC 15416",
+                                linGrade, linAperture, linWavelength,
+                                r.LinearLighting ?? "\u2014", r.LinearFormalGrade ?? "\u2014" },
+                        addBottomBorder: true);
+
+                    // Row 2 — 2D symbol (no bottom border — outer navy closes)
+                    GradeRow(table,
+                        new[] { r.Symbology ?? "\u2014", gradeStandard,
+                                gradeGrade, gradeAperture, gradeWavelength,
+                                gradeLighting, gradeFormal },
+                        addBottomBorder: false);
+                }
+                else
+                {
+                    // Single-symbol mode — one data row, no bottom border
+                    GradeRow(table,
+                        new[] { r.Symbology ?? "\u2014", gradeStandard,
+                                gradeGrade, gradeAperture, gradeWavelength,
+                                gradeLighting, gradeFormal },
+                        addBottomBorder: false);
                 }
             });
         });
@@ -589,9 +630,19 @@ public static class PdfReportGenerator
                 DataRow("GTIN-14",         r.RfidGtin14,      tagDetected);
                 DataRow("Serial",          r.RfidSerial,      tagDetected);
 
-                // Result row with colour
-                string resultVal = r.RfidStatus ?? "\u2014";
-                if (!string.IsNullOrWhiteSpace(r.RfidMismatchDetail))
+                // Result row with colour.
+                // When only a linear (EAN/UPC) symbol is present the RFID cross-validation
+                // can only compare GTIN (the barcode carries no serial); the result wording
+                // reflects this.  Multi-mode records (LinearSymbology set) match against the
+                // 2D symbol, so they use the same wording as a 2D-only single-mode scan.
+                bool eanOnly = r.Is1D && string.IsNullOrWhiteSpace(r.LinearSymbology);
+                string resultVal = r.RfidStatus switch
+                {
+                    "Pass" when eanOnly => "Pass \u2014 GTIN match only (serial not in barcode)",
+                    "Fail" when eanOnly => "Fail \u2014 GTIN mismatch",
+                    var s               => s ?? "\u2014",
+                };
+                if (!string.IsNullOrWhiteSpace(r.RfidMismatchDetail) && !eanOnly)
                     resultVal += $" \u2014 {r.RfidMismatchDetail}";
 
                 string resultBg = r.RfidStatus switch
@@ -629,6 +680,7 @@ public static class PdfReportGenerator
 
     // ── Barcode image ─────────────────────────────────────────────────────────
 
+    /// <summary>Single-symbol image section (single-mode).</summary>
     private static void BuildImageSection(IContainer c, string base64Jpeg)
     {
         try
@@ -650,16 +702,105 @@ public static class PdfReportGenerator
         }
     }
 
-    // ── Data Format Check summary ─────────────────────────────────────────────
-
-    private static void BuildDataFormatSection(IContainer c, DataFormatCheckResult dfc)
+    /// <summary>
+    /// Two-symbol image section (multi-mode) — linear crop on the left, 2D crop on the right.
+    /// Each image is capped to ~40 pt wide so both fit comfortably on one Letter page.
+    /// Falls back gracefully when either image fails to decode.
+    /// </summary>
+    private static void BuildDualImageSection(
+        IContainer c,
+        string     linearBase64,
+        string     twoDBase64,
+        string     linearLabel,
+        string?    twoDLabel)
     {
         c.Column(col =>
         {
-            string title = string.IsNullOrWhiteSpace(dfc.Standard)
-                ? "Data Format Check"
-                : $"Data Format Check \u2014 {dfc.Standard}";
+            col.Item().Background(NavyHex).Padding(3)
+               .Text("Barcode Images").Bold().FontSize(10).FontColor(Colors.White);
 
+            col.Item().Border(1).BorderColor(NavyHex).Padding(4).Row(row =>
+            {
+                // Left: linear symbol
+                row.RelativeItem().Column(imgCol =>
+                {
+                    imgCol.Item().AlignCenter().Text(linearLabel)
+                          .FontSize(7).FontColor(GrayHex).Italic();
+                    try
+                    {
+                        byte[] lb = Convert.FromBase64String(linearBase64);
+                        imgCol.Item().AlignCenter()
+                              .MaxWidth(40 * 3)   // ~3 in; linear barcodes are wide
+                              .MaxHeight(40 * 72f / 96f * 72f)  // ~1 in height cap
+                              .Image(lb).FitArea();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[PDF] BuildDualImageSection linear decode failed: {ex.Message}");
+                        imgCol.Item().AlignCenter().Text("[image unavailable]")
+                              .FontSize(8).FontColor(GrayHex);
+                    }
+                });
+
+                // Divider
+                row.ConstantItem(1).Background("#cccccc");
+
+                // Right: 2D symbol
+                row.RelativeItem().Column(imgCol =>
+                {
+                    imgCol.Item().AlignCenter().Text(twoDLabel ?? "2D Symbol")
+                          .FontSize(7).FontColor(GrayHex).Italic();
+                    try
+                    {
+                        byte[] tb = Convert.FromBase64String(twoDBase64);
+                        imgCol.Item().AlignCenter()
+                              .MaxWidth(40 * 72f / 96f * 72f)  // ~1 in square crop
+                              .MaxHeight(40 * 72f / 96f * 72f)
+                              .Image(tb).FitArea();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            $"[PDF] BuildDualImageSection 2D decode failed: {ex.Message}");
+                        imgCol.Item().AlignCenter().Text("[image unavailable]")
+                              .FontSize(8).FontColor(GrayHex);
+                    }
+                });
+            });
+        });
+    }
+
+    // ── Data Format Check summary ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Renders the Data Format Check section.
+    /// When <paramref name="linearDfc"/> is also supplied (multi-mode), the table shows
+    /// a "2D Symbol" sub-header above the 2D rows and a "Linear Symbol (EAN/UPC)" sub-header
+    /// above the EAN rows — all within one bordered table.
+    /// The overall PASS/FAIL pill reflects <paramref name="mainDfc"/> (the 2D symbol's result)
+    /// when both are present; falls back to <paramref name="linearDfc"/> when mainDfc is null.
+    /// </summary>
+    private static void BuildDataFormatSection(
+        IContainer             c,
+        DataFormatCheckResult? mainDfc,
+        DataFormatCheckResult? linearDfc = null)
+    {
+        // Guard: nothing to render
+        if ((mainDfc is null || mainDfc.Rows.Count == 0) &&
+            (linearDfc is null || linearDfc.Rows.Count == 0))
+            return;
+
+        bool multiMode = mainDfc is { Rows.Count: > 0 } && linearDfc is { Rows.Count: > 0 };
+
+        // Title uses the 2D standard when available; generic fallback otherwise.
+        string standard = mainDfc?.Standard ?? linearDfc?.Standard ?? string.Empty;
+        string title = string.IsNullOrWhiteSpace(standard)
+            ? "Data Format Check"
+            : $"Data Format Check \u2014 {standard}";
+
+        c.Column(col =>
+        {
             col.Item().Background(NavyHex).Padding(3)
                .Text(title).Bold().FontSize(10).FontColor(Colors.White);
 
@@ -672,49 +813,83 @@ public static class PdfReportGenerator
                     cols.ConstantColumn(50);  // Check
                 });
 
-                // Header
+                // Column headers
                 foreach (string h in new[] { "Field", "Data", "Check" })
                 {
                     table.Cell().Background("#e8eef5").BorderBottom(1).BorderColor("#aaaaaa")
                          .Padding(3).Text(h).Bold().FontSize(8);
                 }
 
-                // Rows
-                foreach (var row in dfc.Rows)
+                // Emit a full-width sub-header row spanning all 3 columns.
+                void SubHeader(string label)
                 {
-                    bool pass = string.Equals(row.Check, "PASS", StringComparison.OrdinalIgnoreCase);
-                    string rowBg = pass ? Colors.White : FailBack;
+                    table.Cell().ColumnSpan(3)
+                         .Background("#dce6f1").BorderBottom(1).BorderColor("#aaaaaa")
+                         .PaddingTop(2).PaddingBottom(2).PaddingLeft(4)
+                         .Text(label).Bold().FontSize(7.5f).FontColor(NavyHex);
+                }
+
+                // Emit a single DFC data row (3 cells).
+                void DfcRow(DataFormatCheckRow row, bool isLast)
+                {
+                    bool pass      = string.Equals(row.Check, "PASS", StringComparison.OrdinalIgnoreCase);
+                    string rowBg   = pass ? Colors.White : FailBack;
                     string checkFg = pass ? PassHex : FailHex;
 
-                    table.Cell().Background(rowBg).BorderBottom(1).BorderColor("#dddddd")
-                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(row.Name).FontSize(8);
-                    table.Cell().Background(rowBg).BorderBottom(1).BorderColor("#dddddd")
-                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(row.Data).FontSize(8);
-                    table.Cell().Background(rowBg).BorderBottom(1).BorderColor("#dddddd")
-                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(row.Check).Bold().FontSize(8).FontColor(checkFg);
+                    // Returns a styled IContainer ready for a Text() call.
+                    Func<string, IContainer> cell = bg =>
+                    {
+                        IContainer c = table.Cell().Background(bg);
+                        if (!isLast) c = c.BorderBottom(1).BorderColor("#dddddd");
+                        return c.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4);
+                    };
+
+                    cell(rowBg).Text(row.Name).FontSize(8);
+                    cell(rowBg).Text(row.Data).FontSize(8);
+                    cell(rowBg).Text(row.Check).Bold().FontSize(8).FontColor(checkFg);
+                }
+
+                if (multiMode)
+                {
+                    // 2D symbol block
+                    SubHeader("2D Symbol");
+                    var rows2D = mainDfc!.Rows;
+                    for (int i = 0; i < rows2D.Count; i++)
+                        DfcRow(rows2D[i], isLast: false);
+
+                    // Linear symbol block (last row truly last in table)
+                    SubHeader("Linear Symbol (EAN/UPC)");
+                    var rowsLin = linearDfc!.Rows;
+                    for (int i = 0; i < rowsLin.Count; i++)
+                        DfcRow(rowsLin[i], isLast: i == rowsLin.Count - 1);
+                }
+                else
+                {
+                    // Single-symbol: whichever DFC is non-empty
+                    var activeDfc  = (mainDfc?.Rows.Count ?? 0) > 0 ? mainDfc! : linearDfc!;
+                    var activeRows = activeDfc.Rows;
+                    for (int i = 0; i < activeRows.Count; i++)
+                        DfcRow(activeRows[i], isLast: i == activeRows.Count - 1);
                 }
             });
 
-            // Overall result pill
-            string overallText = dfc.Overall switch
+            // Overall result pill — prefer 2D result in multi-mode
+            DataFormatCheckResult? pillSource = (mainDfc?.Rows.Count ?? 0) > 0 ? mainDfc : linearDfc;
+            string overallText = pillSource?.Overall switch
             {
-                OverallPassFail.Pass           => "OVERALL: PASS",
-                OverallPassFail.Fail           => "OVERALL: FAIL",
-                OverallPassFail.NotApplicable  => string.Empty,
-                _                              => string.Empty,
+                OverallPassFail.Pass          => "OVERALL: PASS",
+                OverallPassFail.Fail          => "OVERALL: FAIL",
+                _                             => string.Empty,
             };
             if (!string.IsNullOrEmpty(overallText))
             {
-                string bg = dfc.Overall switch
+                string bg = pillSource?.Overall switch
                 {
                     OverallPassFail.Pass    => PassBack,
                     OverallPassFail.Fail    => FailBack,
                     _                      => Colors.White,
                 };
-                string fg = dfc.Overall switch
+                string fg = pillSource?.Overall switch
                 {
                     OverallPassFail.Pass    => PassHex,
                     OverallPassFail.Fail    => FailHex,
