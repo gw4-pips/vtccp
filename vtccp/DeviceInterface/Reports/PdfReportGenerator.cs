@@ -16,7 +16,7 @@ namespace DeviceInterface.Reports;
 ///
 /// Layout (top to bottom):
 ///   1. 4-column header: VCCS logo | scan meta | RFID result badge | company
-///   2. RFID Validation table (Tag Detected / EPC Hex / GTIN-14 / GCP Valid / Serial / Result)
+///   2. RFID Validation table (Tag Detected / Lock Status / EPC Hex / EPC Tag URI / GCP Length / GTIN-14 / Serial / Result)
 ///   3. Optional barcode image (ROI JPEG preferred; falls back to L1 crop)
 ///   4. Data Format Check summary (GS1 AI rows when present)
 ///   5. VCCS footer
@@ -268,8 +268,10 @@ public static class PdfReportGenerator
                {
                    col.Item().AlignCenter().Text("VCCS")
                       .Bold().FontSize(12).LetterSpacing(1);
-                   col.Item().AlignCenter().Text("FlexWedge\u2122")
-                      .FontSize(7).FontColor(GrayHex);
+                   col.Item().AlignCenter().Text(txt =>
+                   {
+                       txt.Span("FlexWedge\u2122 Pro").Italic().FontSize(7).FontColor(GrayHex);
+                   });
                });
 
             // Col 2: scan meta
@@ -291,8 +293,16 @@ public static class PdfReportGenerator
             // Col 3: RFID result badge (centred)
             row.RelativeItem().AlignCenter().AlignMiddle().Column(col =>
             {
-                col.Item().AlignCenter().Text("VCCS RFID Validation Report")
-                   .Bold().FontSize(11).FontColor(NavyHex);
+                col.Item().AlignCenter().Column(titleCol =>
+                {
+                    titleCol.Item().AlignCenter().Text(txt =>
+                    {
+                        txt.Span("VCCS ").Bold().FontSize(11).FontColor(NavyHex);
+                        txt.Span("FlexWedge\u2122 Pro").Bold().Italic().FontSize(11).FontColor(NavyHex);
+                    });
+                    titleCol.Item().AlignCenter().Text("RFID Validation Report")
+                       .Bold().FontSize(11).FontColor(NavyHex);
+                });
                 col.Item().PaddingTop(4).AlignCenter()
                    .Element(c2 => RfidBadge(c2, r.RfidStatus));
             });
@@ -438,6 +448,7 @@ public static class PdfReportGenerator
             {
                 table.ColumnsDefinition(cols =>
                 {
+                    cols.RelativeColumn(1.5f);  // Symbology
                     cols.RelativeColumn(2.0f);  // Standard
                     cols.RelativeColumn(1.5f);  // Grade
                     cols.RelativeColumn(1.0f);  // Aperture
@@ -448,7 +459,8 @@ public static class PdfReportGenerator
 
                 // Column headers — bottom border as row separator, right border as column
                 // divider.  No left/right outer borders: outer table navy provides those.
-                var hdrs = new[] { "Standard", "Grade", "Aperture", "Wavelength", "Lighting", "Formal Grade" };
+                // "Symbology" is the new leading column (EAN-13 / UPC-A / GS1 DataMatrix / QR Code).
+                var hdrs = new[] { "Symbology", "Standard", "Grade", "Aperture", "Wavelength", "Lighting", "Formal Grade" };
                 for (int i = 0; i < hdrs.Length; i++)
                 {
                     IContainer hCell = table.Cell().Background(Colors.White)
@@ -461,7 +473,10 @@ public static class PdfReportGenerator
                 // Single data row — right border for internal column dividers only.
                 // No bottom border (outer table navy closes the bottom).
                 // No left/right outer cell borders (outer table navy provides those).
-                var dataVals = new[] { gradeStandard, gradeGrade, gradeAperture, gradeWavelength, gradeLighting, gradeFormal };
+                // Symbology derives from r.Symbology (e.g. "EAN-13", "GS1 DataMatrix", "QR Code").
+                // A second row is added in Task #97 (multi-mode two-symbol support).
+                string gradeSymbology = r.Symbology ?? "\u2014";
+                var dataVals = new[] { gradeSymbology, gradeStandard, gradeGrade, gradeAperture, gradeWavelength, gradeLighting, gradeFormal };
                 for (int i = 0; i < dataVals.Length; i++)
                 {
                     IContainer dCell = table.Cell();
@@ -488,10 +503,12 @@ public static class PdfReportGenerator
             bool isGS1Rfid = r.ApplicationStandard?
                 .StartsWith("GS1", StringComparison.OrdinalIgnoreCase) == true;
             string rfidAdj   = isGS1Rfid ? "EPC " : "UHF ";
-            string rfidTitle = $"VCCS FlexWedge\u2122 {rfidAdj}RFID Validation Summary";
-
-            col.Item().Background(NavyHex).Padding(3)
-               .Text(rfidTitle).Bold().FontSize(10).FontColor(Colors.White);
+            col.Item().Background(NavyHex).Padding(3).Text(txt =>
+            {
+                txt.Span("VCCS ").Bold().FontSize(10).FontColor(Colors.White);
+                txt.Span("FlexWedge\u2122 Pro ").Bold().Italic().FontSize(10).FontColor(Colors.White);
+                txt.Span($"{rfidAdj}RFID Validation Summary").Bold().FontSize(10).FontColor(Colors.White);
+            });
 
             col.Item().Border(1).BorderColor(NavyHex).Table(table =>
             {
@@ -548,10 +565,16 @@ public static class PdfReportGenerator
                 };
                 DataRow("Tag Lock Status", lockDisplay);
 
-                DataRow("EPC Hex",         r.RfidEpcHex,  tagDetected);
-                DataRow("GTIN-14",         r.RfidGtin14,  tagDetected);
+                DataRow("EPC Hex",         r.RfidEpcHex,      tagDetected);
 
-                // GCP Length: "Valid (N)" or "Invalid (N)" where N = GCP digit count
+                // EPC Tag URI — urn:epc:tag:... form as used by RFID middleware.
+                // Distinct from the GS1 Digital Link URI that appears in QR code payloads.
+                DataRow("EPC Tag URI",     r.RfidEpcTagUri,   tagDetected);
+
+                // GCP Length: "Valid (N)" or "Invalid (N)" where N = GCP digit count.
+                // Shown above GTIN-14 per v6 layout.
+                // TODO: append "(From GCP prefix table as of <date>)" once GcpTableDate
+                //       is threaded through from the encrypted prefix-table metadata block.
                 string gcpLenPart = r.RfidGcpLength.HasValue
                     ? $" ({r.RfidGcpLength.Value})"
                     : string.Empty;
@@ -563,7 +586,8 @@ public static class PdfReportGenerator
                 };
                 DataRow("GCP Length",      gcpDisplay);
 
-                DataRow("Serial",          r.RfidSerial,  tagDetected);
+                DataRow("GTIN-14",         r.RfidGtin14,      tagDetected);
+                DataRow("Serial",          r.RfidSerial,      tagDetected);
 
                 // Result row with colour
                 string resultVal = r.RfidStatus ?? "\u2014";
@@ -711,7 +735,9 @@ public static class PdfReportGenerator
         {
             row.RelativeItem().Text(txt =>
             {
-                txt.Span("VCCS FlexWedge\u2122 RFID Validation Report").Bold().FontSize(7);
+                txt.Span("VCCS ").Bold().FontSize(7);
+                txt.Span("FlexWedge\u2122 Pro").Bold().Italic().FontSize(7);
+                txt.Span(" RFID Validation Report").Bold().FontSize(7);
                 txt.Span($"  \u2014  Generated {r.VerificationDateTime:yyyy-MM-dd HH:mm:ss}").FontSize(7).FontColor(GrayHex);
             });
             row.RelativeItem().AlignRight().Text(txt =>

@@ -432,6 +432,14 @@ public sealed record class VerificationRecord
     /// <summary>Raw EPC hex string from the selected tag, e.g. "30342A7CC844C7D0F36A0676".</summary>
     public string? RfidEpcHex { get; init; }
 
+    /// <summary>
+    /// EPC Tag URI in urn:epc:tag:... form as decoded by RFID middleware,
+    /// e.g. "urn:epc:tag:sgtin-96:0.3453120.000001.000000001".
+    /// Distinct from the GS1 Digital Link URI that appears in QR code payloads.
+    /// Null when tag was not decoded or URI construction failed.
+    /// </summary>
+    public string? RfidEpcTagUri { get; init; }
+
     /// <summary>GTIN-14 decoded from the EPC (14 digits). Null if decode failed or no tag.</summary>
     public string? RfidGtin14 { get; init; }
 

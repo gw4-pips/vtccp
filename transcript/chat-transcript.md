@@ -1226,3 +1226,15 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Fix EPC URI row (conflated with GS1 DL URI — should be urn:epc:tag:... form). Header h1: hard break after Pro so RFID falls on line 2. Grades table: add Symbology column at left; add second row for 2D symbol (EAN/UPC always first). No other changes. Also clarified: DL at PIPS = GTIN+SN for now; EAN/UPC-only = GTIN-only EPC validation; multi-mode verifier output = 1 multi-page PDF; image option B (two side-by-side); Report Name stays in summary table (not in header); timestamp omittable only if it matches RFID report TS.
 
 **Assistant:** Three targeted edits to v5 HTML: (1) EPC URI row already fixed to urn:epc:tag:sgtin-96:... in prior turn. (2) h1 break added after FlexWedge™ Pro so RFID Validation Report falls on line 2. (3) Grades table: new Symbology column as first th; EAN-13/ISO 15416 row inserted first; existing 2D row (GS1 DataMatrix/ISO 15415) kept as second row with Symbology cell added. No other changes made per explicit instruction.
+
+---
+
+**User:** You did not increment the version. Do not skip that again.
+
+**Assistant:** Copied v5 to vccs-pdf-preview-v6.html and updated internal version strings ("PDF Preview v6", print-hint "PDF page preview v6"). Standing rule confirmed: every round of edits to the HTML preview must bump the version number.
+
+---
+
+**User:** (Task #95 in progress — apply FlexWedge™ Pro branding and EPC Tag URI row to the live PDF generator)
+
+**Assistant:** Applied all v6 HTML changes to C# generator. VerificationRecord.cs: added RfidEpcTagUri string?. PdfReportGenerator.cs: (1) logo-box sub-line → "FlexWedge™ Pro" italic via Text span; (2) header h1 split into two-line Column — "VCCS FlexWedge™ Pro" (italic) / "RFID Validation Report"; (3) RFID section banner uses span form: "VCCS " + "FlexWedge™ Pro " italic + "{rfidAdj}RFID Validation Summary"; (4) EPC Tag URI row added below EPC Hex using r.RfidEpcTagUri with tagDetected highlight; (5) GCP Length moved above GTIN-14; TODO comment added for GcpTableDate sub-note once table metadata is threaded through; (6) Grades table: Symbology column added as first column (RelativeColumn 1.5f), header array prepended with "Symbology", dataVals prepended with r.Symbology ?? "—"; (7) Footer: "VCCS FlexWedge™ Pro RFID Validation Report" via three Span calls (last italic). Class-level XML doc comment updated to reflect new RFID row order. VtccpApp.csproj bumped 1.3.8 → 1.3.9.
