@@ -42,6 +42,18 @@ public sealed record class VerificationRecord
     /// Populated at ConnectAsync; never null on a real device scan.
     /// </summary>
     public string? DeviceModel { get; init; }
+    /// <summary>
+    /// Explicit all-caps verifier brand override used by file-export adapters (Webscan,
+    /// Axicon, Omron/LVS) that do not populate <see cref="DeviceModel"/>.
+    /// When set, <c>PdfReportGenerator</c> uses this value directly and skips brand
+    /// inference from <see cref="DeviceModel"/> or the source PDF metadata.
+    ///
+    /// Allowed values (match the <c>BrandPatterns</c> table in PdfReportGenerator):
+    ///   "COGNEX", "WEBSCAN", "AXICON", "OMRON/LVS"
+    ///
+    /// Null for SDK-connected DataMan devices — brand is inferred from DeviceModel instead.
+    /// </summary>
+    public string? VerifierBrand { get; init; }
     public string? FirmwareVersion { get; init; }
     /// <summary>
     /// "host:port" as configured in DeviceConfig, e.g. "10.10.10.7:44444".

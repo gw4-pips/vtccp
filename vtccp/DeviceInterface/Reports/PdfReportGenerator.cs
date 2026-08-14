@@ -58,22 +58,117 @@ public static class PdfReportGenerator
     ];
 
     /// <summary>
-    /// Resolves the all-caps verifier brand name from a <see cref="VerificationRecord.DeviceModel"/>
-    /// string using the static <see cref="BrandPatterns"/> lookup table.
-    /// Returns <see langword="null"/> when the model string is empty or matches no known pattern,
-    /// so callers can decide on their own fallback (rather than silently defaulting to COGNEX).
+    /// Resolves the all-caps verifier brand name from an arbitrary string using the
+    /// static <see cref="BrandPatterns"/> lookup table.
+    /// Returns <see langword="null"/> when the input is empty or matches no known pattern.
     /// </summary>
-    private static string? ResolveBrand(string? deviceModel)
+    private static string? ResolveBrand(string? text)
     {
-        if (string.IsNullOrWhiteSpace(deviceModel)) return null;
+        if (string.IsNullOrWhiteSpace(text)) return null;
 
         foreach (var (substring, brand) in BrandPatterns)
         {
-            if (deviceModel.Contains(substring, StringComparison.OrdinalIgnoreCase))
+            if (text.Contains(substring, StringComparison.OrdinalIgnoreCase))
                 return brand;
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Resolves the verifier brand for PDF labelling using four sources in priority order:
+    /// <list type="number">
+    ///   <item><see cref="VerificationRecord.VerifierBrand"/> — explicit adapter-supplied override.</item>
+    ///   <item><see cref="VerificationRecord.DeviceModel"/> — SDK-connected DataMan devices always populate this.</item>
+    ///   <item>Source PDF metadata — when <see cref="VerificationRecord.WebscanSourcePath"/> is a .pdf,
+    ///         reads document info fields (Title, Creator, Author) via PdfSharp.</item>
+    ///   <item>Raw file byte scan — scans the first 64 KB of the PDF file for brand keyword strings.</item>
+    /// </list>
+    /// Returns <see langword="null"/> when brand cannot be determined, so the caller can
+    /// omit the brand prefix rather than incorrectly defaulting to COGNEX.
+    /// </summary>
+    private static string? ResolveEffectiveBrand(VerificationRecord r)
+    {
+        // 1. Explicit adapter-supplied override (file-export adapters: Webscan, Axicon, LVS)
+        if (!string.IsNullOrWhiteSpace(r.VerifierBrand))
+            return r.VerifierBrand;
+
+        // 2. Device model string (SDK-connected DataMan devices always have this)
+        string? fromModel = ResolveBrand(r.DeviceModel);
+        if (fromModel != null)
+            return fromModel;
+
+        // 3 & 4. PDF source file — metadata fields then raw byte scan
+        if (!string.IsNullOrWhiteSpace(r.WebscanSourcePath)
+            && r.WebscanSourcePath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)
+            && File.Exists(r.WebscanSourcePath))
+        {
+            string? fromPdf = ExtractBrandFromPdf(r.WebscanSourcePath);
+            if (fromPdf != null)
+                return fromPdf;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Reads a PDF file and scans it for known verifier brand tokens.
+    /// Primary path: reads document info fields (Title, Creator, Author, Subject) via
+    /// PdfSharp — cheap and sufficient for any Webscan/Axicon/LVS report PDF.
+    /// Secondary path: scans the first 64 KB of raw file bytes for brand keyword strings
+    /// (covers PDFs where metadata is absent but brand text appears in the XMP stream or
+    /// an uncompressed content fragment).
+    /// Always safe — all exceptions are caught and logged; never throws.
+    /// </summary>
+    private static string? ExtractBrandFromPdf(string pdfPath)
+    {
+        // Primary: PdfSharp document info dictionary
+        try
+        {
+            using var doc = PdfReader.Open(pdfPath, PdfDocumentOpenMode.Modify);
+            string metaText = string.Concat(
+                doc.Info.Title   ?? string.Empty, " ",
+                doc.Info.Creator ?? string.Empty, " ",
+                doc.Info.Author  ?? string.Empty, " ",
+                doc.Info.Subject ?? string.Empty);
+            string? fromMeta = ResolveBrand(metaText);
+            if (fromMeta != null)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[PDF] Brand '{fromMeta}' resolved from PDF metadata of '{Path.GetFileName(pdfPath)}'");
+                return fromMeta;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[PDF] ExtractBrandFromPdf (metadata): {ex.GetType().Name}: {ex.Message}");
+        }
+
+        // Secondary: raw byte scan — covers XMP streams and uncompressed content fragments
+        try
+        {
+            const int MaxScanBytes = 65536;
+            using var fs = File.OpenRead(pdfPath);
+            int readLen = (int)Math.Min(MaxScanBytes, fs.Length);
+            byte[] buf = new byte[readLen];
+            _ = fs.Read(buf, 0, readLen);
+            // Latin-1 preserves every byte value; brand keywords are ASCII so encoding is irrelevant.
+            string rawText = System.Text.Encoding.Latin1.GetString(buf);
+            string? fromRaw = ResolveBrand(rawText);
+            if (fromRaw != null)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[PDF] Brand '{fromRaw}' resolved from raw byte scan of '{Path.GetFileName(pdfPath)}'");
+            }
+            return fromRaw;
+        }
+        catch (Exception ex2)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[PDF] ExtractBrandFromPdf (raw scan): {ex2.GetType().Name}: {ex2.Message}");
+            return null;
+        }
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -167,6 +262,7 @@ public static class PdfReportGenerator
         c.Background("#edf1f7").BorderBottom(2).BorderColor(NavyHex).PaddingBottom(6).PaddingTop(4).Row(row =>
         {
             // Col 1: VCCS logo placeholder
+            // TODO Task #89: QuestPDF 2024.x has no BorderStyle API; dashed border requires a custom workaround.
             row.ConstantItem(90).Border(1).BorderColor("#999999")
                .AlignCenter().AlignMiddle().Padding(6).Column(col =>
                {
@@ -200,6 +296,7 @@ public static class PdfReportGenerator
             });
 
             // Col 4: company placeholder
+            // TODO Task #89: dashed border pending QuestPDF workaround
             row.ConstantItem(90).Border(1).BorderColor("#999999")
                .AlignCenter().AlignMiddle().Padding(6)
                .Text(r.CompanyName ?? "Company Logo").FontSize(7).FontColor(GrayHex);
@@ -255,16 +352,16 @@ public static class PdfReportGenerator
 
     private static void BuildVerificationSummarySection(IContainer c, VerificationRecord r)
     {
-        // Brand derived from DeviceModel via the static BrandPatterns lookup table.
-        // ResolveBrand returns null when the model is unknown; we fall back to "COGNEX"
-        // only as a last resort because all current deployed hardware is DataMan.
-        // When a Webscan PDF source is present its filename also carries brand signal
-        // (e.g. "TruCheck_…") which is already handled by the "TruCheck" pattern in
-        // BrandPatterns should the DeviceModel ever contain that substring.
-        string brand = ResolveBrand(r.DeviceModel) ?? "COGNEX";
+        // Brand resolved from four sources in priority order (see ResolveEffectiveBrand):
+        // VerifierBrand field → DeviceModel → source PDF metadata → raw PDF byte scan.
+        // Returns null when brand is genuinely unknown — in that case we omit the brand
+        // prefix rather than incorrectly labelling a Webscan/Axicon/LVS report as COGNEX.
+        string? brand = ResolveEffectiveBrand(r);
         // Both this header and the "Barcode Verification Grades" sub-header use the
         // same subdued style (#2c5296, 8pt) to visually defer to the RFID section.
-        string sectionTitle = $"{brand} TruCheck Barcode Verification Results Summary";
+        string sectionTitle = brand != null
+            ? $"{brand} TruCheck Barcode Verification Results Summary"
+            : "TruCheck Barcode Verification Results Summary";
 
         // Application Specification row  (standard name + PASS/FAIL)
         string appSpec = !string.IsNullOrWhiteSpace(r.ApplicationStandard)

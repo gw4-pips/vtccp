@@ -79,6 +79,21 @@ public sealed class DmstHtmlScraper : IDisposable
     private readonly HashSet<string>         _ownedPaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly object                  _lock      = new();
 
+    // ── Source-path tracking (Replace mode support) ───────────────────────────
+
+    /// <summary>
+    /// The <see cref="DmstHtmlReport.SourceFilePath"/> of the most recently matched
+    /// pending report, set each time <see cref="TryMergeAsync"/> finds a correlation.
+    ///
+    /// Used by <c>SessionViewModel</c> in Replace mode to write the hybrid HTML back
+    /// to the same path (same folder, same filename) as the original Webscan report.
+    ///
+    /// Thread-safety note: written under <see cref="_lock"/> inside TryMergeAsync;
+    /// callers should capture the value immediately after TryMergeAsync returns to
+    /// avoid a race with the next incoming scan.
+    /// </summary>
+    public string? LastMatchedSourcePath { get; private set; }
+
     // ── Construction ──────────────────────────────────────────────────────────
 
     /// <summary>
@@ -206,6 +221,7 @@ public sealed class DmstHtmlScraper : IDisposable
 
             if (match is not null)
             {
+                lock (_lock) { LastMatchedSourcePath = match.Report.SourceFilePath; }
                 System.Diagnostics.Debug.WriteLine(
                     $"[VTCCP-SCRAPER] Correlated HTML report to scan at " +
                     $"{record.VerificationDateTime:HH:mm:ss}. Running merge+validate.");

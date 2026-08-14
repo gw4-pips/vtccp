@@ -43,6 +43,20 @@ public sealed class DeviceSession : IAsyncDisposable
     public string? OriginalTriggerType => _originalTriggerType;
 
     /// <summary>
+    /// Source file path of the Webscan HTML report that was most recently correlated
+    /// by the internal <see cref="DmstHtmlScraper"/>.  Set each time
+    /// <see cref="DmstHtmlScraper.TryMergeAsync"/> finds a match.
+    ///
+    /// Used by <c>SessionViewModel</c> in Replace mode: after
+    /// <see cref="TriggerAndGetResultAsync"/> returns, this property holds the path
+    /// of the original Webscan HTML (already deleted by the scraper) so the caller
+    /// can write the hybrid report to the same location.
+    ///
+    /// Null when no scraper is running (e.g. DMST extension is .pdf, not .html).
+    /// </summary>
+    public string? LastMatchedSourcePath => _scraper?.LastMatchedSourcePath;
+
+    /// <summary>
     /// Registers <paramref name="path"/> with the internal <see cref="DmstHtmlScraper"/> so
     /// that the FileSystemWatcher suppresses the Created event triggered by VTCCP's own write
     /// of a hybrid report to the CodeQuality folder (Replace mode).
