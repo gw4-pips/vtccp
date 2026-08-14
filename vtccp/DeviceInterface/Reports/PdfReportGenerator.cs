@@ -689,8 +689,8 @@ public static class PdfReportGenerator
 
                 // GCP Length: "Valid (N)" or "Invalid (N)" where N = GCP digit count.
                 // Shown above GTIN-14 per v6 layout.
-                // TODO: append "(From GCP prefix table as of <date>)" once GcpTableDate
-                //       is threaded through from the encrypted prefix-table metadata block.
+                // When GcpTableDate is available, the value cell uses RichText to append
+                // an italic provenance annotation: "— From GCP prefix table as of yyyy-MM-dd".
                 string gcpLenPart = r.RfidGcpLength.HasValue
                     ? $" ({r.RfidGcpLength.Value})"
                     : string.Empty;
@@ -700,7 +700,28 @@ public static class PdfReportGenerator
                     false => $"Invalid{gcpLenPart}",
                     null  => "\u2014",
                 };
-                DataRow("GCP Length",      gcpDisplay);
+
+                // Emit GCP Length row — inline (bypasses DataRow helper) to allow RichText.
+                table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#dddddd")
+                     .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                     .Text("GCP Length").FontSize(9);
+                if (!string.IsNullOrWhiteSpace(r.RfidGcpTableDate))
+                {
+                    table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#dddddd")
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(txt =>
+                         {
+                             txt.Span(gcpDisplay).FontSize(9);
+                             txt.Span($" \u2014 From GCP prefix table as of {r.RfidGcpTableDate}")
+                                .Italic().FontSize(7.5f).FontColor(GrayHex);
+                         });
+                }
+                else
+                {
+                    table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#dddddd")
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(gcpDisplay).FontSize(9);
+                }
 
                 DataRow("GTIN-14",         r.RfidGtin14,      tagDetected);
                 DataRow("Serial",          r.RfidSerial,      tagDetected);

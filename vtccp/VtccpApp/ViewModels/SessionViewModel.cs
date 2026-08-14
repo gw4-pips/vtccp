@@ -823,6 +823,16 @@ public sealed class SessionViewModel : ViewModelBase
         }
 
         if (rfidResult is not null)
+        {
+            // Resolve the GCP prefix table date from stored settings (parsed once at download;
+            // format as yyyy-MM-dd for the PDF provenance annotation).
+            string? gcpTableDate = null;
+            if (!string.IsNullOrWhiteSpace(_repo.Settings.GcpLastModified)
+                && DateTimeOffset.TryParse(_repo.Settings.GcpLastModified, out var gcpDto))
+            {
+                gcpTableDate = gcpDto.ToString("yyyy-MM-dd");
+            }
+
             record = record with
             {
                 RfidStatus         = rfidResult.Status.ToString(),
@@ -832,7 +842,9 @@ public sealed class SessionViewModel : ViewModelBase
                 RfidMismatchDetail = rfidResult.MismatchDetail,
                 RfidScanWindowMs   = rfidResult.ScanWindowMs,
                 RfidGcpValid       = rfidResult.GcpValid,
+                RfidGcpTableDate   = gcpTableDate,
             };
+        }
 
         // AddRecord is kept in a try/catch so that a Save failure (e.g. Excel
         // file locked, or session not yet fully started) never silently drops the

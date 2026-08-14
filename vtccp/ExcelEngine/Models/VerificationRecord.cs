@@ -474,6 +474,15 @@ public sealed record class VerificationRecord
     public int? RfidGcpLength { get; init; }
 
     /// <summary>
+    /// Date of the GS1 GCP Prefix Format List XML used for the GCP lookup, formatted as
+    /// "yyyy-MM-dd" (e.g. "2026-05-03").  Sourced from the GCPPrefixFormatList root
+    /// element's "date" attribute via <see cref="ConfigEngine.Models.AppSettings.GcpLastModified"/>.
+    /// Null when the GCP table is not loaded or the date attribute was absent.
+    /// Rendered in the PDF report as an italic provenance annotation on the GCP Length row.
+    /// </summary>
+    public string? RfidGcpTableDate { get; init; }
+
+    /// <summary>
     /// EPC memory bank lock status as reported by the RFID reader after inventory.
     /// Allowable values (from ASR-P35U CheckTagStatus success codes):
     ///   "Locked"       — EPC bank write-locked (code 41)
