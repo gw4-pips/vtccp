@@ -276,7 +276,9 @@ public static class PdfReportGenerator
             row.RelativeItem().PaddingHorizontal(8).AlignMiddle().Column(col =>
             {
                 string dt     = r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt");
-                string device = r.DeviceModel ?? "Cognex DataMan";
+                // Priority: DeviceModel (SDK-connected DataMan) → VerifierBrand (file-export adapters)
+                // → neutral placeholder.  Never fall back to "Cognex DataMan" for non-Cognex hardware.
+                string device = r.DeviceModel ?? r.VerifierBrand ?? "\u2014";
                 string serial = r.DeviceSerial ?? "\u2014";
                 string fw     = r.FirmwareVersion ?? "\u2014";
 
