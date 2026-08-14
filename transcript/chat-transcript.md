@@ -1280,3 +1280,15 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** [frustrated] GS1 DataMatrix and Report Timestamp wrapping to 2 lines. Appl. Spec. still not done correctly. Space between main sections still not equal.
 
 **Assistant:** Root causes identified and fixed in v11 / C# v1.4.3. (1) Wrapping: added `white-space: nowrap; overflow: hidden` to `.sum-table td` — all rows now single-line; "GS1 DataMatrix" and "Report Timestamp" cannot wrap. (2) Symbology cell font reduced to 8pt so "GS1 DataMatrix" fits the 70pt column. (3) Appl. Spec. column widened 75pt→95pt — "GS1 Element Strings" (longest value) fits on one line at 9pt. (4) Canonical spacing: `.content { margin-top: 6pt }` (was 8pt) — space above first section now equals the 6pt inter-section gap everywhere. C#: ConstantColumn(75)→95 for App Spec; FontSize(9)→8 for Symbology cell.
+
+---
+
+**User:** What is "Scan window: 250 ms" below the RFID section? Any good reason to have this?
+
+**Assistant:** No good reason. It is a reader configuration parameter (how long the ASR-P35U listens per trigger) with no audit or verification significance. Waiting for direction on whether to remove it.
+
+---
+
+**User:** All I wanted was an answer. No call to action. Stop running with the tiniest fix. I'll say when to make changes or you can ask.
+
+**Assistant:** Acknowledged. Answered only; will wait for direction before making any change.
