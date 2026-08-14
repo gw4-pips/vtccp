@@ -434,7 +434,7 @@ public static class PdfReportGenerator
             {
                 table.ColumnsDefinition(cols =>
                 {
-                    cols.ConstantColumn(90);   // Symbology
+                    cols.ConstantColumn(70);   // Symbology — narrowed to maximise Encoded Data
                     cols.RelativeColumn();      // Encoded Data — widest
                     cols.ConstantColumn(75);   // Application Specification
                 });
@@ -463,7 +463,7 @@ public static class PdfReportGenerator
                          .Text(symb).FontSize(9);
                     table.Cell().BorderBottom(bt).BorderColor(bc).BorderRight(1)
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(encoded ?? "\u2014").FontSize(8);
+                         .Text(encoded ?? "\u2014").FontSize(9);
                     table.Cell().BorderBottom(bt).BorderColor(bc)
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                          .Text(appSpecStr).FontSize(9);
@@ -479,18 +479,20 @@ public static class PdfReportGenerator
 
                 if (hasLinearSum)
                 {
-                    // Row 1: linear (EAN/UPC) — not the separator row
+                    // Row 1: linear (EAN/UPC) — not the separator row.
+                    // App Spec for EAN/UPC is always GS1; no PASS/FAIL shown (grades table owns that).
                     SymbolRow(r.LinearSymbology!, r.LinearDecodedData,
-                              $"GS1 \u2014 {linAppResult}", isSeparatorRow: false);
-                    // Row 2: 2D symbol — separator row (heavier bottom border)
+                              "GS1", isSeparatorRow: false);
+                    // Row 2: 2D symbol — separator row (heavier bottom border).
+                    // App Spec values: "GS1", "GS1 Element Strings", "GS1 Digital Link".
                     SymbolRow(r.Symbology ?? "\u2014", r.DecodedData,
-                              $"{appSpec} \u2014 {appResult}", isSeparatorRow: true);
+                              appSpec, isSeparatorRow: true);
                 }
                 else
                 {
                     // Single-symbol mode — one row, separator row (heavier bottom border)
                     SymbolRow(r.Symbology ?? "\u2014", r.DecodedData,
-                              $"{appSpec} \u2014 {appResult}", isSeparatorRow: true);
+                              appSpec, isSeparatorRow: true);
                 }
 
                 // Metadata rows: label (col 1) + value spanning cols 2–3 (ColumnSpan 2)
