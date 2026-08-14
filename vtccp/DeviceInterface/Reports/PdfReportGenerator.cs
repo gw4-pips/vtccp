@@ -1,3 +1,4 @@
+using System.Reflection;
 using ExcelEngine.Models;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -456,7 +457,7 @@ public static class PdfReportGenerator
                 void SymbolRow(string symb, string? encoded, string appSpecStr, bool isSeparatorRow)
                 {
                     float bt = isSeparatorRow ? 1.5f : 1f;
-                    string bc = isSeparatorRow ? "#aaaaaa" : "#dddddd";
+                    string bc = isSeparatorRow ? "#888888" : "#aaaaaa";
 
                     table.Cell().BorderBottom(bt).BorderColor(bc).BorderRight(1)
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
@@ -511,13 +512,13 @@ public static class PdfReportGenerator
                 // Metadata rows: label (col 1) + value spanning cols 2–3 (ColumnSpan 2)
                 void MetaRow(string label, string? value, bool isLast)
                 {
-                    IContainer lc = table.Cell().BorderRight(1).BorderColor("#dddddd");
-                    if (!isLast) lc = lc.BorderBottom(1).BorderColor("#dddddd");
+                    IContainer lc = table.Cell().BorderRight(1).BorderColor("#aaaaaa");
+                    if (!isLast) lc = lc.BorderBottom(1).BorderColor("#aaaaaa");
                     lc.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                       .Text(label).FontSize(8.5f).FontColor(GrayHex);
 
                     if (!isLast)
-                        table.Cell().ColumnSpan(2).BorderBottom(1).BorderColor("#dddddd")
+                        table.Cell().ColumnSpan(2).BorderBottom(1).BorderColor("#aaaaaa")
                              .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                              .Text(value ?? "\u2014").FontSize(9);
                     else
@@ -575,9 +576,9 @@ public static class PdfReportGenerator
                     {
                         IContainer dc = table.Cell();
                         if (addBottomBorder)
-                            dc = dc.BorderBottom(1).BorderColor("#dddddd");
+                            dc = dc.BorderBottom(1).BorderColor("#aaaaaa");
                         if (i < vals.Length - 1)
-                            dc = dc.BorderRight(1).BorderColor("#dddddd");
+                            dc = dc.BorderRight(1).BorderColor("#aaaaaa");
                         dc.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                           .AlignCenter().Text(vals[i]).FontSize(8);
                     }
@@ -659,10 +660,10 @@ public static class PdfReportGenerator
                 void DataRow(string label, string? value, bool highlight = false)
                 {
                     string bg = highlight ? "#f0f7ff" : Colors.White;
-                    table.Cell().Background(bg).BorderBottom(1).BorderColor("#dddddd")
+                    table.Cell().Background(bg).BorderBottom(1).BorderColor("#aaaaaa")
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                          .Text(label).FontSize(9);
-                    table.Cell().Background(bg).BorderBottom(1).BorderColor("#dddddd")
+                    table.Cell().Background(bg).BorderBottom(1).BorderColor("#aaaaaa")
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                          .Text(value ?? "\u2014").FontSize(9);
                 }
@@ -718,12 +719,12 @@ public static class PdfReportGenerator
                 };
 
                 // Emit GCP Length row — inline (bypasses DataRow helper) to allow RichText.
-                table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#dddddd")
+                table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#aaaaaa")
                      .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                      .Text("GCP Length").FontSize(9);
                 if (!string.IsNullOrWhiteSpace(r.RfidGcpTableDate))
                 {
-                    table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#dddddd")
+                    table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#aaaaaa")
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                          .Text(txt =>
                          {
@@ -734,7 +735,7 @@ public static class PdfReportGenerator
                 }
                 else
                 {
-                    table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#dddddd")
+                    table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#aaaaaa")
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                          .Text(gcpDisplay).FontSize(9);
                 }
@@ -952,7 +953,7 @@ public static class PdfReportGenerator
                     Func<string, IContainer> cell = bg =>
                     {
                         IContainer c = table.Cell().Background(bg);
-                        if (!isLast) c = c.BorderBottom(1).BorderColor("#dddddd");
+                        if (!isLast) c = c.BorderBottom(1).BorderColor("#aaaaaa");
                         return c.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4);
                     };
 
@@ -1024,7 +1025,10 @@ public static class PdfReportGenerator
             {
                 txt.Span("VCCS ").Bold().FontSize(7);
                 txt.Span("FlexWedge\u2122 Pro").Bold().Italic().FontSize(7);
-                txt.Span(" RFID Validation Report").Bold().FontSize(7);
+                // Version read from the entry assembly at runtime so it always matches the installed build.
+                string ver = Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? string.Empty;
+                string verSuffix = ver.Length > 0 ? $" v{ver}" : string.Empty;
+                txt.Span($" RFID Validation Report{verSuffix}").Bold().FontSize(7);
                 txt.Span($"  \u2014  Generated {r.VerificationDateTime:yyyy-MM-dd HH:mm:ss}").FontSize(7).FontColor(GrayHex);
             });
             row.RelativeItem().AlignRight().Text(txt =>
