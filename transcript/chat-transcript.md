@@ -1250,3 +1250,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Amend section title to include "DataMan". Proposed new 3-column summary table layout: Symbology | Encoded Data | Application Specification as column headers; 1–2 symbol rows; heavier separator line; Report Name and Report Timestamp below. Asked "What do you think?"
 
 **Assistant:** Agreed with the layout. Flagged: "DataMan" is a device family rather than TruCheck product name — Webscan/Axicon headers would read incorrectly if "DataMan" is hardcoded in brand resolver; preview updated to "COGNEX DataMan TruCheck" but C# brand resolver decision deferred to user. Built v8: updated .sum-table CSS to 3-column thead+th style (white bg, border-bottom+right on th, same internal border conventions as grades table); added .sum-meta-start (border-top 1.5px #aaa) to separate symbol rows from metadata; .meta-lbl for label style in metadata rows; colgroup sets Symbology=90pt, Encoded Data=flexible, App Spec=75pt. HTML: EAN-13 row first, GS1 DataMatrix second, then separator + Report Name (colspan=2) + Report Timestamp (colspan=2).
+
+---
+
+**User:** Return COGNEX DataMan TruCheck. Keep the PASS/FAIL status inline with the appl spec name.
+
+**Assistant:** Confirmed both are already in v8 — no changes needed. Section header reads "COGNEX DataMan TruCheck Barcode Verification Results Summary"; Application Specification column shows "GS1 — PASS" inline. v8 is the approved reference layout. Noted that next step is porting v8 summary table to PdfReportGenerator.cs (3-column thead, symbol rows, separator, colspan metadata rows, DataMan title logic).
