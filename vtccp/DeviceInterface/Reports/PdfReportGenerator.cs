@@ -217,12 +217,23 @@ public static class PdfReportGenerator
 
     private static void BuildVerificationSummarySection(IContainer c, VerificationRecord r)
     {
-        // Title varies by device family
-        string verifier = (r.DeviceModel ?? string.Empty)
-            .Contains("DataMan", StringComparison.OrdinalIgnoreCase)
-            ? "DataMan TruCheck"
-            : "Webscan TruCheck";
-        string sectionTitle = $"{verifier} Verification Results Summary";
+        // Brand derived from DeviceModel — all-caps, verifier-appropriate.
+        // Current approach: substring match on DeviceModel (sufficient for DataMan).
+        // Future: replace with a static lookup table (model prefix → brand) populated
+        // from the Cognex/Webscan/Axicon/Omron model catalogue, or read from the
+        // Webscan PDF report header when WebscanSourcePath is available.
+        string brand = (r.DeviceModel ?? string.Empty) switch
+        {
+            var m when m.Contains("DataMan",  StringComparison.OrdinalIgnoreCase) => "COGNEX",
+            var m when m.Contains("Webscan",  StringComparison.OrdinalIgnoreCase) => "WEBSCAN",
+            var m when m.Contains("Axicon",   StringComparison.OrdinalIgnoreCase) => "AXICON",
+            var m when m.Contains("LVS",      StringComparison.OrdinalIgnoreCase)
+                    || m.Contains("Omron",    StringComparison.OrdinalIgnoreCase) => "OMRON/LVS",
+            _ => "COGNEX",   // safe default — all current hardware is DataMan
+        };
+        // Both this header and the "Barcode Verification Grades" sub-header use the
+        // same subdued style (#2c5296, 8pt) to visually defer to the RFID section.
+        string sectionTitle = $"{brand} TruCheck Barcode Verification Results Summary";
 
         // Application Specification row  (standard name + PASS/FAIL)
         string appSpec = !string.IsNullOrWhiteSpace(r.ApplicationStandard)
@@ -252,10 +263,12 @@ public static class PdfReportGenerator
 
         c.Column(col =>
         {
-            // ── Main section header ───────────────────────────────────────────
+            // ── Section header — same subdued style as sub-header ─────────────
+            // Intentionally smaller/lighter than the RFID section to show visual
+            // hierarchy: VCCS RFID validation is the primary content.
             col.Item()
-               .Background(NavyHex).Padding(4)
-               .Text(sectionTitle).Bold().FontSize(10).FontColor(Colors.White);
+               .Background("#2c5296").Padding(3)
+               .Text(sectionTitle).Bold().FontSize(8).FontColor(Colors.White);
 
             // ── Summary rows (2-col label | value) ───────────────────────────
             col.Item().Border(1).BorderColor(NavyHex).Table(table =>
@@ -268,21 +281,21 @@ public static class PdfReportGenerator
 
                 void Row(string label, string? value)
                 {
-                    table.Cell().BorderBottom(1).BorderColor("#dddddd").Padding(4)
+                    table.Cell().BorderBottom(1).BorderColor("#dddddd").Padding(3)
                          .Text(label).FontSize(9);
-                    table.Cell().BorderBottom(1).BorderColor("#dddddd").Padding(4)
+                    table.Cell().BorderBottom(1).BorderColor("#dddddd").Padding(3)
                          .Text(value ?? "\u2014").FontSize(9);
                 }
 
-                Row("Symbology",              r.Symbology);
-                Row("Encoded Data",           r.DecodedData ?? "NO DECODE");
+                Row("Symbology",                 r.Symbology);
+                Row("Encoded Data",              r.DecodedData ?? "NO DECODE");
                 Row("Application Specification", $"{appSpec} \u2014 {appResult}");
-                Row("Report Name",            reportName);
-                Row("Report Timestamp",       r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt"));
+                Row("Report Name",               reportName);
+                Row("Report Timestamp",          r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt"));
             });
 
-            // ── Sub-header: Barcode Verification Grades (smaller banner) ─────
-            col.Item().PaddingTop(6)
+            // ── Sub-header: Barcode Verification Grades ───────────────────────
+            col.Item().PaddingTop(4)
                .Background("#2c5296").Padding(3)
                .Text("Barcode Verification Grades").Bold().FontSize(8).FontColor(Colors.White);
 
@@ -303,7 +316,7 @@ public static class PdfReportGenerator
                 foreach (string h in new[] { "Standard", "Grade", "Aperture", "Wavelength", "Lighting", "Formal Grade" })
                 {
                     table.Cell().Border(1).BorderColor("#999999")
-                         .Padding(4).AlignCenter()
+                         .Padding(3).AlignCenter()
                          .Text(h).Bold().FontSize(8);
                 }
 
@@ -311,7 +324,7 @@ public static class PdfReportGenerator
                 foreach (string v in new[] { gradeStandard, gradeGrade, gradeAperture, gradeWavelength, gradeLighting, gradeFormal })
                 {
                     table.Cell().Border(1).BorderColor("#dddddd")
-                         .Padding(4).AlignCenter()
+                         .Padding(3).AlignCenter()
                          .Text(v).FontSize(8);
                 }
             });
@@ -324,9 +337,18 @@ public static class PdfReportGenerator
     {
         c.Column(col =>
         {
-            // Section header
+            // Section header — full navy, prominent: this is the primary VCCS section.
+            // "EPC" qualifier included when GS1 encodation (>99% of cases).
+            // TODO: define adjectives for non-GS1 schemes (DOD-96, ISO 17367, etc.)
+            // "EPC" = GS1 encodation (SGTIN, SSCC, etc.) — >99% of cases.
+            // "UHF" = non-GS1 scheme (DOD-96, ISO 17367, custom, etc.).
+            bool isGS1Rfid = r.ApplicationStandard?
+                .StartsWith("GS1", StringComparison.OrdinalIgnoreCase) == true;
+            string rfidAdj   = isGS1Rfid ? "EPC " : "UHF ";
+            string rfidTitle = $"VCCS FlexWedge\u2122 {rfidAdj}RFID Validation Summary";
+
             col.Item().Background(NavyHex).Padding(4)
-               .Text("RFID Validation").Bold().FontSize(10).FontColor(Colors.White);
+               .Text(rfidTitle).Bold().FontSize(10).FontColor(Colors.White);
 
             col.Item().Border(1).BorderColor(NavyHex).Table(table =>
             {
@@ -348,9 +370,9 @@ public static class PdfReportGenerator
                 {
                     string bg = highlight ? "#f0f7ff" : Colors.White;
                     table.Cell().Background(bg).BorderBottom(1).BorderColor("#dddddd")
-                         .Padding(4).Text(label).FontSize(9);
+                         .Padding(3).Text(label).FontSize(9);
                     table.Cell().Background(bg).BorderBottom(1).BorderColor("#dddddd")
-                         .Padding(4).Text(value ?? "\u2014").FontSize(9);
+                         .Padding(3).Text(value ?? "\u2014").FontSize(9);
                 }
 
                 // Header row
@@ -397,9 +419,9 @@ public static class PdfReportGenerator
                     _ => Colors.Black,
                 };
 
-                table.Cell().Background(resultBg).Padding(4)
+                table.Cell().Background(resultBg).Padding(3)
                      .Text("Result").Bold().FontSize(9).FontColor(resultFg);
-                table.Cell().Background(resultBg).Padding(4)
+                table.Cell().Background(resultBg).Padding(3)
                      .Text(resultVal).Bold().FontSize(9).FontColor(resultFg);
             });
 

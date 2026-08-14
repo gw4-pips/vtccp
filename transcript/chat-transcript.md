@@ -1190,3 +1190,15 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (14 Aug 2026, 1524):** Uploaded screenshot of Webscan "Verification Grades" table. Issues: (1) report headers/colors not evident in PDF rendering; (2) add a new section directly above RFID Validation: "[Device] TruCheck Verification Results Summary" with rows Symbology, Encoded Data, Application Specification (Pass/Fail), Report Name, Report Timestamp; sub-section "Barcode Verification Grades" formatted exactly as the Webscan screenshot (Standard | Grade | Aperture | Wavelength | Lighting | Formal Grade).
 
 **Assistant:** Read screenshot — dark section header, bold bordered 6-col table matching Webscan style. Changes: (1) Header background fix: added #edf1f7 background + 2px navy bottom border to BuildHeader in C# and HTML preview. (2) Added BuildVerificationSummarySection to PdfReportGenerator.cs — DeviceModel-aware title, 5-row summary table, "Barcode Verification Grades" sub-header (#2c5296), 6-col grades table matching screenshot exactly. Wired before BuildRfidTable. Updated dist/vccs-pdf-preview-v1.html with all sections.
+
+---
+
+**User (14 Aug 2026):** Keep font sizes unchanged. Make all data rows 3pt&3pt. Demote barcode section main header to same style as its sub-header. Brand all-caps (COGNEX/WEBSCAN/AXICON/OMRON/LVS), add "Barcode" uniformly to title. RFID header: "VCCS FlexWedge™ EPC RFID Validation Summary" — EPC conditional on GS1 encodation. Rev to v2 always.
+
+**Assistant:** Questions asked: (1) brand determination source (only DeviceModel available — will use string match, needs TODO for non-DataMan); (2) non-GS1 adjective for RFID header. Proceeded on all changes: uniform 3pt data rows in HTML and C#; barcode section header demoted to #2c5296/8pt/3pt (same as sub-header); multi-brand switch in BuildVerificationSummarySection (COGNEX/WEBSCAN/AXICON/OMRON/LVS with TODO note); isGS1Rfid flag drives "EPC " adjective in BuildRfidTable; HTML saved as dist/vccs-pdf-preview-v2.html.
+
+---
+
+**User:** (1) Brand derivable from model/PDF report/lookup table. (2) UHF for non-GS1 RFID adjective.
+
+**Assistant:** Updated C#: rfidAdj now "UHF " when !isGS1Rfid (was empty string). Updated brand comment to note lookup-table approach as future direction. Proposed follow-up task for brand lookup table.
