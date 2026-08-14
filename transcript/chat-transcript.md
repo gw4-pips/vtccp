@@ -1208,3 +1208,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Thin-line bounding box visible on Barcode Image section — add same effect to all other sections so last row is bounded at bottom. Also check/correct vertical centering of all data and header row text.
 
 **Assistant:** Root cause: with border-collapse:collapse, td border-bottom on last row overrides table outer #1a3a6b border, leaving faint gray line instead of navy close. Fix: tr:last-child td { border-bottom: none } on all four tables (sum, grades, rfid, dfc). Vertical centering: added global `table th, table td { vertical-align: middle }` rule; removed individual vertical-align: top overrides from .sum-table td and .rfid-table td. Saved as dist/vccs-pdf-preview-v3.html.
+
+---
+
+**User:** Fix blank page 2. Fix grades table bottom row missing vert side bars. Encoded Data must not include symbology ID prefix. Add Tag Lock Status row below Tag Detected. Change "GCP Valid"→"GCP Length" / "Yes ✓"→"Valid (N)"/"Invalid (N)". Section headers 4/4→3/3. Data rows 2.5/2 top/bottom.
+
+**Assistant:** Added RfidTagLockStatus and RfidGcpLength to VerificationRecord. In PdfReportGenerator: col.Spacing 8→6; all navy section headers Padding(4)→Padding(3); HeaderRow Padding(4)→Padding(3); DataRow Padding(3)→PaddingTop(2.5f)/PaddingBottom(2)/PaddingLeft(4)/PaddingRight(4) (same for result and DFC rows); grades table changed from Border(1) all-sides to internal-only BorderBottom+BorderRight on th and BorderRight-only on td (eliminates outer cell border competing with navy table border); Tag Lock Status row added after Tag Detected with Locked/PermaLocked/Unlocked/Unknown switch; GCP display → "Valid (N)"/"Invalid (N)"; Encoded Data comment clarifies no symbology ID prefix. HTML preview saved as dist/vccs-pdf-preview-v4.html.

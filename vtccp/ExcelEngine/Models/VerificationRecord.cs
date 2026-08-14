@@ -458,6 +458,24 @@ public sealed record class VerificationRecord
     /// </summary>
     public bool? RfidGcpValid { get; init; }
 
+    /// <summary>
+    /// Length of the GCP as encoded in the EPC (number of digits allocated to the GCP
+    /// in the SGTIN partition table: 6–12 digits).  Null when not decoded or no tag.
+    /// Displayed on the PDF report as "Valid (N)" or "Invalid (N)".
+    /// </summary>
+    public int? RfidGcpLength { get; init; }
+
+    /// <summary>
+    /// EPC memory bank lock status as reported by the RFID reader after inventory.
+    /// Allowable values (from ASR-P35U CheckTagStatus success codes):
+    ///   "Locked"       — EPC bank write-locked (code 41)
+    ///   "PermaLocked"  — EPC bank permanently locked (code 40)
+    ///   "Unlocked"     — EPC bank writeable (code 42)
+    ///   "Unknown"      — Status could not be determined
+    /// Null when lock status was not queried (most scan workflows skip this step).
+    /// </summary>
+    public string? RfidTagLockStatus { get; init; }
+
     // ─── Pipeline metadata ────────────────────────────────────────────────────
 
     /// <summary>

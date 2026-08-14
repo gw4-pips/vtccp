@@ -235,7 +235,7 @@ public static class PdfReportGenerator
 
                 page.Content().Column(col =>
                 {
-                    col.Spacing(8);
+                    col.Spacing(6);
 
                     col.Item().Element(c => BuildVerificationSummarySection(c, r));
                     col.Item().Element(c => BuildRfidTable(c, r));
@@ -409,13 +409,17 @@ public static class PdfReportGenerator
 
                 void Row(string label, string? value)
                 {
-                    table.Cell().BorderBottom(1).BorderColor("#dddddd").Padding(3)
+                    table.Cell().BorderBottom(1).BorderColor("#dddddd")
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                          .Text(label).FontSize(9);
-                    table.Cell().BorderBottom(1).BorderColor("#dddddd").Padding(3)
+                    table.Cell().BorderBottom(1).BorderColor("#dddddd")
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                          .Text(value ?? "\u2014").FontSize(9);
                 }
 
                 Row("Symbology",                 r.Symbology);
+                // DecodedData excludes the symbology identifier prefix (e.g. ]d2).
+                // That prefix lives in r.SymbologyId and is shown in Data Format Check.
                 Row("Encoded Data",              r.DecodedData ?? "NO DECODE");
                 Row("Application Specification", $"{appSpec} \u2014 {appResult}");
                 Row("Report Name",               reportName);
@@ -440,20 +444,29 @@ public static class PdfReportGenerator
                     cols.RelativeColumn(2.5f);  // Formal Grade
                 });
 
-                // Bold bordered column headers (Webscan style)
-                foreach (string h in new[] { "Standard", "Grade", "Aperture", "Wavelength", "Lighting", "Formal Grade" })
+                // Column headers — bottom border as row separator, right border as column
+                // divider.  No left/right outer borders: outer table navy provides those.
+                var hdrs = new[] { "Standard", "Grade", "Aperture", "Wavelength", "Lighting", "Formal Grade" };
+                for (int i = 0; i < hdrs.Length; i++)
                 {
-                    table.Cell().Border(1).BorderColor("#999999")
-                         .Padding(3).AlignCenter()
-                         .Text(h).Bold().FontSize(8);
+                    IContainer hCell = table.Cell().Background(Colors.White)
+                                            .BorderBottom(1).BorderColor("#999999");
+                    if (i < hdrs.Length - 1)
+                        hCell = hCell.BorderRight(1).BorderColor("#999999");
+                    hCell.Padding(3).AlignCenter().Text(hdrs[i]).Bold().FontSize(8);
                 }
 
-                // Single data row
-                foreach (string v in new[] { gradeStandard, gradeGrade, gradeAperture, gradeWavelength, gradeLighting, gradeFormal })
+                // Single data row — right border for internal column dividers only.
+                // No bottom border (outer table navy closes the bottom).
+                // No left/right outer cell borders (outer table navy provides those).
+                var dataVals = new[] { gradeStandard, gradeGrade, gradeAperture, gradeWavelength, gradeLighting, gradeFormal };
+                for (int i = 0; i < dataVals.Length; i++)
                 {
-                    table.Cell().Border(1).BorderColor("#dddddd")
-                         .Padding(3).AlignCenter()
-                         .Text(v).FontSize(8);
+                    IContainer dCell = table.Cell();
+                    if (i < dataVals.Length - 1)
+                        dCell = dCell.BorderRight(1).BorderColor("#dddddd");
+                    dCell.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .AlignCenter().Text(dataVals[i]).FontSize(8);
                 }
             });
         });
@@ -475,7 +488,7 @@ public static class PdfReportGenerator
             string rfidAdj   = isGS1Rfid ? "EPC " : "UHF ";
             string rfidTitle = $"VCCS FlexWedge\u2122 {rfidAdj}RFID Validation Summary";
 
-            col.Item().Background(NavyHex).Padding(4)
+            col.Item().Background(NavyHex).Padding(3)
                .Text(rfidTitle).Bold().FontSize(10).FontColor(Colors.White);
 
             col.Item().Border(1).BorderColor(NavyHex).Table(table =>
@@ -489,18 +502,20 @@ public static class PdfReportGenerator
                 static void HeaderRow(TableDescriptor t, string left, string right)
                 {
                     t.Cell().Background("#e8eef5").BorderBottom(1).BorderColor("#aaaaaa")
-                     .Padding(4).Text(left).Bold().FontSize(8);
+                     .Padding(3).Text(left).Bold().FontSize(8);
                     t.Cell().Background("#e8eef5").BorderBottom(1).BorderColor("#aaaaaa")
-                     .Padding(4).Text(right).Bold().FontSize(8);
+                     .Padding(3).Text(right).Bold().FontSize(8);
                 }
 
                 void DataRow(string label, string? value, bool highlight = false)
                 {
                     string bg = highlight ? "#f0f7ff" : Colors.White;
                     table.Cell().Background(bg).BorderBottom(1).BorderColor("#dddddd")
-                         .Padding(3).Text(label).FontSize(9);
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(label).FontSize(9);
                     table.Cell().Background(bg).BorderBottom(1).BorderColor("#dddddd")
-                         .Padding(3).Text(value ?? "\u2014").FontSize(9);
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(value ?? "\u2014").FontSize(9);
                 }
 
                 // Header row
@@ -516,16 +531,37 @@ public static class PdfReportGenerator
                     "Skipped"                 => "Skipped",
                     _                         => r.RfidStatus ?? "\u2014",
                 };
-                DataRow("Tag Detected",  tagLabel);
-                DataRow("EPC Hex",       r.RfidEpcHex,   tagDetected);
-                DataRow("GTIN-14",       r.RfidGtin14,   tagDetected);
-                DataRow("GCP Valid",     r.RfidGcpValid switch
+                DataRow("Tag Detected",    tagLabel);
+
+                // Tag lock status (queried separately from inventory — often null)
+                // Values derive from ASR-P35U CheckTagStatus: 40=PermaLock, 41=Lock, 42=Unlock
+                string lockDisplay = r.RfidTagLockStatus switch
                 {
-                    true  => "Yes \u2713",
-                    false => "No \u2717",
+                    "Locked"       => "Locked",
+                    "PermaLocked"  => "Permanently Locked",
+                    "Unlocked"     => "Unlocked",
+                    "Unknown"      => "Unknown",
+                    null           => "\u2014",
+                    var other      => other,
+                };
+                DataRow("Tag Lock Status", lockDisplay);
+
+                DataRow("EPC Hex",         r.RfidEpcHex,  tagDetected);
+                DataRow("GTIN-14",         r.RfidGtin14,  tagDetected);
+
+                // GCP Length: "Valid (N)" or "Invalid (N)" where N = GCP digit count
+                string gcpLenPart = r.RfidGcpLength.HasValue
+                    ? $" ({r.RfidGcpLength.Value})"
+                    : string.Empty;
+                string gcpDisplay = r.RfidGcpValid switch
+                {
+                    true  => $"Valid{gcpLenPart}",
+                    false => $"Invalid{gcpLenPart}",
                     null  => "\u2014",
-                });
-                DataRow("Serial",        r.RfidSerial,   tagDetected);
+                };
+                DataRow("GCP Length",      gcpDisplay);
+
+                DataRow("Serial",          r.RfidSerial,  tagDetected);
 
                 // Result row with colour
                 string resultVal = r.RfidStatus ?? "\u2014";
@@ -547,9 +583,11 @@ public static class PdfReportGenerator
                     _ => Colors.Black,
                 };
 
-                table.Cell().Background(resultBg).Padding(3)
+                table.Cell().Background(resultBg)
+                     .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                      .Text("Result").Bold().FontSize(9).FontColor(resultFg);
-                table.Cell().Background(resultBg).Padding(3)
+                table.Cell().Background(resultBg)
+                     .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                      .Text(resultVal).Bold().FontSize(9).FontColor(resultFg);
             });
 
@@ -572,7 +610,7 @@ public static class PdfReportGenerator
             byte[] imgBytes = Convert.FromBase64String(base64Jpeg);
             c.Column(col =>
             {
-                col.Item().Background(NavyHex).Padding(4)
+                col.Item().Background(NavyHex).Padding(3)
                    .Text("Barcode Image").Bold().FontSize(10).FontColor(Colors.White);
                 col.Item().Border(1).BorderColor(NavyHex).AlignCenter()
                    .Padding(4).MaxHeight(2.5f * 72)  // 2.5 inches at 72pt/in
@@ -596,7 +634,7 @@ public static class PdfReportGenerator
                 ? "Data Format Check"
                 : $"Data Format Check \u2014 {dfc.Standard}";
 
-            col.Item().Background(NavyHex).Padding(4)
+            col.Item().Background(NavyHex).Padding(3)
                .Text(title).Bold().FontSize(10).FontColor(Colors.White);
 
             col.Item().Border(1).BorderColor(NavyHex).Table(table =>
@@ -612,7 +650,7 @@ public static class PdfReportGenerator
                 foreach (string h in new[] { "Field", "Data", "Check" })
                 {
                     table.Cell().Background("#e8eef5").BorderBottom(1).BorderColor("#aaaaaa")
-                         .Padding(4).Text(h).Bold().FontSize(8);
+                         .Padding(3).Text(h).Bold().FontSize(8);
                 }
 
                 // Rows
@@ -623,11 +661,14 @@ public static class PdfReportGenerator
                     string checkFg = pass ? PassHex : FailHex;
 
                     table.Cell().Background(rowBg).BorderBottom(1).BorderColor("#dddddd")
-                         .Padding(3).Text(row.Name).FontSize(8);
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(row.Name).FontSize(8);
                     table.Cell().Background(rowBg).BorderBottom(1).BorderColor("#dddddd")
-                         .Padding(3).Text(row.Data).FontSize(8);
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(row.Data).FontSize(8);
                     table.Cell().Background(rowBg).BorderBottom(1).BorderColor("#dddddd")
-                         .Padding(3).Text(row.Check).Bold().FontSize(8).FontColor(checkFg);
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(row.Check).Bold().FontSize(8).FontColor(checkFg);
                 }
             });
 
