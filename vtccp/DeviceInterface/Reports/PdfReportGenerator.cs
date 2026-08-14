@@ -443,7 +443,7 @@ public static class PdfReportGenerator
                .Background("#2c5296").Padding(3)
                .Text("Barcode Verification Grades").Bold().FontSize(8).FontColor(Colors.White);
 
-            // ── 6-column grades table — matching Webscan TruCheck style ──────
+            // ── 7-column grades table — matching Webscan TruCheck style ──────
             col.Item().Border(1).BorderColor(NavyHex).Table(table =>
             {
                 table.ColumnsDefinition(cols =>
