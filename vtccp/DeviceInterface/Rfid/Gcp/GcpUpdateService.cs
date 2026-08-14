@@ -56,12 +56,18 @@ public sealed class GcpUpdateService
     /// <summary>
     /// Download the current GCP list from the server and save it to <see cref="_localXmlPath"/>.
     /// Throws on network or disk errors.
-    /// No-op when the key is absent.
+    /// No-op (returns null) when the key is absent.
     /// </summary>
-    public async Task DownloadUpdateAsync(CancellationToken ct = default)
+    /// <returns>
+    /// The "date" attribute value parsed from the downloaded XML root element,
+    /// or null if the key is absent or the attribute is missing/unparseable.
+    /// Store the returned value in <see cref="ConfigEngine.Models.AppSettings.GcpLastModified"/>
+    /// so the provenance annotation in PDF reports reflects the newly downloaded table.
+    /// </returns>
+    public async Task<DateTimeOffset?> DownloadUpdateAsync(CancellationToken ct = default)
     {
         string? key = GetKey();
-        if (key is null) return;
+        if (key is null) return null;
 
         using var request = new HttpRequestMessage(HttpMethod.Get, EndpointUrl);
         request.Headers.TryAddWithoutValidation(KeyHeader, key);
@@ -79,6 +85,10 @@ public sealed class GcpUpdateService
             await content.CopyToAsync(fs, ct).ConfigureAwait(false);
 
         File.Move(tmp, _localXmlPath, overwrite: true);
+
+        // Read the date from the newly written file and return it so the caller
+        // can persist it to AppSettings.GcpLastModified.
+        return GetLocalFileDate();
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

@@ -35,6 +35,11 @@
       <Link>tessdata\eng.traineddata</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- Bundled GS1 GCP Prefix Format List (seed copy; GcpUpdateService replaces with downloads) -->
+    <Content Include="..\data\gcp-prefix-format-list.xml">
+      <Link>data\gcp-prefix-format-list.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

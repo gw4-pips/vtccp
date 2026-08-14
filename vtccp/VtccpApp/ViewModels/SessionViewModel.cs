@@ -8,6 +8,7 @@ using DeviceInterface;
 using DeviceInterface.Dmst;
 using DeviceInterface.Reports;
 using DeviceInterface.Rfid;
+using DeviceInterface.Rfid.Gcp;
 using DeviceInterface.Rfid.Models;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
@@ -57,6 +58,7 @@ public sealed class SessionViewModel : ViewModelBase
 
     // ── RFID ──────────────────────────────────────────────────────────────────
     private RfidScanCoordinator? _rfidCoordinator;
+    private GcpValidator?        _gcpValidator;
 
     // ── Session output directory ───────────────────────────────────────────────
     // Captured at OnStartAsync so fire-and-forget report generators have the path
@@ -434,8 +436,62 @@ public sealed class SessionViewModel : ViewModelBase
                         ScanWindowMs         = _repo.Settings.RfidScanWindowMs,
                         FlagMismatchInReport = _repo.Settings.RfidFlagMismatch,
                     };
+                    // Load the GCP prefix table so the validator can confirm each
+                    // company prefix against the GS1 registry.  Failure is non-fatal:
+                    // the session continues without GCP validation.
+                    //
+                    // Path resolution order (first existing file wins):
+                    //   1. AppSettings.GcpDataPath — set by GcpUpdateService after a download
+                    //   2. Bundled seed copy deployed next to the exe (data\gcp-prefix-format-list.xml)
+                    //   3. User-data fallback (DefaultOutputDirectory\data\gcp-prefix-format-list.xml)
+                    _gcpValidator = null;
+                    string[] gcpCandidates =
+                    [
+                        _repo.Settings.GcpDataPath ?? string.Empty,
+                        Path.Combine(AppContext.BaseDirectory, "data", "gcp-prefix-format-list.xml"),
+                        Path.Combine(_repo.Settings.DefaultOutputDirectory, "data", "gcp-prefix-format-list.xml"),
+                    ];
+                    string? gcpPath = gcpCandidates.FirstOrDefault(
+                        p => !string.IsNullOrWhiteSpace(p) && File.Exists(p));
+
+                    if (gcpPath is not null)
+                    {
+                        try
+                        {
+                            var gcpTable = GcpLengthTable.LoadFromFile(gcpPath);
+                            _gcpValidator = new GcpValidator(gcpTable);
+                            System.Diagnostics.Debug.WriteLine(
+                                $"[GCP] Loaded {gcpTable.EntryCount} entries from '{gcpPath}'; date={gcpTable.DataDate:yyyy-MM-dd}.");
+
+                            // Persist the resolved path and date so the settings file is always
+                            // current and the PDF provenance annotation reflects the live table date.
+                            bool settingsChanged = false;
+                            if (string.IsNullOrWhiteSpace(_repo.Settings.GcpDataPath))
+                            {
+                                _repo.Settings.GcpDataPath = gcpPath;
+                                settingsChanged = true;
+                            }
+                            string? newDateStr = gcpTable.DataDate?.ToString("O");
+                            if (newDateStr != _repo.Settings.GcpLastModified)
+                            {
+                                _repo.Settings.GcpLastModified = newDateStr;
+                                settingsChanged = true;
+                            }
+                            if (settingsChanged)
+                                _ = _repo.SaveSettingsAsync();
+                        }
+                        catch (Exception gcpEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[GCP] Table load failed: {gcpEx.Message}");
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[GCP] No GCP prefix list found; GCP validation skipped.");
+                    }
+
                     var reader    = EpcReaderFactory.CreateAsReaderP35U();
-                    var validator = new RfidValidator();
+                    var validator = new RfidValidator(_gcpValidator);
                     _rfidCoordinator = new RfidScanCoordinator(reader, validator, rfidSettings);
                     await reader.ConnectAsync(rfidPort, _pollCts.Token);
                     System.Diagnostics.Debug.WriteLine($"[RFID] Coordinator started on {rfidPort}.");
@@ -824,14 +880,10 @@ public sealed class SessionViewModel : ViewModelBase
 
         if (rfidResult is not null)
         {
-            // Resolve the GCP prefix table date from stored settings (parsed once at download;
-            // format as yyyy-MM-dd for the PDF provenance annotation).
-            string? gcpTableDate = null;
-            if (!string.IsNullOrWhiteSpace(_repo.Settings.GcpLastModified)
-                && DateTimeOffset.TryParse(_repo.Settings.GcpLastModified, out var gcpDto))
-            {
-                gcpTableDate = gcpDto.ToString("yyyy-MM-dd");
-            }
+            // Resolve the GCP prefix table date from the loaded validator (available when the
+            // GcpLengthTable was successfully loaded at session start).  Format as yyyy-MM-dd
+            // for the PDF provenance annotation, e.g. "From GCP prefix table as of 2026-05-03".
+            string? gcpTableDate = _gcpValidator?.DataDate?.ToString("yyyy-MM-dd");
 
             record = record with
             {
@@ -1187,6 +1239,7 @@ public sealed class SessionViewModel : ViewModelBase
             await _rfidCoordinator.DisposeAsync();
             _rfidCoordinator = null;
         }
+        _gcpValidator = null;
         _sessionMgr?.Dispose();
         _sessionMgr = null;
         _pollCts?.Dispose();
