@@ -1256,3 +1256,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Return COGNEX DataMan TruCheck. Keep the PASS/FAIL status inline with the appl spec name.
 
 **Assistant:** Confirmed both are already in v8 — no changes needed. Section header reads "COGNEX DataMan TruCheck Barcode Verification Results Summary"; Application Specification column shows "GS1 — PASS" inline. v8 is the approved reference layout. Noted that next step is porting v8 summary table to PdfReportGenerator.cs (3-column thead, symbol rows, separator, colspan metadata rows, DataMan title logic).
+
+---
+
+**User:** There are more changes coming but port to C# whenever you think best.
+
+**Assistant:** Ported v8 summary table layout to PdfReportGenerator.cs (BuildVerificationSummarySection). Changes: (1) DataMan title logic: when brand="COGNEX" and r.DeviceModel contains "DataMan" (case-insensitive), inserts "DataMan " between brand and "TruCheck" to produce "COGNEX DataMan TruCheck Barcode Verification Results Summary"; other brands unaffected. (2) Replaced 2-column label/value summary table with 3-column thead table: ColumnsDefinition(90pt Symbology, RelativeColumn Encoded Data, 75pt App Spec); header row white/borderBottom+Right/999 same as grades table style; SymbolRow() helper with isSeparatorRow flag: 1.5f/#aaa borders on last symbol row, 1f/#ddd on intermediate; hasLinearSum+linAppResult computed locally; multi-mode: LinearSymbology+LinearDecodedData+GS1/linAppResult in row 1, Symbology+DecodedData+appSpec/appResult in row 2; single-mode: one row. MetaRow() helper emits label cell (BorderRight+conditional BorderBottom) + ColumnSpan(2) value cell; Report Name (isLast:false) + Report Timestamp (isLast:true). Version bumped 1.3.9→1.4.0.

@@ -379,8 +379,13 @@ public static class PdfReportGenerator
         string? brand = ResolveEffectiveBrand(r);
         // Both this header and the "Barcode Verification Grades" sub-header use the
         // same subdued style (#2c5296, 8pt) to visually defer to the RFID section.
+        // For Cognex DataMan hardware, insert "DataMan" between brand and "TruCheck"
+        // since TruCheck on DataMan is a distinct product from the Webscan/Axicon TruCheck.
+        string? dataManInfix = (brand == "COGNEX" &&
+            r.DeviceModel?.Contains("DataMan", StringComparison.OrdinalIgnoreCase) == true)
+            ? "DataMan " : null;
         string sectionTitle = brand != null
-            ? $"{brand} TruCheck Barcode Verification Results Summary"
+            ? $"{brand} {dataManInfix}TruCheck Barcode Verification Results Summary"
             : "TruCheck Barcode Verification Results Summary";
 
         // Application Specification row  (standard name + PASS/FAIL)
@@ -418,32 +423,100 @@ public static class PdfReportGenerator
                .Background("#2c5296").Padding(3)
                .Text(sectionTitle).Bold().FontSize(8).FontColor(Colors.White);
 
-            // ── Summary rows (2-col label | value) ───────────────────────────
+            // ── Summary table: 3-column (Symbology | Encoded Data | App Specification) ──
+            // Symbol rows: 1 in single-mode, 2 in multi-mode (EAN/UPC first, 2D second).
+            // DecodedData / LinearDecodedData exclude symbology-identifier prefixes
+            // (e.g. ]d2) — those live in the DFC section.
+            // A heavier bottom border on the last symbol row separates it from the
+            // report-metadata rows (Report Name, Report Timestamp) that follow with
+            // the value cell spanning the Encoded Data + App Spec columns.
             col.Item().Border(1).BorderColor(NavyHex).Table(table =>
             {
                 table.ColumnsDefinition(cols =>
                 {
-                    cols.ConstantColumn(160);
-                    cols.RelativeColumn();
+                    cols.ConstantColumn(90);   // Symbology
+                    cols.RelativeColumn();      // Encoded Data — widest
+                    cols.ConstantColumn(75);   // Application Specification
                 });
 
-                void Row(string label, string? value)
+                // Column headers — same internal-border style as grades table header
+                string[] sumHdrs = { "Symbology", "Encoded Data", "Application Specification" };
+                for (int i = 0; i < sumHdrs.Length; i++)
                 {
-                    table.Cell().BorderBottom(1).BorderColor("#dddddd")
-                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(label).FontSize(9);
-                    table.Cell().BorderBottom(1).BorderColor("#dddddd")
-                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(value ?? "\u2014").FontSize(9);
+                    IContainer hc = table.Cell().Background(Colors.White)
+                                         .BorderBottom(1).BorderColor("#999999");
+                    if (i < sumHdrs.Length - 1) hc = hc.BorderRight(1).BorderColor("#999999");
+                    hc.Padding(3).Text(sumHdrs[i]).Bold().FontSize(8);
                 }
 
-                Row("Symbology",                 r.Symbology);
-                // DecodedData excludes the symbology identifier prefix (e.g. ]d2).
-                // That prefix lives in r.SymbologyId and is shown in Data Format Check.
-                Row("Encoded Data",              r.DecodedData ?? "NO DECODE");
-                Row("Application Specification", $"{appSpec} \u2014 {appResult}");
-                Row("Report Name",               reportName);
-                Row("Report Timestamp",          r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt"));
+                // One symbol row. isSeparatorRow = true on the last symbol row;
+                // produces a 1.5 pt bottom border to visually separate symbols from metadata.
+                // BorderColor applies to all set borders on the cell, so both the bottom
+                // and right-divider borders share the same color per row.
+                void SymbolRow(string symb, string? encoded, string appSpecStr, bool isSeparatorRow)
+                {
+                    float bt = isSeparatorRow ? 1.5f : 1f;
+                    string bc = isSeparatorRow ? "#aaaaaa" : "#dddddd";
+
+                    table.Cell().BorderBottom(bt).BorderColor(bc).BorderRight(1)
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(symb).FontSize(9);
+                    table.Cell().BorderBottom(bt).BorderColor(bc).BorderRight(1)
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(encoded ?? "\u2014").FontSize(8);
+                    table.Cell().BorderBottom(bt).BorderColor(bc)
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(appSpecStr).FontSize(9);
+                }
+
+                bool hasLinearSum = !string.IsNullOrWhiteSpace(r.LinearSymbology);
+                string linAppResult = r.LinearOverallGrade?.PassFail switch
+                {
+                    OverallPassFail.Pass => "PASS",
+                    OverallPassFail.Fail => "FAIL",
+                    _                   => "\u2014",
+                };
+
+                if (hasLinearSum)
+                {
+                    // Row 1: linear (EAN/UPC) — not the separator row
+                    SymbolRow(r.LinearSymbology!, r.LinearDecodedData,
+                              $"GS1 \u2014 {linAppResult}", isSeparatorRow: false);
+                    // Row 2: 2D symbol — separator row (heavier bottom border)
+                    SymbolRow(r.Symbology ?? "\u2014", r.DecodedData,
+                              $"{appSpec} \u2014 {appResult}", isSeparatorRow: true);
+                }
+                else
+                {
+                    // Single-symbol mode — one row, separator row (heavier bottom border)
+                    SymbolRow(r.Symbology ?? "\u2014", r.DecodedData,
+                              $"{appSpec} \u2014 {appResult}", isSeparatorRow: true);
+                }
+
+                // Metadata rows: label (col 1) + value spanning cols 2–3 (ColumnSpan 2)
+                void MetaRow(string label, string? value, bool isLast)
+                {
+                    IContainer lc = table.Cell().BorderRight(1).BorderColor("#dddddd");
+                    if (!isLast) lc = lc.BorderBottom(1).BorderColor("#dddddd");
+                    lc.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                      .Text(label).FontSize(8.5f).FontColor(GrayHex);
+
+                    if (!isLast)
+                        table.Cell().ColumnSpan(2).BorderBottom(1).BorderColor("#dddddd")
+                             .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                             .Text(value ?? "\u2014").FontSize(9);
+                    else
+                        table.Cell().ColumnSpan(2)
+                             .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                             .Text(value ?? "\u2014").FontSize(9);
+                }
+
+                MetaRow("Report Name",
+                        reportName,
+                        isLast: false);
+                MetaRow("Report Timestamp",
+                        r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt"),
+                        isLast: true);
             });
 
             // ── Sub-header: Barcode Verification Grades ───────────────────────
