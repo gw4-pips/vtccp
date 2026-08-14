@@ -436,7 +436,7 @@ public static class PdfReportGenerator
                 {
                     cols.ConstantColumn(70);   // Symbology — narrowed to maximise Encoded Data
                     cols.RelativeColumn();      // Encoded Data — widest
-                    cols.ConstantColumn(75);   // Application Specification
+                    cols.ConstantColumn(95);   // Application Specification — fits "GS1 Element Strings"
                 });
 
                 // Column headers — same internal-border style as grades table header
@@ -460,7 +460,7 @@ public static class PdfReportGenerator
 
                     table.Cell().BorderBottom(bt).BorderColor(bc).BorderRight(1)
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(symb).FontSize(9);
+                         .Text(symb).FontSize(8);
                     table.Cell().BorderBottom(bt).BorderColor(bc).BorderRight(1)
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                          .Text(encoded ?? "\u2014").FontSize(9);
