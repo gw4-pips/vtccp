@@ -1202,3 +1202,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** (1) Brand derivable from model/PDF report/lookup table. (2) UHF for non-GS1 RFID adjective.
 
 **Assistant:** Updated C#: rfidAdj now "UHF " when !isGS1Rfid (was empty string). Updated brand comment to note lookup-table approach as future direction. Proposed follow-up task for brand lookup table.
+
+---
+
+**User:** Thin-line bounding box visible on Barcode Image section — add same effect to all other sections so last row is bounded at bottom. Also check/correct vertical centering of all data and header row text.
+
+**Assistant:** Root cause: with border-collapse:collapse, td border-bottom on last row overrides table outer #1a3a6b border, leaving faint gray line instead of navy close. Fix: tr:last-child td { border-bottom: none } on all four tables (sum, grades, rfid, dfc). Vertical centering: added global `table th, table td { vertical-align: middle }` rule; removed individual vertical-align: top overrides from .sum-table td and .rfid-table td. Saved as dist/vccs-pdf-preview-v3.html.
