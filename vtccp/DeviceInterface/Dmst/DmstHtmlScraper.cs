@@ -59,6 +59,13 @@ public sealed class DmstHtmlScraper : IDisposable
     public const string DmstReportSubfolder = "CodeQuality";
 
     /// <summary>
+    /// Linear (1D) symbology names that trigger multi-mode detection when found
+    /// as a plain cell value in the Webscan TruCheck HTML report.
+    /// </summary>
+    private static readonly string[] KnownLinearSymbologies =
+        ["EAN-13", "EAN-8", "UPC-A", "UPC-E"];
+
+    /// <summary>
     /// Correlation tolerance: push XML DateTime vs HTML report DateTime.
     /// The firmware timestamp in both should agree within 1 second; 2 seconds
     /// absorbs any clock or file-write jitter.
@@ -497,17 +504,142 @@ public sealed class DmstHtmlScraper : IDisposable
                 return null;
             }
 
-            // ── Step 4: overall grade letter from header "D.D (L)" pattern ───
+            // ── Step 4: overall grade letter(s) from "D.D (L)" header pattern ──
             //
-            // Located near cell 19 in the header table; search a window rather
-            // than hardcoding the index to absorb minor layout variation.
-            string? overallGrade = null;
-            var gradeDisplay = cells.Skip(14).Take(12)
-                .FirstOrDefault(c => Regex.IsMatch(c, @"^\d+\.\d+\s*\([A-Fa-f]\)$"));
-            if (gradeDisplay is not null)
+            // Single-mode: one occurrence near cell 19.
+            // Multi-mode:  two occurrences — linear (EAN/UPC) section first, then 2D.
+            //
+            // Strategy: collect ALL cells matching "D.D (L)" (grade-parameter rows
+            // use separate numeric and letter cells, so this pattern is unique to the
+            // header summary area).  Assign first → linear (if multi-mode) or 2D (if
+            // single-mode); assign second → 2D (multi-mode only).
+            var allGradeDisplays = cells
+                .Where(c => Regex.IsMatch(c, @"^\d+\.\d+\s*\([A-Fa-f]\)$"))
+                .ToList();
+
+            string? overallGrade              = null;
+            string? linearOverallGrade        = null;
+            decimal? linearOverallGradeNumeric = null;
+
+            // Detect multi-mode: requires BOTH a known linear symbology cell AND at
+            // least two "D.D (L)" grade patterns.
+            //
+            // A standalone EAN/UPC report has a linear symbology cell but only one
+            // grade display → isMultiMode = false, so Linear* fields remain null.
+            // Only when two grade patterns are present (one per symbol) does the
+            // linear-first ordering assignment apply.
+            int linearSymbIdx = cells.FindIndex(
+                c => KnownLinearSymbologies.Contains(c, StringComparer.OrdinalIgnoreCase));
+            bool isMultiMode = linearSymbIdx >= 0 && allGradeDisplays.Count >= 2;
+
+            // Shared helper: parse letter and numeric from "D.D (L)" string.
+            static (string Letter, decimal Numeric) ParseGradeDisplay(string display)
             {
-                var m = Regex.Match(gradeDisplay, @"\(([A-Fa-f])\)");
-                if (m.Success) overallGrade = m.Groups[1].Value.ToUpperInvariant();
+                var m = Regex.Match(display, @"(\d+\.\d+)\s*\(([A-Fa-f])\)");
+                if (!m.Success) return (string.Empty, 0m);
+                string letter = m.Groups[2].Value.ToUpperInvariant();
+                decimal.TryParse(m.Groups[1].Value, NumberStyles.Any,
+                                 CultureInfo.InvariantCulture, out decimal numeric);
+                return (letter, numeric);
+            }
+
+            if (isMultiMode)
+            {
+                // First "D.D (L)" = linear (1D) symbol grade; second = 2D symbol grade.
+                if (allGradeDisplays.Count >= 1)
+                {
+                    var (lLetter, lNumeric) = ParseGradeDisplay(allGradeDisplays[0]);
+                    if (lLetter.Length > 0)
+                    {
+                        linearOverallGrade        = lLetter;
+                        linearOverallGradeNumeric = lNumeric;
+                    }
+                }
+                if (allGradeDisplays.Count >= 2)
+                {
+                    var (dLetter, _) = ParseGradeDisplay(allGradeDisplays[1]);
+                    if (dLetter.Length > 0) overallGrade = dLetter;
+                }
+            }
+            else
+            {
+                // Single-mode: first (only) grade is for whatever symbol was scanned.
+                if (allGradeDisplays.Count >= 1)
+                {
+                    var (letter, _) = ParseGradeDisplay(allGradeDisplays[0]);
+                    if (letter.Length > 0) overallGrade = letter;
+                }
+            }
+
+            // ── Step 4b: multi-mode linear symbol extraction ──────────────────
+            //
+            // When IsMultiMode is true, extract the EAN/UPC symbol's characteristics
+            // from the cells near the linear symbology marker.
+            //
+            // Assumptions (validated against Webscan TruCheck multi-mode layout):
+            //   • LinearSymbology cell is followed within ~10 cells by the digit string
+            //     (the decoded EAN/UPC data — always all-numeric, 8–13 digits).
+            //   • The linear formal grade appears in the cells as "X/D+/D+[/text]"
+            //     where X is a letter grade (A–F).  This distinguishes it from the
+            //     2D formal grade which starts with a decimal number (e.g., "4.0/10/…").
+            //   • Aperture, wavelength, and lighting are parsed from the formal grade.
+            //   • Standard is fixed as "ISO/IEC 15416" for all 1D EAN/UPC symbols.
+
+            string? linearSymbology   = isMultiMode ? cells[linearSymbIdx] : null;
+            string? linearDecodedData = null;
+            string? linearFormalGrade = null;
+            int?    linearAperture    = null;
+            int?    linearWavelength  = null;
+            string? linearLighting    = null;
+            string? linearStandard    = isMultiMode ? "ISO/IEC 15416" : null;
+
+            if (isMultiMode)
+            {
+                // Decoded data: first all-digit string (8–14 chars) after the symbology cell.
+                for (int i = linearSymbIdx + 1;
+                     i < Math.Min(linearSymbIdx + 10, cells.Count); i++)
+                {
+                    var c = cells[i];
+                    if (c.Length >= 8 && c.Length <= 14 && c.All(char.IsDigit))
+                    {
+                        linearDecodedData = c;
+                        break;
+                    }
+                }
+
+                // Formal grade: "Letter/ApertureDigits/WavelengthDigits[/Lighting]"
+                // Search from the start of the linear section up to 80 cells ahead.
+                // Pattern: grade letter then two slash-separated numeric groups, optional lighting.
+                var formalGradeRx = new Regex(
+                    @"^([A-Fa-f])/(\d{1,3})/(\d{3,4})(?:/(.+))?$",
+                    RegexOptions.Compiled);
+
+                for (int i = linearSymbIdx;
+                     i < Math.Min(linearSymbIdx + 80, cells.Count); i++)
+                {
+                    var fm = formalGradeRx.Match(cells[i]);
+                    if (!fm.Success) continue;
+
+                    linearFormalGrade = cells[i];
+                    if (int.TryParse(fm.Groups[2].Value,
+                            NumberStyles.Any, CultureInfo.InvariantCulture, out int ap))
+                        linearAperture = ap;
+                    if (int.TryParse(fm.Groups[3].Value,
+                            NumberStyles.Any, CultureInfo.InvariantCulture, out int wl))
+                        linearWavelength = wl;
+                    if (fm.Groups[4].Success && !string.IsNullOrWhiteSpace(fm.Groups[4].Value))
+                        linearLighting = fm.Groups[4].Value.Trim();
+                    break;
+                }
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SCRAPER] Multi-mode linear: symb={linearSymbology} " +
+                    $"data={linearDecodedData ?? "null"} " +
+                    $"grade={linearOverallGrade ?? "null"} " +
+                    $"formal={linearFormalGrade ?? "null"} " +
+                    $"ap={linearAperture?.ToString() ?? "null"} " +
+                    $"wl={linearWavelength?.ToString() ?? "null"} " +
+                    $"lighting={linearLighting ?? "null"}");
             }
 
             // ── Step 5: DateTime from filename ────────────────────────────────
@@ -557,6 +689,18 @@ public sealed class DmstHtmlScraper : IDisposable
                 SCPercent  = GetGradePct("2. Symbol Contrast (SC)"),       // null on IMAGE.LOAD
                 ANUPercent = GetGradePct("4. Axial Nonuniformity (ANU)"),
                 GNUPercent = GetGradePct("5. Grid Nonuniformity (GNU)"),
+
+                // ── Multi-mode linear symbol ───────────────────────────────────
+                IsMultiMode              = isMultiMode,
+                LinearSymbology          = linearSymbology,
+                LinearDecodedData        = linearDecodedData,
+                LinearOverallGrade       = linearOverallGrade,
+                LinearOverallGradeNumeric = linearOverallGradeNumeric,
+                LinearFormalGrade        = linearFormalGrade,
+                LinearAperture           = linearAperture,
+                LinearWavelength         = linearWavelength,
+                LinearLighting           = linearLighting,
+                LinearStandard           = linearStandard,
             };
 
             System.Diagnostics.Debug.WriteLine(
@@ -566,7 +710,8 @@ public sealed class DmstHtmlScraper : IDisposable
                 $"Polarity={report.ImagePolarity ?? "null"} " +
                 $"DataCW={report.DataCodewords?.ToString() ?? "null"} " +
                 $"ECBudget={report.ErrorCorrectionBudget?.ToString() ?? "null"} " +
-                $"EncodedChars={report.EncodedCharacters?.ToString() ?? "null"}");
+                $"EncodedChars={report.EncodedCharacters?.ToString() ?? "null"}" +
+                (isMultiMode ? $" MultiMode=true LinearSymb={linearSymbology}" : " MultiMode=false"));
 
             return report;
         }

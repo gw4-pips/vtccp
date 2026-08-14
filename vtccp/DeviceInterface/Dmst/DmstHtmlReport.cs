@@ -134,6 +134,74 @@ public sealed class DmstHtmlReport
     /// <summary>SC percentage. "nan%" for IMAGE.LOAD scans → null (correct).</summary>
     public decimal? SCPercent { get; init; }
 
+    // ── Multi-mode (linear symbol) ────────────────────────────────────────────
+    // Populated when the HTML report covers a multi-mode scan (EAN/UPC + 2D).
+    // All fields are null for single-mode scans.
+    //
+    // Detection: one of the KnownLinearSymbologies cell values ("EAN-13", "EAN-8",
+    // "UPC-A", "UPC-E") found in the cell list signals a multi-mode report.
+    //
+    // In the Webscan TruCheck multi-mode HTML layout the linear (1D) section appears
+    // before the 2D section.  Parsing relies on this ordering to assign the first
+    // "D.D (L)" grade pattern to the linear symbol and the second to the 2D symbol.
+
+    /// <summary>
+    /// True when the HTML report covers a multi-mode (EAN/UPC + 2D) scan.
+    /// When false, all Linear* fields below are null.
+    /// </summary>
+    public bool IsMultiMode { get; init; }
+
+    /// <summary>
+    /// Symbology name of the linear symbol: "EAN-13", "EAN-8", "UPC-A", or "UPC-E".
+    /// Taken directly from the matching symbology cell in the HTML.
+    /// </summary>
+    public string? LinearSymbology { get; init; }
+
+    /// <summary>
+    /// Decoded payload of the linear symbol — EAN/UPC digit string (no check AI).
+    /// Extracted from the all-digit cell immediately following the symbology cell.
+    /// </summary>
+    public string? LinearDecodedData { get; init; }
+
+    /// <summary>
+    /// Overall grade letter (A/B/C/D/F) for the linear symbol.
+    /// Taken from the first "D.D (L)" pattern found in the cells (linear section
+    /// precedes 2D section in the Webscan multi-mode HTML layout).
+    /// When IsMultiMode is true the standard OverallGrade field is updated to
+    /// reflect the second "D.D (L)" pattern (the 2D symbol).
+    /// </summary>
+    public string? LinearOverallGrade { get; init; }
+
+    /// <summary>
+    /// Decimal numeric grade for the linear symbol, e.g. 4.0 or 3.5.
+    /// Parsed directly from the "D.D (L)" display string; preserves ISO 15416
+    /// fractional precision (not rounded to integer letter equivalents).
+    /// Null when the pattern was not found or could not be parsed.
+    /// </summary>
+    public decimal? LinearOverallGradeNumeric { get; init; }
+
+    /// <summary>
+    /// Formal grade string for the linear symbol, e.g. "A/06/660/Diffuse".
+    /// Matches the Webscan TruCheck ISO 15416 format:
+    ///   Letter/ApertureRef/Wavelength[/Lighting]
+    /// </summary>
+    public string? LinearFormalGrade { get; init; }
+
+    /// <summary>Aperture reference number parsed from LinearFormalGrade, e.g. 6.</summary>
+    public int? LinearAperture { get; init; }
+
+    /// <summary>Wavelength (nm) parsed from LinearFormalGrade, e.g. 660.</summary>
+    public int? LinearWavelength { get; init; }
+
+    /// <summary>Lighting mode parsed from LinearFormalGrade, e.g. "Diffuse".</summary>
+    public string? LinearLighting { get; init; }
+
+    /// <summary>
+    /// Grading standard for the linear symbol.
+    /// Always "ISO/IEC 15416" when IsMultiMode is true.
+    /// </summary>
+    public string? LinearStandard { get; init; }
+
     // ── Parse provenance ──────────────────────────────────────────────────────
 
     /// <summary>

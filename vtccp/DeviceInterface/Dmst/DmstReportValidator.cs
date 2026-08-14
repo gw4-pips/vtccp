@@ -1,6 +1,7 @@
 namespace DeviceInterface.Dmst;
 
 using System.Globalization;
+using System.Text.RegularExpressions;
 using ExcelEngine.Models;
 
 /// <summary>
@@ -13,6 +14,11 @@ using ExcelEngine.Models;
 ///      (QR_ECLevel, QR_MaskPattern, QR_ECI, ImagePolarity, DataCodewords,
 ///      ErrorCorrectionBudget, EncodedCharacters) are merged into the record and
 ///      catalogued in DataSourceExceptions.
+///      When the HTML is multi-mode (IsMultiMode = true), the ten Linear* fields
+///      (LinearSymbology, LinearDecodedData, LinearOverallGrade, LinearFormalGrade,
+///      LinearAperture, LinearWavelength, LinearLighting, LinearStandard,
+///      LinearJpegImageBase64, LinearDataFormatCheck) are also populated.
+///      LinearJpegImageBase64 remains null (HTML reports carry no image data).
 ///
 ///   2. Cross-validation — every field producible from BOTH sources is compared.
 ///      Mismatches → ValidationDiscrepancies + Debug log.
@@ -111,6 +117,62 @@ public static class DmstReportValidator
             exceptions.Add("EncodedCharacters:HtmlReport");
         }
 
+        // ── 1c. Merge: linear symbol (multi-mode only) ────────────────────────
+        //
+        // When the HTML report covers a multi-mode scan (EAN/UPC + 2D), populate
+        // all ten Linear* fields.  Single-mode scans leave these null.
+        //
+        // LinearJpegImageBase64 is always null — HTML reports carry no image data.
+        // LinearDataFormatCheck is computed from the decoded digits (GTIN check).
+
+        string?              linearSymbology      = null;
+        string?              linearDecodedData    = null;
+        GradingResult?       linearOverallGrade   = null;
+        string?              linearFormalGrade    = null;
+        int?                 linearAperture       = null;
+        int?                 linearWavelength     = null;
+        string?              linearLighting       = null;
+        string?              linearStandard       = null;
+        DataFormatCheckResult? linearDataFormatCheck = null;
+
+        if (html.IsMultiMode && !string.IsNullOrWhiteSpace(html.LinearSymbology))
+        {
+            linearSymbology    = html.LinearSymbology;
+            linearDecodedData  = html.LinearDecodedData;
+            linearFormalGrade  = html.LinearFormalGrade;
+            linearAperture     = html.LinearAperture;
+            linearWavelength   = html.LinearWavelength;
+            linearLighting     = html.LinearLighting;
+            linearStandard     = html.LinearStandard ?? "ISO/IEC 15416";
+
+            if (!string.IsNullOrEmpty(html.LinearOverallGrade))
+            {
+                decimal linearNumeric = html.LinearOverallGradeNumeric
+                    ?? LetterToNumericGrade(html.LinearOverallGrade);
+                linearOverallGrade = GradingResult.FromLetterAndNumeric(
+                    html.LinearOverallGrade,
+                    linearNumeric,
+                    // Pass/fail determined from the actual numeric — not from the letter
+                    // midpoint — so a fractional B/2.5 against a 3.0 threshold correctly
+                    // fails rather than being rounded up to B's midpoint 3.0.
+                    DeterminePassFailNumeric(linearNumeric, record.MinPassGrade, record.MinPassRaw),
+                    value: null);
+            }
+
+            linearDataFormatCheck = BuildLinearDataFormatCheck(
+                html.LinearDecodedData, html.LinearSymbology);
+
+            exceptions.Add("LinearSymbology:HtmlReport");
+            exceptions.Add("LinearOverallGrade:HtmlReport");
+            if (!string.IsNullOrEmpty(html.LinearFormalGrade))
+                exceptions.Add("LinearFormalGrade:HtmlReport");
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-VALID] Multi-mode linear: symb={linearSymbology} " +
+                $"grade={linearOverallGrade?.LetterGradeString ?? "null"} " +
+                $"dfc={linearDataFormatCheck?.Rows.Count ?? 0} rows");
+        }
+
         // ── 2. Cross-validation ───────────────────────────────────────────────
 
         CompareString ("OverallGrade",   record.OverallGrade?.LetterGradeString,
@@ -162,6 +224,18 @@ public static class DmstReportValidator
             DataCodewords         = dataCodewords,
             ErrorCorrectionBudget = errorCorrectionBudget,
             EncodedCharacters     = encodedCharacters,
+
+            // Linear symbol (multi-mode): null for single-mode scans.
+            LinearSymbology      = linearSymbology,
+            LinearDecodedData    = linearDecodedData,
+            LinearOverallGrade   = linearOverallGrade,
+            LinearFormalGrade    = linearFormalGrade,
+            LinearAperture       = linearAperture,
+            LinearWavelength     = linearWavelength,
+            LinearLighting       = linearLighting,
+            LinearStandard       = linearStandard,
+            // LinearJpegImageBase64 intentionally left null — HTML has no image.
+            LinearDataFormatCheck = linearDataFormatCheck,
 
             DataSourceExceptions    = exceptions.Count > 0
                                       ? string.Join(";", exceptions)
@@ -232,5 +306,167 @@ public static class DmstReportValidator
         var token = htmlValue.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
         return decimal.TryParse(token, NumberStyles.Any, CultureInfo.InvariantCulture, out var v)
             ? v : null;
+    }
+
+    // ── Multi-mode linear symbol helpers ──────────────────────────────────────
+
+    /// <summary>
+    /// Converts a letter grade string (A/B/C/D/F) to its midpoint numeric ISO 15416 value.
+    /// Used when only the letter is available (no numeric from the HTML).
+    /// </summary>
+    private static decimal LetterToNumericGrade(string letter)
+        => letter.Trim().ToUpperInvariant() switch
+        {
+            "A" => 4.0m,
+            "B" => 3.0m,
+            "C" => 2.0m,
+            "D" => 1.0m,
+            "F" => 0.0m,
+            _   => 0.0m,
+        };
+
+    /// <summary>
+    /// Determines PASS/FAIL for a linear grade using the actual parsed numeric value,
+    /// not a letter-midpoint approximation.  A fractional "B/2.5" grade against a
+    /// 3.0 threshold correctly fails; "B/3.5" against the same threshold passes.
+    ///
+    /// Threshold resolution order:
+    ///   1. <paramref name="minPassRaw"/> — already-parsed decimal (preferred).
+    ///   2. <paramref name="minPassGrade"/> string — decimal ("1.5") or letter ("C").
+    ///      Letter thresholds use ISO 15416 band lower bounds:
+    ///        A ≥ 3.5,  B ≥ 2.5,  C ≥ 1.5,  D ≥ 0.5.
+    ///   3. Default — anything above 0.0 passes; 0.0 (F band) fails.
+    /// </summary>
+    private static string DeterminePassFailNumeric(
+        decimal numericGrade,
+        string? minPassGrade,
+        decimal? minPassRaw)
+    {
+        // Priority 1: numeric threshold already parsed from the record
+        if (minPassRaw.HasValue)
+            return numericGrade >= minPassRaw.Value ? "PASS" : "FAIL";
+
+        // Priority 2: parse MinPassGrade string — decimal or letter
+        if (!string.IsNullOrWhiteSpace(minPassGrade) && minPassGrade != "NA")
+        {
+            string raw = minPassGrade.Trim().TrimStart('>');
+
+            // Decimal threshold (e.g. "1.5", "3.0")
+            if (decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture,
+                    out decimal minNumeric))
+                return numericGrade >= minNumeric ? "PASS" : "FAIL";
+
+            // Letter threshold (e.g. "C", "D") — ISO 15416 band lower bound
+            decimal letterFloor = raw.ToUpperInvariant() switch
+            {
+                "A" => 3.5m,   // A band: 3.5 – 4.0
+                "B" => 2.5m,   // B band: 2.5 – 3.4
+                "C" => 1.5m,   // C band: 1.5 – 2.4
+                "D" => 0.5m,   // D band: 0.5 – 1.4
+                _   => -1.0m,
+            };
+            if (letterFloor >= 0m)
+                return numericGrade >= letterFloor ? "PASS" : "FAIL";
+        }
+
+        // No threshold: F band (0.0) fails; everything else passes.
+        return numericGrade > 0.0m ? "PASS" : "FAIL";
+    }
+
+    /// <summary>
+    /// Builds a <see cref="DataFormatCheckResult"/> carrying a GTIN row and a
+    /// check-digit validation row for EAN/UPC symbologies.
+    ///
+    /// The GS1 check-digit algorithm (Luhn-mod-10 with alternating weights 1/3)
+    /// is inlined here to avoid a dependency on OcrEngine from DeviceInterface.
+    ///
+    /// Returns null when <paramref name="decodedData"/> is absent or is not a
+    /// digit-only string of the expected length for the stated symbology.
+    /// </summary>
+    internal static DataFormatCheckResult? BuildLinearDataFormatCheck(
+        string? decodedData,
+        string? symbology)
+    {
+        if (string.IsNullOrWhiteSpace(decodedData)) return null;
+
+        // Strip any whitespace; the decoded data must be all-numeric.
+        string digits = decodedData.Trim();
+        if (!digits.All(char.IsDigit)) return null;
+
+        string sym = symbology?.Trim() ?? string.Empty;
+
+        // UPC-E: compressed 6-digit format — check digit must be validated against the
+        // expanded UPC-A equivalent, which requires a non-trivial expansion algorithm.
+        // Mark N/A until expansion is implemented rather than silently reporting wrong results.
+        if (sym.Equals("UPC-E", StringComparison.OrdinalIgnoreCase))
+        {
+            return new DataFormatCheckResult
+            {
+                Overall  = OverallPassFail.NotApplicable,
+                Standard = "GS1 Linear",
+                Rows     = [new() { Name = "GTIN", Data = digits, Check = "\u2014" }],
+            };
+        }
+
+        int expectedLen = sym switch
+        {
+            "EAN-13" => 13,
+            "UPC-A"  => 12,
+            "EAN-8"  => 8,
+            _        => 0,
+        };
+
+        if (expectedLen == 0 || digits.Length != expectedLen)
+        {
+            // Unknown symbology or unexpected length — emit a bare GTIN row with no check.
+            return new DataFormatCheckResult
+            {
+                Overall  = OverallPassFail.NotApplicable,
+                Standard = "GS1 Linear",
+                Rows     = [new() { Name = "GTIN", Data = digits, Check = "\u2014" }],
+            };
+        }
+
+        bool checkOk     = ValidateGs1CheckDigit(digits);
+        string checkData = digits[^1].ToString();
+        string checkPass = checkOk ? "PASS" : "FAIL";
+
+        return new DataFormatCheckResult
+        {
+            Overall  = checkOk ? OverallPassFail.Pass : OverallPassFail.Fail,
+            Standard = "GS1 Linear",
+            Rows     =
+            [
+                new() { Name = "GTIN",      Data = digits[..^1], Check = checkPass },
+                new() { Name = "Chk Digit", Data = checkData,    Check = checkPass },
+            ],
+        };
+    }
+
+    /// <summary>
+    /// GS1 mod-10 check-digit validation (ISO/IEC 15420, Annex A).
+    /// Weights alternate between 3 and 1 from right to left, excluding the
+    /// check digit itself.  The check digit is valid when
+    ///   (sum + check) mod 10 == 0.
+    ///
+    /// Works for any GS1 digit string: EAN-8 (8), UPC-A (12), EAN-13 (13).
+    /// </summary>
+    private static bool ValidateGs1CheckDigit(string digits)
+    {
+        if (digits.Length < 2) return false;
+
+        int sum = 0;
+        for (int i = 0; i < digits.Length - 1; i++)
+        {
+            if (!char.IsDigit(digits[i])) return false;
+            int d = digits[i] - '0';
+            // Weight is 3 for even positions from the right (0-based from check digit end),
+            // 1 for odd.  Position from right of digit i = (digits.Length - 2 - i).
+            int weight = (digits.Length - 2 - i) % 2 == 0 ? 3 : 1;
+            sum += d * weight;
+        }
+
+        int expected = (10 - sum % 10) % 10;
+        return char.IsDigit(digits[^1]) && (digits[^1] - '0') == expected;
     }
 }
