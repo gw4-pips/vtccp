@@ -440,7 +440,7 @@ public static class PdfReportGenerator
                 });
 
                 // Column headers — same internal-border style as grades table header
-                string[] sumHdrs = { "Symbology", "Encoded Data", "Application Specification" };
+                string[] sumHdrs = { "Symbology", "Encoded Data", "Appl. Spec." };
                 for (int i = 0; i < sumHdrs.Length; i++)
                 {
                     IContainer hc = table.Cell().Background(Colors.White)
@@ -477,22 +477,35 @@ public static class PdfReportGenerator
                     _                   => "\u2014",
                 };
 
+                // Derive Application Specification from symbology name:
+                //   GS1 DataMatrix → "GS1 Element Strings"
+                //   QR Code        → "GS1 Digital Link"
+                //   EAN/UPC        → "GS1"
+                //   Other          → ApplicationStandard field (appSpec)
+                static string AppSpecFor(string? symbology, string fallback) => symbology switch
+                {
+                    var s when s?.Contains("DataMatrix", StringComparison.OrdinalIgnoreCase) == true
+                        => "GS1 Element Strings",
+                    var s when s?.Contains("QR",         StringComparison.OrdinalIgnoreCase) == true
+                        => "GS1 Digital Link",
+                    _   => fallback,
+                };
+
                 if (hasLinearSum)
                 {
                     // Row 1: linear (EAN/UPC) — not the separator row.
-                    // App Spec for EAN/UPC is always GS1; no PASS/FAIL shown (grades table owns that).
+                    // EAN/UPC is always GS1; no PASS/FAIL shown (grades table owns that).
                     SymbolRow(r.LinearSymbology!, r.LinearDecodedData,
                               "GS1", isSeparatorRow: false);
                     // Row 2: 2D symbol — separator row (heavier bottom border).
-                    // App Spec values: "GS1", "GS1 Element Strings", "GS1 Digital Link".
                     SymbolRow(r.Symbology ?? "\u2014", r.DecodedData,
-                              appSpec, isSeparatorRow: true);
+                              AppSpecFor(r.Symbology, appSpec), isSeparatorRow: true);
                 }
                 else
                 {
                     // Single-symbol mode — one row, separator row (heavier bottom border)
                     SymbolRow(r.Symbology ?? "\u2014", r.DecodedData,
-                              appSpec, isSeparatorRow: true);
+                              AppSpecFor(r.Symbology, appSpec), isSeparatorRow: true);
                 }
 
                 // Metadata rows: label (col 1) + value spanning cols 2–3 (ColumnSpan 2)
@@ -522,7 +535,8 @@ public static class PdfReportGenerator
             });
 
             // ── Sub-header: Barcode Verification Grades ───────────────────────
-            col.Item().PaddingTop(4)
+            // PaddingTop matches the outer column gap so all inter-section spacing is uniform.
+            col.Item().PaddingTop(6)
                .Background("#2c5296").Padding(3)
                .Text("Barcode Verification Grades").Bold().FontSize(8).FontColor(Colors.White);
 
@@ -679,7 +693,9 @@ public static class PdfReportGenerator
                     null           => "\u2014",
                     var other      => other,
                 };
-                DataRow("Tag Lock Status", lockDisplay);
+                // Append all possible lock-status values as a parenthetical legend for auditors.
+                const string LockOpts = " (Permalocked / Locked / Unlocked)";
+                DataRow("Tag Lock Status", lockDisplay + LockOpts);
 
                 DataRow("EPC Hex",         r.RfidEpcHex,      tagDetected);
 
