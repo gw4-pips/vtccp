@@ -1,121 +1,210 @@
+using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace DeviceInterface.Rfid.Gcp;
 
 /// <summary>
-/// Checks for and downloads updated GS1 GCP Prefix Format List XML files.
+/// Metadata document served by the update service (<c>GET /api/gcpMeta</c>).
+/// Mirrors <c>gcpMeta.json</c> in the Azure blob container.
+/// </summary>
+public sealed record GcpMeta
+{
+    /// <summary>Table date — the "date" attribute of the GCPPrefixFormatList root.</summary>
+    [JsonPropertyName("date")]
+    public string Date { get; init; } = string.Empty;
+
+    /// <summary>Lower-case hex SHA-256 of the encrypted blob (<c>.enc</c> file).</summary>
+    [JsonPropertyName("sha256")]
+    public string Sha256 { get; init; } = string.Empty;
+}
+
+/// <summary>Result of a version check against the update service.</summary>
+public sealed record GcpUpdateCheckResult
+{
+    public required GcpMeta ServerMeta { get; init; }
+    public DateTimeOffset? ServerDate { get; init; }
+    public DateTimeOffset? LocalDate { get; init; }
+
+    /// <summary>True when the server table is newer than the local one (or no local table exists).</summary>
+    public bool UpdateAvailable =>
+        ServerDate is not null && (LocalDate is null || ServerDate > LocalDate);
+}
+
+/// <summary>Configuration for <see cref="GcpUpdateService"/>.</summary>
+public sealed record GcpUpdateOptions
+{
+    /// <summary>Base URL of the Azure Function app, e.g. <c>https://vccs-gcp-update.azurewebsites.net</c>.</summary>
+    public required string ServiceUrl { get; init; }
+
+    /// <summary>Pre-shared device token sent as <c>X-Device-Token</c> on every request.</summary>
+    public required string DeviceToken { get; init; }
+
+    /// <summary>Full path of the local decrypted GCP prefix XML (install target).</summary>
+    public required string LocalXmlPath { get; init; }
+
+    /// <summary>Path to <c>gcpKey.bin</c> (32 raw bytes). Defaults to beside the EXE.</summary>
+    public string? KeyPath { get; init; }
+}
+
+/// <summary>
+/// Client for the Azure-gated GCP prefix table update service
+/// (see <c>vtccp/architecture/gcp-update-service.md</c>).
 ///
-/// Update endpoint (confirmed in scope doc Rev 1.1):
-///   https://my2dir-resolver-bwa7agd0ctehbqf3.eastus2-01.azurewebsites.net/tools/gcp/interop/current.xml
-///   Header: X-GCP-Interop-Key = {GCP_INTEROP_KEY secret}
+/// Endpoints (device token in <c>X-Device-Token</c> header):
+///   GET {ServiceUrl}/api/gcpMeta   → gcpMeta.json  { "date": "...", "sha256": "..." }
+///   GET {ServiceUrl}/api/gcpTable  → AES-256-GCM encrypted table blob (GCP1 envelope)
 ///
-/// Strategy: HEAD request → compare Last-Modified vs stored file date attribute.
-/// If key is absent or empty, all operations are silently skipped.
+/// All check operations are best-effort and never throw; a null result means
+/// "not configured or unreachable" and callers should behave as if no update exists.
+/// <see cref="DownloadAndInstallAsync"/> throws on failure so the UI can surface it.
 /// </summary>
 public sealed class GcpUpdateService
 {
-    private const string EndpointUrl =
-        "https://my2dir-resolver-bwa7agd0ctehbqf3.eastus2-01.azurewebsites.net/tools/gcp/interop/current.xml";
-    private const string KeyHeader = "X-GCP-Interop-Key";
-    private const string KeyEnvVar = "GCP_INTEROP_KEY";
+    private const string TokenHeader = "X-Device-Token";
 
+    private readonly GcpUpdateOptions _options;
     private readonly HttpClient _http;
-    private readonly string _localXmlPath;
 
-    /// <param name="localXmlPath">
-    /// Full path to the local gcp-prefix-format-list.xml file.
-    /// Used both as the update target and to read the stored date for comparison.
-    /// </param>
-    public GcpUpdateService(string localXmlPath, HttpClient? http = null)
+    public GcpUpdateService(GcpUpdateOptions options, HttpClient? http = null)
     {
-        _localXmlPath = localXmlPath ?? throw new ArgumentNullException(nameof(localXmlPath));
-        _http = http ?? new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _http = http ?? new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
     }
+
+    /// <summary>True when a service URL and device token are configured.</summary>
+    public bool IsConfigured =>
+        !string.IsNullOrWhiteSpace(_options.ServiceUrl) &&
+        !string.IsNullOrWhiteSpace(_options.DeviceToken);
+
+    // ── Check ─────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Check whether a newer GCP list is available on the server without downloading it.
-    /// Returns null when the key is absent, the network is unreachable, or the server
-    /// does not return a Last-Modified header.
-    /// Returns true when the server file is newer than the local file.
-    /// Returns false when the local file is already current.
+    /// Fetches server metadata and compares against the local table date.
+    /// Returns null when not configured, the network is unreachable, or the
+    /// response is malformed. Never throws.
     /// </summary>
-    public async Task<bool?> IsUpdateAvailableAsync(CancellationToken ct = default)
+    public async Task<GcpUpdateCheckResult?> CheckNowAsync(CancellationToken ct = default)
     {
-        string? key = GetKey();
-        if (key is null) return null;
+        if (!IsConfigured) return null;
 
-        DateTimeOffset? serverDate;
-        try { serverDate = await GetServerLastModifiedAsync(key, ct).ConfigureAwait(false); }
-        catch { return null; }
-        if (serverDate is null) return null;
-
-        DateTimeOffset? localDate = GetLocalFileDate();
-        if (localDate is null) return true; // no local file → update available
-
-        return serverDate.Value > localDate.Value;
-    }
-
-    /// <summary>
-    /// Download the current GCP list from the server and save it to <see cref="_localXmlPath"/>.
-    /// Throws on network or disk errors.
-    /// No-op (returns null) when the key is absent.
-    /// </summary>
-    /// <returns>
-    /// The "date" attribute value parsed from the downloaded XML root element,
-    /// or null if the key is absent or the attribute is missing/unparseable.
-    /// Store the returned value in <see cref="ConfigEngine.Models.AppSettings.GcpLastModified"/>
-    /// so the provenance annotation in PDF reports reflects the newly downloaded table.
-    /// </returns>
-    public async Task<DateTimeOffset?> DownloadUpdateAsync(CancellationToken ct = default)
-    {
-        string? key = GetKey();
-        if (key is null) return null;
-
-        using var request = new HttpRequestMessage(HttpMethod.Get, EndpointUrl);
-        request.Headers.TryAddWithoutValidation(KeyHeader, key);
-
-        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct)
-                                        .ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
-
-        string dir = Path.GetDirectoryName(_localXmlPath) ?? ".";
-        Directory.CreateDirectory(dir);
-        string tmp = _localXmlPath + ".tmp";
-
-        await using (var fs = File.Create(tmp))
-        await using (var content = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false))
-            await content.CopyToAsync(fs, ct).ConfigureAwait(false);
-
-        File.Move(tmp, _localXmlPath, overwrite: true);
-
-        // Read the date from the newly written file and return it so the caller
-        // can persist it to AppSettings.GcpLastModified.
-        return GetLocalFileDate();
-    }
-
-    // ── Helpers ────────────────────────────────────────────────────────────────
-
-    private static string? GetKey()
-    {
-        string? key = Environment.GetEnvironmentVariable(KeyEnvVar);
-        return string.IsNullOrWhiteSpace(key) ? null : key.Trim();
-    }
-
-    private async Task<DateTimeOffset?> GetServerLastModifiedAsync(string key, CancellationToken ct)
-    {
-        using var request = new HttpRequestMessage(HttpMethod.Head, EndpointUrl);
-        request.Headers.TryAddWithoutValidation(KeyHeader, key);
-        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct)
-                                        .ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode) return null;
-        return response.Content.Headers.LastModified;
-    }
-
-    private DateTimeOffset? GetLocalFileDate()
-    {
-        if (!File.Exists(_localXmlPath)) return null;
         try
         {
-            // Parse the date attribute from the root element (fast, avoids loading full 8MB file)
-            using var stream = File.OpenRead(_localXmlPath);
+            using var request = BuildRequest("api/gcpMeta");
+            using var response = await _http.SendAsync(request, ct).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode) return null;
+
+            await using var stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+            var meta = await JsonSerializer.DeserializeAsync<GcpMeta>(stream, cancellationToken: ct)
+                                           .ConfigureAwait(false);
+            if (meta is null || string.IsNullOrWhiteSpace(meta.Date)) return null;
+
+            DateTimeOffset? serverDate =
+                DateTimeOffset.TryParse(meta.Date, out var sd) ? sd : null;
+
+            return new GcpUpdateCheckResult
+            {
+                ServerMeta = meta,
+                ServerDate = serverDate,
+                LocalDate  = GetLocalTableDate(),
+            };
+        }
+        catch
+        {
+            return null; // best-effort — offline workstations must start normally
+        }
+    }
+
+    // ── Download + install ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Downloads the encrypted table, verifies its SHA-256 against server metadata,
+    /// decrypts it with <c>gcpKey.bin</c>, sanity-parses the XML, and atomically
+    /// installs it at <see cref="GcpUpdateOptions.LocalXmlPath"/>.
+    /// Throws on any failure (network, hash mismatch, bad key, malformed XML).
+    /// </summary>
+    /// <returns>The "date" attribute of the newly installed table, or null when unparseable.</returns>
+    public async Task<DateTimeOffset?> DownloadAndInstallAsync(CancellationToken ct = default)
+    {
+        if (!IsConfigured)
+            throw new InvalidOperationException("GCP update service is not configured.");
+
+        // 1. Fresh metadata (authoritative hash for the blob we are about to pull)
+        var check = await CheckNowAsync(ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("Update service unreachable.");
+
+        // 2. Encrypted blob
+        byte[] envelope;
+        using (var request = BuildRequest("api/gcpTable"))
+        using (var response = await _http.SendAsync(request, ct).ConfigureAwait(false))
+        {
+            response.EnsureSuccessStatusCode();
+            envelope = await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
+        }
+
+        // 3. Integrity check — SHA-256 of the encrypted blob must match gcpMeta.json
+        string actualHash = Convert.ToHexString(SHA256.HashData(envelope)).ToLowerInvariant();
+        string expected   = check.ServerMeta.Sha256.Trim().ToLowerInvariant();
+        if (!string.IsNullOrEmpty(expected) && actualHash != expected)
+            throw new InvalidDataException(
+                $"GCP table hash mismatch — expected {expected}, got {actualHash}.");
+
+        // 4. Decrypt (throws CryptographicException on wrong key / tampering)
+        byte[] key = LoadKey();
+        byte[] xmlBytes = GcpCrypto.Decrypt(envelope, key);
+
+        // 5. Sanity parse — reject anything GcpLengthTable cannot load
+        GcpLengthTable table;
+        using (var ms = new MemoryStream(xmlBytes, writable: false))
+            table = GcpLengthTable.LoadFromStream(ms);
+
+        // 6. Atomic install
+        string dir = Path.GetDirectoryName(_options.LocalXmlPath) ?? ".";
+        Directory.CreateDirectory(dir);
+        string tmp = _options.LocalXmlPath + ".tmp";
+        await File.WriteAllBytesAsync(tmp, xmlBytes, ct).ConfigureAwait(false);
+        File.Move(tmp, _options.LocalXmlPath, overwrite: true);
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[GCP] Installed table ({table.EntryCount} entries, date={table.DataDate:yyyy-MM-dd}) → {_options.LocalXmlPath}");
+        return table.DataDate;
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private HttpRequestMessage BuildRequest(string relativePath)
+    {
+        string baseUrl = _options.ServiceUrl.TrimEnd('/');
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/{relativePath}");
+        request.Headers.TryAddWithoutValidation(TokenHeader, _options.DeviceToken.Trim());
+        return request;
+    }
+
+    private byte[] LoadKey()
+    {
+        string keyPath = !string.IsNullOrWhiteSpace(_options.KeyPath)
+            ? _options.KeyPath!
+            : Path.Combine(AppContext.BaseDirectory, "gcpKey.bin");
+        if (!File.Exists(keyPath))
+            throw new FileNotFoundException(
+                $"GCP decryption key not found: {keyPath}. Deploy gcpKey.bin beside the EXE.", keyPath);
+        byte[] key = File.ReadAllBytes(keyPath);
+        if (key.Length != GcpCrypto.KeyLength)
+            throw new InvalidDataException(
+                $"gcpKey.bin must be exactly {GcpCrypto.KeyLength} bytes (found {key.Length}).");
+        return key;
+    }
+
+    /// <summary>
+    /// Parses the "date" attribute from the local table's root element without
+    /// loading the full ~10 MB document. Returns null when absent or unreadable.
+    /// </summary>
+    public DateTimeOffset? GetLocalTableDate()
+    {
+        if (!File.Exists(_options.LocalXmlPath)) return null;
+        try
+        {
+            using var stream = File.OpenRead(_options.LocalXmlPath);
             using var reader = System.Xml.XmlReader.Create(stream,
                 new System.Xml.XmlReaderSettings { DtdProcessing = System.Xml.DtdProcessing.Ignore });
 
@@ -123,8 +212,7 @@ public sealed class GcpUpdateService
             {
                 if (reader.NodeType != System.Xml.XmlNodeType.Element) continue;
                 string? dateStr = reader.GetAttribute("date");
-                if (dateStr is null) return null;
-                return DateTimeOffset.TryParse(dateStr, out var d) ? d : null;
+                return dateStr is not null && DateTimeOffset.TryParse(dateStr, out var d) ? d : null;
             }
         }
         catch { /* best-effort */ }

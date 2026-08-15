@@ -8,6 +8,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />  <!-- header -->
                 <RowDefinition Height="Auto" />  <!-- hybrid report card -->
+                <RowDefinition Height="Auto" />  <!-- data sources card -->
             </Grid.RowDefinitions>
 
             <!-- ── Page header ──────────────────────────────────────── -->
@@ -95,6 +96,70 @@
                         </StackPanel>
 
                     </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ── Data Sources card ─────────────────────────────────── -->
+            <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0">
+                <StackPanel>
+
+                    <TextBlock Text="DATA SOURCES — GCP PREFIX TABLE"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,0,0,12" />
+
+                    <!-- Current table -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                        <TextBlock Text="Current table date: " FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding CurrentGcpTableDate}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding CurrentGcpTablePath}"
+                               FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,12" />
+
+                    <!-- Update service URL -->
+                    <TextBlock Text="UPDATE SERVICE URL"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,0,0,4" />
+                    <TextBox Text="{Binding GcpUpdateServiceUrl,
+                                     UpdateSourceTrigger=LostFocus}"
+                             HorizontalAlignment="Stretch" />
+                    <TextBlock Text="Base URL of the VCCS Azure update service, e.g. https://vccs-gcp-update.azurewebsites.net. Leave empty to disable update checks."
+                               FontSize="11" FontStyle="Italic"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,12" />
+
+                    <!-- Device token -->
+                    <TextBlock Text="DEVICE TOKEN"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,0,0,4" />
+                    <TextBox Text="{Binding GcpDeviceToken,
+                                     UpdateSourceTrigger=LostFocus}"
+                             HorizontalAlignment="Stretch" />
+                    <TextBlock Text="Pre-shared token identifying this workstation in the Azure audit log."
+                               FontSize="11" FontStyle="Italic"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,12" />
+
+                    <!-- Actions -->
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Check for update"
+                                Command="{Binding CheckGcpUpdateCommand}"
+                                Padding="14,6" Margin="0,0,8,0" />
+                        <Button Content="Install update"
+                                Command="{Binding InstallGcpUpdateCommand}"
+                                Padding="14,6" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding GcpCheckStatus}"
+                               FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0" />
+
                 </StackPanel>
             </Border>
 

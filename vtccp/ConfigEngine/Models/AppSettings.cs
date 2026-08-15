@@ -92,6 +92,19 @@ public sealed class AppSettings
     /// </summary>
     public string? GcpLastModified { get; set; }
 
+    /// <summary>
+    /// Base URL of the Azure Function GCP update service
+    /// (e.g. "https://vccs-gcp-update.azurewebsites.net").
+    /// Null or empty = auto-update disabled.
+    /// </summary>
+    public string? GcpUpdateServiceUrl { get; set; }
+
+    /// <summary>
+    /// Pre-shared device token sent as the X-Device-Token header to the GCP
+    /// update service. Identifies this workstation in the Azure audit log.
+    /// </summary>
+    public string? GcpDeviceToken { get; set; }
+
     // ── Hybrid report ─────────────────────────────────────────────────────────
 
     /// <summary>

@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+
+    "GcpStorageConnection": "<connection string of the storage account holding the gcp-prefix-table container>",
+    "GcpBlobContainer": "gcp-prefix-table",
+    "GcpAuditTable": "GcpAudit",
+    "DeviceTokens": "token-workstation-1;token-workstation-2"
+  }
+}

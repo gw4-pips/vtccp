@@ -442,12 +442,14 @@ public sealed class SessionViewModel : ViewModelBase
                     //
                     // Path resolution order (first existing file wins):
                     //   1. AppSettings.GcpDataPath — set by GcpUpdateService after a download
-                    //   2. Bundled seed copy deployed next to the exe (data\gcp-prefix-format-list.xml)
-                    //   3. User-data fallback (DefaultOutputDirectory\data\gcp-prefix-format-list.xml)
+                    //   2. Update-service install target (%AppData%\VCCS\gcpPrefixes.xml)
+                    //   3. Bundled seed copy deployed next to the exe (data\gcp-prefix-format-list.xml)
+                    //   4. User-data fallback (DefaultOutputDirectory\data\gcp-prefix-format-list.xml)
                     _gcpValidator = null;
                     string[] gcpCandidates =
                     [
                         _repo.Settings.GcpDataPath ?? string.Empty,
+                        Services.GcpUpdateServiceFactory.DefaultInstallPath,
                         Path.Combine(AppContext.BaseDirectory, "data", "gcp-prefix-format-list.xml"),
                         Path.Combine(_repo.Settings.DefaultOutputDirectory, "data", "gcp-prefix-format-list.xml"),
                     ];

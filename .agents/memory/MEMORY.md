@@ -23,7 +23,7 @@
 - [ExcelEngine circular dep rule](excel-circular-dep.md) — sub-writers referencing DeviceInterface types must live in DeviceInterface, not ExcelEngine; dep direction is DeviceInterface → ExcelEngine, never reversed
 - [SGTIN-96 GTIN-14 formula](sgtin96-gtin14-formula.md) — indicator+GCP+item_body+check (NOT GCP+ItemRef+check); indicator is MSB decimal digit of ItemReference; weight=3 if (12-i)%2==0
 - [MTI READ ME RU-824-100 USB HID](mti-ru824-usb-hid.md) — device is USB HID not VCP; MtiLlcsEpcReader must be rewritten to LakeChabotReader SDK; MSI installer in repo; 5 native DLLs needed
-- [GCP interop architecture](gcp-interop-architecture.md) — /interop/* fully auth-gated; original GS1 XML filename preserved; GCP_INTEROP_KEY set as Replit secret; decoder → My2DirRetail.com eventually
+- [GCP interop architecture](gcp-interop-architecture.md) — SUPERSEDED by Azure Function update service (X-Device-Token, GCP1 AES-GCM envelope, Table Storage audit); see vtccp/architecture/gcp-update-service.md
 - [GoToTags E310 protocol & integration](gototags-e310-protocol.md) — SUPERSEDED: E310 rejected; AsReader ASR-P35U is canonical RFID hardware; FlexWedge Pro (GS1 Resolver project) is the protocol reference
 - [ASR-P35U SDK architecture](asr-p35u-sdk-architecture.md) — SDK DLL (not raw serial); 6-delegate SetDelegate before connect; ReadMemory→cbTag defect on FW 1.8.0; _pendingTidCb hook pattern
 - [Axicon 15500 and LVS 9510 verifiers](axicon-lvs-verifiers.md) — LVS=Omron Microscan (not Webscan); both use file-export integration path; need user to confirm export format before building adapters

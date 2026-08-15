@@ -4,7 +4,9 @@ description: My2Dir.com /interop/ protected zone design; GCP_INTEROP_KEY stored;
 ---
 
 ## Rule
-`GCP_INTEROP_KEY` is stored as a Replit secret. `GcpUpdateService` reads it via `Environment.GetEnvironmentVariable("GCP_INTEROP_KEY")` and sends as `X-GCP-Interop-Key` header.
+SUPERSEDED (2026-08-15): GCP table distribution now goes through the Azure Function update service (device token in `X-Device-Token`, AES-256-GCM "GCP1" envelope, audit in Table Storage) — see `vtccp/architecture/gcp-update-service.md`. The old `GCP_INTEROP_KEY` / `X-GCP-Interop-Key` path was removed from `GcpUpdateService`.
+
+Historical: `GCP_INTEROP_KEY` is stored as a Replit secret; the old service read it via env var and sent it as `X-GCP-Interop-Key`.
 
 **Agreed endpoint structure (pending Resolver restructuring):**
 ```

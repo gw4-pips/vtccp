@@ -64,7 +64,16 @@ public sealed class MainViewModel : ViewModelBase
 
         Navigate("Session");   // default page
 
-        _ = LoadConfigAsync();
+        InstallGcpUpdateCommand = new RelayCommand(() => _ = InstallGcpUpdateAsync(), () => !_gcpInstalling);
+        DismissGcpToastCommand  = new RelayCommand(() => IsGcpToastVisible = false);
+
+        _ = InitAsync();
+    }
+
+    private async Task InitAsync()
+    {
+        await LoadConfigAsync();
+        _ = CheckGcpUpdateAsync();   // background, non-blocking, best-effort
     }
 
     // ── Navigation ────────────────────────────────────────────────────────────
@@ -102,5 +111,79 @@ public sealed class MainViewModel : ViewModelBase
     {
         try   { await Repository.SaveAsync(); }
         catch { /* non-fatal */ }
+    }
+
+    // ── GCP prefix table update toast ─────────────────────────────────────────
+    // Startup check against the Azure update service (Settings → Data Sources).
+    // Silent no-op when the service URL / device token are not configured or
+    // the workstation is offline.
+
+    private bool   _isGcpToastVisible;
+    private string _gcpToastMessage = string.Empty;
+    private bool   _gcpInstalling;
+
+    public RelayCommand InstallGcpUpdateCommand { get; }
+    public RelayCommand DismissGcpToastCommand  { get; }
+
+    public bool IsGcpToastVisible
+    {
+        get => _isGcpToastVisible;
+        private set => Set(ref _isGcpToastVisible, value);
+    }
+
+    public string GcpToastMessage
+    {
+        get => _gcpToastMessage;
+        private set => Set(ref _gcpToastMessage, value);
+    }
+
+    private async Task CheckGcpUpdateAsync()
+    {
+        try
+        {
+            var service = Services.GcpUpdateServiceFactory.Create(Repository.Settings);
+            if (service is null) return;
+
+            var check = await service.CheckNowAsync();
+            if (check is not { UpdateAvailable: true }) return;
+
+            GcpToastMessage =
+                $"GCP prefix table update available ({check.ServerDate:yyyy-MM-dd}). Install now?";
+            IsGcpToastVisible = true;
+        }
+        catch { /* best-effort — never disturb startup */ }
+    }
+
+    private async Task InstallGcpUpdateAsync()
+    {
+        if (_gcpInstalling) return;
+        _gcpInstalling = true;
+        RelayCommand.Refresh();
+        try
+        {
+            var service = Services.GcpUpdateServiceFactory.Create(Repository.Settings);
+            if (service is null) return;
+
+            GcpToastMessage = "Downloading GCP prefix table…";
+            var installedDate = await service.DownloadAndInstallAsync();
+
+            Repository.Settings.GcpDataPath =
+                Services.GcpUpdateServiceFactory.ResolveLocalXmlPath(Repository.Settings);
+            Repository.Settings.GcpLastModified = installedDate?.ToString("O");
+            await Repository.SaveSettingsAsync();
+            SettingsVM.Reload();
+
+            GcpToastMessage =
+                $"GCP prefix table {installedDate:yyyy-MM-dd} installed. New sessions use it automatically.";
+        }
+        catch (Exception ex)
+        {
+            GcpToastMessage = $"GCP table update failed: {ex.Message}";
+        }
+        finally
+        {
+            _gcpInstalling = false;
+            RelayCommand.Refresh();
+        }
     }
 }
