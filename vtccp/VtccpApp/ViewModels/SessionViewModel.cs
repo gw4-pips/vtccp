@@ -379,6 +379,7 @@ public sealed class SessionViewModel : ViewModelBase
                     JobName         = state.JobName      ?? string.Empty,
                     BatchNumber     = state.BatchNumber  ?? string.Empty,
                     CompanyName     = state.CompanyName  ?? string.Empty,
+                    LogoPath        = state.LogoPath,
                 };
                 _pushHttpSubscriber = new DeviceInterface.Dmst.HttpEventSubscriber(
                     cfg.Host, cfg.Port, _xmlMap, ctx, OnPushRecord);
@@ -1204,6 +1205,7 @@ public sealed class SessionViewModel : ViewModelBase
                               ? (SelectedTemplate?.OperatorId ?? string.Empty)
                               : OperatorOverride.Trim(),
         JobName         = SelectedTemplate?.JobName ?? string.Empty,
+        LogoPath        = SelectedTemplate?.LogoPath,
     };
 
     /// <summary>

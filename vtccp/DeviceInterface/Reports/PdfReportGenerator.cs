@@ -172,6 +172,30 @@ public static class PdfReportGenerator
         }
     }
 
+    /// <summary>
+    /// Attempts to load logo image bytes from the given file path.
+    /// Returns the raw file bytes on success, or <see langword="null"/> when:
+    ///   - <paramref name="logoPath"/> is null or empty,
+    ///   - the file does not exist, or
+    ///   - the file cannot be read (permissions, locked, etc.).
+    /// Never throws — all exceptions are caught and logged via Debug output.
+    /// </summary>
+    private static byte[]? TryLoadLogoBytes(string? logoPath)
+    {
+        if (string.IsNullOrWhiteSpace(logoPath)) return null;
+        if (!File.Exists(logoPath))              return null;
+        try
+        {
+            return File.ReadAllBytes(logoPath);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[PDF] TryLoadLogoBytes failed for '{logoPath}': {ex.GetType().Name}: {ex.Message}");
+            return null;
+        }
+    }
+
     // ── Public API ────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -343,11 +367,27 @@ public static class PdfReportGenerator
                    .Element(c2 => RfidBadge(c2, r.RfidStatus));
             });
 
-            // Col 4: company placeholder
+            // Col 4: company logo or name fallback
             // TODO Task #89: dashed border pending QuestPDF workaround
-            row.ConstantItem(90).Border(1).BorderColor("#999999")
-               .AlignCenter().AlignMiddle().Padding(6)
-               .Text(r.CompanyName ?? "Company Logo").FontSize(7).FontColor(GrayHex);
+            // When LogoPath points to a readable image file, render it with QuestPDF Image().
+            // Otherwise fall back to CompanyName text (current behaviour) so existing sessions
+            // that have no logo configured are unaffected.
+            var companyCell = row.ConstantItem(90).Border(1).BorderColor("#999999")
+                                 .AlignCenter().AlignMiddle().Padding(4);
+
+            byte[]? companyLogoBytes = TryLoadLogoBytes(r.LogoPath);
+            if (companyLogoBytes != null)
+            {
+                // Render the logo image, fitted inside the cell with uniform padding.
+                // FitArea() scales the image to fill the available space while preserving
+                // the aspect ratio.  The 4 pt Padding above provides breathing room on all sides.
+                companyCell.Image(companyLogoBytes).FitArea();
+            }
+            else
+            {
+                companyCell.AlignCenter().AlignMiddle()
+                           .Text(r.CompanyName ?? "Company Logo").FontSize(7).FontColor(GrayHex);
+            }
         });
     }
 

@@ -29,6 +29,14 @@ public sealed record class VerificationRecord
     public int? RollNumber { get; init; }
     public string? BatchNumber { get; init; }
     public string? CompanyName { get; init; }
+    /// <summary>
+    /// Optional path to a company logo image file (PNG, JPG, BMP or GIF).
+    /// When set, <see cref="DeviceInterface.Reports.PdfReportGenerator"/> renders the image
+    /// in the company-box column of the PDF header instead of the CompanyName text.
+    /// Null or missing file = silently falls back to CompanyName text (or "Company Logo").
+    /// Sourced from <see cref="ExcelEngine.Models.SessionState.LogoPath"/> via the device context record.
+    /// </summary>
+    public string? LogoPath { get; init; }
     public string? ProductName { get; init; }
     public string? CustomNote { get; init; }
     public string? User1 { get; init; }
