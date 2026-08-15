@@ -260,3 +260,10 @@ uri = "file://dist/vccs-pdf-preview-v22.html"
 type = "text"
 title = "VCCS PDF Preview v22"
 description = "PIPS logo fixed (pure-black threshold, letter strokes intact); transparent bg floats on header gray; page clamped to 11in (no page 2); v1.4.10"
+
+[[outputs]]
+id = "qkXjpq6nsnp4KMUwSQ9FX"
+uri = "file://dist/vccs-pdf-preview-v23.html"
+type = "text"
+title = "VCCS PDF Preview v23"
+description = "PIPS logo fixed (background:#000 removed — floats on header gray); result phrases reordered to 'EPC data matches barcode GTIN…'; GCP note em dash → en dash; v1.4.11"

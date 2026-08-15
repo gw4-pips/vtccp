@@ -845,7 +845,7 @@ public static class PdfReportGenerator
                          txt.Span(" \u2014 ").FontSize(9);
                          txt.Span(gcpDisplay).FontSize(9);
                          if (!string.IsNullOrWhiteSpace(r.RfidGcpTableDate))
-                             txt.Span($" \u2014 From GCP prefix table as of {r.RfidGcpTableDate}")
+                             txt.Span($" \u2013 From GCP prefix table as of {r.RfidGcpTableDate}")
                                 .Italic().FontSize(7.5f).FontColor(GrayHex);
                      });
 
@@ -899,7 +899,7 @@ public static class PdfReportGenerator
                     // Linear row — GTIN only (1D barcodes carry no serial number).
                     string linVal = r.RfidStatus switch
                     {
-                        "Pass" => "Pass \u2014 GTIN matches EPC data",
+                        "Pass" => "Pass \u2014 EPC data matches barcode GTIN",
                         "Fail" => "Fail \u2014 GTIN mismatch",
                         var s  => s ?? "\u2014",
                     };
@@ -909,7 +909,7 @@ public static class PdfReportGenerator
                     string twoDSym = string.IsNullOrWhiteSpace(r.Symbology) ? "2D" : r.Symbology;
                     string twoDVal = r.RfidStatus switch
                     {
-                        "Pass" => "Pass \u2014 GTIN and Serial Number match EPC data",
+                        "Pass" => "Pass \u2014 EPC data matches barcode GTIN and Serial Number",
                         "Fail" => "Fail \u2014 GTIN or Serial Number mismatch",
                         var s  => s ?? "\u2014",
                     };
@@ -925,9 +925,9 @@ public static class PdfReportGenerator
                         : r.Symbology;
                     string singleVal = r.RfidStatus switch
                     {
-                        "Pass" when is1DOnly => "Pass \u2014 GTIN matches EPC data",
+                        "Pass" when is1DOnly => "Pass \u2014 EPC data matches barcode GTIN",
                         "Fail" when is1DOnly => "Fail \u2014 GTIN mismatch",
-                        "Pass"               => "Pass \u2014 GTIN and Serial Number match EPC data",
+                        "Pass"               => "Pass \u2014 EPC data matches barcode GTIN and Serial Number",
                         "Fail"               => "Fail \u2014 GTIN or Serial Number mismatch",
                         var s                => s ?? "\u2014",
                     };

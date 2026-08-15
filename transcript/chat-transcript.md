@@ -1388,3 +1388,14 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** PIPS logo was butchered. Go to the original PNG, change the dark OUTSIDE the letter periphery and WITHIN the P counter rectangles to clear/white — touch nothing inside the outer borders of each letter. Save as white and as clear. Also there is still a page 2 in the PDF.
 
 **Assistant:** Diagnosed flood-fill leak: previous thresh=30 flood-fill from corners leaked into letter edges via anti-aliased dark pixels. Fixed using strict color-threshold (max(R,G,B)<10 = pure black only) applied directly to pixel data — no flood-fill, so interior counter regions and exterior background both change, letter strokes (max≥10) untouched. Saved pips_logo_white.png (white bg) and pips_logo_clear.png (transparent bg) from original unmodified source PNG. Page 2 fix: .page CSS changed from min-height:11in to height:11in; overflow:hidden — clamps HTML preview to exactly one letter page. Used pips_logo_clear.png in v22 HTML so PIPS floats on gray header. Both VCCS and PIPS now border-free, 1/4" edge positioning, floating on #edf1f7 header.
+
+---
+
+**User:** Fix all: version not incremented; logo in v22 not updated (still black box); logo in v21 at least shows original; change result phrase order as previously requested; change em dash to en dash for GCP prefix table note.
+
+**Assistant:** Five fixes applied in one batch — all verified:
+1. VtccpApp.csproj bumped 1.4.10 → 1.4.11.
+2. PIPS logo root cause found: company-box had inline `background:#000` — the transparent PNG was rendering on black, not the header gray. Removed `background:#000` from inline style; clear logo now floats on #edf1f7 as intended.
+3. Result phrases reordered in both PdfReportGenerator.cs (all 4 switch arms) and HTML: "Pass — GTIN matches EPC data" → "Pass — EPC data matches barcode GTIN"; "Pass — GTIN and Serial Number match EPC data" → "Pass — EPC data matches barcode GTIN and Serial Number".
+4. Em dash → en dash for GCP prefix table note in both C# (U+2013) and HTML (&ndash;).
+5. HTML saved as new v23 (never edits in place); footer shows v1.4.11.
