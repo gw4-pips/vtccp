@@ -230,6 +230,7 @@ public static class PdfReportGenerator
             {
                 page.Size(PageSizes.Letter);
                 page.Margin(0.5f, Unit.Inch);
+                page.MarginTop(0.25f, Unit.Inch);
                 page.DefaultTextStyle(x => x.FontSize(9).FontFamily(Fonts.Arial));
 
                 page.Header().Element(c => BuildHeader(c, r));
@@ -606,7 +607,7 @@ public static class PdfReportGenerator
                 });
 
                 // Column headers
-                var hdrs = new[] { "Symbology", "Standard", "Grade", "Aperture", "Wavelength", "Lighting", "Formal Grade" };
+                var hdrs = new[] { "Symbology", "Standard", "Grade", "Aperture (mil)", "Wavelength (nm)", "Lighting", "Formal Grade" };
                 for (int i = 0; i < hdrs.Length; i++)
                 {
                     IContainer hCell = table.Cell().Background(Colors.White)
@@ -719,7 +720,7 @@ public static class PdfReportGenerator
                 // Header row
                 HeaderRow(table, "Field", "Value");
 
-                // Tag Detected
+                // Tag Detected / Lock Status — single consolidated row.
                 bool tagDetected = r.RfidStatus is "Pass" or "Fail" or "MultipleTagsDetected";
                 string tagLabel = r.RfidStatus switch
                 {
@@ -729,24 +730,20 @@ public static class PdfReportGenerator
                     "Skipped"                 => "Skipped",
                     _                         => r.RfidStatus ?? "\u2014",
                 };
-                DataRow("Tag Detected",    tagLabel);
-
-                // Tag lock status (queried separately from inventory — often null)
-                // Values derive from ASR-P35U CheckTagStatus: 40=PermaLock, 41=Lock, 42=Unlock
-                string lockDisplay = r.RfidTagLockStatus switch
+                // Lock status is N/A when no tag; legend always shown for auditor reference.
+                string lockDisplay = !tagDetected ? "N/A" : r.RfidTagLockStatus switch
                 {
-                    "Locked"       => "Locked",
-                    "PermaLocked"  => "Permanently Locked",
-                    "Unlocked"     => "Unlocked",
-                    "Unknown"      => "Unknown",
-                    null           => "\u2014",
-                    var other      => other,
+                    "Locked"      => "Locked",
+                    "PermaLocked" => "Permanently Locked",
+                    "Unlocked"    => "Unlocked",
+                    "Unknown"     => "Unknown",
+                    null          => "\u2014",
+                    var other     => other,
                 };
-                // Append all possible lock-status values as a parenthetical legend for auditors.
                 const string LockOpts = " (Permalocked / Locked / Unlocked / Unknown)";
-                DataRow("Tag Lock Status", lockDisplay + LockOpts);
+                DataRow("Tag Detected / Lock Status", $"{tagLabel} \u2014 {lockDisplay}{LockOpts}");
 
-                // EPC Encoding Scheme — derived from Tag URI without adding a separate field.
+                // EPC Encoding Scheme — derived from Tag URI at render time.
                 // e.g. "urn:epc:tag:sgtin-96:..." → "SGTIN-96"
                 string? epcScheme = null;
                 if (!string.IsNullOrWhiteSpace(r.RfidEpcTagUri))
@@ -756,17 +753,9 @@ public static class PdfReportGenerator
                         uriParts[0] == "urn" && uriParts[1] == "epc" && uriParts[2] == "tag")
                         epcScheme = uriParts[3].ToUpperInvariant();
                 }
-                DataRow("EPC Encoding Scheme", epcScheme, tagDetected);
-                DataRow("EPC Hex",             r.RfidEpcHex,  tagDetected);
+                string schemePart = tagDetected ? (epcScheme ?? "\u2014") : "N/A";
 
-                // EPC Tag URI — urn:epc:tag:... form as used by RFID middleware.
-                // Distinct from the GS1 Digital Link URI that appears in QR code payloads.
-                DataRow("EPC Tag URI",     r.RfidEpcTagUri,   tagDetected);
-
-                // GCP Length: "Valid (N)" or "Invalid (N)" where N = GCP digit count.
-                // Shown above GTIN-14 per v6 layout.
-                // When GcpTableDate is available, the value cell uses RichText to append
-                // an italic provenance annotation: "— From GCP prefix table as of yyyy-MM-dd".
+                // GCP Length derivation.
                 string gcpLenPart = r.RfidGcpLength.HasValue
                     ? $" ({r.RfidGcpLength.Value})"
                     : string.Empty;
@@ -777,27 +766,29 @@ public static class PdfReportGenerator
                     null  => "\u2014",
                 };
 
-                // Emit GCP Length row — inline (bypasses DataRow helper) to allow RichText.
-                table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#aaaaaa")
+                // EPC Encoding Scheme / GCP Length — consolidated single row with blue tint.
+                // Inline emit to allow mixed RichText spans (monospace scheme + regular GCP text).
+                const string HiBack = "#f0f7ff";
+                table.Cell().Background(HiBack).BorderBottom(1).BorderColor("#aaaaaa")
                      .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                     .Text("GCP Length").FontSize(9);
-                if (!string.IsNullOrWhiteSpace(r.RfidGcpTableDate))
-                {
-                    table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#aaaaaa")
-                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(txt =>
-                         {
-                             txt.Span(gcpDisplay).FontSize(9);
+                     .Text("EPC Encoding Scheme / GCP Length").FontSize(9);
+                table.Cell().Background(HiBack).BorderBottom(1).BorderColor("#aaaaaa")
+                     .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                     .Text(txt =>
+                     {
+                         txt.Span(schemePart).FontFamily("Courier New").FontSize(9);
+                         txt.Span(" \u2014 ").FontSize(9);
+                         txt.Span(gcpDisplay).FontSize(9);
+                         if (!string.IsNullOrWhiteSpace(r.RfidGcpTableDate))
                              txt.Span($" \u2014 From GCP prefix table as of {r.RfidGcpTableDate}")
                                 .Italic().FontSize(7.5f).FontColor(GrayHex);
-                         });
-                }
-                else
-                {
-                    table.Cell().Background(Colors.White).BorderBottom(1).BorderColor("#aaaaaa")
-                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(gcpDisplay).FontSize(9);
-                }
+                     });
+
+                DataRow("EPC Hex",     r.RfidEpcHex,    tagDetected);
+
+                // EPC Tag URI — urn:epc:tag:... form as used by RFID middleware.
+                // Distinct from the GS1 Digital Link URI that appears in QR code payloads.
+                DataRow("EPC Tag URI", r.RfidEpcTagUri, tagDetected);
 
                 DataRow("GTIN-14",         r.RfidGtin14,      tagDetected);
                 DataRow("Serial Number",   r.RfidSerial,      tagDetected);
@@ -807,14 +798,21 @@ public static class PdfReportGenerator
                 // can only compare GTIN (the barcode carries no serial); the result wording
                 // reflects this.  Multi-mode records (LinearSymbology set) match against the
                 // 2D symbol, so they use the same wording as a 2D-only single-mode scan.
+                // Result label and value vary by symbology / validation scope.
+                // Initial release scope: EAN/UPC → GTIN-only match; DataMatrix/QR → GTIN + S/N (SGTIN-96).
                 bool eanOnly = r.Is1D && string.IsNullOrWhiteSpace(r.LinearSymbology);
+                string resultLabel = eanOnly
+                    ? "EAN/UPC Validation Result"
+                    : "SGTIN-96 Validation Result";
                 string resultVal = r.RfidStatus switch
                 {
-                    "Pass" when eanOnly => "Pass \u2014 GTIN match only (serial not in barcode)",
+                    "Pass" when eanOnly => "Pass \u2014 GTIN matches EPC data",
                     "Fail" when eanOnly => "Fail \u2014 GTIN mismatch",
+                    "Pass"              => "Pass \u2014 GTIN and Serial Number match EPC data",
+                    "Fail"              => "Fail \u2014 GTIN or Serial Number mismatch",
                     var s               => s ?? "\u2014",
                 };
-                if (!string.IsNullOrWhiteSpace(r.RfidMismatchDetail) && !eanOnly)
+                if (!string.IsNullOrWhiteSpace(r.RfidMismatchDetail) && r.RfidStatus is "Fail")
                     resultVal += $" \u2014 {r.RfidMismatchDetail}";
 
                 string resultBg = r.RfidStatus switch
@@ -834,7 +832,7 @@ public static class PdfReportGenerator
 
                 table.Cell().Background(resultBg)
                      .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                     .Text("RFID Validation Result").Bold().FontSize(9).FontColor(resultFg);
+                     .Text(resultLabel).Bold().FontSize(9).FontColor(resultFg);
                 table.Cell().Background(resultBg)
                      .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                      .Text(resultVal).Bold().FontSize(9).FontColor(resultFg);
