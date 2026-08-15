@@ -1304,3 +1304,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Please save to files. I don't see it.
 
 **Assistant:** Files were already saved to disk (dist/vccs-pdf-preview-v13.html). Presented v13 as a clickable asset.
+
+---
+
+**User:** PDF is much nicer now. Excellent. Next run please remove the Scan window element, which should bring up the sections below automatically. OK, here's what we're going to do with the Appl. Spec section. Spell it as Application Spec. on one line. The allowable values are GS1 -- GTIN-12 for UPC, GS1 -- GTIN-13 for EAN, GS1 -- GTIN-14 for (a completely unlikely) GS1 dataBar occurrence; GS1 Element String for GS1 DataMatrix and GS1 Digital Link for QR Code. Write Element/String and Digital/Link on 2 lines in smaller type, increasing the Symbology/Enc data/Appl. Spec row a little as practical. We never did get but I still want a heavier line at the top of the Report Name row. Make it the same as the exterior line. And we need to add just a few points to the Symbology col width: Timestamp is being cut off. Let's change Timestamp to Date/Time, which will still need a little more width. Please make these changes and let's see where we are.
+
+**Assistant:** Saved v14 HTML + applied matching C# edits. Changes: (1) Scan window element removed from HTML and C#. (2) Header "Appl. Spec." → "Application Spec." (HTML + C#). (3) App spec values: EAN→"GS1 — GTIN-13", UPC→"GS1 — GTIN-12", DataBar→"GS1 — GTIN-14" via LinearAppSpecFor(); DataMatrix→"GS1 Element / String" two-line 7.5pt, QR→"GS1 Digital / Link" two-line — SymbolRow updated to split on \n and render secondary line at 7pt. (4) Report Name row: 2px navy border-top (HTML .sum-meta-start + C# MetaRow isFirstMeta border). (5) Symbology col 70→80pt, Appl. Spec. col 95→100pt. (6) "Report Timestamp" label → "Date/Time" (HTML + C#). Footer static text updated to v1.4.4.

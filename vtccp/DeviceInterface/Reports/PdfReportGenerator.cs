@@ -435,13 +435,13 @@ public static class PdfReportGenerator
             {
                 table.ColumnsDefinition(cols =>
                 {
-                    cols.ConstantColumn(70);   // Symbology — narrowed to maximise Encoded Data
+                    cols.ConstantColumn(80);   // Symbology — widened to prevent Date/Time cut-off
                     cols.RelativeColumn();      // Encoded Data — widest
-                    cols.ConstantColumn(95);   // Application Specification — fits "GS1 Element Strings"
+                    cols.ConstantColumn(100);  // Application Spec. — fits "Application Spec." header + two-line values
                 });
 
                 // Column headers — same internal-border style as grades table header
-                string[] sumHdrs = { "Symbology", "Encoded Data", "Appl. Spec." };
+                string[] sumHdrs = { "Symbology", "Encoded Data", "Application Spec." };
                 for (int i = 0; i < sumHdrs.Length; i++)
                 {
                     IContainer hc = table.Cell().Background(Colors.White)
@@ -465,9 +465,19 @@ public static class PdfReportGenerator
                     table.Cell().BorderBottom(bt).BorderColor(bc).BorderRight(1)
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                          .Text(encoded ?? "\u2014").FontSize(9);
-                    table.Cell().BorderBottom(bt).BorderColor(bc)
-                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(appSpecStr).FontSize(9);
+
+                    // App spec: two-liner for 2D (e.g. "GS1 Element\nString"); single line for linear.
+                    var appCell = table.Cell().BorderBottom(bt).BorderColor(bc)
+                                       .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4);
+                    var appLines = appSpecStr.Split('\n');
+                    if (appLines.Length > 1)
+                        appCell.Column(c2 =>
+                        {
+                            c2.Item().Text(appLines[0]).FontSize(8);
+                            c2.Item().Text(appLines[1]).FontSize(7);
+                        });
+                    else
+                        appCell.Text(appSpecStr).FontSize(8);
                 }
 
                 bool hasLinearSum = !string.IsNullOrWhiteSpace(r.LinearSymbology);
@@ -483,21 +493,38 @@ public static class PdfReportGenerator
                 //   QR Code        → "GS1 Digital Link"
                 //   EAN/UPC        → "GS1"
                 //   Other          → ApplicationStandard field (appSpec)
+                // AppSpecFor returns a \n-separated two-liner for 2D symbols so SymbolRow
+                // can render line 1 at 8pt and line 2 at 7pt (smaller secondary text).
                 static string AppSpecFor(string? symbology, string fallback) => symbology switch
                 {
                     var s when s?.Contains("DataMatrix", StringComparison.OrdinalIgnoreCase) == true
-                        => "GS1 Element Strings",
+                        => "GS1 Element\nString",
                     var s when s?.Contains("QR",         StringComparison.OrdinalIgnoreCase) == true
-                        => "GS1 Digital Link",
+                        => "GS1 Digital\nLink",
                     _   => fallback,
+                };
+
+                // LinearAppSpecFor derives the GS1 GTIN qualifier for linear symbols.
+                //   UPC-A / UPC-E  → GS1 — GTIN-12
+                //   EAN-8          → GS1 — GTIN-8
+                //   EAN-13         → GS1 — GTIN-13   (default EAN)
+                //   GS1 DataBar    → GS1 — GTIN-14
+                //   Other          → GS1
+                static string LinearAppSpecFor(string? symbology) => symbology switch
+                {
+                    var s when s?.Contains("UPC",     StringComparison.OrdinalIgnoreCase) == true => "GS1 \u2014 GTIN-12",
+                    var s when s?.Contains("EAN-8",   StringComparison.OrdinalIgnoreCase) == true => "GS1 \u2014 GTIN-8",
+                    var s when s?.Contains("EAN",     StringComparison.OrdinalIgnoreCase) == true => "GS1 \u2014 GTIN-13",
+                    var s when s?.Contains("DataBar", StringComparison.OrdinalIgnoreCase) == true => "GS1 \u2014 GTIN-14",
+                    _   => "GS1",
                 };
 
                 if (hasLinearSum)
                 {
                     // Row 1: linear (EAN/UPC) — not the separator row.
-                    // EAN/UPC is always GS1; no PASS/FAIL shown (grades table owns that).
+                    // App spec derived from symbology: UPC→GTIN-12, EAN-13→GTIN-13, etc.
                     SymbolRow(r.LinearSymbology!, r.LinearDecodedData,
-                              "GS1", isSeparatorRow: false);
+                              LinearAppSpecFor(r.LinearSymbology), isSeparatorRow: false);
                     // Row 2: 2D symbol — separator row (heavier bottom border).
                     SymbolRow(r.Symbology ?? "\u2014", r.DecodedData,
                               AppSpecFor(r.Symbology, appSpec), isSeparatorRow: true);
@@ -509,28 +536,32 @@ public static class PdfReportGenerator
                               AppSpecFor(r.Symbology, appSpec), isSeparatorRow: true);
                 }
 
-                // Metadata rows: label (col 1) + value spanning cols 2–3 (ColumnSpan 2)
-                void MetaRow(string label, string? value, bool isLast)
+                // Metadata rows: label (col 1) + value spanning cols 2–3 (ColumnSpan 2).
+                // isFirstMeta = true adds a 2pt navy top border (same weight as exterior)
+                // to create the heavier separator between symbol rows and metadata rows.
+                void MetaRow(string label, string? value, bool isLast, bool isFirstMeta = false)
                 {
                     IContainer lc = table.Cell().BorderRight(1).BorderColor("#aaaaaa");
+                    if (isFirstMeta) lc = lc.BorderTop(2).BorderColor(NavyHex);
                     if (!isLast) lc = lc.BorderBottom(1).BorderColor("#aaaaaa");
                     lc.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                       .Text(label).FontSize(8.5f).FontColor(GrayHex);
 
+                    IContainer vc = table.Cell().ColumnSpan(2);
+                    if (isFirstMeta) vc = vc.BorderTop(2).BorderColor(NavyHex);
                     if (!isLast)
-                        table.Cell().ColumnSpan(2).BorderBottom(1).BorderColor("#aaaaaa")
-                             .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                             .Text(value ?? "\u2014").FontSize(9);
+                        vc.BorderBottom(1).BorderColor("#aaaaaa")
+                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                          .Text(value ?? "\u2014").FontSize(9);
                     else
-                        table.Cell().ColumnSpan(2)
-                             .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                             .Text(value ?? "\u2014").FontSize(9);
+                        vc.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                          .Text(value ?? "\u2014").FontSize(9);
                 }
 
                 MetaRow("Report Name",
                         reportName,
-                        isLast: false);
-                MetaRow("Report Timestamp",
+                        isLast: false, isFirstMeta: true);
+                MetaRow("Date/Time",
                         r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt"),
                         isLast: true);
             });
@@ -781,13 +812,6 @@ public static class PdfReportGenerator
                      .Text(resultVal).Bold().FontSize(9).FontColor(resultFg);
             });
 
-            // Scan window duration (secondary metadata)
-            if (r.RfidScanWindowMs.HasValue)
-            {
-                col.Item().PaddingTop(2).AlignRight()
-                   .Text($"Scan window: {r.RfidScanWindowMs.Value} ms")
-                   .FontSize(7).FontColor(GrayHex).Italic();
-            }
         });
     }
 
