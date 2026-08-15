@@ -190,3 +190,10 @@ uri = "file://dist/hybrid-report-sample-v4.html"
 type = "text"
 title = "Hybrid Report v4 — correct 2-column layout"
 description = "Image (left) + ISO Quality Parameters (right) side-by-side. Data Format Check (left) + RFID Validation (right) side-by-side. Matches the Webscan PDF layout exactly. Full-width sections: Report Summary, Verification Grades, GradingInfoSection."
+
+[[outputs]]
+id = "aOODAmOUXdHgCwle9bVyE"
+uri = "file://dist/vccs-pdf-preview-v13.html"
+type = "text"
+title = "VCCS PDF Preview v13"
+description = "Current reference layout — v1.4.4. Includes pronounced row lines, navy header print fix, and version number in footer."

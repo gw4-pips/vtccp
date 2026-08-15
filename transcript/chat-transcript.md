@@ -1298,3 +1298,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Add version number in footer after "Report" and before em dash. Make row lines more pronounced but less than outer section borders. Navy header background not printing on PDF — fix.
 
 **Assistant:** Built v13 / C# v1.4.4. (1) Footer version: HTML shows "v1.4.3" static; C# BuildFooter reads Assembly.GetEntryAssembly().GetName().Version.ToString(3) at runtime, appends as " v{ver}" before the em dash. Added using System.Reflection. (2) Row borders: all inter-row #ddd/#e0e0e0 → #aaa across sum-table, grades-table, rfid-table, dfc-table (HTML and C# bulk); separator row in C# SymbolRow now uses #888888 (was #aaaaaa) so it remains visually distinct from the promoted #aaaaaa row lines. (3) Print backgrounds: added `* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }` inside @media print — forces all browsers to render background colours including navy headers when printing/saving as PDF.
+
+---
+
+**User:** Please save to files. I don't see it.
+
+**Assistant:** Files were already saved to disk (dist/vccs-pdf-preview-v13.html). Presented v13 as a clickable asset.
