@@ -204,3 +204,10 @@ uri = "file://dist/vccs-pdf-preview-v14.html"
 type = "text"
 title = "VCCS PDF Preview v14"
 description = "Scan window removed; Application Spec. header + two-line Element/String & Digital/Link values; heavier navy separator above Report Name; Symbology col 80pt; Date/Time label."
+
+[[outputs]]
+id = "2h8mYkvD6zGp2he8bno3y"
+uri = "file://dist/vccs-pdf-preview-v15.html"
+type = "text"
+title = "VCCS PDF Preview v15"
+description = "Report Date/Time label; 1px navy separator; Symbology 76pt / App Spec 88pt; GS1 — | Element/String flex layout."

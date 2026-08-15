@@ -435,9 +435,9 @@ public static class PdfReportGenerator
             {
                 table.ColumnsDefinition(cols =>
                 {
-                    cols.ConstantColumn(80);   // Symbology — widened to prevent Date/Time cut-off
+                    cols.ConstantColumn(76);   // Symbology — snug for "GS1 DataMatrix" at 8pt
                     cols.RelativeColumn();      // Encoded Data — widest
-                    cols.ConstantColumn(100);  // Application Spec. — fits "Application Spec." header + two-line values
+                    cols.ConstantColumn(88);   // Application Spec. — snug for header text
                 });
 
                 // Column headers — same internal-border style as grades table header
@@ -466,15 +466,24 @@ public static class PdfReportGenerator
                          .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                          .Text(encoded ?? "\u2014").FontSize(9);
 
-                    // App spec: two-liner for 2D (e.g. "GS1 Element\nString"); single line for linear.
+                    // App spec: for 2D symbols, appSpecStr is "Element\nString" or "Digital\nLink".
+                    // Render as a horizontal Row: "GS1 —" vertically centred on the left,
+                    // then the two-line stack (7pt, no gap) flush left beside it.
+                    // For linear symbols the string has no \n — render single-line at 8pt.
                     var appCell = table.Cell().BorderBottom(bt).BorderColor(bc)
                                        .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4);
                     var appLines = appSpecStr.Split('\n');
                     if (appLines.Length > 1)
-                        appCell.Column(c2 =>
+                        appCell.Row(r2 =>
                         {
-                            c2.Item().Text(appLines[0]).FontSize(8);
-                            c2.Item().Text(appLines[1]).FontSize(7);
+                            r2.AutoItem().AlignMiddle()
+                              .Text("GS1 \u2014").FontSize(8);
+                            r2.ConstantItem(3); // gap between prefix and stack
+                            r2.RelativeItem().AlignMiddle().Column(c2 =>
+                            {
+                                c2.Item().Text(appLines[0]).FontSize(7);
+                                c2.Item().Text(appLines[1]).FontSize(7);
+                            });
                         });
                     else
                         appCell.Text(appSpecStr).FontSize(8);
@@ -498,9 +507,9 @@ public static class PdfReportGenerator
                 static string AppSpecFor(string? symbology, string fallback) => symbology switch
                 {
                     var s when s?.Contains("DataMatrix", StringComparison.OrdinalIgnoreCase) == true
-                        => "GS1 Element\nString",
+                        => "Element\nString",
                     var s when s?.Contains("QR",         StringComparison.OrdinalIgnoreCase) == true
-                        => "GS1 Digital\nLink",
+                        => "Digital\nLink",
                     _   => fallback,
                 };
 
@@ -542,13 +551,13 @@ public static class PdfReportGenerator
                 void MetaRow(string label, string? value, bool isLast, bool isFirstMeta = false)
                 {
                     IContainer lc = table.Cell().BorderRight(1).BorderColor("#aaaaaa");
-                    if (isFirstMeta) lc = lc.BorderTop(2).BorderColor(NavyHex);
+                    if (isFirstMeta) lc = lc.BorderTop(1).BorderColor(NavyHex);
                     if (!isLast) lc = lc.BorderBottom(1).BorderColor("#aaaaaa");
                     lc.PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                       .Text(label).FontSize(8.5f).FontColor(GrayHex);
 
                     IContainer vc = table.Cell().ColumnSpan(2);
-                    if (isFirstMeta) vc = vc.BorderTop(2).BorderColor(NavyHex);
+                    if (isFirstMeta) vc = vc.BorderTop(1).BorderColor(NavyHex);
                     if (!isLast)
                         vc.BorderBottom(1).BorderColor("#aaaaaa")
                           .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
@@ -561,7 +570,7 @@ public static class PdfReportGenerator
                 MetaRow("Report Name",
                         reportName,
                         isLast: false, isFirstMeta: true);
-                MetaRow("Date/Time",
+                MetaRow("Report Date/Time",
                         r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt"),
                         isLast: true);
             });
