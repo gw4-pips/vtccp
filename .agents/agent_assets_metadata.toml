@@ -237,5 +237,5 @@ description = "Blank page fix; EPC Encoding Scheme row; Unknown lock status; Ser
 id = "mdA9fnDhcjNYmqUU9RuBk"
 uri = "file://dist/vccs-pdf-preview-v19.html"
 type = "text"
-title = "VCCS PDF Preview v19"
-description = "Top margin 0.25″; Aperture (mil) / Wavelength (nm); consolidated Tag/Lock and Scheme/GCP rows; dynamic EAN/UPC vs SGTIN-96 result labels; v1.4.7"
+title = "VCCS PDF Preview v19 (clean)"
+description = "GCP design-note block removed — page now starts cleanly at the VCCS header"

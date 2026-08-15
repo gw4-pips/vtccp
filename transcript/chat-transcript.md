@@ -1352,3 +1352,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** [images: Barcode Verification Grades table / RFID table snip] Top margin looks 3/4"+, reduce by 1/4". Specify "mil" UOM for Aperture and "nm" for Wavelength. Consolidate Tag Detected + Tag Lock Status into one row. Consolidate EPC Encoding Scheme + GCP Length similarly. Result labels should reference barcode-vs-EPC validation: EAN/UPC → "EAN/UPC Validation Result" (GTIN only); DataMatrix/QR → "SGTIN-96 Validation Result" (GTIN + Serial Number). Initial release scope defined. Proceed.
 
 **Assistant:** Saved v19 HTML + C# v1.4.7. Changes: (1) Top margin: 0.5"→0.25" (C# MarginTop override + HTML padding). (2) Aperture→"Aperture (mil)", Wavelength→"Wavelength (nm)" in grade table header. (3) Tag Detected + Tag Lock Status consolidated into "Tag Detected / Lock Status" single row — lock shows N/A when no tag detected; legend always present. (4) EPC Encoding Scheme + GCP Length consolidated into "EPC Encoding Scheme / GCP Length" single row with RichText (monospace scheme, regular GCP text, italic date annotation). (5) Result label is now dynamic: eanOnly→"EAN/UPC Validation Result", otherwise→"SGTIN-96 Validation Result"; value strings updated to describe the specific comparison (GTIN match only vs GTIN + Serial Number match EPC data). Secondary result row removed from HTML mockup (not in initial release scope). Saves 2 rows in RFID table.
+
+---
+
+**User:** [screenshot of design-note artifact] Tasks #113/#114 cancelled. #113 per user setting. #114 — is that not already happening? Remove the yellow GCP design-note block that's appearing above the page preview. Delete the notes about the GCP length table.
+
+**Assistant:** Removed the `<div class="design-note">` block and its CSS from v19 HTML — page now opens directly at the VCCS header with no pre-amble. Re-presented v19.
