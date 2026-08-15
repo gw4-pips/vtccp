@@ -1399,3 +1399,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 3. Result phrases reordered in both PdfReportGenerator.cs (all 4 switch arms) and HTML: "Pass — GTIN matches EPC data" → "Pass — EPC data matches barcode GTIN"; "Pass — GTIN and Serial Number match EPC data" → "Pass — EPC data matches barcode GTIN and Serial Number".
 4. Em dash → en dash for GCP prefix table note in both C# (U+2013) and HTML (&ndash;).
 5. HTML saved as new v23 (never edits in place); footer shows v1.4.11.
+
+---
+
+**User:** Good stopping place. Synopsis of what we'll need to do next session (live 475V, git update, housekeeping, live tests) and any undone tasks that might inhibit us.
+
+**Assistant:** See response in chat — stopping-point briefing provided. No code changes this turn.
