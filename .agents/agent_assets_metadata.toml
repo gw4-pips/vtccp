@@ -225,3 +225,10 @@ uri = "file://dist/vccs-pdf-preview-v17.html"
 type = "text"
 title = "VCCS PDF Preview v17"
 description = "v1.4.5 footer; 'See associated TruCheck report for additional details' on Barcode Summary + Data Format Check; Barcode Image and Data Format Check headers now subdued blue matching barcode section style."
+
+[[outputs]]
+id = "arEC3RgGDIr2WBPhCT56E"
+uri = "file://dist/vccs-pdf-preview-v18.html"
+type = "text"
+title = "VCCS PDF Preview v18"
+description = "Blank page fix; EPC Encoding Scheme row; Unknown lock status; Serial Number; RFID Validation Result; secondary result row; v1.4.6"

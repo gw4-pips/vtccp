@@ -493,6 +493,25 @@ public sealed record class VerificationRecord
     /// </summary>
     public string? RfidTagLockStatus { get; init; }
 
+    /// <summary>
+    /// Optional secondary validation outcome: "Pass", "Fail", or "Warn".
+    /// When set, a second result row is rendered in the PDF below the primary RFID Validation Result.
+    /// Example: "Pass" when GCP prefix lookup succeeded.
+    /// </summary>
+    public string? RfidSecondaryStatus { get; init; }
+
+    /// <summary>
+    /// Row label for the secondary result, e.g. "GCP Validation Result".
+    /// Null when no secondary result is present.
+    /// </summary>
+    public string? RfidSecondaryResultRowLabel { get; init; }
+
+    /// <summary>
+    /// Optional detail appended after an em-dash on the secondary result value cell,
+    /// e.g. "GCP prefix confirmed in lookup table".
+    /// </summary>
+    public string? RfidSecondaryDetail { get; init; }
+
     // ─── Pipeline metadata ────────────────────────────────────────────────────
 
     /// <summary>

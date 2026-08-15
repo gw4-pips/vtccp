@@ -261,7 +261,8 @@ public static class PdfReportGenerator
             });
         });
 
-        return doc.GeneratePdf();
+        byte[] rawPdf = doc.GeneratePdf();
+        return StripBlankTrailingPages(rawPdf);
     }
 
     // ── Header — 4 columns ────────────────────────────────────────────────────
@@ -742,10 +743,21 @@ public static class PdfReportGenerator
                     var other      => other,
                 };
                 // Append all possible lock-status values as a parenthetical legend for auditors.
-                const string LockOpts = " (Permalocked / Locked / Unlocked)";
+                const string LockOpts = " (Permalocked / Locked / Unlocked / Unknown)";
                 DataRow("Tag Lock Status", lockDisplay + LockOpts);
 
-                DataRow("EPC Hex",         r.RfidEpcHex,      tagDetected);
+                // EPC Encoding Scheme — derived from Tag URI without adding a separate field.
+                // e.g. "urn:epc:tag:sgtin-96:..." → "SGTIN-96"
+                string? epcScheme = null;
+                if (!string.IsNullOrWhiteSpace(r.RfidEpcTagUri))
+                {
+                    var uriParts = r.RfidEpcTagUri.Split(':');
+                    if (uriParts.Length >= 4 &&
+                        uriParts[0] == "urn" && uriParts[1] == "epc" && uriParts[2] == "tag")
+                        epcScheme = uriParts[3].ToUpperInvariant();
+                }
+                DataRow("EPC Encoding Scheme", epcScheme, tagDetected);
+                DataRow("EPC Hex",             r.RfidEpcHex,  tagDetected);
 
                 // EPC Tag URI — urn:epc:tag:... form as used by RFID middleware.
                 // Distinct from the GS1 Digital Link URI that appears in QR code payloads.
@@ -788,7 +800,7 @@ public static class PdfReportGenerator
                 }
 
                 DataRow("GTIN-14",         r.RfidGtin14,      tagDetected);
-                DataRow("Serial",          r.RfidSerial,      tagDetected);
+                DataRow("Serial Number",   r.RfidSerial,      tagDetected);
 
                 // Result row with colour.
                 // When only a linear (EAN/UPC) symbol is present the RFID cross-validation
@@ -822,10 +834,42 @@ public static class PdfReportGenerator
 
                 table.Cell().Background(resultBg)
                      .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                     .Text("Result").Bold().FontSize(9).FontColor(resultFg);
+                     .Text("RFID Validation Result").Bold().FontSize(9).FontColor(resultFg);
                 table.Cell().Background(resultBg)
                      .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
                      .Text(resultVal).Bold().FontSize(9).FontColor(resultFg);
+
+                // Secondary result row — rendered only when a secondary check is present
+                // (e.g. GCP Validation Result, Format Consistency).
+                // RfidSecondaryResultRowLabel provides the row label; RfidSecondaryStatus
+                // drives the pass/fail colour ("Pass", "Fail", or "Warn").
+                if (!string.IsNullOrWhiteSpace(r.RfidSecondaryStatus) &&
+                    !string.IsNullOrWhiteSpace(r.RfidSecondaryResultRowLabel))
+                {
+                    string s2Bg = r.RfidSecondaryStatus switch
+                    {
+                        "Pass" => PassBack,
+                        "Fail" => FailBack,
+                        _      => WarnBack,
+                    };
+                    string s2Fg = r.RfidSecondaryStatus switch
+                    {
+                        "Pass" => PassHex,
+                        "Fail" => FailHex,
+                        _      => WarnHex,
+                    };
+                    string s2Val = !string.IsNullOrWhiteSpace(r.RfidSecondaryDetail)
+                        ? r.RfidSecondaryDetail!
+                        : r.RfidSecondaryStatus ?? "\u2014";
+
+                    table.Cell().Background(s2Bg)
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(r.RfidSecondaryResultRowLabel ?? "Secondary Result")
+                         .Bold().FontSize(9).FontColor(s2Fg);
+                    table.Cell().Background(s2Bg)
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(s2Val).Bold().FontSize(9).FontColor(s2Fg);
+                }
             });
 
         });
@@ -1082,6 +1126,57 @@ public static class PdfReportGenerator
                 txt.Span("Verification Command \u0026 Control System (VCCS)").FontSize(7).FontColor(GrayHex);
             });
         });
+    }
+
+    // ── Blank trailing page removal ───────────────────────────────────────────
+
+    /// <summary>
+    /// Removes any blank trailing pages QuestPDF generates when content height sits
+    /// at or just over the page boundary.  A blank page carries only the footer;
+    /// its content streams are well under 500 B.  Falls back to original bytes on error.
+    /// </summary>
+    private static byte[] StripBlankTrailingPages(byte[] pdfBytes)
+    {
+        try
+        {
+            using var inMs = new MemoryStream(pdfBytes);
+            using var doc  = PdfReader.Open(inMs, PdfDocumentOpenMode.Import);
+            if (doc.PageCount <= 1) return pdfBytes;
+
+            // Sum the compressed content stream bytes on a page.
+            // A QuestPDF blank trailing page has only footer text + border: < 500 B.
+            // A real content page has tables and paragraphs: typically several KB.
+            static int ContentStreamLength(PdfPage page)
+            {
+                int total = 0;
+                var obj = page.Elements.GetValue("/Contents");
+                if (obj is PdfReference r && r.Value is PdfDictionary d)
+                    total = d.Stream?.Length ?? 0;
+                else if (obj is PdfArray arr)
+                    for (int i = 0; i < arr.Elements.Count; i++)
+                        if (arr.Elements[i] is PdfReference pr && pr.Value is PdfDictionary pd)
+                            total += pd.Stream?.Length ?? 0;
+                return total;
+            }
+
+            if (ContentStreamLength(doc.Pages[doc.PageCount - 1]) >= 500)
+                return pdfBytes; // last page has real content — nothing to strip
+
+            // Rebuild without the blank last page.
+            using var outDoc = new PdfDocument();
+            using var src    = PdfReader.Open(new MemoryStream(pdfBytes), PdfDocumentOpenMode.Import);
+            for (int i = 0; i < src.PageCount - 1; i++)
+                outDoc.AddPage(src.Pages[i]);
+            using var outMs = new MemoryStream();
+            outDoc.Save(outMs);
+            return outMs.ToArray();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[PDF] StripBlankTrailingPages: {ex.GetType().Name}: {ex.Message}");
+            return pdfBytes;
+        }
     }
 
     // ── PdfSharp merge ────────────────────────────────────────────────────────
