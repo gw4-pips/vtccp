@@ -420,9 +420,16 @@ public static class PdfReportGenerator
             // ── Section header — same subdued style as sub-header ─────────────
             // Intentionally smaller/lighter than the RFID section to show visual
             // hierarchy: VCCS RFID validation is the primary content.
+            // Section title + italic "See separate report for details" annotation inline.
             col.Item()
                .Background("#2c5296").Padding(3)
-               .Text(sectionTitle).Bold().FontSize(8).FontColor(Colors.White);
+               .Text(t =>
+               {
+                   t.Span(sectionTitle).Bold().FontSize(8).FontColor(Colors.White);
+                   t.Span(" \u2014 ").Bold().FontSize(8).FontColor(Colors.White);
+                   t.Span("See separate report for details")
+                    .Italic().FontSize(7.5f).FontColor(Colors.White);
+               });
 
             // ── Summary table: 3-column (Symbology | Encoded Data | App Specification) ──
             // Symbol rows: 1 in single-mode, 2 in multi-mode (EAN/UPC first, 2D second).

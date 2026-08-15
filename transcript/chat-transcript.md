@@ -1322,3 +1322,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Reduce Symbology col to snugly fit content. Narrow Application Spec. col same way. For GS1 DataMatrix/QR two-liner: "GS1 —" centred vertically on left, then Element/String (or Digital/Link) stacked in smaller type, left-justified beside the dash, same row height. [Attached sketch image showing layout.]
 
 **Assistant:** Saved v15 HTML + matching C# edits. Changes: (1) "Date/Time" → "Report Date/Time" (HTML + C#). (2) Separator border-top 2px → 1px navy (HTML + C# MetaRow isFirstMeta). (3) Symbology col 80→76pt, Application Spec. col 100→88pt. (4) App spec two-liner redesigned: "GS1 —" auto-width left via flex/Row, then "Element"/"String" stacked at 7pt right — AppSpecFor now returns "Element\nString"/"Digital\nLink" (no "GS1 " prefix); SymbolRow builds a QuestPDF Row container for the two-part layout.
+
+---
+
+**User:** Accepts v15 layout. Version not changing at page bottom — make sure it does going forward. Every preview has same "Generated" timestamp — why? Header "COGNEX DataMan TruCheck..." should add " — See separate report for details" (italic) like the GCP inline note. GCP XML file uploaded. Ask about Azure update delivery for GCP table. User then clarifies: understands "Generated" comes from TruCheck report — proceed.
+
+**Assistant:** Saved v16 HTML + C# edit. Section sub-header now appends " — See separate report for details" in 7.5pt italic white via .sec-note span (HTML) and QuestPDF Text spans (C#). Version note: HTML preview version is hardcoded sample data — will update the static version string each time csproj is bumped going forward. Generated timestamp in HTML preview is static sample data; runtime C# uses r.VerificationDateTime, which is real. User confirmed they now understand the Generated origin. Provided GCP update delivery analysis below.
