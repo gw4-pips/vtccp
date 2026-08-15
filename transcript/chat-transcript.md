@@ -1358,3 +1358,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** [screenshot of design-note artifact] Tasks #113/#114 cancelled. #113 per user setting. #114 — is that not already happening? Remove the yellow GCP design-note block that's appearing above the page preview. Delete the notes about the GCP length table.
 
 **Assistant:** Removed the `<div class="design-note">` block and its CSS from v19 HTML — page now opens directly at the VCCS header with no pre-amble. Re-presented v19.
+
+---
+
+**User:** [screenshot] The "Again I am not Cancelling..." text is still present and prints as part of the PDF. Remove it.
+
+**Assistant:** The text was prepended to byte 0 of the file before <!DOCTYPE html> — stripped the 105-character prefix so the file now opens cleanly with the doctype.
