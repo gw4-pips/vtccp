@@ -1201,6 +1201,7 @@ public sealed class SessionViewModel : ViewModelBase
         DeviceSerial    = _deviceSession?.DeviceInfo.Serial    ?? string.Empty,
         DeviceName      = _deviceSession?.DeviceInfo.Name      ?? string.Empty,
         FirmwareVersion = _deviceSession?.DeviceInfo.FirmwareVersion ?? string.Empty,
+        SoftwareVersion = _deviceSession?.DeviceInfo.SoftwareVersion,
         OperatorId      = string.IsNullOrWhiteSpace(OperatorOverride)
                               ? (SelectedTemplate?.OperatorId ?? string.Empty)
                               : OperatorOverride.Trim(),

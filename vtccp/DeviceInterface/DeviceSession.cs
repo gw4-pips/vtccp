@@ -143,11 +143,14 @@ public sealed class DeviceSession : IAsyncDisposable
         var imageSizeRaw = (await _client.SendAsync(DmccCommand.GetImageSize,   ct)).Body;
         var sensorSpec   = DeviceSensorSpecs.TryGet(devType);
 
+        string? fwRaw = _client.FirmwareVersion
+                     ?? (await _client.SendAsync(DmccCommand.GetFirmwareVer, ct)).Body;
+
         DeviceInfo = new DeviceInfo
         {
             Type               = devType,
-            FirmwareVersion    = _client.FirmwareVersion
-                              ?? (await _client.SendAsync(DmccCommand.GetFirmwareVer,        ct)).Body,
+            FirmwareVersion    = fwRaw,
+            SoftwareVersion    = DeriveSoftwareVersion(fwRaw),
             Name               = (await _client.SendAsync(DmccCommand.GetDeviceName,         ct)).Body,
             Serial             = (await _client.SendAsync(DmccCommand.GetDeviceSerialNumber, ct)).Body,
             SensorWidthPx      = sensorSpec?.WidthPx,
@@ -687,6 +690,7 @@ public sealed class DeviceSession : IAsyncDisposable
         DeviceName         = DeviceInfo.Name,
         DeviceModel        = DeviceInfo.Type,
         FirmwareVersion    = DeviceInfo.FirmwareVersion,
+        SoftwareVersion    = DeviceInfo.SoftwareVersion,
         CalibrationDate    = DeviceInfo.CalibrationDate,
         ConnectionAddress  = $"{_cfg.Host}:{_cfg.Port}",
         ConnectionMedium   = _cfg.ResolvedConnectionMedium(),
@@ -700,6 +704,37 @@ public sealed class DeviceSession : IAsyncDisposable
     {
         if (string.IsNullOrWhiteSpace(raw)) return null;
         return DateTime.TryParse(raw, out var dt) ? dt : null;
+    }
+
+    /// <summary>
+    /// Derives the DMST software version from a raw firmware version string by
+    /// extracting the first three dot-separated numeric segments.
+    ///
+    /// Examples:
+    ///   "6.1.16.0015"  →  "6.1.16"
+    ///   "6.1.16_sr4"   →  "6.1.16"
+    ///   "6.1.16_tc9"   →  "6.1.16"
+    ///   "5.7.10"       →  "5.7.10"
+    ///
+    /// Returns null when <paramref name="firmwareVersion"/> is null, empty, or does
+    /// not contain at least one parsable dot-separated numeric segment.
+    /// </summary>
+    private static string? DeriveSoftwareVersion(string? firmwareVersion)
+    {
+        if (string.IsNullOrWhiteSpace(firmwareVersion)) return null;
+
+        var segments = new System.Collections.Generic.List<string>(3);
+        foreach (var part in firmwareVersion.Split('.'))
+        {
+            if (segments.Count == 3) break;
+            // Keep only the leading digit characters in each segment, so
+            // "16_sr4" → "16" and "0015" → "0015".
+            string digits = new string(part.TakeWhile(char.IsDigit).ToArray());
+            if (digits.Length == 0) break;
+            segments.Add(digits);
+        }
+
+        return segments.Count > 0 ? string.Join('.', segments) : null;
     }
 
     public async ValueTask DisposeAsync()
@@ -723,6 +758,14 @@ public sealed class DeviceInfo
     public string?   Serial          { get; init; }
     public string?   Name            { get; init; }
     public string?   FirmwareVersion { get; init; }
+
+    /// <summary>
+    /// DMST software version: the major.minor.patch prefix of <see cref="FirmwareVersion"/>.
+    /// Derived at ConnectAsync — e.g. firmware "6.1.16.0015" → software "6.1.16".
+    /// Null when <see cref="FirmwareVersion"/> is unavailable or cannot be parsed.
+    /// </summary>
+    public string?   SoftwareVersion { get; init; }
+
     public DateTime? CalibrationDate { get; init; }
 
     // ── Sensor / imaging metadata ──────────────────────────────────────────
