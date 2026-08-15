@@ -63,6 +63,13 @@ public sealed record class VerificationRecord
     /// </summary>
     public string? VerifierBrand { get; init; }
     public string? FirmwareVersion { get; init; }
+
+    /// <summary>
+    /// DMST (DataMan Setup Tool) application software version, e.g. "6.1.16".
+    /// Populated from the SDK session info or the source PDF metadata when available.
+    /// Displayed on the RFID report above the firmware version line.
+    /// </summary>
+    public string? SoftwareVersion { get; init; }
     /// <summary>
     /// "host:port" as configured in DeviceConfig, e.g. "10.10.10.7:44444".
     /// Captured once at session start; zero cost to store per record.

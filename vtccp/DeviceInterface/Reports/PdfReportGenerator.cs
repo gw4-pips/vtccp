@@ -313,26 +313,26 @@ public static class PdfReportGenerator
         {
             // Col 1: VCCS diamond logo image; text fallback when logo file is absent.
             // TODO Task #89: QuestPDF 2024.x has no BorderStyle API; dashed border requires a custom workaround.
+            // VCCS logo floats on header gray — no border box, left tip 1/4" (18pt) from header edge.
             byte[]? logoBytes = _vccsLogoBytes.Value;
-            row.ConstantItem(90).Border(1).BorderColor("#999999")
-               .AlignCenter().AlignMiddle().Padding(4).Column(col =>
-               {
-                   if (logoBytes is not null)
-                   {
-                       col.Item().AlignCenter().AlignMiddle()
-                          .MaxHeight(62).MaxWidth(78)
-                          .Image(logoBytes).FitArea();
-                   }
-                   else
-                   {
-                       col.Item().AlignCenter().Text("VCCS")
-                          .Bold().FontSize(12).LetterSpacing(1);
-                       col.Item().AlignCenter().Text(txt =>
-                       {
-                           txt.Span("FlexWedge\u2122 Pro").Italic().FontSize(7).FontColor(GrayHex);
-                       });
-                   }
-               });
+            row.ConstantItem(90).PaddingLeft(18).AlignCenter().AlignMiddle().Column(col =>
+            {
+                if (logoBytes is not null)
+                {
+                    col.Item().AlignCenter().AlignMiddle()
+                       .MaxHeight(62).MaxWidth(68)
+                       .Image(logoBytes).FitArea();
+                }
+                else
+                {
+                    col.Item().AlignCenter().Text("VCCS")
+                       .Bold().FontSize(12).LetterSpacing(1);
+                    col.Item().AlignCenter().Text(txt =>
+                    {
+                        txt.Span("FlexWedge\u2122 Pro").Italic().FontSize(7).FontColor(GrayHex);
+                    });
+                }
+            });
 
             // Col 2: scan meta
             row.RelativeItem().PaddingHorizontal(8).AlignMiddle().Column(col =>
@@ -342,11 +342,13 @@ public static class PdfReportGenerator
                 // → neutral placeholder.  Never fall back to "Cognex DataMan" for non-Cognex hardware.
                 string device = r.DeviceModel ?? r.VerifierBrand ?? "\u2014";
                 string serial = r.DeviceSerial ?? "\u2014";
+                string sw     = r.SoftwareVersion ?? "\u2014";
                 string fw     = r.FirmwareVersion ?? "\u2014";
 
                 col.Item().Text(dt).FontSize(8).FontColor(GrayHex);
                 col.Item().Text($"Device: {device}").Bold().FontSize(9);
                 col.Item().Text($"Serial: {serial}").FontSize(8);
+                col.Item().Text($"Software: {sw}").FontSize(8);
                 col.Item().Text($"Firmware: {fw}").FontSize(8);
             });
 
@@ -367,27 +369,15 @@ public static class PdfReportGenerator
                    .Element(c2 => RfidBadge(c2, r.RfidStatus));
             });
 
-            // Col 4: company logo or name fallback
-            // TODO Task #89: dashed border pending QuestPDF workaround
-            // When LogoPath points to a readable image file, render it with QuestPDF Image().
-            // Otherwise fall back to CompanyName text (current behaviour) so existing sessions
-            // that have no logo configured are unaffected.
-            var companyCell = row.ConstantItem(90).Border(1).BorderColor("#999999")
-                                 .AlignCenter().AlignMiddle().Padding(4);
+            // Col 4: company logo — floats on header gray, right edge 1/4" (18pt) from header border.
+            var companyCell = row.ConstantItem(90).PaddingRight(18)
+                                 .AlignCenter().AlignMiddle();
 
             byte[]? companyLogoBytes = TryLoadLogoBytes(r.LogoPath);
             if (companyLogoBytes != null)
-            {
-                // Render the logo image, fitted inside the cell with uniform padding.
-                // FitArea() scales the image to fill the available space while preserving
-                // the aspect ratio.  The 4 pt Padding above provides breathing room on all sides.
-                companyCell.Image(companyLogoBytes).FitArea();
-            }
+                companyCell.Padding(2).Image(companyLogoBytes).FitArea();
             else
-            {
-                companyCell.AlignCenter().AlignMiddle()
-                           .Text(r.CompanyName ?? "Company Logo").FontSize(7).FontColor(GrayHex);
-            }
+                companyCell.Text(r.CompanyName ?? "Company Logo").FontSize(7).FontColor(GrayHex);
         });
     }
 

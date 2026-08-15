@@ -253,3 +253,10 @@ uri = "file://dist/vccs-pdf-preview-v21.html"
 type = "text"
 title = "VCCS PDF Preview v21"
 description = "VCCS diamond logo in upper-left; text outside diamond erased; v1.4.9"
+
+[[outputs]]
+id = "lfHBGo-PLFRfZ0VNSbiHW"
+uri = "file://dist/vccs-pdf-preview-v22.html"
+type = "text"
+title = "VCCS PDF Preview v22"
+description = "Logos floating on header gray (no borders); VCCS transparent bg; PIPS white bg; 1/4\" edge positioning; Software version line added; v1.4.10"

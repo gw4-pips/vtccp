@@ -1376,3 +1376,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** [image: VCCS diamond logo with outside text] Can you use a graphics skill to erase the text outside the black diamond and use the diamond as the VCCS logo in the upper left?
 
 **Assistant:** Used editImage() to erase "DIV. OF PIPS, INC." and "MADE IN U.S.A." from outside the diamond — result saved to attached_assets/vccs_logo_clean.png. v21 HTML: replaced logo-box text ("VCCS" / "FlexWedge™ Pro") with embedded base64 PNG of the clean diamond. C# v1.4.9: added _vccsLogoBytes lazy loader (reads <ExeDir>/resources/vccs_logo.png at first use, null-safe fallback to text); BuildHeader() renders Image() when bytes present, text otherwise. Logo PNG copied to vtccp/DeviceInterface/Resources/vccs_logo.png for deployment reference.
+
+---
+
+**User:** Aperture (mil)/(nm) confirmed correct as column headers. Prefer both logos to float on header gray, outer tip/edge 1/4" from header edge. Move meta block left accordingly. Add DMST Software version above Firmware.
+
+**Assistant:** v22 HTML + C# v1.4.10. Used PIL flood-fill from 4 corners to make VCCS logo background transparent (diamond edge stops fill, interior letters untouched) and PIPS background black→white. HTML: removed borders from .logo-box and .company-box CSS; logo-box padding-left:18pt, company-box padding-right:18pt for 1/4" positioning; meta block naturally moves left as logo boxes lose their bordered width. C#: VCCS column changed from Border(1)+Padding(4) to PaddingLeft(18) only; company column from Border(1)+Padding(4) to PaddingRight(18); Software version line added above Firmware using new VerificationRecord.SoftwareVersion field. VerificationRecord: added SoftwareVersion string? with DMST description.
