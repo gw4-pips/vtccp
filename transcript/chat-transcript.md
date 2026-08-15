@@ -1328,3 +1328,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Accepts v15 layout. Version not changing at page bottom — make sure it does going forward. Every preview has same "Generated" timestamp — why? Header "COGNEX DataMan TruCheck..." should add " — See separate report for details" (italic) like the GCP inline note. GCP XML file uploaded. Ask about Azure update delivery for GCP table. User then clarifies: understands "Generated" comes from TruCheck report — proceed.
 
 **Assistant:** Saved v16 HTML + C# edit. Section sub-header now appends " — See separate report for details" in 7.5pt italic white via .sec-note span (HTML) and QuestPDF Text spans (C#). Version note: HTML preview version is hardcoded sample data — will update the static version string each time csproj is bumped going forward. Generated timestamp in HTML preview is static sample data; runtime C# uses r.VerificationDateTime, which is real. User confirmed they now understand the Generated origin. Provided GCP update delivery analysis below.
+
+---
+
+**User:** Cost negligible. File updated randomly, manually pulled and uploaded to Azure. Is the Azure Function approach any more work for me on update? If not, propose a task with that embodiment.
+
+**Assistant:** No additional work for user on updates — workflow is identical (download from GS1, upload encrypted blob + gcpMeta.json to Azure). Function is invisible to that process, configured once. Proposed Task #110: GCP prefix table auto-update via Azure Function with audit trail, gcpEncrypt CLI tool, background startup check, toast notification, Settings panel, and architecture doc.
