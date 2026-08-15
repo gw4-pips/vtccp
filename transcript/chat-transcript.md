@@ -1334,3 +1334,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Cost negligible. File updated randomly, manually pulled and uploaded to Azure. Is the Azure Function approach any more work for me on update? If not, propose a task with that embodiment.
 
 **Assistant:** No additional work for user on updates — workflow is identical (download from GS1, upload encrypted blob + gcpMeta.json to Azure). Function is invisible to that process, configured once. Proposed Task #110: GCP prefix table auto-update via Azure Function with audit trail, gcpEncrypt CLI tool, background startup check, toast notification, Settings panel, and architecture doc.
+
+---
+
+**User:** Report v# at bottom did not update. Change annotation to "See associated TruCheck report for additional details." Add same annotation to Data Format Check header. Change Barcode Image and Data Format Check headers to same size/color/style as other barcode-related headers (sec-sub-hdr).
+
+**Assistant:** Saved v17 HTML + C# v1.4.5. Changes: (1) Footer: v1.4.4 → v1.4.5; csproj bumped to 1.4.5. (2) Annotation text updated to "See associated TruCheck report for additional details" on Barcode Summary header (HTML + C#). (3) Same annotation added to Data Format Check header (HTML + C#). (4) Barcode Image and Data Format Check (both single and dual) section headers: sec-hdr (#1a3a6b, 10pt) → sec-sub-hdr (#2c5296, 8pt), matching Barcode Summary and Grades headers. Going forward: will bump footer version in HTML preview every time csproj is bumped.

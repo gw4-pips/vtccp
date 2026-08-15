@@ -427,7 +427,7 @@ public static class PdfReportGenerator
                {
                    t.Span(sectionTitle).Bold().FontSize(8).FontColor(Colors.White);
                    t.Span(" \u2014 ").Bold().FontSize(8).FontColor(Colors.White);
-                   t.Span("See separate report for details")
+                   t.Span("See associated TruCheck report for additional details")
                     .Italic().FontSize(7.5f).FontColor(Colors.White);
                });
 
@@ -841,8 +841,8 @@ public static class PdfReportGenerator
             byte[] imgBytes = Convert.FromBase64String(base64Jpeg);
             c.Column(col =>
             {
-                col.Item().Background(NavyHex).Padding(3)
-                   .Text("Barcode Image").Bold().FontSize(10).FontColor(Colors.White);
+                col.Item().Background("#2c5296").Padding(3)
+                   .Text("Barcode Image").Bold().FontSize(8).FontColor(Colors.White);
                 col.Item().Border(1).BorderColor(NavyHex).AlignCenter()
                    .Padding(4).MaxHeight(2.5f * 72)  // 2.5 inches at 72pt/in
                    .Image(imgBytes).FitArea();
@@ -869,8 +869,8 @@ public static class PdfReportGenerator
     {
         c.Column(col =>
         {
-            col.Item().Background(NavyHex).Padding(3)
-               .Text("Barcode Images").Bold().FontSize(10).FontColor(Colors.White);
+            col.Item().Background("#2c5296").Padding(3)
+               .Text("Barcode Images").Bold().FontSize(8).FontColor(Colors.White);
 
             col.Item().Border(1).BorderColor(NavyHex).Padding(4).Row(row =>
             {
@@ -954,8 +954,14 @@ public static class PdfReportGenerator
 
         c.Column(col =>
         {
-            col.Item().Background(NavyHex).Padding(3)
-               .Text(title).Bold().FontSize(10).FontColor(Colors.White);
+            col.Item().Background("#2c5296").Padding(3)
+               .Text(t =>
+               {
+                   t.Span(title).Bold().FontSize(8).FontColor(Colors.White);
+                   t.Span(" \u2014 ").Bold().FontSize(8).FontColor(Colors.White);
+                   t.Span("See associated TruCheck report for additional details")
+                    .Italic().FontSize(7.5f).FontColor(Colors.White);
+               });
 
             col.Item().Border(1).BorderColor(NavyHex).Table(table =>
             {
