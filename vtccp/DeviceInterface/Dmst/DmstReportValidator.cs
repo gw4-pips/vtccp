@@ -18,7 +18,9 @@ using ExcelEngine.Models;
 ///      (LinearSymbology, LinearDecodedData, LinearOverallGrade, LinearFormalGrade,
 ///      LinearAperture, LinearWavelength, LinearLighting, LinearStandard,
 ///      LinearJpegImageBase64, LinearDataFormatCheck) are also populated.
-///      LinearJpegImageBase64 remains null (HTML reports carry no image data).
+///      LinearJpegImageBase64 is populated from record.RoiJpegImageBase64 when
+///      the ROI frame was already captured (SDK-triggered scans); null in push-only
+///      mode where IMAGE.SEND is not issued before MergeAndValidate runs.
 ///
 ///   2. Cross-validation — every field producible from BOTH sources is compared.
 ///      Mismatches → ValidationDiscrepancies + Debug log.
@@ -122,7 +124,14 @@ public static class DmstReportValidator
         // When the HTML report covers a multi-mode scan (EAN/UPC + 2D), populate
         // all ten Linear* fields.  Single-mode scans leave these null.
         //
-        // LinearJpegImageBase64 is always null — HTML reports carry no image data.
+        // LinearJpegImageBase64: HTML reports carry no image data, but the ROI frame
+        // captured by IMAGE.SEND (DeviceSession.AttachRoiImageAsync) is already
+        // attached to the record as RoiJpegImageBase64 before MergeAndValidate runs
+        // in the SDK-triggered flow.  Reuse it as the linear image so the PDF
+        // dual-image section renders (ROI frame on the left, 2D crop on the right).
+        // In push-only mode (HttpEventSubscriber, no SDK) RoiJpegImageBase64 is null
+        // and LinearJpegImageBase64 stays null — the PDF falls back to single-image.
+        //
         // LinearDataFormatCheck is computed from the decoded digits (GTIN check).
 
         string?              linearSymbology      = null;
@@ -133,6 +142,7 @@ public static class DmstReportValidator
         int?                 linearWavelength     = null;
         string?              linearLighting       = null;
         string?              linearStandard       = null;
+        string?              linearJpegImageBase64 = null;
         DataFormatCheckResult? linearDataFormatCheck = null;
 
         if (html.IsMultiMode && !string.IsNullOrWhiteSpace(html.LinearSymbology))
@@ -144,6 +154,11 @@ public static class DmstReportValidator
             linearWavelength   = html.LinearWavelength;
             linearLighting     = html.LinearLighting;
             linearStandard     = html.LinearStandard ?? "ISO/IEC 15416";
+
+            // Use the ROI frame (IMAGE.SEND result, already on the record) as the
+            // linear image.  This gives the PDF dual-image section something to
+            // render on the left side.  Null in push-only mode — graceful fallback.
+            linearJpegImageBase64 = record.RoiJpegImageBase64;
 
             if (!string.IsNullOrEmpty(html.LinearOverallGrade))
             {
@@ -170,6 +185,7 @@ public static class DmstReportValidator
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-VALID] Multi-mode linear: symb={linearSymbology} " +
                 $"grade={linearOverallGrade?.LetterGradeString ?? "null"} " +
+                $"img={linearJpegImageBase64?.Length.ToString() ?? "null"} chars " +
                 $"dfc={linearDataFormatCheck?.Rows.Count ?? 0} rows");
         }
 
@@ -226,15 +242,18 @@ public static class DmstReportValidator
             EncodedCharacters     = encodedCharacters,
 
             // Linear symbol (multi-mode): null for single-mode scans.
-            LinearSymbology      = linearSymbology,
-            LinearDecodedData    = linearDecodedData,
-            LinearOverallGrade   = linearOverallGrade,
-            LinearFormalGrade    = linearFormalGrade,
-            LinearAperture       = linearAperture,
-            LinearWavelength     = linearWavelength,
-            LinearLighting       = linearLighting,
-            LinearStandard       = linearStandard,
-            // LinearJpegImageBase64 intentionally left null — HTML has no image.
+            LinearSymbology       = linearSymbology,
+            LinearDecodedData     = linearDecodedData,
+            LinearOverallGrade    = linearOverallGrade,
+            LinearFormalGrade     = linearFormalGrade,
+            LinearAperture        = linearAperture,
+            LinearWavelength      = linearWavelength,
+            LinearLighting        = linearLighting,
+            LinearStandard        = linearStandard,
+            // Populated from RoiJpegImageBase64 (IMAGE.SEND ROI frame) when
+            // the SDK-triggered flow captured it before MergeAndValidate ran.
+            // Null in push-only mode — PDF falls back to single-image section.
+            LinearJpegImageBase64 = linearJpegImageBase64,
             LinearDataFormatCheck = linearDataFormatCheck,
 
             DataSourceExceptions    = exceptions.Count > 0

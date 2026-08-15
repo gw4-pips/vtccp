@@ -272,7 +272,16 @@ public static class PdfReportGenerator
                     string? imgLinear = r.LinearJpegImageBase64;
                     bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
                     if (multiMode && !string.IsNullOrWhiteSpace(img2D) && !string.IsNullOrWhiteSpace(imgLinear))
-                        col.Item().Element(c => BuildDualImageSection(c, imgLinear, img2D, r.LinearSymbology!, r.Symbology));
+                    {
+                        // Multi-mode dual layout:
+                        //   Left  (linear label)  = LinearJpegImageBase64 — ROI frame from IMAGE.SEND,
+                        //                           showing the full label area with both symbols visible.
+                        //   Right (2D label)      = JpegImageBase64 (tight firmware 2D crop from push XML)
+                        //                           preferred over RoiJpegImageBase64 so both columns
+                        //                           show distinct images; falls back to img2D if absent.
+                        string img2DForDual = r.JpegImageBase64 ?? img2D;
+                        col.Item().Element(c => BuildDualImageSection(c, imgLinear, img2DForDual, r.LinearSymbology!, r.Symbology));
+                    }
                     else if (!string.IsNullOrWhiteSpace(img2D))
                         col.Item().Element(c => BuildImageSection(c, img2D));
 
