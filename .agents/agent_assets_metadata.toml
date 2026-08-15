@@ -239,3 +239,10 @@ uri = "file://dist/vccs-pdf-preview-v19.html"
 type = "text"
 title = "VCCS PDF Preview v19 (clean)"
 description = "Stray text prefix removed — file now opens with <!DOCTYPE html>"
+
+[[outputs]]
+id = "qNX-ArVGhroP7iXaFDM9R"
+uri = "file://dist/vccs-pdf-preview-v20.html"
+type = "text"
+title = "VCCS PDF Preview v20"
+description = "PIPS logo; wider Field col (178pt); EAN-13 + GS1 DataMatrix result rows; Aperture (mil) / Wavelength (nm) confirmed; v1.4.8"

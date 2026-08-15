@@ -1364,3 +1364,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** [screenshot] The "Again I am not Cancelling..." text is still present and prints as part of the PDF. Remove it.
 
 **Assistant:** The text was prepended to byte 0 of the file before <!DOCTYPE html> — stripped the 105-character prefix so the file now opens cleanly with the doctype.
+
+---
+
+**User:** [PIPS logo uploaded] Aperture (mil)/Wavelength (nm) missed (already in HTML/C# — user likely saw v18). Widen Field col so GCP Length stays one line. Use PIPS logo in place of Acme. Two result rows for multi-mode: named by actual symbology. Proceed.
+
+**Assistant:** Saved v20 HTML + C# v1.4.8. Changes: (1) Aperture (mil)/Wavelength (nm) confirmed already present in both HTML and C#. (2) .lbl-col widened 140pt→178pt. (3) PIPS logo embedded as base64 data URI in company-box (black bg to match logo). (4) Two result rows for multi-mode: "EAN-13 Validation Result" (GTIN matches EPC data) + "GS1 DataMatrix Validation Result" (GTIN and Serial Number match EPC data). C# BuildRfidTable refactored: isMultiMode branch emits linear then 2D row each named by r.LinearSymbology / r.Symbology; single-mode branch uses r.Symbology directly; old eanOnly/SGTIN-96 hardcoding removed. Held phrasing change (EPC data matches barcode...) not applied.

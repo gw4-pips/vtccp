@@ -798,22 +798,11 @@ public static class PdfReportGenerator
                 // can only compare GTIN (the barcode carries no serial); the result wording
                 // reflects this.  Multi-mode records (LinearSymbology set) match against the
                 // 2D symbol, so they use the same wording as a 2D-only single-mode scan.
-                // Result label and value vary by symbology / validation scope.
-                // Initial release scope: EAN/UPC → GTIN-only match; DataMatrix/QR → GTIN + S/N (SGTIN-96).
-                bool eanOnly = r.Is1D && string.IsNullOrWhiteSpace(r.LinearSymbology);
-                string resultLabel = eanOnly
-                    ? "EAN/UPC Validation Result"
-                    : "SGTIN-96 Validation Result";
-                string resultVal = r.RfidStatus switch
-                {
-                    "Pass" when eanOnly => "Pass \u2014 GTIN matches EPC data",
-                    "Fail" when eanOnly => "Fail \u2014 GTIN mismatch",
-                    "Pass"              => "Pass \u2014 GTIN and Serial Number match EPC data",
-                    "Fail"              => "Fail \u2014 GTIN or Serial Number mismatch",
-                    var s               => s ?? "\u2014",
-                };
-                if (!string.IsNullOrWhiteSpace(r.RfidMismatchDetail) && r.RfidStatus is "Fail")
-                    resultVal += $" \u2014 {r.RfidMismatchDetail}";
+                // Result rows — named by the actual barcode symbology(ies) in this scan.
+                // Multi-mode (LinearSymbology set): two rows — linear (GTIN only) + 2D (GTIN + S/N).
+                // Single-mode 1D: one row, GTIN only.  Single-mode 2D: one row, GTIN + S/N.
+                bool isMultiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
+                bool is1DOnly    = r.Is1D && !isMultiMode;
 
                 string resultBg = r.RfidStatus switch
                 {
@@ -830,43 +819,56 @@ public static class PdfReportGenerator
                     _ => Colors.Black,
                 };
 
-                table.Cell().Background(resultBg)
-                     .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                     .Text(resultLabel).Bold().FontSize(9).FontColor(resultFg);
-                table.Cell().Background(resultBg)
-                     .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                     .Text(resultVal).Bold().FontSize(9).FontColor(resultFg);
-
-                // Secondary result row — rendered only when a secondary check is present
-                // (e.g. GCP Validation Result, Format Consistency).
-                // RfidSecondaryResultRowLabel provides the row label; RfidSecondaryStatus
-                // drives the pass/fail colour ("Pass", "Fail", or "Warn").
-                if (!string.IsNullOrWhiteSpace(r.RfidSecondaryStatus) &&
-                    !string.IsNullOrWhiteSpace(r.RfidSecondaryResultRowLabel))
+                void ResultRow(string label, string value)
                 {
-                    string s2Bg = r.RfidSecondaryStatus switch
-                    {
-                        "Pass" => PassBack,
-                        "Fail" => FailBack,
-                        _      => WarnBack,
-                    };
-                    string s2Fg = r.RfidSecondaryStatus switch
-                    {
-                        "Pass" => PassHex,
-                        "Fail" => FailHex,
-                        _      => WarnHex,
-                    };
-                    string s2Val = !string.IsNullOrWhiteSpace(r.RfidSecondaryDetail)
-                        ? r.RfidSecondaryDetail!
-                        : r.RfidSecondaryStatus ?? "\u2014";
+                    table.Cell().Background(resultBg)
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(label).Bold().FontSize(9).FontColor(resultFg);
+                    table.Cell().Background(resultBg)
+                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
+                         .Text(value).Bold().FontSize(9).FontColor(resultFg);
+                }
 
-                    table.Cell().Background(s2Bg)
-                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(r.RfidSecondaryResultRowLabel ?? "Secondary Result")
-                         .Bold().FontSize(9).FontColor(s2Fg);
-                    table.Cell().Background(s2Bg)
-                         .PaddingTop(2.5f).PaddingBottom(2).PaddingLeft(4).PaddingRight(4)
-                         .Text(s2Val).Bold().FontSize(9).FontColor(s2Fg);
+                if (isMultiMode)
+                {
+                    // Linear row — GTIN only (1D barcodes carry no serial number).
+                    string linVal = r.RfidStatus switch
+                    {
+                        "Pass" => "Pass \u2014 GTIN matches EPC data",
+                        "Fail" => "Fail \u2014 GTIN mismatch",
+                        var s  => s ?? "\u2014",
+                    };
+                    ResultRow($"{r.LinearSymbology} Validation Result", linVal);
+
+                    // 2D row — GTIN + Serial Number (SGTIN-96).
+                    string twoDSym = string.IsNullOrWhiteSpace(r.Symbology) ? "2D" : r.Symbology;
+                    string twoDVal = r.RfidStatus switch
+                    {
+                        "Pass" => "Pass \u2014 GTIN and Serial Number match EPC data",
+                        "Fail" => "Fail \u2014 GTIN or Serial Number mismatch",
+                        var s  => s ?? "\u2014",
+                    };
+                    if (!string.IsNullOrWhiteSpace(r.RfidMismatchDetail) && r.RfidStatus is "Fail")
+                        twoDVal += $" \u2014 {r.RfidMismatchDetail}";
+                    ResultRow($"{twoDSym} Validation Result", twoDVal);
+                }
+                else
+                {
+                    // Single-mode: one result row named by the scan's symbology.
+                    string symName = string.IsNullOrWhiteSpace(r.Symbology)
+                        ? (is1DOnly ? "EAN/UPC" : "2D Symbol")
+                        : r.Symbology;
+                    string singleVal = r.RfidStatus switch
+                    {
+                        "Pass" when is1DOnly => "Pass \u2014 GTIN matches EPC data",
+                        "Fail" when is1DOnly => "Fail \u2014 GTIN mismatch",
+                        "Pass"               => "Pass \u2014 GTIN and Serial Number match EPC data",
+                        "Fail"               => "Fail \u2014 GTIN or Serial Number mismatch",
+                        var s                => s ?? "\u2014",
+                    };
+                    if (!string.IsNullOrWhiteSpace(r.RfidMismatchDetail) && r.RfidStatus is "Fail")
+                        singleVal += $" \u2014 {r.RfidMismatchDetail}";
+                    ResultRow($"{symName} Validation Result", singleVal);
                 }
             });
 
