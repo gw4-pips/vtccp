@@ -268,21 +268,46 @@ public static class PdfReportGenerator
 
     // ── Header — 4 columns ────────────────────────────────────────────────────
 
+    // Cached VCCS diamond logo bytes — loaded once from <ExeDir>/resources/vccs_logo.png.
+    // Null when the file is absent; BuildHeader() falls back to text in that case.
+    private static readonly Lazy<byte[]?> _vccsLogoBytes = new(() =>
+    {
+        try
+        {
+            string? dir = System.IO.Path.GetDirectoryName(
+                System.Reflection.Assembly.GetExecutingAssembly().Location);
+            if (dir is null) return null;
+            string p = System.IO.Path.Combine(dir, "resources", "vccs_logo.png");
+            return System.IO.File.Exists(p) ? System.IO.File.ReadAllBytes(p) : null;
+        }
+        catch { return null; }
+    });
+
     private static void BuildHeader(IContainer c, VerificationRecord r)
     {
         c.Background("#edf1f7").BorderBottom(2).BorderColor(NavyHex).PaddingBottom(6).PaddingTop(4).Row(row =>
         {
-            // Col 1: VCCS logo placeholder
+            // Col 1: VCCS diamond logo image; text fallback when logo file is absent.
             // TODO Task #89: QuestPDF 2024.x has no BorderStyle API; dashed border requires a custom workaround.
+            byte[]? logoBytes = _vccsLogoBytes.Value;
             row.ConstantItem(90).Border(1).BorderColor("#999999")
-               .AlignCenter().AlignMiddle().Padding(6).Column(col =>
+               .AlignCenter().AlignMiddle().Padding(4).Column(col =>
                {
-                   col.Item().AlignCenter().Text("VCCS")
-                      .Bold().FontSize(12).LetterSpacing(1);
-                   col.Item().AlignCenter().Text(txt =>
+                   if (logoBytes is not null)
                    {
-                       txt.Span("FlexWedge\u2122 Pro").Italic().FontSize(7).FontColor(GrayHex);
-                   });
+                       col.Item().AlignCenter().AlignMiddle()
+                          .MaxHeight(62).MaxWidth(78)
+                          .Image(logoBytes).FitArea();
+                   }
+                   else
+                   {
+                       col.Item().AlignCenter().Text("VCCS")
+                          .Bold().FontSize(12).LetterSpacing(1);
+                       col.Item().AlignCenter().Text(txt =>
+                       {
+                           txt.Span("FlexWedge\u2122 Pro").Italic().FontSize(7).FontColor(GrayHex);
+                       });
+                   }
                });
 
             // Col 2: scan meta
