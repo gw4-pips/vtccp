@@ -931,10 +931,14 @@ class P35UReader:
                 finally:
                     evt.set()
 
-            # ── Path B: result arrives via _cb_command (raw bytes) ──────────
+            # ── Path B: _cb_command fallback (dead code — confirmed by ASR engineering
+        #    2026-08-17: CallBackCommandData is reserved for firmware update
+        #    packets only; it NEVER fires for ReadMemory() by design, regardless
+        #    of firmware version.  Kept as a defensive no-op so evt.set() is
+        #    always called if the behaviour ever changes. ────────────────────
             def _on_cmd(data: bytes) -> None:
                 raw = bytes(data) if data is not None else b''
-                _dbg(f'read_tid _cb_command path: {len(raw)}B → {raw.hex().upper()!r}')
+                _dbg(f'read_tid _cb_command path (unexpected): {len(raw)}B → {raw.hex().upper()!r}')
                 if raw:
                     result_holder[0] = raw.hex().upper()
                 evt.set()

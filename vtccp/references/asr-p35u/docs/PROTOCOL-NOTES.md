@@ -1,6 +1,7 @@
 # AsReader P35U — Protocol Notes for C# Integration
 
 **Source:** VCCS RFID FlexWedge Pro development, 2026
+**Updated:** 2026-08-17 — vendor engineering response incorporated
 **Purpose:** Engineering reference for implementing `IEpcReader` in vtccp / Command Pilot
 
 ---
@@ -66,10 +67,10 @@ uint ConnectWithVCP(string comPort)   // e.g. "COM4"
 ### SetDelegate
 ```csharp
 void SetDelegate(
-    CallBackReadTagData    cbTag,       // fires on every tag read
+    CallBackReadTagData    cbTag,       // fires on every tag read AND on ReadMemory results
     CallBackErrorCode      cbError,     // hardware error
     CallBackSuccessCode    cbSuccess,   // command accepted
-    CallBackCommandData    cbCommand,   // raw command response bytes (see TID note)
+    CallBackCommandData    cbCommand,   // firmware update packets ONLY — never for ReadMemory
     CallBackReadComplete   cbComplete,  // inventory round finished
     CallBackTriggerHandler cbTrigger    // hardware trigger button pressed
 )
@@ -77,6 +78,13 @@ void SetDelegate(
 
 All six delegates must be registered in a single `SetDelegate()` call.
 Re-registration (e.g. to change one callback) requires passing all six again.
+
+> ⚠️ **CallBackCommandData is NOT for ReadMemory.**  Per vendor engineering
+> (confirmed 2026-08-17), `CallBackCommandData` is reserved exclusively for
+> firmware update packets (address request / file transfer / reboot / RFID
+> module update).  It will **never** fire for `ReadMemory()` results regardless
+> of firmware version, mode, or configuration.  Always use `CallBackReadTagData`
+> to receive ReadMemory results — see below.
 
 ### StartInventory
 ```csharp
@@ -101,33 +109,29 @@ StartInventory(rssiEnabled: true, maxTags: 0, maxSecs: 0, maxCycles: 0, antenna:
 // Call StopInventory() to halt.
 ```
 
-### Tag Data Callback (`CallBackReadTagData`)
+### Tag Data Callback (`CallBackReadTagData`) — also delivers ReadMemory results
 
 ```csharp
 void CallBackReadTagData(InventoryResult result)
 ```
 
-`InventoryResult` fields observed in Python (all are nullable):
+This callback fires for **both** inventory tag reads and `ReadMemory()` results.
+When fired for a ReadMemory response, the tag data fields are:
 
 | Field              | Type   | Example                      | Notes                          |
 |--------------------|--------|------------------------------|--------------------------------|
 | `result.tagdata.epc`  | string | `"30342A7CC844C7D0F36A0676"` | Uppercase hex, no spaces      |
 | `result.tagdata.pc`   | string | `"3000"`                     | Hex string — convert with int(pc, 16) |
-| `result.tagdata.tid`  | string | `"E28011920008C7C"`          | Populated by ReadMemory (see below) |
-| `result.tagdata.data` | string | raw memory bytes             | ReadMemory result arrives here |
+| `result.tagdata.tid`  | string | `"E28011920008C7C"`          | TID memory bank contents       |
+| `result.tagdata.data` | string | raw memory bytes             | Also carries ReadMemory result |
 | `result.rssi`         | float  | `-35.0`                      | May arrive as unsigned byte 128–255 = two's complement |
 | `result.antenna`      | int    | `1`                          |                                |
+
+Check `tagdata.tid` first; fall back to `tagdata.data` if `tid` is null/empty.
 
 **RSSI note:** The DLL sometimes delivers RSSI as an unsigned byte (0–255).
 Values 128–255 represent negative dBm via two's complement: `rssi_dbm = raw - 256`.
 Values 0–127 are returned as-is.
-
-### StopInventory
-```csharp
-uint StopInventory()
-// Fires cbComplete asynchronously — do not assume inventory has stopped
-// until the cbComplete callback fires.
-```
 
 ### ReadMemory (TID)
 ```csharp
@@ -141,23 +145,22 @@ uint ReadMemory(
 // Returns 0 = command accepted.
 ```
 
-**Critical behaviour difference between firmware versions:**
+**Result delivery:** always via `CallBackReadTagData` — check `tagdata.tid` / `tagdata.data`.
 
-| Firmware | ReadMemory result callback |
-|----------|---------------------------|
-| ≤ 1.2.0  | `CallBackCommandData` (never actually observed to fire — possible DLL bug) |
-| 1.8.0    | `CallBackReadTagData` — result arrives in `tagdata.data` or `tagdata.tid` |
-
-On firmware 1.8.0 (current), always hook `CallBackReadTagData` for ReadMemory
-results. Do NOT wait only on `CallBackCommandData` — it will not fire.
-
-Confirmed working sequence for single-tag TID read (firmware 1.8.0):
+Confirmed working sequence for single-tag TID read:
 ```
 1. Run inventory until tag is detected (cbTag fires with EPC)
 2. Stop inventory (StopInventory → wait for cbComplete)
 3. Call ReadMemory(MEM_TID, 0, 4, 0, epcBytes)
-4. Next cbTag call delivers TID in tagdata.data / tagdata.tid
+4. Next cbTag call delivers TID in tagdata.tid (or tagdata.data)
 5. Parse TID hex string for manufacturer and model info
+```
+
+### StopInventory
+```csharp
+uint StopInventory()
+// Fires cbComplete asynchronously — do not assume inventory has stopped
+// until the cbComplete callback fires.
 ```
 
 ### CheckTagStatus (Lock Check)
@@ -178,6 +181,19 @@ uint GetTxPower(ref int dBm)
 
 ---
 
+## Callback Purpose Reference
+
+| Callback               | Fires for                                      |
+|------------------------|------------------------------------------------|
+| CallBackReadTagData    | Every inventory tag read + every ReadMemory result |
+| CallBackErrorCode      | Hardware errors                                |
+| CallBackSuccessCode    | Commands accepted (e.g. CheckTagStatus result) |
+| **CallBackCommandData**| **Firmware update packets only** — address request, file transfer, reboot, RFID module update |
+| CallBackReadComplete   | Inventory round complete                       |
+| CallBackTriggerHandler | Hardware trigger button pressed                |
+
+---
+
 ## Enum Values
 
 ### Types.MemBankType
@@ -190,7 +206,7 @@ MEM_USER     = 0x03
 
 ### Types.RegionType
 ```
-REGION_US = (observed as default for North American unit)
+REGION_US = (default for North American unit)
 REGION_EU
 ```
 
@@ -246,11 +262,11 @@ StopInventory, TagAction, TagData, TagMask, ToString,
 WriteMemory
 ```
 
-**Untested methods (calling from Python/pythonnet crashes the process):**
-- `SetHIDInventoryMode` — parameter type unknown; causes pythonnet MethodBinder crash
+**Untested/unsupported from Python (pythonnet binding crash):**
+- `SetHIDInventoryMode` — parameter type unknown; vendor notes SDK is C#-only officially
 - `GetHIDWorkParams` — same issue
-- `Kill` — not tested; expected to kill tag (Gen2 Kill command)
-- `WriteMemory` — not tested; expected to write EPC/User bank
+- `Kill` — not tested; Gen2 Kill command
+- `WriteMemory` — not tested
 
 ---
 
@@ -273,8 +289,5 @@ WriteMemory
 
 The DLL fires `cbError` on unexpected cable pull while inventory is running.
 It does NOT fire any callback if the cable is pulled while the reader is idle.
-A robust implementation polls `IsConnected()` (or equivalent) at 1–2 s intervals
-to detect idle disconnects.
-
 After disconnect: call `DisConnect()`, then `ConnectWithVCP()` to reconnect.
-Do NOT call `StartInventory()` on a disconnected device — undefined behaviour.
+Do NOT call `StartInventory()` on a disconnected device.
