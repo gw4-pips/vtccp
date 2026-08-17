@@ -364,7 +364,7 @@ public static class HybridReportGenerator
               <td style="border-style:solid;border-width:thin;"><div style="padding:0.025in;">Check</div></td>
               <td style="border-style:solid;border-width:thin;"><div style="padding:0.025in;">Notes</div></td>
             </tr>
-        """);
+      """);
 
         foreach (var (name, gradeStr, note) in rows)
         {
