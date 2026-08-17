@@ -1,0 +1,43 @@
+# C# / .NET build outputs
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!**/packages/build/
+
+# Visual Studio cache / VS project system
+.vs/
+VtccpWindows/
+*.dtbcache
+*.dtbcache.v2
+[Ff]ile[Cc]ontent[Ii]ndex/
+[Tt]emp[Pp]e/
+[Pp]ublish[Pp]rofiles/
+*.user
+*.userosscache
+*.sln.docstates
+
+# VS test results
+[Tt]est[Rr]esult*/
+*.trx
+
+# Rider
+.idea/
+*.sln.iml
+
+# Coverlet / coverage
+coverage*/
+*.coverage
+*.coveragexml
+
+# Profiling
+*.psess
+*.vsp
+*.vspx
+*.sap
