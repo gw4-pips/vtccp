@@ -1417,3 +1417,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Walk through git/local env, Azure GCP setup, tasks, live testing. Also: multiple nested vtccp directories (4-5 levels) on lab machine. And should I use one dev environment?
 
 **Assistant:** Diagnosed nested vtccp mess on Windows (Documents\VTCCP + vtccp + vtccp\vtccp + vtccp\vtccp\vtccp + vtccp\vtccp\vtccp\vtccp). Only C:\Users\Administrator\vtccp had .git (workspace root, not vtccp source). Inner copies were v1.3.7. Directed: delete both old directories, clone fresh from gw4-pips/vtccp to C:\dev\vtccp. Clarified: the repo is the full Replit workspace so C:\dev\vtccp\vtccp is the C# source root — intentional double-nesting, not a mess. Confirmed: user never edits code directly (Replit is the sole dev environment). Created vtccp/tools/update-and-build.bat for one-click sync+build. Azure GCP setup questions pending user answers.
+
+---
+
+**User:** Build output from lab machine — 9 wpftmp errors (Path/File/EpcReaderFactory/HybridReportGenerator).
+
+**Assistant:** Diagnosed all 9 errors: (1) missing `using System.IO;` in GcpUpdateServiceFactory.cs and SessionViewModel.cs — wpftmp doesn't get implicit SDK global usings; (2) HybridReportGenerator in `_archived/` and excluded from compilation but SessionViewModel still calls it — copied to active path; (3) EpcReaderFactory excluded when AsReaderP3xU.dll absent — added `#if ASREADER_SDK` guard with matching DefineConstants condition in VtccpApp.csproj; (4) CS8999 raw string literal indentation mismatch at line 367 — fixed closing `"""` indentation; (5) CS1503 wrong SaveAsync overload — corrected to SaveToPathAsync with constructed full path. Bumped version through 1.4.12 → 1.4.16. Build clean at 1.4.16 with 0 errors, 12 harmless NU1701 warnings.
+
+**User:** AsReader DLL found at Q:\VendorDOC\AsReader (Asterisk)\AsReader_P35U_SDK_cs_1_3_0\AsReader_P35U_SDK_c#_1_3_0\AsReaderP3xU.dll — placed at lib path. Build succeeded.

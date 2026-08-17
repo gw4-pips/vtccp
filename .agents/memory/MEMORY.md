@@ -31,3 +31,4 @@
 - [TRUCHECK.APPLICATION-STANDARD mapping](trucheck-app-standard-mapping.md) — DMCC ref says 4=Auto/5=Custom but fw 6.1.16_tc9 returns 5 for a unit showing "Auto" in UI; treat 5=Auto until Cognex clarifies
 - [git push hook](git-push-hook.md) — real hook is workspace root .githooks/post-commit; vtccp/ is a subdir not a separate repo; must unset GIT_ASKPASS before push
 - [Hybrid Report generator](hybrid-report-generator.md) — DeviceInterface/Reports/HybridReportGenerator.cs; fire-and-forget from SessionViewModel after AddRecord; mirrors Webscan TruCheck CSS exactly; RFID block after Verification Grades
+- [Windows workstation setup](windows-workstation-setup.md) — clone to C:\dev\vtccp; source root is C:\dev\vtccp\vtccp; AsReader DLL at Q:\VendorDOC\AsReader…; known Windows-only build errors catalogued
