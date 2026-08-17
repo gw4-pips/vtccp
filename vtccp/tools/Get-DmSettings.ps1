@@ -430,23 +430,35 @@ function Send-DmccGet {
     $cmd   = "||>GET $Key`r`n"
     $bytes = [System.Text.Encoding]::ASCII.GetBytes($cmd)
     $Stream.Write($bytes, 0, $bytes.Length)
-    Start-Sleep -Milliseconds 120
-    $buf = New-Object byte[] 1024
-    $n   = 0
+
+    # Blocking read — ReadTimeout (500ms) is already set on the stream.
+    # DataAvailable was unreliable: it returned false before data arrived.
+    $buf = New-Object byte[] 4096
+    $raw = ""
     try {
-        if ($Stream.DataAvailable) {
-            $n = $Stream.Read($buf, 0, $buf.Length)
-        }
+        $n = $Stream.Read($buf, 0, $buf.Length)
+        if ($n -gt 0) { $raw = [System.Text.Encoding]::ASCII.GetString($buf, 0, $n) }
     } catch { }
-    if ($n -gt 0) {
-        $raw = [System.Text.Encoding]::ASCII.GetString($buf, 0, $n).Trim()
-        # Strip ACK prefix/suffix: ||:::N[0]\r\n and ||> echo
-        $raw = $raw -replace '\|\|:::\d+\[\d+\]', '' -replace '^\|\|>', '' -replace '\|\|>', ''
-        $raw = $raw.Trim()
-        if ($raw -eq "") { return "(no response)" }
-        return $raw
+
+    # Drain any remaining chunks (multi-line responses: DEVICE.LOG, COM.SCRIPT etc.)
+    $Stream.ReadTimeout = 80
+    while ($true) {
+        try {
+            $n = $Stream.Read($buf, 0, $buf.Length)
+            if ($n -gt 0) { $raw += [System.Text.Encoding]::ASCII.GetString($buf, 0, $n) }
+            else { break }
+        } catch { break }
     }
-    return "(no response)"
+    $Stream.ReadTimeout = 500  # restore for next call
+
+    $raw = $raw.Trim()
+    if ($raw.Length -eq 0) { return "(no response)" }
+
+    # Strip ACK prefix ||:::N[M] — keep the value that follows on the same or next line
+    $raw = $raw -replace '\|\|:::\d+\[\d+\]', '' -replace '^\|\|>', '' -replace '\|\|>', ''
+    $raw = $raw.Trim()
+    if ($raw -eq "") { return "(no response)" }
+    return $raw
 }
 
 # -- Connect -------------------------------------------------------------------
