@@ -1,0 +1,1269 @@
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> Get-ChildItem -Path H:\ -Depth 1 -Directory | Select-Object FullName
+
+FullName
+--------
+H:\10 Midland
+H:\192 Laptop Folder
+H:\1993 bipad
+H:\1DJ, NEW Machine and TEST CARDS
+H:\2017 KitForFirst
+H:\2026 PIPS Decision Discussion
+H:\2D Curvature
+H:\2DJ
+H:\AccuMasterONLINE
+H:\ADC1
+H:\AIDC 100
+H:\AIDC Report, Heinrich Oehlmann
+H:\aiident LAUFEN
+H:\AIM 2018
+H:\AIM 2025
+H:\AIM 2026
+H:\AIM Awards
+H:\AIM EXPO 2010
+H:\AIM GoodTenders
+H:\AIM IoT
+H:\AIM MISC
+H:\AIM Pack Expo 2012
+H:\AIM TG1
+H:\AIM TSC 2011-2012
+H:\AIM TSC 2011-2014
+H:\AIM TSC 2011-2018
+H:\AIM UoM (G4,KB,TB) Coefficient of Radial Scannability, etc
+H:\AIM-ISO
+H:\AIM-NA Healthcare (UID) Committee
+H:\AIM-NA UID Committee
+H:\AIM2BIintegrated
+H:\AIT-6
+H:\Amazon Issues
+H:\Amneal Pharma
+H:\ANDY_L
+H:\Application Data
+H:\Ariba
+H:\Articles by GW4
+H:\Associations
+H:\AstraZeneca
+H:\Avocent KVM
+H:\B&N
+H:\B&N 2005
+H:\B&N Docs
+H:\BAIT Consulting
+H:\Bar Code Medication Administration
+H:\Bar-Code Test
+H:\Barcodeguru-eBay
+H:\Baxa
+H:\Bergen Logistics
+H:\Best Label
+H:\Bids-Quotes
+H:\BISG MRC
+H:\Boarding Passes
+H:\Boehringer Ingelheim
+H:\Broadview
+H:\BTL Machine (IUID)
+H:\BWI
+H:\Cablevision 192
+H:\Calendar Club
+H:\Camcode
+H:\CARES Act
+H:\CHECKMAS
+H:\Chequed Survey Questions #1- Marc Jaffe
+H:\Chesapeake
+H:\CHW Geico
+H:\Claude VCCS
+H:\Claude, RFID Hologram Interference
+H:\Clondalkin Pharma & health
+H:\College Garb
+H:\Compsee
+H:\Conference Presentations - GW4
+H:\Consulting Engagements
+H:\Cookies
+H:\Cooper Group
+H:\Corporate Logos
+H:\COSI
+H:\COVID-19
+H:\CPAP 2025
+H:\Craftsman Power Washers
+H:\CT DEMHS
+H:\Customers
+H:\DataVerter
+H:\Dell Computers
+H:\Dell Magazines
+H:\Desktop
+H:\Directions
+H:\Dorman Products
+H:\Dress Barn
+H:\DSCP
+H:\Duplo
+H:\Dymo
+H:\Dynic USA
+H:\E-ZPASS NY
+H:\East End Bar
+H:\eBay
+H:\Economist
+H:\EKR Theraputics
+H:\Ellie's Stuff
+H:\ELSEVIER
+H:\emailatt
+H:\EMPIRE
+H:\ENIGMA2
+H:\EROL Data Transfer
+H:\Evanhoe
+H:\EXPENSES
+H:\EXPENSES-OLD
+H:\Express Barcodes
+H:\Fastenal Company, Ariba Bid
+H:\Favorites
+H:\FDA
+H:\FEMA Training
+H:\Ferring Pharma
+H:\Files Restored from 1999
+H:\Fineline
+H:\FONTS
+H:\FORLEN
+H:\FORMS
+H:\Fotel
+H:\FoxPro Code Snippets
+H:\FreeCAD
+H:\Frontline Solutions 2005
+H:\Fuji Hunt Chemical
+H:\FUJISAWA
+H:\GhostView
+H:\GHX
+H:\github
+H:\Global Industrial Supply
+H:\Graphic Label Solutions
+H:\Griffin-Rutgers
+H:\Grifols
+H:\GS1 BCID TG
+H:\GS1 DataBar Problems
+H:\GS1 Digital Link Claude Dialog 3 JUL 2026
+H:\GS1 GSMP
+H:\GS1 Healthcare Application Standard Update
+H:\GS1 Healthcare US
+H:\GS1 Steve Keddie
+H:\GS1 US Cal Card Issues
+H:\GS1 US NA Case Label Group
+H:\GS1 US New SP Program Webinar 2011-02
+H:\GS1 US Solution Partner
+H:\GS1 US Traceability
+H:\gs1-digital-link-resolver-main
+H:\GS1US Coupon Tests
+H:\GSK
+H:\GW4 Articles 2919 Onwards
+H:\GW4 BIOs
+H:\Halo Pharma
+H:\Hand Held Products
+H:\HARDDISK
+H:\Harriman
+H:\HDA 2018 Traceability Seminar
+H:\HDMA 2009 Bar Code Guidelines
+H:\HDMA 2016 Guideleines Revision
+H:\HDMA AIWG
+H:\HDMA-AIWG
+H:\hdma_MISC
+H:\HIBCC
+H:\History
+H:\Holy Smokers
+H:\Honeywell
+H:\Hood Container (formerly Sonoco)
+H:\HP
+H:\HPN Magazine
+H:\ICC-Inovis-QRS
+H:\IDAT
+H:\IDEAlliance (formerly GCA)
+H:\IIR
+H:\Images, Graphics, Etc
+H:\iMail Breach e-invoice
+H:\Indelible Tech
+H:\Interphex 2005 mktg
+H:\Interphex 2012 Marketing
+H:\IOPP
+H:\IUOE 15
+H:\Jason Gonzalez 2019
+H:\JNPostFotel
+H:\Jockey International
+H:\JOURNAL
+H:\JTC1 SC31
+H:\Kable News
+H:\KitForFirst
+H:\Kmart
+H:\Kyocera
+H:\Label Vision Systems
+H:\Lenovo
+H:\LETTERS
+H:\Lilly
+H:\LinkedIn
+H:\Lockheed Martin
+H:\LSA
+H:\m2dir-repo
+H:\Macy's Merchandising Verifiers
+H:\Mallinckrodt
+H:\MannKind
+H:\Manuals
+H:\May Fair 2010-2011
+H:\May Fair 2016-2017
+H:\May Fair 2019
+H:\May Fair 2020
+H:\May Fair 2021-2022
+H:\May Fair 2023
+H:\MD&M East 2018
+H:\MD&M East 2019
+H:\MD&M East 2021
+H:\Medidose
+H:\MEFCO
+H:\MH10-8
+H:\Microscan
+H:\Migration to Win7, Office 2013
+H:\MISC
+H:\MMILLER
+H:\MMS
+H:\MMS 9800 Online Documentation
+H:\MODEX 2012
+H:\Motorola-SymbolTech
+H:\MSOFFICE
+H:\MWV
+H:\My Documents
+H:\Natus Medical
+H:\New Canaan CERT-OEM
+H:\New Canaan Irwin Park MOSS Eradication
+H:\New Canaan OEM
+H:\New folder
+H:\New folder (2)
+H:\New folder (3)
+H:\New LLC
+H:\Newspaper bar Coding
+H:\Northeast Barcode Solutions
+H:\NYTimes Download
+H:\Ohio U
+H:\Opal Events
+H:\OptiScanPC-2012
+H:\OptiScanUPN
+H:\OptiVal-PDT
+H:\OraSure
+H:\Orbis
+H:\Ostema Design
+H:\PackExpo
+H:\Pagemaker65
+H:\Patent Applications
+H:\PC5000
+H:\PDF SO, etc
+H:\Percival Award 2012-GW
+H:\Personal Stuff
+H:\Pfizer
+H:\Pharmaceutical Manufacturing magazine
+H:\Photo ID Pictures
+H:\Pictures
+H:\PIPS AccuMasterONLINE
+H:\PIPS Candidate Resumes
+H:\PIPS CORP DOCS
+H:\PIPS EPS Business
+H:\PIPS Financial-Sales
+H:\PIPS Forms
+H:\PIPS IT Projects
+H:\PIPS OFFICE
+H:\PIPS REORGANIZATION
+H:\PIPS RFID Labels & tags
+H:\PIPS SIGNAGE
+H:\PIPS Web Development
+H:\Pitney Bowes
+H:\PMI-ProjMgmtInst
+H:\PMP News
+H:\Positive-ID
+H:\Practical Automation
+H:\Printed Specialties, Inc
+H:\PRO30
+H:\Products & Services, AXICODE
+H:\PSC Flatbed Acanner Ad-on Manual
+H:\Purdue Pharma
+H:\QCINIT
+H:\QR Codes
+H:\QUICKCK
+H:\Quint
+H:\Random House
+H:\RAYBON
+H:\Red Cross
+H:\RER
+H:\ResearchGate
+H:\RFID Articles
+H:\RFID DoD
+H:\RFID Journal Live 2011
+H:\RFID-ItemLevel
+H:\root
+H:\RRD
+H:\RSS Verifier Projects
+H:\RxTrace
+H:\S&S
+H:\SAM Registration & Renewal
+H:\Sarut
+H:\SBT
+H:\SBTREPRT
+H:\SC31
+H:\SCAN The Data Capture Report
+H:\SCANDEMO
+H:\Secure Innovations
+H:\Serialization
+H:\Sigma Tau
+H:\Signatures
+H:\Skil-Care
+H:\Solvay ePedigree
+H:\Sonoco
+H:\Source Interlink
+H:\Southern Graphic Systems
+H:\Spring Systems
+H:\St. Marks
+H:\Start Menu
+H:\StartUp
+H:\Strobe Development
+H:\Symbology
+H:\SymbolTech
+H:\TBTA
+H:\TechNet ISO Files
+H:\Teklynx
+H:\TEMP
+H:\Temp Aggregate
+H:\Thinkpad 1720
+H:\Thinkpad A31
+H:\ThomasNet
+H:\TimeInc
+H:\Travel
+H:\Travel Reservations
+H:\U Memphis AITC Summer Institute 2014
+H:\UBM Canon
+H:\UCC
+H:\UDI Conference 2018
+H:\UDI Conferences, Baltimore 2014
+H:\UDI Presentations, Various Sources
+H:\UDIConference_Baltimore_TruCheck_Reports
+H:\Unison Group
+H:\UPS Rates
+H:\USPS Publications
+H:\vCARD
+H:\VCCS 2026
+H:\Verification Pricing
+H:\Verification Reports & Forms
+H:\VirtuaLabels
+H:\Visidot Applications
+H:\Vonage Voice Mail
+H:\wallpaper
+H:\Waves
+H:\Webscan
+H:\website Development
+H:\WelchAllyn
+H:\Wenner Media
+H:\WG3
+H:\WHOPPER
+H:\WinDates BACKUP
+H:\WINDOWS
+H:\WORD70
+H:\WORDSET
+H:\WSJ Articles
+H:\10 Midland\1993 bipad
+H:\1993 bipad\2004 PIPS Analysis
+H:\1993 bipad\2017 KitForFirst
+H:\1993 bipad\AccuMasterONLINE
+H:\1DJ, NEW Machine and TEST CARDS\New Linear CCSTC, 2016
+H:\2017 KitForFirst\1993 bipad
+H:\2017 KitForFirst\AccuMasterONLINE
+H:\2DJ\0 DPM TEST PLATE BITMAPS
+H:\2DJ\00-Binder Temp FIle
+H:\2DJ\10 Midland
+H:\2DJ\1173 XLSX
+H:\2DJ\1173-5-1 and 1174-5-1
+H:\2DJ\1174 XLSX
+H:\2DJ\1198_XLS
+H:\2DJ\1199 XLS
+H:\2DJ\1317_XLSL
+H:\2DJ\1377-79_xls
+H:\2DJ\1501-1508
+H:\2DJ\1669
+H:\2DJ\1703
+H:\2DJ\1740 XLSX
+H:\2DJ\1740_43
+H:\2DJ\1746-1751
+H:\2DJ\1753
+H:\2DJ\1802-1803
+H:\2DJ\1810-1811
+H:\2DJ\1837
+H:\2DJ\1881-1882
+H:\2DJ\1921-1922
+H:\2DJ\1948-1950
+H:\2DJ\1982
+H:\2DJ\1993 bipad
+H:\2DJ\1D Judge
+H:\2DJ\2010 FEB 66 Card Re-grade
+H:\2DJ\2012 Updated Flat Field Correction
+H:\2DJ\2015 DM CCSTC Master ART
+H:\2DJ\2015 Encoder Failure
+H:\2DJ\2016 Production COntrol
+H:\2DJ\2017 KitForFirst
+H:\2DJ\2025-2029
+H:\2DJ\2030-2032
+H:\2DJ\2061-2063
+H:\2DJ\2111
+H:\2DJ\2DJ Video
+H:\2DJ\600 DPI Imaging
+H:\2DJ\AccuMasterONLINE
+H:\2DJ\ADC1 SC31
+H:\2DJ\Applied Image
+H:\2DJ\Avian Technologies BCRA CERAM Tiles
+H:\2DJ\Calibration SOP
+H:\2DJ\Camera Specs
+H:\2DJ\China Cal Card
+H:\2DJ\Coda, Inc. - PS Styrene
+H:\2DJ\Density vs Reflectance
+H:\2DJ\Dimensional Calib
+H:\2DJ\DPM
+H:\2DJ\ForCDROM
+H:\2DJ\Gerber
+H:\2DJ\GS1 2D Judge
+H:\2DJ\GS1 France
+H:\2DJ\GS1 MOs Marketing
+H:\2DJ\IDEAlliance (formerly GCA)
+H:\2DJ\Laptop 2DJ
+H:\2DJ\Lights
+H:\2DJ\Misc Accessories
+H:\2DJ\NASON Vacuum Switch
+H:\2DJ\New folder
+H:\2DJ\Non-Conformances
+H:\2DJ\PB 20100114 2DJ Results
+H:\2DJ\PB Misc
+H:\2DJ\PB Software Update
+H:\2DJ\Pictures
+H:\2DJ\PIPS Image Tools
+H:\2DJ\PIPS Quality Check 2014-04-01
+H:\2DJ\PIPS_DM_Cards
+H:\2DJ\PRODUCTION_Cards
+H:\2DJ\SCAN Reprint
+H:\2DJ\SOPs
+H:\2DJ\SYM 5 Accuracy
+H:\2DJ\VCCS Purchase
+H:\2DJ\Vibration Analysis
+H:\2DJ\Vinyl Album Cover Art Production
+H:\2DJ\XLS_Reports
+H:\AccuMasterONLINE\ADC1
+H:\AccuMasterONLINE\AIM Awards
+H:\ADC1\AHA Survey
+H:\ADC1\AIDC 100
+H:\ADC1\ISO-IECJTC1-SC31_N5153_Text_for_DIS_Ballot_-_ISOIE...
+H:\AIDC 100\aiident LAUFEN
+H:\AIDC 100\AIM 2022
+H:\AIDC 100\Charecogn - JOhn Esserian
+H:\AIDC 100\Member Photos and Photoshop Template
+H:\AIDC Report, Heinrich Oehlmann\aiident LAUFEN
+H:\aiident LAUFEN\AIM EXPO 2010
+H:\AIM EXPO 2010\AIM Expo 2011
+H:\AIM EXPO 2010\ALPHA7
+H:\AIM GoodTenders\AIM Awards
+H:\AIM GoodTenders\AIM IoT
+H:\AIM GoodTenders\AIM TG1
+H:\AIM IoT\AIM EXPO 2010
+H:\AIM IoT\AIM MISC
+H:\AIM MISC\AIM Pack Expo 2012
+H:\AIM TG1\AcronisAppliance
+H:\AIM TG1\ISO-IECJTC1-SC31_N5329_Text_for_DIS_Ballot_ISOI...
+H:\AIM TSC 2011-2012\AIM TSC 2011-2014
+H:\AIM TSC 2011-2012\Han Xin
+H:\AIM TSC 2011-2012\ISS-DotCode Errors 2012
+H:\AIM TSC 2011-2012\QR Code
+H:\AIM TSC 2011-2014\Han Xin
+H:\AIM TSC 2011-2014\ISS-DotCode 2015-2016 Revision
+H:\AIM TSC 2011-2014\ISS-DotCode Errors 2012
+H:\AIM TSC 2011-2014\QR Code
+H:\AIM TSC 2011-2014\TSC1310-020-Historical Documents
+H:\AIM TSC 2011-2018\AIM TSC 2022
+H:\AIM TSC 2011-2018\AIM2BIintegrated
+H:\AIM TSC 2011-2018\Han Xin
+H:\AIM TSC 2011-2018\ISS-DotCode 2015-2017 Revision
+H:\AIM TSC 2011-2018\ISS-DotCode Errors 2012
+H:\AIM TSC 2011-2018\Kevin UM Zint Output
+H:\AIM TSC 2011-2018\New 1D Judge
+H:\AIM TSC 2011-2018\New folder
+H:\AIM TSC 2011-2018\New folder (2)
+H:\AIM TSC 2011-2018\QR Code
+H:\AIM TSC 2011-2018\TSC1310-020-Historical Documents
+H:\AIM-ISO\WG1
+H:\AIM-NA Healthcare (UID) Committee\15459 WG2 - DoNotDist...
+H:\AIM-NA Healthcare (UID) Committee\AIM UDI
+H:\AIM-NA Healthcare (UID) Committee\AIM-ISO
+H:\AIM-NA Healthcare (UID) Committee\AIM-NA UID Committee
+H:\AIM-NA Healthcare (UID) Committee\FDA Guidance on RFID ...
+H:\AIM-NA Healthcare (UID) Committee\Images
+H:\AIM-NA UID Committee\15459 WG2 - DoNotDistribute
+H:\AIM-NA UID Committee\AIM UDI
+H:\AIM-NA UID Committee\FDA Guidance on RFID In Medical De...
+H:\AIM-NA UID Committee\Images
+H:\AIM2BIintegrated\Data Matrix  - Arcacia Research
+H:\AIM2BIintegrated\Healthcare Action Group
+H:\AIM2BIintegrated\Public Review Ending 12 SEP 99
+H:\AIM2BIintegrated\TSC
+H:\ANDY_L\Application Data
+H:\ANDY_L\APSCO
+H:\ANDY_L\Archieved
+H:\ANDY_L\DotCode-128
+H:\Application Data\Abine
+H:\Associations\ARISTOMED
+H:\Associations\AVClips
+H:\Associations\Axicon
+H:\Associations\hedic
+H:\Associations\HIBCC 2004
+H:\Associations\hida97
+H:\Avocent KVM\AstraZeneca
+H:\Avocent KVM\Axicon
+H:\B&N\Agent 18
+H:\B&N\Aux Anysetiers Du Roy - Spec
+H:\B&N 2005\B&N 2006 VC Revision
+H:\B&N 2005\B&N 2007
+H:\B&N 2005\B&N Vendors
+H:\B&N 2005\BISG Label Certificatio
+H:\B&N 2005\Order Docs
+H:\B&N 2005\SSCC-18 Label Printing Project
+H:\B&N 2005\Web Site
+H:\BAIT Consulting\RFIDMEWedgeInstall(2.3.0)
+H:\Best Label\Bids-Quotes
+H:\Bids-Quotes\MidAmerican Energy Company
+H:\Boehringer Ingelheim\BIPI OptiValPC BASIC
+H:\Boehringer Ingelheim\BIRI OptiVal-PC
+H:\Boehringer Ingelheim\Optima+ Verifiers
+H:\Boehringer Ingelheim\Optima+ VerifiersORG
+H:\Boehringer Ingelheim\OptiVal-PCORG
+H:\BWI\Calendar Club
+H:\BWI\Canadian Vaccine Bar Coding Initiative
+H:\BWI\CCSTC Reseller Pricing
+H:\BWI\Feb March L&T
+H:\BWI\MGT 2015-11-30
+H:\BWI\MGT Replenishment Analysis Report
+H:\BWI\Nord RP Aug 2023, 3 Styles, ALL Doors
+H:\BWI\Nordstrom
+H:\BWI\Nordstrom 2014-11
+H:\BWI\Nordstrom 2015 Leadership Meeting
+H:\BWI\Saks
+H:\CARES Act\Final DOCS
+H:\CHECKMAS\CIAS
+H:\Chesapeake\Clondalkin Pharma & health
+H:\Claude VCCS\Claude Applied Image caribration test card ...
+H:\Claude VCCS\Claude VCCS Chat Webpage Complete_files
+H:\College Garb\All-Pak
+H:\College Garb\ARmark
+H:\College Garb\CC Processing
+H:\College Garb\CIT meeting
+H:\College Garb\Dynic USA
+H:\College Garb\Harvard
+H:\College Garb\InfoDot
+H:\College Garb\Pricing to SII
+H:\College Garb\Shareholder Communications
+H:\College Garb\Stony Brook
+H:\College Garb\UWA
+H:\Conference Presentations - GW4\Barnett International
+H:\Conference Presentations - GW4\EastPack 2003
+H:\Conference Presentations - GW4\Eastpack-Pharmapack 2015
+H:\Conference Presentations - GW4\GW4 Presentations
+H:\Conference Presentations - GW4\IOPP DPPC, 2012-09-24
+H:\Conference Presentations - GW4\Opal Events 2012
+H:\Consulting Engagements\3M Valley (NE)
+H:\Consulting Engagements\A2B
+H:\Consulting Engagements\Abbott POC
+H:\Consulting Engagements\Access Bio
+H:\Consulting Engagements\aiident LAUFEN
+H:\Consulting Engagements\AIT-6 Verifiers 2022
+H:\Consulting Engagements\Alcoa Home Exteriors
+H:\Consulting Engagements\Alere
+H:\Consulting Engagements\Amazon
+H:\Consulting Engagements\Ametec
+H:\Consulting Engagements\Amneal
+H:\Consulting Engagements\Anniston Army Depot
+H:\Consulting Engagements\Applause Printing
+H:\Consulting Engagements\Applied Image
+H:\Consulting Engagements\Arch Medical - Memphis
+H:\Consulting Engagements\Arch Medical - Philadelphia (Qua...
+H:\Consulting Engagements\Astellas Pharma Technologies
+H:\Consulting Engagements\Avara
+H:\Consulting Engagements\Avaya
+H:\Consulting Engagements\BAE
+H:\Consulting Engagements\Barcode Test
+H:\Consulting Engagements\Baxa
+H:\Consulting Engagements\BD
+H:\Consulting Engagements\Bio-Rad
+H:\Consulting Engagements\BioFireDX
+H:\Consulting Engagements\Black Diamond - Michael Vozzella
+H:\Consulting Engagements\Blair-HSM
+H:\Consulting Engagements\BMS 2018
+H:\Consulting Engagements\BMS 2024 CMO
+H:\Consulting Engagements\Boston Scientific
+H:\Consulting Engagements\Calendar Holdings
+H:\Consulting Engagements\Cambrex
+H:\Consulting Engagements\Camcode
+H:\Consulting Engagements\CDO Technologies
+H:\Consulting Engagements\Centurion
+H:\Consulting Engagements\Clondalkin - Greensboro, NC
+H:\Consulting Engagements\Code Corp
+H:\Consulting Engagements\Codonics
+H:\Consulting Engagements\Cognex Aachen - 2022 July
+H:\Consulting Engagements\Collins Aerospace
+H:\Consulting Engagements\Conagra
+H:\Consulting Engagements\Cordica Medical
+H:\Consulting Engagements\CSC - Computer Sciences Corp
+H:\Consulting Engagements\Cue Health
+H:\Consulting Engagements\DAM - Defense & Aerospace Manufa...
+H:\Consulting Engagements\Deloitte
+H:\Consulting Engagements\DGH Technology
+H:\Consulting Engagements\DLA - New Cumberland, PA
+H:\Consulting Engagements\DotCode Testing
+H:\Consulting Engagements\Elmer Candy
+H:\Consulting Engagements\enVision
+H:\Consulting Engagements\EOTE Coffee Roasters
+H:\Consulting Engagements\Eurostampa - Sazerac
+H:\Consulting Engagements\EXOSTAR
+H:\Consulting Engagements\eZCom
+H:\Consulting Engagements\F A DAVIS
+H:\Consulting Engagements\FEA-Licensee Services
+H:\Consulting Engagements\Fisher Scientific - San Diego
+H:\Consulting Engagements\Follett Corp
+H:\Consulting Engagements\Friendship Industries
+H:\Consulting Engagements\FUJIFILM
+H:\Consulting Engagements\General Motors
+H:\Consulting Engagements\Global Services PR
+H:\Consulting Engagements\GS1 Healthcare US, Ask The Experts
+H:\Consulting Engagements\GSK
+H:\Consulting Engagements\Healthcare Transformation Group
+H:\Consulting Engagements\Hibbert Group
+H:\Consulting Engagements\Horizon NY
+H:\Consulting Engagements\HP Indigo
+H:\Consulting Engagements\Immunalysis
+H:\Consulting Engagements\Intech Medical (Bradshaw)
+H:\Consulting Engagements\J & J
+H:\Consulting Engagements\Jamari Int'l
+H:\Consulting Engagements\Kraft Foods
+H:\Consulting Engagements\Lockheed Martin RMS, Moorestown, NJ
+H:\Consulting Engagements\Lockheed Martin, Lexington, KY
+H:\Consulting Engagements\Lockheed Martin, Mitchel Field, NY
+H:\Consulting Engagements\Lufthansa Technik
+H:\Consulting Engagements\MannKind
+H:\Consulting Engagements\Mark Roberti
+H:\Consulting Engagements\Mathtech
+H:\Consulting Engagements\Matrix IT
+H:\Consulting Engagements\McKesson
+H:\Consulting Engagements\Medac Pharma
+H:\Consulting Engagements\Medin
+H:\Consulting Engagements\Medtronic
+H:\Consulting Engagements\Menasha (Edison, NJ)
+H:\Consulting Engagements\MidAmerican Energy
+H:\Consulting Engagements\MPS - Chesapeake (Hicksville)
+H:\Consulting Engagements\MSG - Madison Square Garden
+H:\Consulting Engagements\Neolpharma (Caguas, PR)
+H:\Consulting Engagements\New folder
+H:\Consulting Engagements\New folder (2)
+H:\Consulting Engagements\New folder (3)
+H:\Consulting Engagements\Northrop Grumman
+H:\Consulting Engagements\Nosco
+H:\Consulting Engagements\OBJECTiD
+H:\Consulting Engagements\OraSure
+H:\Consulting Engagements\Otsuka America
+H:\Consulting Engagements\Paperworks
+H:\Consulting Engagements\Paragon Medical
+H:\Consulting Engagements\Pathguide
+H:\Consulting Engagements\Piramal Critical Care
+H:\Consulting Engagements\PPC-A Belden Company
+H:\Consulting Engagements\Praxis
+H:\Consulting Engagements\Printpack
+H:\Consulting Engagements\ProAmpac - Cary,IL
+H:\Consulting Engagements\QORVO
+H:\Consulting Engagements\Rapid Tag
+H:\Consulting Engagements\Raytheon
+H:\Consulting Engagements\Revlon
+H:\Consulting Engagements\Rizo Lopez Foods
+H:\Consulting Engagements\Rob Leibrandt
+H:\Consulting Engagements\Rodelco Electronics
+H:\Consulting Engagements\Schwerdtle
+H:\Consulting Engagements\Sears Holdings
+H:\Consulting Engagements\Secure Innovations
+H:\Consulting Engagements\Sekusui
+H:\Consulting Engagements\Siemens
+H:\Consulting Engagements\SigmaPharm Laboratories
+H:\Consulting Engagements\Solvay Pharma
+H:\Consulting Engagements\Sonoco
+H:\Consulting Engagements\Spirit AeroSystems
+H:\Consulting Engagements\SteriPack, HG Design
+H:\Consulting Engagements\Stryker
+H:\Consulting Engagements\Stryker - Neurovascular
+H:\Consulting Engagements\TAP
+H:\Consulting Engagements\Team Technologies
+H:\Consulting Engagements\Technipaq
+H:\Consulting Engagements\Teledyne DGO
+H:\Consulting Engagements\Tessy Plastics
+H:\Consulting Engagements\Teva Pharmaceuticals
+H:\Consulting Engagements\Tobyhanna US Army Depot
+H:\Consulting Engagements\Trinagle Manufacturing
+H:\Consulting Engagements\Unipharm
+H:\Consulting Engagements\Unipharm Waterbury Temp
+H:\Consulting Engagements\US Army Rock Island
+H:\Consulting Engagements\USDM
+H:\Consulting Engagements\USTA
+H:\Consulting Engagements\Wisconsin 1BBBAct-2025
+H:\Consulting Engagements\Wisconsin Covid-19
+H:\Consulting Engagements\Zimmer
+H:\COSI\24-7
+H:\COSI\B&N Presentation
+H:\COSI\BigM
+H:\COSI\Color-to-Size
+H:\COSI\EMH
+H:\COSI\FMI LM Formats
+H:\COSI\GEPIR Listings
+H:\COSI\Jai Ma
+H:\COSI\ROSS Stores
+H:\COSI\Wine Enthusiast
+H:\Customers\Galesburg Frozen
+H:\Dell Computers\R420 & R440 Servers
+H:\Desktop\My Briefcase
+H:\Desktop\Online Services
+H:\Directions\Courtyard, Herndon, VA from 192_files
+H:\Dress Barn\PSCView Dev. Environnemt
+H:\eBay\Barcode Guru SALES
+H:\eBay\TC-251
+H:\eBay\WEBSCAN TC-501 Portable Bar Code Verifier + wirele...
+H:\eBay\Zebra 220XiIII Plus 220-741-00000 Thermal Transfer...
+H:\Ellie's Stuff\NBCUniversal Careers_files
+H:\ELSEVIER\SISACSYM
+H:\EMPIRE\PDT
+H:\EXPENSES\2001
+H:\EXPENSES\2002
+H:\EXPENSES\2015
+H:\EXPENSES\2016
+H:\EXPENSES\2021 MD&M
+H:\EXPENSES\2021 Recurring
+H:\EXPENSES\2022 Emailed to Tom
+H:\EXPENSES\2023 Emailed to Tom
+H:\EXPENSES\2024
+H:\EXPENSES\2024 Emailed to Tom
+H:\EXPENSES\2025 Emailed to Tom
+H:\EXPENSES\AIM Dues & TAG
+H:\EXPENSES\CERT
+H:\EXPENSES\CHW Misc
+H:\EXPENSES\Credit Card Statements
+H:\EXPENSES\EZPASS
+H:\EXPENSES\GW4 Monthly Medical Reimbusements 2023
+H:\EXPENSES\GW4 Monthly Medical Reimbusements 2024
+H:\EXPENSES\New folder
+H:\EXPENSES\PIPS Receipts
+H:\EXPENSES-OLD\EM
+H:\Favorites\Dell
+H:\Favorites\Imported bookmarks
+H:\Favorites\Links
+H:\Favorites\MEDIA
+H:\FDA\Bar Code Rule Reopened 2011
+H:\FDA\FDA AIM Education
+H:\FDA\FDA UDI RULE 15459-4 ISSUES (2015)
+H:\FDA\NDC Origin and Facts
+H:\FDA\NHRIC
+H:\FDA\Proposed NDC Rule
+H:\FDA\UDI Conference 2012-09
+H:\FDA\UDI Rule
+H:\FDA\UDI Workshop 2009-02
+H:\FDA\UID Workshop 2011-09
+H:\Files Restored from 1999\USERS
+H:\FONTS\bak
+H:\FONTS\GW4 XP Fonts
+H:\github\vtccp
+H:\Griffin-Rutgers\Clinique Linoprint
+H:\Griffin-Rutgers\Darnel
+H:\GS1 BCID TG\15416 Edge DEFECT
+H:\GS1 BCID TG\gmn cHECK cHARACTER
+H:\GS1 BCID TG\Sample Symbols From Frank
+H:\GS1 BCID TG\UPitt Test
+H:\GS1 BCID TG\UPitt Test #3
+H:\GS1 BCID TG\UPitt Test #3 PRELIM
+H:\GS1 GSMP\DSCN1957
+H:\GS1 GSMP\Healthcare AIDC Updates MSWG
+H:\GS1 GSMP\ID SMG
+H:\GS1 GSMP\Implied Decimal Place WR
+H:\GS1 Healthcare US\NA Guideline Revision 2012
+H:\GS1 US NA Case Label Group\GS1DBE Examples
+H:\gs1-digital-link-resolver-main\.agents
+H:\gs1-digital-link-resolver-main\.github
+H:\gs1-digital-link-resolver-main\artifacts
+H:\gs1-digital-link-resolver-main\attached_assets
+H:\gs1-digital-link-resolver-main\docs
+H:\gs1-digital-link-resolver-main\exports
+H:\gs1-digital-link-resolver-main\lib
+H:\gs1-digital-link-resolver-main\scripts
+H:\gs1-digital-link-resolver-main\tools
+H:\GW4 Articles 2919 Onwards\The PIPS GS1 System Update Se...
+H:\HARDDISK\BCT
+H:\HARDDISK\DOS
+H:\HARDDISK\MICRFONT
+H:\HARDDISK\OUTSIDE
+H:\HARDDISK\QEMM
+H:\HARDDISK\UTILITY
+H:\HDMA 2009 Bar Code Guidelines\Final Doc, Extracts
+H:\HDMA 2009 Bar Code Guidelines\NEWEST Label Formats
+H:\HDMA 2009 Bar Code Guidelines\Pics from BIRI
+H:\HDMA 2009 Bar Code Guidelines\TEVA DM Samples AI01-21-17
+H:\HDMA 2009 Bar Code Guidelines\TIF Images for Reproduction
+H:\HDMA AIWG\Directions HOME.adp_files
+H:\HDMA AIWG\Directions.adp_files
+H:\HDMA AIWG\Sample Symbols
+H:\HDMA-AIWG\Sample Symbols
+H:\hdma_MISC\EasySoft Verifier Replies
+H:\History\History.IE5
+H:\History\MSHist011998110419981105
+H:\History\MSHist011999090919990910
+H:\History\MSHist011999102119991022
+H:\History\MSHist012000111520001116
+H:\Holy Smokers\FullyALIVE for George
+H:\IIR\GTIN
+H:\IIR\Pictures
+H:\IOPP\Final Presentation
+H:\IUOE 15\2-Pocket Folder
+H:\IUOE 15\Bert M Layouts
+H:\IUOE 15\Harry's Work
+H:\JTC1 SC31\WG1
+H:\JTC1 SC31\WG2
+H:\KitForFirst\new-canaan-rtc _ Kevin J. Moynihan, 2017-09...
+H:\Kyocera\Lufthansa Technik
+H:\m2dir-repo\gs1-digital-link-resolver
+H:\Macy's Merchandising Verifiers\New Folder
+H:\MannKind\2012 Questionnaire
+H:\May Fair 2016-2017\St.Mark's.MayFair.tee.2017
+H:\May Fair 2019\Tent Pics
+H:\May Fair 2019\Volunteer & PD COUPONS
+H:\May Fair 2023\Fridge Replacement
+H:\MH10-8\IUID WG 2013-2014
+H:\Microscan\Compliance Certificates
+H:\MMS\ACROPDF
+H:\Motorola-SymbolTech\accumaster Test files #1
+H:\Motorola-SymbolTech\PDF417_10mil_revA
+H:\Motorola-SymbolTech\PDF417_6.7mil_revA
+H:\MSOFFICE\Access
+H:\MSOFFICE\EXCEL
+H:\MSOFFICE\MAIL
+H:\MSOFFICE\POWERPNT
+H:\MSOFFICE\Schedule
+H:\MSOFFICE\SETUP
+H:\MSOFFICE\Templates
+H:\MSOFFICE\WINWORD
+H:\My Documents\ACT
+H:\My Documents\BarTender
+H:\My Documents\BlackBerry
+H:\My Documents\Commander
+H:\My Documents\eRoom Files for Offline Editing
+H:\My Documents\My Data Sources
+H:\My Documents\My Digital Editions
+H:\My Documents\My Downloads
+H:\My Documents\My eBooks
+H:\My Documents\My Music
+H:\My Documents\My Pictures
+H:\My Documents\My Web Sites
+H:\My Documents\Pocket_PC My Documents
+H:\My Documents\Saved Scans
+H:\My Documents\Security
+H:\My Documents\Villanova
+H:\My Documents\WebEx
+H:\Natus Medical\Natus on GEPIR 2011-08-05_files
+H:\New Canaan CERT-OEM\2021 Family Fourth Planning
+H:\New Canaan CERT-OEM\Covid-19 CERT Testing
+H:\New Canaan CERT-OEM\Expenses
+H:\New Canaan CERT-OEM\ISAIAS
+H:\New Canaan CERT-OEM\Mask Deplotment, 2020-04-25
+H:\New Canaan CERT-OEM\new CERT Cap Art Development, 2020
+H:\Ohio U\Summer Institute 2012
+H:\Ostema Design\SO400104
+H:\Personal Stuff\10 Midland
+H:\Personal Stuff\192
+H:\Personal Stuff\192 Bayberry
+H:\Personal Stuff\2005 Subaru Outback
+H:\Personal Stuff\325 Bayberrie
+H:\Personal Stuff\Amazon Prime
+H:\Personal Stuff\Auto Leasing Docs
+H:\Personal Stuff\Babs Optimum SPAM Problem
+H:\Personal Stuff\Barbour
+H:\Personal Stuff\BGW Tiguan
+H:\Personal Stuff\BWI
+H:\Personal Stuff\Catherine
+H:\Personal Stuff\CERT
+H:\Personal Stuff\Chase VISA
+H:\Personal Stuff\Choir
+H:\Personal Stuff\COVID-19
+H:\Personal Stuff\CreditCards
+H:\Personal Stuff\ct dmv
+H:\Personal Stuff\Dave Daly
+H:\Personal Stuff\Dentistry
+H:\Personal Stuff\eBay
+H:\Personal Stuff\eBay Raymond Weil PurchaseDirect
+H:\Personal Stuff\Ellie - Nova
+H:\Personal Stuff\Ellie MVA 2011-06-01
+H:\Personal Stuff\Ellie MVA 2012-
+H:\Personal Stuff\Ellie NBC
+H:\Personal Stuff\Ellie NCHS Grades, Comments
+H:\Personal Stuff\Ellie's Sports
+H:\Personal Stuff\Experian
+H:\Personal Stuff\Eye Doctors
+H:\Personal Stuff\Friedman
+H:\Personal Stuff\Geico
+H:\Personal Stuff\Google Maps - 192 bayberry rd, new canaa...
+H:\Personal Stuff\Guardian Dental
+H:\Personal Stuff\GW4_20191017_TIA-Documentation
+H:\Personal Stuff\Healthcare Forms
+H:\Personal Stuff\Heel'd
+H:\Personal Stuff\Hilton
+H:\Personal Stuff\How to Tie a Tie
+H:\Personal Stuff\James Morris Page, UVA Online History_files
+H:\Personal Stuff\Lending Club 2021
+H:\Personal Stuff\Life Insurance
+H:\Personal Stuff\Maggie
+H:\Personal Stuff\Magnolia
+H:\Personal Stuff\Marlbourne
+H:\Personal Stuff\Medical
+H:\Personal Stuff\Medicare
+H:\Personal Stuff\Medicare 2023
+H:\Personal Stuff\Messiah BASS Part, Piano Only, NO VOCALS...
+H:\Personal Stuff\MetlLife Dental Claim Forms
+H:\Personal Stuff\Mom
+H:\Personal Stuff\MRI and Other Radiology Results
+H:\Personal Stuff\NC CERT
+H:\Personal Stuff\New folder
+H:\Personal Stuff\New folder (2)
+H:\Personal Stuff\Norman Toy
+H:\Personal Stuff\Nuvance
+H:\Personal Stuff\OrthoConnecticut
+H:\Personal Stuff\Oxford
+H:\Personal Stuff\Page Family
+H:\Personal Stuff\Paid Bills
+H:\Personal Stuff\Pictures
+H:\Personal Stuff\PIPS
+H:\Personal Stuff\Principal
+H:\Personal Stuff\Raymond Weil Watch
+H:\Personal Stuff\Red Cross
+H:\Personal Stuff\Rx Drugs
+H:\Personal Stuff\Sears
+H:\Personal Stuff\Social Security
+H:\Personal Stuff\St. Marks
+H:\Personal Stuff\Town of New Canaan
+H:\Personal Stuff\Toyota Highlander
+H:\Personal Stuff\TSA
+H:\Personal Stuff\VCCS
+H:\Personal Stuff\WFUV
+H:\Personal Stuff\YALE
+H:\Pictures\From Win 7 Desktop (Pictures)
+H:\Pictures\GW4
+H:\PIPS Financial-Sales\2015
+H:\PIPS Financial-Sales\2019 P&L by Sales Responsibility
+H:\PIPS Financial-Sales\2020-2021 In DETAIL
+H:\PIPS Financial-Sales\2022 Chris Gray Sales Analysis
+H:\PIPS Financial-Sales\Webscan & Cognex Inventory 2023
+H:\PIPS IT Projects\2020 New Rxx VM Server
+H:\PIPS OFFICE\2019 eMail eInvocie Hack
+H:\PIPS OFFICE\2020 Corona virus Notices
+H:\PIPS Web Development\2019 Web Banner LOGO Ideas from Ch...
+H:\PIPS Web Development\2021 Development
+H:\PIPS Web Development\2025 Claude.ai
+H:\PIPS Web Development\2025 replit
+H:\PIPS Web Development\DMV-TC850-FDPM-01 - Webscan Bar co...
+H:\PIPS Web Development\Logo Images - Vendor
+H:\PIPS Web Development\New folder
+H:\PIPS Web Development\Stracos 2020
+H:\PIPS Web Development\Used Equipment List_files
+H:\PIPS Web Development\Used Printer Equipment List_files
+H:\PMP News\2004 March Ad PIPS-Quint
+H:\PMP News\2004 March Bar Codeing Supplement Article
+H:\PMP News\2004 May Issue
+H:\PMP News\2004 Nov Issue
+H:\PMP News\2004-05 May Ad, PIPS, QandA
+H:\PMP News\2005 May Issue
+H:\PMP News\2006 Bar Code Supplement
+H:\PMP News\2007 Bar Code Supplement
+H:\PMP News\2008
+H:\PMP News\2009 bar Code Supplement
+H:\PMP News\2009 November Issue
+H:\PMP News\2010 April Issue
+H:\PMP News\2010 January Issue
+H:\PMP News\2010 July Article
+H:\PMP News\2011 - Verifier Conformance
+H:\PMP News\2011 March - Bar Code Supplement
+H:\PMP News\2012 April Issue
+H:\PMP News\2012 Supply Chain Supplement
+H:\PMP News\2017 Articles
+H:\PMP News\MD&DI
+H:\PRO30\ARUPDATE
+H:\Purdue Pharma\2016-04-12
+H:\Quint\Bar Codes
+H:\Quint\Press Proof Overview
+H:\Quint\WestPack
+H:\Random House\QR Code Verif
+H:\Red Cross\Logos & Images
+H:\Red Cross\ScanCT Website
+H:\Red Cross\Weather
+H:\RFID Articles\A case of analysis paralysis_files
+H:\RFID Articles\analysis.cfm_files
+H:\RFID-ItemLevel\4x6 RFID Label Images
+H:\RFID-ItemLevel\Color Bar Tag Development
+H:\RFID-ItemLevel\IUOE15
+H:\RFID-ItemLevel\Macy's RFID Specifications
+H:\RFID-ItemLevel\Macy's Specifica
+H:\RFID-ItemLevel\Nordstrom Samples
+H:\RFID-ItemLevel\PIPS Sizes and Formats
+H:\RFID-ItemLevel\Saks 5th Avenue
+H:\RFID-ItemLevel\Transfer
+H:\root\download
+H:\root\Kyocera
+H:\root\MODS
+H:\root\PM65
+H:\root\PQMAGIC
+H:\root\Program Files
+H:\root\PSCVIEW
+H:\root\PSFONTS
+H:\root\RECYCLED
+H:\root\WINDOWS
+H:\RSS Verifier Projects\Abbott
+H:\RSS Verifier Projects\Alcan
+H:\RSS Verifier Projects\ALTANA
+H:\RSS Verifier Projects\Amcor Flexibles
+H:\RSS Verifier Projects\Anderson Packaging
+H:\RSS Verifier Projects\Asmarc
+H:\RSS Verifier Projects\AstraZeneca
+H:\RSS Verifier Projects\B Braun Medical
+H:\RSS Verifier Projects\Bayer
+H:\RSS Verifier Projects\BI - Promeco
+H:\RSS Verifier Projects\BI - Roxane Laboratories
+H:\RSS Verifier Projects\Bristol-Myers Squibb
+H:\RSS Verifier Projects\Cardinal Health
+H:\RSS Verifier Projects\Carton Service
+H:\RSS Verifier Projects\CCL
+H:\RSS Verifier Projects\Challenge Printing
+H:\RSS Verifier Projects\Coding Products
+H:\RSS Verifier Projects\Dey
+H:\RSS Verifier Projects\Eisai
+H:\RSS Verifier Projects\Ferring Pharma
+H:\RSS Verifier Projects\Flexicon
+H:\RSS Verifier Projects\Fujisawa
+H:\RSS Verifier Projects\Gedeon Richter, Budapest
+H:\RSS Verifier Projects\GlaxoSmithKline
+H:\RSS Verifier Projects\GSK - Cidra Printer-Applicator
+H:\RSS Verifier Projects\H&N Packaging
+H:\RSS Verifier Projects\KV Pharmaceuticals
+H:\RSS Verifier Projects\Merck RSS
+H:\RSS Verifier Projects\MooreWallace
+H:\RSS Verifier Projects\Novartis
+H:\RSS Verifier Projects\NPC
+H:\RSS Verifier Projects\Paddock Laboratories
+H:\RSS Verifier Projects\PerfectSeal
+H:\RSS Verifier Projects\Pfizer
+H:\RSS Verifier Projects\Purdue Pharma
+H:\RSS Verifier Projects\Quint
+H:\RSS Verifier Projects\SQUIBB
+H:\RSS Verifier Projects\Steris Pharmaceuticals
+H:\RSS Verifier Projects\Tolas
+H:\RSS Verifier Projects\Tyco Healthcare
+H:\RSS Verifier Projects\USPS
+H:\RSS Verifier Projects\Watson Pharma
+H:\RSS Verifier Projects\Wyeth Pharmaceuticals
+H:\RSS Verifier Projects\Yamanouchi
+H:\RxTrace\Stats
+H:\S&S\99Resum
+H:\S&S\Simn5d99
+H:\S&S\Simon5d from c 2-8-99
+H:\SBT\2026 MMS Annual Spend Before 2002
+H:\SBT\Boilerplate for SO, Quotes
+H:\SBT\Bug Fixes, etc
+H:\SBT\CCLL00 Statistics
+H:\SBT\PDFs of POs, SOs, INVs
+H:\SBT\Sales Analysis 2017-2024Q1
+H:\SBT\Sales Analysis 2019
+H:\SBT\TEMP
+H:\SBTREPRT\ARREPORT
+H:\SBTREPRT\ICREPORT
+H:\SBTREPRT\SOREPORT
+H:\SC31\WG1
+H:\SC31\WG2
+H:\SC31\WG3
+H:\Source Interlink\Label Proofs
+H:\St. Marks\Beer
+H:\St. Marks\Choir
+H:\St. Marks\May Fair 2023 Contract
+H:\St. Marks\Outreach Commission
+H:\St. Marks\Property Committee
+H:\Start Menu\Programs
+H:\Symbology\Label & Test Card  Sale to PIPS
+H:\SymbolTech\InitialInfo-p1of4.asp_files
+H:\SymbolTech\InitialInfo-p3of4.asp_files
+H:\SymbolTech\InitialInfo-p4of4.asp_files
+H:\SymbolTech\ThankYou.asp_files
+H:\TEMP\2-07 for TFC
+H:\TEMP\Axxeum PDFs
+H:\TEMP\GW4 Signatures 2025-03-15
+H:\TEMP\In Court, She’s Always Judging You - The New York ...
+H:\TEMP\Kyocera 3920DN Printer Problems
+H:\TEMP\PIPS_Payment
+H:\TEMP\RER 2016
+H:\TEMP\SBT-SQL-VM Migration
+H:\Temp Aggregate\Shilog
+H:\Temp Aggregate\SPRINGER
+H:\Temp Aggregate\UPN Conf. 6-98
+H:\Temp Aggregate\WestPack 2003
+H:\Temp Aggregate\WORD5A
+H:\Thinkpad 1720\My Documents
+H:\Travel\B-I Promeco Continental_files
+H:\Travel\Bridgeport ferry
+H:\Travel\HiltonEmbassyHamptonInn
+H:\Travel\Hyatt
+H:\UBM Canon\2018 Articles
+H:\UCC\Cal Card
+H:\UCC\Cal Card Defects
+H:\UCC\John Roberts Stuff
+H:\UCC\Quint Certification
+H:\UCC\Solution Provider Certification
+H:\UCC\U Connect 2005
+H:\UDI Conferences, Baltimore 2014\2015
+H:\UDI Conferences, Baltimore 2014\2015 COnference
+H:\UDI Conferences, Baltimore 2014\2016
+H:\UDI Conferences, Baltimore 2014\2017
+H:\UDI Presentations, Various Sources\B. Braun Selects 1Wo...
+H:\UDI Presentations, Various Sources\Volker Zeinar _ B. B...
+H:\UPS Rates\2008
+H:\UPS Rates\NDLOMS-21 Orders
+H:\VCCS 2026\PIPS-VCCS Web Dev
+H:\VCCS 2026\VCCS - QNP 2026
+H:\VCCS 2026\VCCS DMV TruCheck Command Pilot
+H:\VCCS 2026\VCCS-Cognex2026
+H:\Visidot Applications\BMS
+H:\Webscan\GSK Demo
+H:\WINDOWS\system
+H:\WORD70\1674 1st Avenue
+H:\WORD70\ABE
+H:\WORD70\ADS-H&S
+H:\WORD70\ADV
+H:\WORD70\AII
+H:\WORD70\AmBookCtr
+H:\WORD70\AMS
+H:\WORD70\ATI
+H:\WORD70\AutoRecover Files
+H:\WORD70\AxiCode Int'l
+H:\WORD70\Axicon Auto ID
+H:\WORD70\AXIGROUP
+H:\WORD70\B&N
+H:\WORD70\B-Brown
+H:\WORD70\BABS
+H:\WORD70\BCA
+H:\WORD70\BEP
+H:\WORD70\BioWhittaker
+H:\WORD70\BIPAD Issues
+H:\WORD70\BISAC
+H:\WORD70\BLOODSYS
+H:\WORD70\BM-S
+H:\WORD70\BookTech98
+H:\WORD70\BRANDT
+H:\WORD70\BUMPY
+H:\WORD70\BWI
+H:\WORD70\Caduceus Systems
+H:\WORD70\CalClub
+H:\WORD70\Chase Bank
+H:\WORD70\CIAS
+H:\WORD70\Clary Corp - UPSs
+H:\WORD70\CM
+H:\WORD70\Columbia-Vonsattle
+H:\WORD70\Combined Tech
+H:\WORD70\Compsee
+H:\WORD70\CONSULT
+H:\WORD70\COSI - Infocrossing
+H:\WORD70\CUSTOMER
+H:\WORD70\DataDesigns
+H:\WORD70\Denso ID
+H:\WORD70\Dress Barn
+H:\WORD70\Duplo
+H:\WORD70\DXCorp
+H:\WORD70\Dynic USA
+H:\WORD70\Eltron
+H:\WORD70\EMPIRE
+H:\WORD70\EZPass
+H:\WORD70\FAXON
+H:\WORD70\Ford
+H:\WORD70\Fort Orange Press
+H:\WORD70\Game Keeper
+H:\WORD70\GC3
+H:\WORD70\GFGFOOD
+H:\WORD70\HARDWARE
+H:\WORD70\HDG
+H:\WORD70\Healthcare Opportunities
+H:\WORD70\Healthmark
+H:\WORD70\HEDIC
+H:\WORD70\HEDIC Leads
+H:\WORD70\HIBCC
+H:\WORD70\HIDA
+H:\WORD70\HIREPA
+H:\WORD70\HSN
+H:\WORD70\IDI
+H:\WORD70\Imagesetter
+H:\WORD70\ISO Draft Standards
+H:\WORD70\IUOE15
+H:\WORD70\JSH Quotes
+H:\WORD70\Kings Dominion
+H:\WORD70\KTP
+H:\WORD70\KYOCERA
+H:\WORD70\Labels N More
+H:\WORD70\Levine&Leffler
+H:\WORD70\LIRR
+H:\WORD70\LIZ
+H:\WORD70\Loftware
+H:\WORD70\Longman
+H:\WORD70\LPS
+H:\WORD70\MATTHEWS
+H:\WORD70\MC&A
+H:\WORD70\MEDIWARE
+H:\WORD70\MEFCO
+H:\WORD70\MICHELIN
+H:\WORD70\Mold In Graphics
+H:\WORD70\MOMA
+H:\WORD70\NDLOMS
+H:\WORD70\Newspapers
+H:\WORD70\Norwalk Hospital
+H:\WORD70\NYNEX
+H:\WORD70\OFFICE
+H:\WORD70\ORBIS
+H:\WORD70\OVERDUE
+H:\WORD70\Pama
+H:\WORD70\Paxar Monarch
+H:\WORD70\PERSONAL
+H:\WORD70\PIPS Artwork, Forms, Etc
+H:\WORD70\PIPS Inventory
+H:\WORD70\PIPS Marketing Materials
+H:\WORD70\PIPS Personnel
+H:\WORD70\PIPS Projects
+H:\WORD70\PIPS Valuation
+H:\WORD70\PPW
+H:\WORD70\Prime Communications
+H:\WORD70\PROJECTS
+H:\WORD70\PROSPECT
+H:\WORD70\PSC
+H:\WORD70\QUAD-II
+H:\WORD70\Quint
+H:\WORD70\Quotes
+H:\WORD70\QVC
+H:\WORD70\RSS - UCC  Work Group
+H:\WORD70\S&S
+H:\WORD70\Sato
+H:\WORD70\SBT
+H:\WORD70\SCANTAG
+H:\WORD70\SENSIS
+H:\WORD70\SISAC
+H:\WORD70\Skil-Care
+H:\WORD70\SOFTMSTR
+H:\WORD70\SOLOMON
+H:\WORD70\Source Info Mgmt
+H:\WORD70\SPRINGER
+H:\WORD70\St Vincent, Mediware
+H:\WORD70\STALEX
+H:\WORD70\STORK
+H:\WORD70\StrandWare
+H:\WORD70\StreetWise
+H:\WORD70\TechCode
+H:\WORD70\TEMP
+H:\WORD70\TRADEGRP
+H:\WORD70\U S Dept of Commerce SABIT
+H:\WORD70\U S Mint
+H:\WORD70\Upgrade Contracting
+H:\WORD70\UPS
+H:\WORD70\USPS
+H:\WORD70\VENDOR
+H:\WORD70\VERIFY
+H:\WORD70\VIP Offset
+H:\WORD70\WelchAllyn
+H:\WORD70\Z3956-96
+H:\WORDSET\BOOT
+
