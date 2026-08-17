@@ -463,6 +463,15 @@ if ($stream.DataAvailable) {
     $stream.Read($drain, 0, $drain.Length) | Out-Null
 }
 
+# Switch to Extended mode so every GET returns a value (default Silent mode returns nothing)
+$modeCmd = [System.Text.Encoding]::ASCII.GetBytes("||>SET COM.DMCC-RESPONSE 2`r`n")
+$stream.Write($modeCmd, 0, $modeCmd.Length)
+Start-Sleep -Milliseconds 400
+if ($stream.DataAvailable) {
+    $drain = New-Object byte[] 512
+    $stream.Read($drain, 0, $drain.Length) | Out-Null
+}
+
 $lines  = @()
 $header = "# DM475V-DPM  866D76  $DeviceIp  fw:6.1.16_tc9  dump:$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 $sep    = "# " + ("-" * 70)
