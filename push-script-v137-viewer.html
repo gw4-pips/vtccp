@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>VTCCP Push Script v1.37</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Consolas, monospace; background: #1e1e1e; color: #d4d4d4; display: flex; flex-direction: column; height: 100vh; padding: 12px; gap: 8px; }
+.header { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+h3 { color: #9cdcfe; font-size: 14px; }
+.meta { color: #6a9955; font-size: 12px; }
+button { background: #0e639c; color: #fff; border: none; padding: 7px 16px; cursor: pointer; border-radius: 3px; font-size: 13px; }
+button:hover { background: #1177bb; }
+button.ok { background: #388a34; }
+.install { background: #252526; border: 1px solid #3c3c3c; border-radius: 3px; padding: 8px 12px; font-size: 12px; color: #ce9178; flex-shrink: 0; }
+.install b { color: #dcdcaa; }
+textarea { flex: 1; background: #252526; color: #d4d4d4; border: 1px solid #3c3c3c; padding: 8px; font-family: Consolas, monospace; font-size: 11.5px; resize: none; width: 100%; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h3>VTCCP Push Script &mdash; v1.37</h3>
+  <span class="meta">272 lines</span>
+  <button id="btn" onclick="
+    var t=document.getElementById('s');
+    t.select();
+    document.execCommand('copy');
+    var b=document.getElementById('btn');
+    b.textContent='Copied!';
+    b.className='ok';
+    setTimeout(function(){b.textContent='Select All & Copy';b.className='';},2500);
+  ">Select All &amp; Copy</button>
+</div>
+<div class="install">
+  <b>Install:</b> DMST &rarr; Format Data &rarr; Script-Based Formatting &rarr; Scripting tab &rarr; paste &rarr; Save Settings &rarr; Write to device
+</div>
+<textarea id="s" readonly>// VCCS — VTCCP Push Script  v1.37
+// © 2026 Verifier Calibration &amp; Conformance Solutions, LLC
+// CONFIDENTIAL AND PROPRIETARY — ALL RIGHTS RESERVED.
+// Trade secret protected under 18 U.S.C. § 1836. Unauthorized use or disclosure
+// prohibited. Authorized use: VTCCP-licensed installations only. legal@vccs.llc
+//
+// Install: DMST → Format Data → Script-Based Formatting → Scripting tab
+//          → paste entire script → Save Settings → Write to device
+//
+// v1.37: DebugApplicationStdArray — enumerate q.applicationStdArray elements.
+//        v1.36 DebugQTopKeys reported applicationStdArray=[arr.13] on the GS1
+//        4-AI pharma scan (scan #16).  13 entries for 4 GS1 AIs suggests
+//        per-AI result objects with multiple sub-fields each.
+//
+//        DebugApplicationStdArray — reports:
+//          len=N       total element count
+//          [i]=&lt;ekv&gt;   sub-key dump of each element (first 6 shown)
+//        Hypothesis: each element has keys like ai, value, pass, standard, etc.
+//        This unlocks per-AI GS1 validation results currently unreachable from
+//        the main output (ApplicationPass only gives overall pass/fail string).
+//
+//        Carries forward DebugBarcodeAssignment (r.barcodeAssignment still unprobed).
+//        v1.36 probes (JpegDiag, QTopKeys, RTopKeys) and v1.35 RoI/FoV dropped.
+//        ECMAScript 5 only.
+//
+// Confirm: &lt;PushScriptDiag&gt;v1.37 q=r.trucheck m=found&lt;/PushScriptDiag&gt;
+
+function onResult(decodeResults,readerProperties,outputResults){
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function s(v){return(v===undefined||v===null)?&quot;&quot;:String(v);}
+function prop(o,k){if(!o)return&quot;&quot;;var v=o[k];return(v===undefined||v===null)?&quot;&quot;:String(v);}
+function esc(v){return s(v).replace(/&amp;/g,&quot;&amp;amp;&quot;).replace(/&lt;/g,&quot;&amp;lt;&quot;).replace(/&gt;/g,&quot;&amp;gt;&quot;).replace(/&quot;/g,&quot;&amp;quot;&quot;).replace(/&#x27;/g,&quot;&amp;apos;&quot;);}
+function elem(t,v){return&quot;&lt;&quot;+t+&quot;&gt;&quot;+esc(v)+&quot;&lt;/&quot;+t+&quot;&gt;\r\n&quot;;}
+function isoNow(){var d=new Date(),p=function(n){return n&lt;10?&quot;0&quot;+n:String(n);};return d.getFullYear()+&quot;-&quot;+p(d.getMonth()+1)+&quot;-&quot;+p(d.getDate())+&quot;T&quot;+p(d.getHours())+&quot;:&quot;+p(d.getMinutes())+&quot;:&quot;+p(d.getSeconds());}
+function pk(o,k){if(!o)return null;var v=o[k];return(typeof v!==&quot;undefined&quot;&amp;&amp;v!==null)?v:null;}
+function tg(t){return(t&amp;&amp;typeof t.grade!==&quot;undefined&quot;)?s(t.grade):&quot;&quot;;}
+function tn(t){return(t&amp;&amp;typeof t.numericGrade!==&quot;undefined&quot;)?s(t.numericGrade):&quot;&quot;;}
+function mv(t){if(!t)return&quot;&quot;;var v=t.raw;return(typeof v===&quot;undefined&quot;||v===null||v===-1||v===&quot;-1&quot;)?&quot;&quot;:s(v);}
+function mpa(t){if(!t)return&quot;&quot;;var v=t.raw;if(typeof v===&quot;undefined&quot;||v===null||v===-1)return&quot;&quot;;var n=parseFloat(v);return isNaN(n)?&quot;&quot;:s(Math.round((n&gt;1?n:n*100)*10)/10);}
+function rn(x){if(x===null||typeof x===&quot;undefined&quot;)return NaN;if(typeof x===&quot;number&quot;)return x;if(typeof x===&quot;object&quot;&amp;&amp;typeof x.raw!==&quot;undefined&quot;)return parseFloat(x.raw);return parseFloat(x);}
+function rpc(v){return(v&gt;1)?v:(v*100);}
+function ekv(o,l){if(!o)return&quot;(&quot;+l+&quot; null)&quot;;if(typeof o!==&quot;object&quot;)return&quot;(&quot;+l+&quot; &quot;+(typeof o)+&quot;=&quot;+String(o).substring(0,30)+&quot;)&quot;;var x=&quot;&quot;;for(var k in o){var v=o[k];x+=k+&quot;=&quot;+((typeof v===&quot;object&quot;&amp;&amp;v!==null)?((typeof v.length!==&quot;undefined&quot;)?&quot;[arr.&quot;+v.length+&quot;]&quot;:&quot;[obj]&quot;):(typeof v===&quot;string&quot;?&quot;str.len=&quot;+v.length:String(v).substring(0,40)))+&quot;;&quot;;}return x||&quot;(&quot;+l+&quot; empty)&quot;;}
+
+// ── Inputs ────────────────────────────────────────────────────────────────────
+var r=decodeResults[0],rp=readerProperties;
+
+// ── Quality-object discovery ──────────────────────────────────────────────────
+var q=null,_qs=&quot;none&quot;;
+var _rc=[&quot;trucheck&quot;,&quot;metrics&quot;,&quot;quality&quot;,&quot;verificationResult&quot;,&quot;symbolVerificationResult&quot;,&quot;symVerResult&quot;,&quot;verificationResults&quot;,&quot;qualityResult&quot;,&quot;gradeResult&quot;,&quot;isoResult&quot;,&quot;truCheckResult&quot;,&quot;verResult&quot;,&quot;isoVerResult&quot;,&quot;verificationData&quot;,&quot;gradeData&quot;,&quot;verification&quot;,&quot;grade&quot;,&quot;gradeInfo&quot;,&quot;result&quot;,&quot;data&quot;];
+for(var _i=0;_i&lt;_rc.length;_i++){var _rv=pk(r,_rc[_i]);if(_rv!==null){q=_rv;_qs=&quot;r.&quot;+_rc[_i];break;}}
+if(q===null){var _rpc=[&quot;quality&quot;,&quot;verificationResult&quot;,&quot;symbolVerificationResult&quot;,&quot;symVerResult&quot;,&quot;qualityResult&quot;,&quot;verificationData&quot;,&quot;truCheckResult&quot;,&quot;isoResult&quot;,&quot;gradeResult&quot;,&quot;verResult&quot;,&quot;gradeData&quot;,&quot;verification&quot;];for(var _j=0;_j&lt;_rpc.length;_j++){var _pv=pk(rp,_rpc[_j]);if(_pv!==null){q=_pv;_qs=&quot;rp.&quot;+_rpc[_j];break;}}}
+if(q===null){var _ac=[&quot;quality&quot;,&quot;verificationResult&quot;,&quot;qualityResult&quot;,&quot;gradeResult&quot;];for(var _k=0;_k&lt;_ac.length;_k++){var _av=pk(decodeResults,_ac[_k]);if(_av!==null){q=_av;_qs=&quot;decodeResults.&quot;+_ac[_k];break;}}}
+if(q===null&amp;&amp;pk(r,&quot;result&quot;)!==null){var _rr=pk(r,&quot;result&quot;),_sk=[&quot;quality&quot;,&quot;verificationResult&quot;,&quot;gradeResult&quot;,&quot;isoResult&quot;];for(var _l=0;_l&lt;_sk.length;_l++){var _ssv=pk(_rr,_sk[_l]);if(_ssv!==null){q=_ssv;_qs=&quot;r.result.&quot;+_sk[_l];break;}}}
+
+// ── XML assembly ──────────────────────────────────────────────────────────────
+var o=&#x27;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\r\n&lt;DMCCResponse&gt;\r\n&lt;DMSymVerResponse&gt;\r\n&#x27;;
+
+// ── Symbology / identity ──────────────────────────────────────────────────────
+var _sy=(r&amp;&amp;r.symbology&amp;&amp;typeof r.symbology===&quot;object&quot;)?r.symbology:null;
+var _ai=_sy?s(_sy.id):&quot;&quot;;
+var _qr=(_ai.length&gt;=2&amp;&amp;_ai.charAt(1)===&quot;Q&quot;);
+var _dm=(_ai.length&gt;=2&amp;&amp;_ai.charAt(1)===&quot;d&quot;);
+var _sb=&quot;&quot;;
+if(r){if(typeof r.symbologyName===&quot;string&quot;&amp;&amp;r.symbologyName){_sb=r.symbologyName;}else if(typeof r.symbology===&quot;string&quot;&amp;&amp;r.symbology){_sb=r.symbology;}else if(r.symbology&amp;&amp;r.symbology.name){_sb=String(r.symbology.name);}else{_sb=s(r.symbology);}}
+o+=elem(&quot;DateTime&quot;,isoNow());
+o+=elem(&quot;SymbologyName&quot;,_sb);
+
+var _ds=(r&amp;&amp;r.decoded)?(r.content||&quot;&quot;):&quot;&quot;;
+if(_qr&amp;&amp;_ai.length&gt;=3){var _am=_ai.charAt(2);if(_am===&quot;2&quot;||_am===&quot;4&quot;||_am===&quot;6&quot;){if(_ds.length&gt;=3&amp;&amp;_ds.charCodeAt(0)===0&amp;&amp;_ds.charCodeAt(1)===0&amp;&amp;_ds.charCodeAt(2)===38){_ds=_ds.substring(3);}}}
+o+=elem(&quot;DecodedData&quot;,_ds);
+o+=elem(&quot;SymbologyId&quot;,_sy?s(_sy.id):&quot;&quot;);
+o+=elem(&quot;SymbolQuality&quot;,_sy?s(_sy.quality):&quot;&quot;);
+o+=elem(&quot;SymbolAngle&quot;,_sy?s(_sy.angle):&quot;&quot;);
+o+=elem(&quot;ModuleSizePx&quot;,_sy?s(_sy.moduleSize):&quot;&quot;);
+
+var m=pk(r,&quot;metrics&quot;);
+o+=elem(&quot;PushScriptDiag&quot;,&quot;v1.37 q=&quot;+_qs+&quot; m=&quot;+(m?&quot;found&quot;:&quot;null&quot;));
+o+=elem(&quot;Source&quot;,s(r&amp;&amp;typeof r.source===&quot;string&quot;?r.source:&quot;&quot;));
+
+// ── Grade emission ────────────────────────────────────────────────────────────
+if(q){
+
+var qo=pk(q,&quot;overall&quot;),qn=pk(q,&quot;general&quot;);
+function op(k){return qo?prop(qo,k):&quot;&quot;;}
+function gp(k){return qn?prop(qn,k):&quot;&quot;;}
+
+var _uec=pk(q,&quot;unusedErrorCorrection&quot;),_sc=pk(q,&quot;symbolContrast&quot;),_cc=pk(q,&quot;cellContrast&quot;);
+var _mod=pk(q,&quot;modulation&quot;),_cm=pk(q,&quot;cellModulation&quot;);
+var _rm=pk(q,&quot;reflectanceMargin&quot;),_anu=pk(q,&quot;axialNonuniformity&quot;),_gnu=pk(q,&quot;gridNonuniformity&quot;);
+var _fpd=pk(q,&quot;fixedPatternDamage&quot;),_lls=pk(q,&quot;leftLSide&quot;),_bls=pk(q,&quot;bottomLSide&quot;);
+var _lqz=pk(q,&quot;leftQuietZone&quot;),_bqz=pk(q,&quot;bottomQuietZone&quot;),_rqz=pk(q,&quot;rightQuietZone&quot;),_tqz=pk(q,&quot;topQuietZone&quot;);
+var _tct=pk(q,&quot;topClockTrack&quot;),_rct=pk(q,&quot;rightClockTrack&quot;);
+var _ttr=pk(q,&quot;topTransitionRatio&quot;),_rtr=pk(q,&quot;rightTransitionRatio&quot;),_dec=pk(q,&quot;decode&quot;);
+var _gs=op(&quot;gradingStandard&quot;),_ii=(_gs.indexOf(&quot;ISO 15415&quot;)===0);
+var _scs=_ii?_sc:_cc,_mds=_ii?_mod:_cm;
+
+o+=elem(&quot;FormalGrade&quot;,(op(&quot;gradeLetter&quot;))?(op(&quot;gradeValue&quot;)+&quot;/&quot;+op(&quot;gradeLetter&quot;)):&quot;&quot;);
+o+=elem(&quot;OverallGrade&quot;,op(&quot;gradeLetter&quot;));
+o+=elem(&quot;OverallGradeNumeric&quot;,op(&quot;gradeValue&quot;));
+o+=elem(&quot;GradingStandard&quot;,_gs);
+o+=elem(&quot;ApplicationStandard&quot;,op(&quot;applicationStandardName&quot;));
+o+=elem(&quot;ApplicationPass&quot;,op(&quot;applicationStandardPass&quot;));
+var _aps=op(&quot;applicationStandardPass&quot;),_apx=_aps.indexOf(&quot; (&quot;);
+o+=elem(&quot;ApplicationPassReason&quot;,(_apx!==-1&amp;&amp;_aps.charAt(_aps.length-1)===&quot;)&quot;)?_aps.substring(_apx+2,_aps.length-1):&quot;&quot;);
+o+=elem(&quot;ApertureRef&quot;,op(&quot;aperture&quot;)||op(&quot;apertureRef&quot;)||prop(m,&quot;aperture&quot;));
+o+=elem(&quot;Wavelength&quot;,op(&quot;wavelength&quot;)||op(&quot;waveLength&quot;)||prop(m,&quot;wavelength&quot;));
+o+=elem(&quot;Lighting&quot;,op(&quot;lighting&quot;)||op(&quot;lightingType&quot;)||prop(m,&quot;lighting&quot;));
+o+=elem(&quot;Standard&quot;,_gs||prop(m,&quot;standard&quot;));
+
+o+=elem(&quot;UECPercent&quot;,mpa(_uec));
+o+=elem(&quot;UECGrade&quot;,tg(_uec));
+
+var _rl=rn(pk(q,&quot;reflectanceLight&quot;)),_rd=rn(pk(q,&quot;reflectanceDark&quot;));
+var _rli=(!isNaN(_rl)&amp;&amp;_rl!==-1)?String(Math.round(rpc(_rl))):&quot;&quot;;
+var _rdi=(!isNaN(_rd)&amp;&amp;_rd!==-1)?String(Math.round(rpc(_rd))):&quot;&quot;;
+o+=elem(&quot;SCPercent&quot;,mpa(_scs));
+o+=elem(&quot;SCRlRd&quot;,(_rli&amp;&amp;_rdi)?(_rli+&quot;/&quot;+_rdi):&quot;&quot;);
+o+=elem(&quot;SCGrade&quot;,tg(_scs));
+o+=elem(&quot;MinReflectance&quot;,(_rd!==-1&amp;&amp;!isNaN(_rd))?String(Math.round(rpc(_rd))):&quot;&quot;);
+o+=elem(&quot;MODGrade&quot;,tg(_mds));
+o+=elem(&quot;RMGrade&quot;,tg(_rm));
+o+=elem(&quot;ANUPercent&quot;,_qr?s(mv(_anu)):mpa(_anu));
+o+=elem(&quot;ANUGrade&quot;,tg(_anu));
+o+=elem(&quot;GNUPercent&quot;,mpa(_gnu));
+o+=elem(&quot;GNUGrade&quot;,tg(_gnu));
+o+=elem(&quot;FPDValue&quot;,mv(_fpd));
+o+=elem(&quot;FPDGrade&quot;,tg(_fpd));
+o+=elem(&quot;DecodeGrade&quot;,tg(_dec));
+
+var _ma=pk(q,&quot;modulationArray&quot;),_ml=(_ma&amp;&amp;typeof _ma.length!==&quot;undefined&quot;)?_ma.length:0;
+var _msd=(_ml&gt;0)?Math.sqrt(_ml):0,_qzo=_qr?8:2;
+var _mss=(_msd===Math.floor(_msd)&amp;&amp;_msd&gt;2)?(_msd-_qzo):0;
+var _msz=(_mss&gt;0)?(_mss+&quot;x&quot;+_mss):&quot;&quot;;
+if(!_msz&amp;&amp;_ml&gt;0){var _rmap={&quot;200&quot;:&quot;8x18&quot;,&quot;340&quot;:&quot;8x32&quot;,&quot;392&quot;:&quot;12x26&quot;,&quot;532&quot;:&quot;12x36&quot;,&quot;684&quot;:&quot;16x36&quot;,&quot;900&quot;:&quot;16x48&quot;};var _rh=_rmap[String(_ml)];if(_rh){_msz=_rh;}}
+
+var _ca=pk(q,&quot;codewordArray&quot;),_cl=(_ca&amp;&amp;typeof _ca.length!==&quot;undefined&quot;)?_ca.length:0,_ec=0;
+if(_ca&amp;&amp;_cl&gt;0){for(var _ci=0;_ci&lt;_cl;_ci++){var _cw=_ca[_ci];if(_cw&amp;&amp;_cw.isCorrected){_ec++;}}}
+
+var _eaA=pk(q,&quot;encodationAnalysisArray&quot;),_el=(_eaA&amp;&amp;typeof _eaA.length!==&quot;undefined&quot;)?_eaA.length:0;
+var _encC=gp(&quot;encodedCharacters&quot;);
+if(!_encC&amp;&amp;_el&gt;0){_encC=s(_el);}
+
+o+=elem(&quot;MatrixSize&quot;,_msz);
+o+=elem(&quot;HorizontalBWG&quot;,gp(&quot;horizontalBWG&quot;));
+o+=elem(&quot;VerticalBWG&quot;,gp(&quot;verticalBWG&quot;));
+o+=elem(&quot;EncodedCharacters&quot;,_encC);
+o+=elem(&quot;TotalCodewords&quot;,_cl&gt;0?s(_cl):&quot;&quot;);
+
+var _syms=pk(q,&quot;symbols&quot;),_sym0=(_syms&amp;&amp;typeof _syms.length!==&quot;undefined&quot;&amp;&amp;_syms.length&gt;0)?_syms[0]:null;
+var _dCW=_sym0?pk(_sym0,&quot;dataCodewords&quot;):null;
+var _eCW=_sym0?(pk(_sym0,&quot;ecCodewords&quot;)||pk(_sym0,&quot;errorCorrectionCodewords&quot;)):null;
+var _ecl=_sym0?(pk(_sym0,&quot;errorCorrectionLevel&quot;)||pk(_sym0,&quot;ecLevel&quot;)):null;
+o+=elem(&quot;DataCodewords&quot;,_dCW!==null?s(_dCW):&quot;&quot;);
+o+=elem(&quot;ErrorCorrectionBudget&quot;,_eCW!==null?s(_eCW):&quot;&quot;);
+o+=elem(&quot;ErrorsCorrected&quot;,_cl&gt;0?s(_ec):&quot;&quot;);
+o+=elem(&quot;ErrorCapacityUsed&quot;,_cl&gt;0?s(_ec*2):&quot;&quot;);
+
+var _ect;
+if(_qr){_ect=_ecl||gp(&quot;errorCorrectionLevel&quot;)||gp(&quot;ecLevel&quot;)||op(&quot;ecLevel&quot;)||&quot;&quot;;}
+else if(_dm){_ect=&quot;ECC200&quot;;}
+else{_ect=&quot;&quot;;}
+o+=elem(&quot;ErrorCorrectionType&quot;,_ect);
+o+=elem(&quot;NominalXDim&quot;,gp(&quot;xDimension&quot;));
+o+=elem(&quot;ImagePolarity&quot;,gp(&quot;polarity&quot;)||gp(&quot;imagePolarity&quot;));
+o+=elem(&quot;ContrastUniformity&quot;,gp(&quot;contrastUniformity&quot;));
+o+=elem(&quot;MRD&quot;,gp(&quot;MRD&quot;)||gp(&quot;mrd&quot;));
+o+=elem(&quot;ContrastUniformityRow&quot;,gp(&quot;contrastUniformityRow&quot;));
+o+=elem(&quot;ContrastUniformityCol&quot;,gp(&quot;contrastUniformityCol&quot;));
+
+var _cu=parseFloat(gp(&quot;contrastUniformity&quot;)),_mrd=parseFloat(gp(&quot;MRD&quot;)||gp(&quot;mrd&quot;));
+o+=elem(&quot;OpticsSource&quot;,(!isNaN(_cu)&amp;&amp;_cu===-1&amp;&amp;!isNaN(_mrd)&amp;&amp;_mrd===-1)?&quot;LoadedImage&quot;:&quot;LiveScan&quot;);
+
+var _dd=pk(q,&quot;distributedDamageGrade&quot;);
+o+=elem(&quot;DDGrade&quot;,(_dd&amp;&amp;typeof _dd===&quot;object&quot;)?tg(_dd):s(_dd));
+var _avg=pk(q,&quot;averageGrade&quot;);
+o+=elem(&quot;AverageGrade&quot;,tg(_avg));
+o+=elem(&quot;AverageGradeNumeric&quot;,tn(_avg));
+
+o+=elem(&quot;CustomNote&quot;,s(pk(q,&quot;customNote&quot;)));
+
+o+=elem(&quot;LLSGrade&quot;,tg(_lls));
+o+=elem(&quot;BLSGrade&quot;,tg(_bls));
+o+=elem(&quot;LQZGrade&quot;,tg(_lqz));
+o+=elem(&quot;BQZGrade&quot;,tg(_bqz));
+o+=elem(&quot;TQZGrade&quot;,tg(_tqz));
+o+=elem(&quot;RQZGrade&quot;,tg(_rqz));
+o+=elem(&quot;TTRPercent&quot;,mpa(_ttr));
+o+=elem(&quot;TTRGrade&quot;,tg(_ttr));
+o+=elem(&quot;RTRPercent&quot;,mpa(_rtr));
+o+=elem(&quot;RTRGrade&quot;,tg(_rtr));
+o+=elem(&quot;TCTGrade&quot;,tg(_tct));
+o+=elem(&quot;RCTGrade&quot;,tg(_rct));
+
+o+=elem(&quot;ULQZGrade&quot;,&quot;&quot;);o+=elem(&quot;URQZGrade&quot;,&quot;&quot;);o+=elem(&quot;RUQZGrade&quot;,&quot;&quot;);o+=elem(&quot;RLQZGrade&quot;,&quot;&quot;);
+o+=elem(&quot;LLQZGrade&quot;,&quot;&quot;);o+=elem(&quot;LRQZGrade&quot;,&quot;&quot;);o+=elem(&quot;HClockTrackGrade&quot;,&quot;&quot;);o+=elem(&quot;VClockTrackGrade&quot;,&quot;&quot;);
+o+=elem(&quot;ULQTTRPercent&quot;,&quot;&quot;);o+=elem(&quot;ULQTTRGrade&quot;,&quot;&quot;);o+=elem(&quot;URQTTRPercent&quot;,&quot;&quot;);o+=elem(&quot;URQTTRGrade&quot;,&quot;&quot;);
+o+=elem(&quot;LLQTTRPercent&quot;,&quot;&quot;);o+=elem(&quot;LLQTTRGrade&quot;,&quot;&quot;);o+=elem(&quot;LRQTTRPercent&quot;,&quot;&quot;);o+=elem(&quot;LRQTTRGrade&quot;,&quot;&quot;);
+o+=elem(&quot;ULQRTRPercent&quot;,&quot;&quot;);o+=elem(&quot;ULQRTRGrade&quot;,&quot;&quot;);o+=elem(&quot;URQRTRPercent&quot;,&quot;&quot;);o+=elem(&quot;URQRTRGrade&quot;,&quot;&quot;);
+o+=elem(&quot;LLQRTRPercent&quot;,&quot;&quot;);o+=elem(&quot;LLQRTRGrade&quot;,&quot;&quot;);o+=elem(&quot;LRQRTRPercent&quot;,&quot;&quot;);o+=elem(&quot;LRQRTRGrade&quot;,&quot;&quot;);
+o+=elem(&quot;ULQTCTGrade&quot;,&quot;&quot;);o+=elem(&quot;URQTCTGrade&quot;,&quot;&quot;);o+=elem(&quot;LLQTCTGrade&quot;,&quot;&quot;);o+=elem(&quot;LRQTCTGrade&quot;,&quot;&quot;);
+o+=elem(&quot;ULQRCTGrade&quot;,&quot;&quot;);o+=elem(&quot;URQRCTGrade&quot;,&quot;&quot;);o+=elem(&quot;LLQRCTGrade&quot;,&quot;&quot;);o+=elem(&quot;LRQRCTGrade&quot;,&quot;&quot;);
+
+o+=elem(&quot;ULPGrade&quot;,_qr?tg(pk(q,&quot;upperLeftPattern&quot;)):&quot;&quot;);
+o+=elem(&quot;URPGrade&quot;,_qr?tg(pk(q,&quot;upperRightPattern&quot;)):&quot;&quot;);
+o+=elem(&quot;LLPGrade&quot;,_qr?tg(pk(q,&quot;lowerLeftPattern&quot;)):&quot;&quot;);
+o+=elem(&quot;HCTGrade&quot;,_qr?tg(pk(q,&quot;horizontalClockTrack&quot;)):&quot;&quot;);
+o+=elem(&quot;VCTGrade&quot;,_qr?tg(pk(q,&quot;verticalClockTrack&quot;)):&quot;&quot;);
+o+=elem(&quot;ALPGrade&quot;,_qr?tg(pk(q,&quot;alignmentPatterns&quot;)):&quot;&quot;);
+o+=elem(&quot;VIBGrade&quot;,_qr?tg(pk(q,&quot;versionInformationBlock&quot;)):&quot;&quot;);
+o+=elem(&quot;FIBGrade&quot;,_qr?tg(pk(q,&quot;formatInformationBlock&quot;)):&quot;&quot;);
+
+var _ag=prop(m,&quot;ansiGrade&quot;)||prop(m,&quot;symbolAnsiGrade&quot;);
+o+=elem(&quot;SymbolAnsiGrade&quot;,_ag);
+o+=elem(&quot;AvgEdge&quot;,prop(m,&quot;avgEdge&quot;));
+o+=elem(&quot;AvgRlRd&quot;,prop(m,&quot;avgRlRd&quot;));
+o+=elem(&quot;AvgSC&quot;,prop(m,&quot;avgSc&quot;));
+o+=elem(&quot;AvgMinEC&quot;,prop(m,&quot;avgMinEc&quot;));
+o+=elem(&quot;AvgMOD&quot;,prop(m,&quot;avgMod&quot;));
+o+=elem(&quot;AvgDefect&quot;,prop(m,&quot;avgDefect&quot;));
+o+=elem(&quot;AvgDcod&quot;,prop(m,&quot;avgDcod&quot;));
+o+=elem(&quot;AvgDEC&quot;,prop(m,&quot;avgDec&quot;));
+o+=elem(&quot;AvgLQZ&quot;,prop(m,&quot;avgLqz&quot;));
+o+=elem(&quot;AvgRQZ&quot;,prop(m,&quot;avgRqz&quot;));
+o+=elem(&quot;AvgHQZ&quot;,prop(m,&quot;avgHqz&quot;));
+o+=elem(&quot;AvgMinQZ&quot;,prop(m,&quot;avgMinQz&quot;));
+o+=elem(&quot;BWGPercent&quot;,mpa(pk(m,&quot;printGrowth&quot;)));
+o+=elem(&quot;Magnification&quot;,prop(m,&quot;magnification&quot;));
+o+=elem(&quot;Ratio&quot;,prop(m,&quot;ratio&quot;));
+o+=elem(&quot;NominalXDim1D&quot;,prop(m,&quot;nominalXDim1D&quot;)||prop(m,&quot;nominalXDim1d&quot;));
+
+} // end if(q)
+
+// ── Post-q-block wires ────────────────────────────────────────────────────────
+o+=elem(&quot;JpegImageBase64&quot;,q?s(pk(q,&quot;jpegImage&quot;)):&quot;&quot;);
+o+=elem(&quot;CalibrationDate&quot;,q?s(pk(q,&quot;calibrationDate&quot;)):&quot;&quot;);
+var _s3d=pk(rp,&quot;status3D&quot;);
+o+=elem(&quot;FieldCalibrated&quot;,_s3d?s(pk(_s3d,&quot;fieldCalibrated&quot;)):&quot;&quot;);
+o+=elem(&quot;FactoryCalibrated&quot;,_s3d?s(pk(_s3d,&quot;factoryCalibrated&quot;)):&quot;&quot;);
+var _mpg=pk(m,&quot;minPassGrade&quot;);
+o+=elem(&quot;MinPassGrade&quot;,tg(_mpg));
+o+=elem(&quot;MinPassRaw&quot;,mv(_mpg));
+
+// ── v1.37 probe: DebugApplicationStdArray ────────────────────────────────────
+// q.applicationStdArray appeared as [arr.13] in v1.36 DebugQTopKeys on the
+// GS1 4-AI pharma scan.  13 entries for 4 AIs suggests ~3 sub-fields per AI
+// element (e.g. ai, value, pass/fail).
+//
+// This probe emits: len=N followed by sub-key dump of first 6 elements.
+// Expected on GS1 code:  len=13|[0]=ai=01;value=...;pass=...;|[1]=...
+// Expected on non-GS1:   len=-1  (array absent)
+// Expected on GS1 no-parser: len=0  (array present but empty)
+//
+// Variable note: _ai already used for AIM ID above; using _asa* prefix here.
+var _asa=pk(q,&quot;applicationStdArray&quot;);
+var _asaLen=(_asa&amp;&amp;typeof _asa.length!==&quot;undefined&quot;)?_asa.length:-1;
+var _asaDiag=&quot;len=&quot;+_asaLen;
+if(_asa&amp;&amp;_asaLen&gt;0){
+  var _asaLim=(_asaLen&lt;6)?_asaLen:6;
+  for(var _asai=0;_asai&lt;_asaLim;_asai++){
+    _asaDiag+=&quot;|[&quot;+_asai+&quot;]=&quot;+ekv(_asa[_asai],&quot;elem&quot;+_asai);
+  }
+}
+o+=elem(&quot;DebugApplicationStdArray&quot;,_asaDiag);
+
+// ── v1.36 carry-forward: DebugBarcodeAssignment ──────────────────────────────
+// r.barcodeAssignment=[obj] confirmed in scan #13 inventory — still unprobed.
+o+=elem(&quot;DebugBarcodeAssignment&quot;,ekv(r?pk(r,&quot;barcodeAssignment&quot;):null,&quot;r.barcodeAssignment&quot;));
+
+o+=&#x27;&lt;/DMSymVerResponse&gt;\r\n&lt;/DMCCResponse&gt;&#x27;;
+if(typeof outputResults!==&quot;undefined&quot;&amp;&amp;outputResults!==null){outputResults.content=o;}else{output.content=o;}
+}
+</textarea>
+</body>
+</html>

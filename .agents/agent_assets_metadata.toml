@@ -274,3 +274,10 @@ uri = "file://push-script-viewer.html"
 type = "text"
 title = "DmstPushScript_v1.js"
 description = "Click 'Select All & Copy', then paste into DMST Script panel."
+
+[[outputs]]
+id = "dNKPIlqhJPff97rmBm9qK"
+uri = "file://push-script-v137-viewer.html"
+type = "text"
+title = "VTCCP Push Script v1.37"
+description = "Click 'Select All & Copy', then paste into DMST → Format Data → Script-Based Formatting → Scripting tab."
