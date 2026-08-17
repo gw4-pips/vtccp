@@ -979,7 +979,7 @@ public sealed class SessionViewModel : ViewModelBase
                         // Replace mode — write hybrid to the same dir + filename as original
                         string dir      = Path.GetDirectoryName(targetPath)!;
                         string baseName = Path.GetFileNameWithoutExtension(targetPath);
-                        await HybridReportGenerator.SaveAsync(record, dir, baseName);
+                        await HybridReportGenerator.SaveToPathAsync(record, Path.Combine(dir, baseName + ".html"));
 
                         System.Diagnostics.Debug.WriteLine(
                             $"[VTCCP-REPLACE] Hybrid report written → '{targetPath}'");
