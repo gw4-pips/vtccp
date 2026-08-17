@@ -1,0 +1,69 @@
+PS C:\dev\vtccp> cd C:\dev\vtccp
+PS C:\dev\vtccp> git checkout -- .
+PS C:\dev\vtccp> git pull
+remote: Enumerating objects: 23, done.
+remote: Counting objects: 100% (23/23), done.
+remote: Compressing objects: 100% (7/7), done.
+remote: Total 16 (delta 9), reused 16 (delta 9), pack-reused 0 (from 0)
+Unpacking objects: 100% (16/16), 9.99 KiB | 185.00 KiB/s, done.
+From https://github.com/gw4-pips/vtccp
+   75181d0..eeb8b9d  main       -> origin/main
+Updating 75181d0..eeb8b9d
+Fast-forward
+ .agents/memory/dmcc-wire-protocol.md               |  49 +-
+ ...-https-raw-githubusercontent-_1787001962043.txt | 569 +++++++++++++++++++++
+ vtccp/.gitignore                                   |  43 ++
+ vtccp/tools/Deploy-PushScript.ps1                  | 264 ++++++++++
+ 4 files changed, 917 insertions(+), 8 deletions(-)
+ create mode 100644 attached_assets/Pasted-PS-C-Invoke-WebRequest-Uri-https-raw-githubusercontent-_1787001962043.txt
+ create mode 100644 vtccp/.gitignore
+ create mode 100644 vtccp/tools/Deploy-PushScript.ps1
+PS C:\dev\vtccp> git pull                          # picks up the .gitignore first
+Already up to date.
+PS C:\dev\vtccp> cd C:\dev\vtccp\vtccp\tools
+PS C:\dev\vtccp\vtccp\tools> .\Deploy-PushScript.ps1
+At C:\dev\vtccp\vtccp\tools\Deploy-PushScript.ps1:150 char:52
++ $modeCmd = [System.Text.Encoding]::ASCII.GetBytes("||>SET COM.DMCC-RE ...
++                                                    ~~
+The token '||' is not a valid statement separator in this version.
+At C:\dev\vtccp\vtccp\tools\Deploy-PushScript.ps1:163 char:54
++ Write-Host "[2/6] Sending SET COM.SCRIPT ($byteCount bytes) ..." -For ...
++                                                      ~~~~~
+Unexpected token 'bytes' in expression or statement.
+At C:\dev\vtccp\vtccp\tools\Deploy-PushScript.ps1:163 char:53
++ Write-Host "[2/6] Sending SET COM.SCRIPT ($byteCount bytes) ..." -For ...
++                                                     ~
+Missing closing ')' in expression.
+At C:\dev\vtccp\vtccp\tools\Deploy-PushScript.ps1:130 char:9
++ } catch {
++         ~
+Missing closing '}' in statement block or type definition.
+At C:\dev\vtccp\vtccp\tools\Deploy-PushScript.ps1:163 char:59
++ Write-Host "[2/6] Sending SET COM.SCRIPT ($byteCount bytes) ..." -For ...
++                                                           ~
+Unexpected token ')' in expression or statement.
+At C:\dev\vtccp\vtccp\tools\Deploy-PushScript.ps1:260 char:58
++ ... rite-Host "  Script  : DmstPushScript_v1.js ($lineCount lines / $byte ...
++                                                             ~~~~~
+Unexpected token 'lines' in expression or statement.
+At C:\dev\vtccp\vtccp\tools\Deploy-PushScript.ps1:260 char:57
++ Write-Host "  Script  : DmstPushScript_v1.js ($lineCount lines / $byt ...
++                                                         ~
+Missing closing ')' in expression.
+At C:\dev\vtccp\vtccp\tools\Deploy-PushScript.ps1:243 char:47
++ if ($r.Value -match "VTCCP DMST Push Script") {
++                                               ~
+Missing closing '}' in statement block or type definition.
+At C:\dev\vtccp\vtccp\tools\Deploy-PushScript.ps1:179 char:8
++ } else {
++        ~
+Missing closing '}' in statement block or type definition.
+At C:\dev\vtccp\vtccp\tools\Deploy-PushScript.ps1:260 char:82
++ ...  : DmstPushScript_v1.js ($lineCount lines / $byteCount bytes)" -Foreg ...
++                                                                 ~
+Unexpected token ')' in expression or statement.
+Not all parse errors were reported.  Correct the reported errors and try again.
+    + CategoryInfo          : ParserError: (:) [], ParseException
+    + FullyQualifiedErrorId : InvalidEndOfLine
+
+PS C:\dev\vtccp\vtccp\tools>

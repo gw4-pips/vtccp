@@ -32,3 +32,4 @@
 - [git push hook](git-push-hook.md) — real hook is workspace root .githooks/post-commit; vtccp/ is a subdir not a separate repo; must unset GIT_ASKPASS before push
 - [Hybrid Report generator](hybrid-report-generator.md) — DeviceInterface/Reports/HybridReportGenerator.cs; fire-and-forget from SessionViewModel after AddRecord; mirrors Webscan TruCheck CSS exactly; RFID block after Verification Grades
 - [Windows workstation setup](windows-workstation-setup.md) — clone to C:\dev\vtccp; source root is C:\dev\vtccp\vtccp; AsReader DLL at Q:\VendorDOC\AsReader…; known Windows-only build errors catalogued
+- [PowerShell 5.1 encoding trap](powershell-encoding.md) — PS 5.1 reads .ps1 as Win-1252; em-dash (0x94) and checkmark (0x93) silently close strings; all PS scripts must be ASCII-only
