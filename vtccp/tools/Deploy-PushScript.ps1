@@ -101,7 +101,7 @@ function Send-Dmcc {
 
     $raw = $raw.Trim()
 
-    # Extract ACK code — format: ||:::N[M]  where M=0 means success
+    # Extract ACK code  -  format: ||:::N[M]  where M=0 means success
     $ack = $null
     if ($raw -match '\|\|:::\d+\[(\d+)\]') {
         $ack = [int]$Matches[1]
@@ -128,7 +128,7 @@ $tcp = New-Object System.Net.Sockets.TcpClient
 try {
     $tcp.Connect($DeviceIp, $Port)
 } catch {
-    Write-Host "ERROR: Cannot connect to $DeviceIp`:$Port — $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "ERROR: Cannot connect to $DeviceIp`:$Port  -  $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
 $stream = $tcp.GetStream()
@@ -163,7 +163,7 @@ Write-Host ""
 Write-Host "[2/6] Sending SET COM.SCRIPT ($byteCount bytes) ..." -ForegroundColor Yellow
 
 # The DMCC SET command for COM.SCRIPT takes the full JS content as the value.
-# Large payload — write in 4 KB chunks; allow 8 s for the first ACK.
+# Large payload  -  write in 4 KB chunks; allow 8 s for the first ACK.
 $setScript = "SET COM.SCRIPT $jsContent"
 $r = Send-Dmcc -Stream $stream -Command $setScript -Label "SET COM.SCRIPT" `
                -ChunkSize 4096 -FirstRead 8000 -DrainRead 500
@@ -177,7 +177,7 @@ if ($null -eq $r.Ack) {
     $tcp.Close()
     exit 1
 } else {
-    Write-Host "     ACK [0] — OK." -ForegroundColor Green
+    Write-Host "     ACK [0]  -  OK." -ForegroundColor Green
 }
 
 # ---------------------------------------------------------------------------
@@ -193,7 +193,7 @@ if ($r.Ack -ne 0) {
     $tcp.Close()
     exit 1
 }
-Write-Host "     ACK [0] — OK." -ForegroundColor Green
+Write-Host "     ACK [0]  -  OK." -ForegroundColor Green
 
 # ---------------------------------------------------------------------------
 # Step 4: CONFIG.SAVE
@@ -211,7 +211,7 @@ if ($null -eq $r.Ack) {
     $tcp.Close()
     exit 1
 } else {
-    Write-Host "     ACK [0] — OK." -ForegroundColor Green
+    Write-Host "     ACK [0]  -  OK." -ForegroundColor Green
 }
 
 # ---------------------------------------------------------------------------
@@ -224,7 +224,7 @@ $r = Send-Dmcc -Stream $stream -Command "GET COM.SCRIPT-ENABLED" -Label "GET COM
 
 $enabledVal = $r.Value.Trim().ToUpper()
 if ($enabledVal -eq "ON") {
-    Write-Host "     COM.SCRIPT-ENABLED = $($r.Value)  ✓" -ForegroundColor Green
+    Write-Host "     COM.SCRIPT-ENABLED = $($r.Value)  (OK)" -ForegroundColor Green
 } else {
     Write-Host "     ERROR: COM.SCRIPT-ENABLED = '$($r.Value)' (expected ON)." -ForegroundColor Red
     $tcp.Close()
@@ -241,7 +241,7 @@ $r = Send-Dmcc -Stream $stream -Command "GET COM.SCRIPT" -Label "GET COM.SCRIPT"
 
 $scriptPreview = if ($r.Value.Length -gt 200) { $r.Value.Substring(0, 200) + "..." } else { $r.Value }
 if ($r.Value -match "VTCCP DMST Push Script") {
-    Write-Host "     Script header confirmed in device response  ✓" -ForegroundColor Green
+    Write-Host "     Script header confirmed in device response  (OK)" -ForegroundColor Green
 } else {
     Write-Host "     WARNING: Could not confirm VTCCP header in GET COM.SCRIPT response." -ForegroundColor DarkYellow
     Write-Host "     First 200 chars of response:" -ForegroundColor DarkYellow
@@ -259,6 +259,6 @@ Write-Host "  DEPLOY COMPLETE" -ForegroundColor Green
 Write-Host "  Device  : $DeviceIp (DM475V-DPM 866D76)" -ForegroundColor Green
 Write-Host "  Script  : DmstPushScript_v1.js ($lineCount lines / $byteCount bytes)" -ForegroundColor Green
 Write-Host "  Status  : COM.SCRIPT-ENABLED = ON  |  CONFIG.SAVE confirmed" -ForegroundColor Green
-Write-Host "  Next    : Trigger a scan in VtccpApp — push XML should arrive on port 44444." -ForegroundColor Green
+Write-Host "  Next    : Trigger a scan in VtccpApp  -  push XML should arrive on port 44444." -ForegroundColor Green
 Write-Host "=" * 72 -ForegroundColor Cyan
 Write-Host ""
