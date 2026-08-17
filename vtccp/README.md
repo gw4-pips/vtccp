@@ -99,18 +99,22 @@ without socket teardown.
   from the supplied context record.  Handles both 2D (ISO 15415) and 1D (ISO 15416) payloads.
   Wires `SC_RlRd` through the record from the `<SCRlRd>` XML element.
 
-### DMST Push Script (`DeviceInterface/Dmst/DmstPushScript_v1.js`)
-Ready-to-paste JavaScript for **Format Data → Scripting → Data Formatting** in DMST.
-Replaces the default plain-text output with a complete
+### DMST Format Data Script (canonical: `artifacts/script-viewer/src/v137.txt`)
+Ready-to-paste JavaScript for **Format Data → Script-Based Formatting → Scripting tab**
+in DMST. Replaces the default plain-text output with a complete
 `<DMCCResponse><DMSymVerResponse>…</DMSymVerResponse></DMCCResponse>` XML push that
 `DmstResultParser` can fully parse, producing a 167-column row in XLSX.
+
+The canonical version is **v1.37** at `artifacts/script-viewer/src/v137.txt`.
+Open it in the Script Viewer artifact (preview pane) and use the **Select All & Copy**
+button, then paste into DMST.
 
 **How to install:**
 1. In DMST, click **Format Data** in the Application Steps sidebar (left panel)
 2. On the **Basic** tab: select the **Script-Based Formatting** radio button
    *(it sits below the "Basic Formatting" radio — confirm any DMST warning prompt)*
 3. Click the **Scripting** tab at the top of the Format Data panel
-4. Paste the entire contents of `DmstPushScript_v1.js` into the editor
+4. Paste the entire contents of `v137.txt` into the editor
 5. Click **Save Settings → Write to device**
 
 **Coverage (firmware 6.x / DMV475):**
@@ -367,11 +371,11 @@ or scan a barcode while watching the VTCCP session for a record increment.
 
 ### DMST Push Script vs. Default XML Format
 
-If `DmstPushScript_v1.js` is NOT installed, the device pushes a minimal XML payload
-that `DmstResultParser` can still parse for identity and overall-grade columns, but
-the majority of the 167-column schema will be blank.
+If the Format Data script (v1.37) is NOT installed, the device pushes a minimal XML
+payload that `DmstResultParser` can still parse for identity and overall-grade columns,
+but the majority of the 167-column schema will be blank.
 
-Install the script for full column coverage (see the **DMST Push Script** section
+Install the script for full column coverage (see the **DMST Format Data Script** section
 above and the installation steps in the script's header comments).
 
 ---

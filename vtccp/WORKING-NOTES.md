@@ -196,8 +196,9 @@ current JS push script. Targeted at advanced application repair without needing 
 **Status**: PARKED — log only, no implementation until user directs.
 
 Every VCCS Command Pilot installation currently requires the operator to manually
-copy the push script into DMST → TruCheck Configuration → Event window. This is
-a setup step that can fail silently if the wrong version is pasted.
+paste the Format Data script into DMST → Format Data → Script-Based Formatting →
+Scripting tab. This is a setup step that can fail silently if the wrong version is
+pasted. Canonical version: v1.37 at `artifacts/script-viewer/src/v137.txt`.
 
 **Requirement**: when VTCCP connects to a DataMan device, it should automatically
 write the current production push script to the device via DMCC so the device is
