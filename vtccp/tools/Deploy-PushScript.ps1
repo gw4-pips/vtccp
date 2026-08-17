@@ -168,14 +168,15 @@ Write-Host ""
 Write-Host "[2/6] Sending SET COM.SCRIPT ($byteCount bytes) ..." -ForegroundColor Yellow
 
 # The DMCC SET command for COM.SCRIPT takes the full JS content as the value.
-# Large payload  -  write in 4 KB chunks; allow 8 s for the first ACK.
+# Large payload  -  write in 4 KB chunks.
+# The device needs time to receive, parse, and NVRAM-write 80+ KB; allow 60 s.
 $setScript = "SET COM.SCRIPT $jsEscaped"
 $r = Send-Dmcc -Stream $stream -Command $setScript -Label "SET COM.SCRIPT" `
-               -ChunkSize 4096 -FirstRead 8000 -DrainRead 500
+               -ChunkSize 4096 -FirstRead 60000 -DrainRead 1000
 
 if ($null -eq $r.Ack) {
-    Write-Host "     WARNING: No ACK received for SET COM.SCRIPT. Response:" -ForegroundColor DarkYellow
-    Write-Host "     $($r.Raw)" -ForegroundColor DarkYellow
+    Write-Host "     WARNING: No ACK within timeout for SET COM.SCRIPT." -ForegroundColor DarkYellow
+    Write-Host "     Pausing 5 s then continuing  -  device may still have written the script." -ForegroundColor DarkYellow
 } elseif ($r.Ack -ne 0) {
     Write-Host "     ERROR: SET COM.SCRIPT returned ACK code $($r.Ack)." -ForegroundColor Red
     Write-Host "     Response: $($r.Raw)" -ForegroundColor Red
@@ -183,6 +184,18 @@ if ($null -eq $r.Ack) {
     exit 1
 } else {
     Write-Host "     ACK [0]  -  OK." -ForegroundColor Green
+}
+
+# Drain any late-arriving bytes before issuing the next command.
+Write-Host "     Draining stream ..." -ForegroundColor Gray
+Start-Sleep -Milliseconds 2000
+$drain = New-Object byte[] 65536
+$stream.ReadTimeout = 500
+while ($true) {
+    try {
+        $n = $stream.Read($drain, 0, $drain.Length)
+        if ($n -le 0) { break }
+    } catch { break }
 }
 
 # ---------------------------------------------------------------------------
