@@ -1,0 +1,40 @@
+PS C:\dev\vtccp> git pull
+remote: Enumerating objects: 18, done.
+remote: Counting objects: 100% (18/18), done.
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 11 (delta 8), reused 11 (delta 8), pack-reused 0 (from 0)
+Unpacking objects: 100% (11/11), 1.76 KiB | 40.00 KiB/s, done.
+From https://github.com/gw4-pips/vtccp
+   316b2be..e64601d  main       -> origin/main
+Updating 316b2be..e64601d
+Fast-forward
+ ...-VendorDOC-AsReader-Asterisk-_1786992071949.txt | 27 ++++++++++++++++++++++
+ vtccp/VtccpApp/ViewModels/SessionViewModel.cs      |  2 +-
+ vtccp/VtccpApp/VtccpApp.csproj                     |  2 +-
+ 3 files changed, 29 insertions(+), 2 deletions(-)
+ create mode 100644 attached_assets/Pasted-PS-C-dev-vtccp-Copy-Item-Q-VendorDOC-AsReader-Asterisk-_1786992071949.txt
+PS C:\dev\vtccp> cd C:\dev\vtccp\vtccp
+PS C:\dev\vtccp\vtccp> dotnet build VtccpWindows.sln -c Release
+Restore succeeded with 6 warning(s) in 1.0s
+    C:\dev\vtccp\vtccp\DeviceInterface\DeviceInterface.csproj : warning NU1701: Package 'PDFsharp-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+    C:\dev\vtccp\vtccp\DeviceInterface\DeviceInterface.csproj : warning NU1701: Package 'PDFsharp-MigraDoc-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+    C:\dev\vtccp\vtccp\TestHarness\TestHarness.csproj : warning NU1701: Package 'PDFsharp-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+    C:\dev\vtccp\vtccp\TestHarness\TestHarness.csproj : warning NU1701: Package 'PDFsharp-MigraDoc-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+    C:\dev\vtccp\vtccp\ConfigEngine\ConfigEngine.csproj : warning NU1701: Package 'PDFsharp-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+    C:\dev\vtccp\vtccp\ConfigEngine\ConfigEngine.csproj : warning NU1701: Package 'PDFsharp-MigraDoc-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+  ExcelEngine net8.0 succeeded (0.7s) → ExcelEngine\bin\Release\net8.0\ExcelEngine.dll
+  OcrEngine net8.0-windows10.0.18362.0 succeeded (0.7s) → OcrEngine\bin\Release\net8.0-windows10.0.18362.0\OcrEngine.dll
+  DeviceInterface net8.0 succeeded with 2 warning(s) (1.0s) → DeviceInterface\bin\Release\net8.0\DeviceInterface.dll
+    C:\dev\vtccp\vtccp\DeviceInterface\DeviceInterface.csproj : warning NU1701: Package 'PDFsharp-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+    C:\dev\vtccp\vtccp\DeviceInterface\DeviceInterface.csproj : warning NU1701: Package 'PDFsharp-MigraDoc-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+  ConfigEngine net8.0 succeeded with 2 warning(s) (0.3s) → ConfigEngine\bin\Release\net8.0\ConfigEngine.dll
+    C:\dev\vtccp\vtccp\ConfigEngine\ConfigEngine.csproj : warning NU1701: Package 'PDFsharp-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+    C:\dev\vtccp\vtccp\ConfigEngine\ConfigEngine.csproj : warning NU1701: Package 'PDFsharp-MigraDoc-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+  InlineIo net8.0 succeeded (0.3s) → InlineIo\bin\Debug\net8.0\InlineIo.dll
+  TestHarness net8.0 succeeded with 2 warning(s) (1.5s) → TestHarness\bin\Release\net8.0\TestHarness.dll
+    C:\dev\vtccp\vtccp\TestHarness\TestHarness.csproj : warning NU1701: Package 'PDFsharp-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+    C:\dev\vtccp\vtccp\TestHarness\TestHarness.csproj : warning NU1701: Package 'PDFsharp-MigraDoc-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+  VtccpApp net8.0-windows10.0.18362.0 succeeded (2.1s) → VtccpApp\bin\Release\net8.0-windows10.0.18362.0\VtccpApp.dll
+
+Build succeeded with 12 warning(s) in 5.3s
+PS C:\dev\vtccp\vtccp>
