@@ -47,7 +47,12 @@ if (-not (Test-Path $ScriptPath)) {
 
 $jsContent = Get-Content -Path $ScriptPath -Raw -Encoding UTF8
 $lineCount = ($jsContent -split "`n").Count
-$byteCount = [System.Text.Encoding]::ASCII.GetByteCount($jsContent)
+
+# DMCC command values must not contain real newlines -- the device treats every
+# \r\n as a command terminator.  Escape all newlines to literal \n (two chars)
+# so the entire script travels as one unbroken command line.
+$jsEscaped = $jsContent -replace "`r`n", "\n" -replace "`r", "\n" -replace "`n", "\n"
+$byteCount = [System.Text.Encoding]::ASCII.GetByteCount($jsEscaped)
 Write-Host ""
 Write-Host "Push Script  : $ScriptPath" -ForegroundColor Cyan
 Write-Host "Lines        : $lineCount   Bytes: $byteCount" -ForegroundColor Cyan
@@ -164,7 +169,7 @@ Write-Host "[2/6] Sending SET COM.SCRIPT ($byteCount bytes) ..." -ForegroundColo
 
 # The DMCC SET command for COM.SCRIPT takes the full JS content as the value.
 # Large payload  -  write in 4 KB chunks; allow 8 s for the first ACK.
-$setScript = "SET COM.SCRIPT $jsContent"
+$setScript = "SET COM.SCRIPT $jsEscaped"
 $r = Send-Dmcc -Stream $stream -Command $setScript -Label "SET COM.SCRIPT" `
                -ChunkSize 4096 -FirstRead 8000 -DrainRead 500
 
