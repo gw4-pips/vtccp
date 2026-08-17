@@ -1,0 +1,114 @@
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> # GS1 Resolver main — git state
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> git -C "H:\gs1-digital-link-resolver-main" log --oneline -3 2>&1
+git : fatal: not a git repository (or any of the parent directories): .git
+At line:1 char:1
++ git -C "H:\gs1-digital-link-resolver-main" log --oneline -3 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: not a gi...ectories): .git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> git -C "H:\gs1-digital-link-resolver-main" remote -v 2>&1
+git : fatal: not a git repository (or any of the parent directories): .git
+At line:1 char:1
++ git -C "H:\gs1-digital-link-resolver-main" remote -v 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: not a gi...ectories): .git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> Quite a bit indeed — but the key lines jump out clearly. Here's what the desktop has:
+>>
+>> | What | Path | Notes |
+>> |---|---|---|
+>> | **VtccpApp** | `H:\github\vtccp` | Clone on H:, unknown version |
+>> | **GS1 Resolver (main)** | `H:\gs1-digital-link-resolver-main\` | Where you were working (PS prompt) |
+>> | **GS1 Resolver (secondary)** | `H:\m2dir-repo\gs1-digital-link-resolver` | Second copy — unknown state |
+>>
+>> Three targeted checks to understand what we're dealing with:
+Quite : The term 'Quite' is not recognized as the name of a cmdlet, function, script file, or operable program. Check
+the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ Quite a bit indeed — but the key lines jump out clearly. Here's what  ...
++ ~~~~~
+    + CategoryInfo          : ObjectNotFound: (Quite:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge>
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> ```powershell
+`powershell : The term '`powershell' is not recognized as the name of a cmdlet, function, script file, or operable
+program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ```powershell
++ ~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (`powershell:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> # vtccp version on desktop
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> Get-Content "H:\github\vtccp\vtccp\VtccpApp\VtccpApp.csproj" | Select-String "<Version>"
+
+    <Version>1.3.7</Version>
+
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> ```
+`` : The term '``' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ```
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (``:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge>
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> ```powershell
+`powershell : The term '`powershell' is not recognized as the name of a cmdlet, function, script file, or operable
+program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ```powershell
++ ~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (`powershell:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> # GS1 Resolver main — git state
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> git -C "H:\gs1-digital-link-resolver-main" log --oneline -3 2>&1
+git : fatal: not a git repository (or any of the parent directories): .git
+At line:1 char:1
++ git -C "H:\gs1-digital-link-resolver-main" log --oneline -3 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: not a gi...ectories): .git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> git -C "H:\gs1-digital-link-resolver-main" remote -v 2>&1
+git : fatal: not a git repository (or any of the parent directories): .git
+At line:1 char:1
++ git -C "H:\gs1-digital-link-resolver-main" remote -v 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (fatal: not a gi...ectories): .git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> ```
+`` : The term '``' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the
+spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ```
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (``:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge>
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> ```powershell
+`powershell : The term '`powershell' is not recognized as the name of a cmdlet, function, script file, or operable
+program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ ```powershell
++ ~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (`powershell:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> # GS1 Resolver secondary — git state
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> git -C "H:\m2dir-repo\gs1-digital-link-resolver" log --oneline -3 2>&1
+5f2ce7e (HEAD -> main, origin/main, origin/HEAD) merge: reconcile GitHub main (July 12-27 direct pushes) into local history
+838f0c8 (origin/workspace-main-2026-07-27) Add an internal endpoint to keep the database active
+5a60a67 Add logo variations for "Sleep on It" brand
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge> git -C "H:\m2dir-repo\gs1-digital-link-resolver" remote -v 2>&1
+origin  https://github.com/gw4-pips/gs1-digital-link-resolver.git (fetch)
+origin  https://github.com/gw4-pips/gs1-digital-link-resolver.git (push)
+PS H:\gs1-digital-link-resolver-main\tools\rfid-wedge>
