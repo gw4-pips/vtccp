@@ -1,5 +1,6 @@
 namespace VtccpApp.Services;
 
+using System.IO;
 using ConfigEngine.Models;
 using DeviceInterface.Rfid.Gcp;
 
