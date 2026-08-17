@@ -27,6 +27,18 @@ for every single command, every time, on every connection. `DmccCommand.WireHead
 **How to apply**: Before writing any DMCC send call, confirm the string starts with
 `DmccCommand.WireHeader` or the literal `||>`. Never send a bare command name.
 
+## ★★★ SET EXTENDED MODE FIRST — NEVER SKIP ★★★
+
+**After connecting to port 23, ALWAYS send `||>SET COM.DMCC-RESPONSE 2\r\n` before any GET command.**
+
+- Default mode is Silent (0) — device returns ZERO BYTES for every command including GETs
+- Extended mode (2) — every command returns `||:::N[status]VALUE\r\n`
+- No ACK is returned for the SET COM.DMCC-RESPONSE 2 line itself; mode takes effect immediately
+- Failure to set Extended mode looks identical to wrong prefix — both return nothing
+
+This cost multiple debugging sessions. Both mistakes (missing prefix, missing mode switch) produce
+the exact same symptom: all params return (no response).
+
 ## Command format
 
 ```
@@ -37,23 +49,44 @@ for every single command, every time, on every connection. `DmccCommand.WireHead
 - Commands are plain ASCII text
 - TRIGGER ON (not TRIGGER, not TRIGGER 1)
 
-## Session setup sequence — CONFIRMED WORKING 2026-05-28
+## Session setup sequence — CONFIRMED WORKING 2026-05-28 / 2026-08-17
 
 1. Connect TCP to **port 23**
-2. Wait briefly for banner (200 ms) — DM475V at 10.10.10.7 sends **NO banner** on port 23
-3. Send `||>SET COM.DMCC-RESPONSE 2\r\n` — switch to Extended mode (no ACK for this line; device was in Silent mode, mode takes effect immediately)
-4. Send `||>TRIGGER ON\r\n`
+2. Wait briefly for banner (200 ms) — DM475V at 10.10.10.7/10.10.10.4 sends **NO banner** on port 23
+3. Send `||>SET COM.DMCC-RESPONSE 2\r\n` — switch to Extended mode (no ACK for this line; mode takes effect immediately)
+4. Send commands with `||>` prefix
 5. Read ACK: `||:::2[0]\r\n` = success (11 bytes)
 
-## ACK format — port 23 (fw 6.1.16_sr4)
+## ACK format — port 23 (fw 6.1.16_sr4 / 6.1.16_tc9)
 
 Port-23 connections return ACKs in this form:
 ```
-||:::2[0]\r\n
+||:::N[status]VALUE\r\n
 ```
-NOT the classic `||[0]\r\n`. The `:::2` is a session/mode prefix specific to this firmware/connection type. The status code is always the **rightmost** `[N]` on the line.
+Examples:
+- `||:::5[0]ON` — single-value response (value is on the SAME line after `[0]`)
+- `||:::2[0]\r\n||:::12[0]6.1.16_tc9` — two-line response for some params
+- `||:::5[0]467\r\nscript content...` — multi-line for COM.SCRIPT, DEVICE.LOG etc.
 
-**DmccResponse.Parse updated 2026-05-28**: uses `LastIndexOf(']')` + `LastIndexOf('[', rb)` so it handles both `||[0]` and `||:::2[0]` correctly. Match condition is `StartsWith("||")` — not `StartsWith("||[")`.
+**Parse rule**: strip just `||:::\d+\[\d+\]` prefix — NOT `[^\r\n]*` (that eats the value).
+`DmccResponse.Parse` uses `LastIndexOf(']')` + `LastIndexOf('[', rb)` for status code extraction.
+
+## Full parameter dump tool
+
+**Use `vtccp/tools/Get-DmSettings.ps1`** — 352 parameters, ~5 min, outputs timestamped .txt file.
+
+```powershell
+# Download and run:
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/gw4-pips/vtccp/main/vtccp/tools/Get-DmSettings.ps1" -OutFile "C:\Get-DmSettings.ps1"
+C:\Get-DmSettings.ps1
+```
+
+Key fixes in the script (as of 2026-08-17):
+- Sends `||>SET COM.DMCC-RESPONSE 2` before the parameter sweep
+- Uses blocking `Read` with `ReadTimeout=500` — NOT `DataAvailable` (DataAvailable fires before data arrives on LAN, causing all values to read as (no response))
+- Strips `\|\|:::\d+\[\d+\]` prefix (not the greedy `[^\r\n]*` which eats the value)
+
+DO NOT use Windows Telnet (`telnet 10.10.10.4 23`) — it sends IAC Telnet negotiation bytes the device ignores; commands typed at the Telnet prompt are silently dropped.
 
 ## TRIGGER.TYPE — no manipulation needed
 
