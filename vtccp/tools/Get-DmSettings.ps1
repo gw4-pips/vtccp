@@ -441,7 +441,7 @@ function Send-DmccGet {
     if ($n -gt 0) {
         $raw = [System.Text.Encoding]::ASCII.GetString($buf, 0, $n).Trim()
         # Strip ACK prefix/suffix: ||:::N[0]\r\n and ||> echo
-        $raw = $raw -replace '\|\|:::[^\r\n]*', '' -replace '^\|\|>', '' -replace '\|\|>', ''
+        $raw = $raw -replace '\|\|:::\d+\[\d+\]', '' -replace '^\|\|>', '' -replace '\|\|>', ''
         $raw = $raw.Trim()
         if ($raw -eq "") { return "(no response)" }
         return $raw
