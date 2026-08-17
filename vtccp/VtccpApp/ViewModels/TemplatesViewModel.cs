@@ -118,13 +118,14 @@ public sealed class TemplatesViewModel : ViewModelBase
     private void OnDefault()
     {
         if (Selected is null) return;
+        var selectedName = Selected.Name;
         foreach (var t in _repo.Templates) t.IsDefault = false;
         var target = _repo.FindTemplate(Selected.Id);
         if (target is not null) target.IsDefault = true;
         _ = _repo.SaveAsync();
         Reload();
         _onListChanged?.Invoke();
-        StatusMessage = $"'{Selected.Name}' is now the default template.";
+        StatusMessage = $"'{selectedName}' is now the default template.";
     }
 
     private void OnSave()
