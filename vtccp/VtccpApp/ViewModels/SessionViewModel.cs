@@ -301,6 +301,7 @@ public sealed class SessionViewModel : ViewModelBase
     public RelayCommand OpenLiveFeedCommand      { get; }
     public RelayCommand OpenStitchingCommand     { get; }
     public RelayCommand RefreshRfidPortsCommand  { get; }
+    public RelayCommand FindRfidPortCommand      { get; }
     public RelayCommand ConnectRfidCommand       { get; }
     public RelayCommand DisconnectRfidCommand    { get; }
 
@@ -339,6 +340,10 @@ public sealed class SessionViewModel : ViewModelBase
         RefreshRfidPortsCommand = new RelayCommand(
             RefreshRfidPorts,
             () => !_isRfidBusy);
+
+        FindRfidPortCommand = new RelayCommand(
+            FindRfidPort,
+            () => !_isRfidBusy && !IsRfidConnected);
 
         ConnectRfidCommand = new RelayCommand(
             async () => await ConnectRfidAsync(),
@@ -660,6 +665,21 @@ public sealed class SessionViewModel : ViewModelBase
     /// preserving the current selection when the port is still present.
     /// Pre-selects the port persisted in AppSettings on first population.
     /// </summary>
+    private void FindRfidPort()
+    {
+        RefreshRfidPorts();
+        var found = EpcReaderFactory.FindAsReaderPort();
+        if (found is not null && AvailableRfidPorts.Contains(found))
+        {
+            SelectedRfidPort   = found;
+            RfidStatusMessage  = $"Found ASR-P35U on {found}.";
+        }
+        else
+        {
+            RfidStatusMessage = "ASR-P35U not found — check USB connection.";
+        }
+    }
+
     private void RefreshRfidPorts()
     {
         string? current = SelectedRfidPort ?? _repo.Settings.RfidComPort;

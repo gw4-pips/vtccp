@@ -52,4 +52,33 @@ public static class EpcReaderFactory
     /// </summary>
     public static IReadOnlyList<string> GetAvailablePorts() =>
         System.IO.Ports.SerialPort.GetPortNames();
+
+    /// <summary>
+    /// Locate the COM port assigned to the ASR-P35U by inspecting the Windows
+    /// device registry for VID=0x339C / PID=0x271B.
+    /// Returns the port name (e.g. "COM3") or <c>null</c> if the device is not
+    /// found or the platform is not Windows.
+    /// </summary>
+    public static string? FindAsReaderPort()
+    {
+        try
+        {
+            const string subKey =
+                @"SYSTEM\CurrentControlSet\Enum\USB\VID_339C&PID_271B";
+            using var usbKey =
+                Microsoft.Win32.Registry.LocalMachine.OpenSubKey(subKey);
+            if (usbKey is null) return null;
+
+            foreach (var instance in usbKey.GetSubKeyNames())
+            {
+                using var dp =
+                    usbKey.OpenSubKey(instance + @"\Device Parameters");
+                if (dp?.GetValue("PortName") is string port &&
+                    !string.IsNullOrEmpty(port))
+                    return port;
+            }
+        }
+        catch { /* device absent, registry unavailable, non-Windows */ }
+        return null;
+    }
 }

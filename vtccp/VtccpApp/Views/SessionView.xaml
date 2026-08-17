@@ -186,7 +186,15 @@
                         Style="{StaticResource SecondaryButton}"
                         Command="{Binding RefreshRfidPortsCommand}"
                         Padding="8,2"
-                        Margin="6,0,14,0"
+                        Margin="6,0,6,0"
+                        VerticalAlignment="Center" />
+
+                <Button Content="Find"
+                        ToolTip="Auto-detect ASR-P35U by USB VID/PID"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding FindRfidPortCommand}"
+                        Padding="10,2"
+                        Margin="0,0,14,0"
                         VerticalAlignment="Center" />
 
                 <Button Content="Connect"
