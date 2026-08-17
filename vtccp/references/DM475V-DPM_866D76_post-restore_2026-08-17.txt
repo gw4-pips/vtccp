@@ -1,6 +1,10 @@
 # DM475V-DPM  866D76  10.10.10.4  fw:6.1.16_tc9  dump:2026-08-17 17:24:28
 # Post-7/7-restore parameter dump — compared against 2026-08-05 factory-reset+calibration baseline
-# Differences from baseline: SYMBOL.QR OFF→ON, TRUCHECK.APERTURE 0→2, TRUCHECK.APPLICATION-STANDARD 5→4 (restored by 7/7 DMB)
+# Differences from baseline:
+#   TRUCHECK.APERTURE 0→2          — restored by 7/7 DMB
+#   SYMBOL.QR OFF→ON               — manually enabled by user on 2026-08-17 BEFORE this dump (NOT from DMB)
+#   TRUCHECK.APPLICATION-STANDARD 5→4 (Auto→Custom) — manually set by user on 2026-08-17 BEFORE this dump (NOT from DMB)
+# Note: APPLICATION-STANDARD mapping: 4=Custom, 5=Auto on fw 6.1.16_tc9 (DMCC docs have it reversed — bug filed with Cognex)
 
 # ----------------------------------------------------------------------
 
