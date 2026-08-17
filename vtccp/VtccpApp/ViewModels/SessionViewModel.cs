@@ -61,6 +61,24 @@ public sealed class SessionViewModel : ViewModelBase
     private RfidScanCoordinator? _rfidCoordinator;
     private GcpValidator?        _gcpValidator;
 
+    /// <summary>
+    /// Persistent RFID reader — outlives individual sessions so the operator can
+    /// connect once via the Session Launcher panel and run many sessions.
+    /// Owned by the ViewModel (coordinator is created with ownsReader:false).
+    /// </summary>
+    private IEpcReader? _rfidReader;
+
+    /// <summary>
+    /// Per-session writer for the "RFID Scans" auxiliary worksheet.
+    /// Created lazily on the first RFID result of a session (needs the session's
+    /// live Excel adapter); reset in <see cref="CleanupAsync"/>.
+    /// </summary>
+    private RfidTabWriter? _rfidTabWriter;
+    private bool        _isRfidConnected;
+    private bool        _isRfidBusy;
+    private string      _rfidStatusMessage = "Not connected.";
+    private string?     _selectedRfidPort;
+
     // ── Session output directory ───────────────────────────────────────────────
     // Captured at OnStartAsync so fire-and-forget report generators have the path
     // without relying on mutable session-manager state after the session closes.
@@ -112,6 +130,7 @@ public sealed class SessionViewModel : ViewModelBase
 
     public ObservableCollection<DeviceProfile> AvailableDevices   { get; } = [];
     public ObservableCollection<JobTemplate>   AvailableTemplates { get; } = [];
+    public ObservableCollection<string>        AvailableRfidPorts { get; } = [];
 
     // ── Bindable properties ───────────────────────────────────────────────────
 
@@ -191,6 +210,27 @@ public sealed class SessionViewModel : ViewModelBase
 
     public int RecordCount => _recordCount;
 
+    // ── RFID properties ───────────────────────────────────────────────────────
+
+    /// <summary>COM port selected in the RFID panel, e.g. "COM4". Persisted to AppSettings.</summary>
+    public string? SelectedRfidPort
+    {
+        get => _selectedRfidPort;
+        set { Set(ref _selectedRfidPort, value); RelayCommand.Refresh(); }
+    }
+
+    public bool IsRfidConnected
+    {
+        get => _isRfidConnected;
+        private set { Set(ref _isRfidConnected, value); RelayCommand.Refresh(); }
+    }
+
+    public string RfidStatusMessage
+    {
+        get => _rfidStatusMessage;
+        private set => Set(ref _rfidStatusMessage, value);
+    }
+
     // ── UPC/EAN Supplemental properties ──────────────────────────────────────
 
     /// <summary>
@@ -260,6 +300,9 @@ public sealed class SessionViewModel : ViewModelBase
     public RelayCommand WriteSupplementalCommand { get; }
     public RelayCommand OpenLiveFeedCommand      { get; }
     public RelayCommand OpenStitchingCommand     { get; }
+    public RelayCommand RefreshRfidPortsCommand  { get; }
+    public RelayCommand ConnectRfidCommand       { get; }
+    public RelayCommand DisconnectRfidCommand    { get; }
 
     public SessionViewModel(ConfigRepository repo, HistoryViewModel history)
     {
@@ -293,7 +336,21 @@ public sealed class SessionViewModel : ViewModelBase
             OnOpenStitching,
             () => SelectedDevice is not null);
 
+        RefreshRfidPortsCommand = new RelayCommand(
+            RefreshRfidPorts,
+            () => !_isRfidBusy);
+
+        ConnectRfidCommand = new RelayCommand(
+            async () => await ConnectRfidAsync(),
+            () => !IsRfidConnected && !_isRfidBusy &&
+                  !string.IsNullOrWhiteSpace(SelectedRfidPort));
+
+        DisconnectRfidCommand = new RelayCommand(
+            async () => await DisconnectRfidAsync(),
+            () => IsRfidConnected && !_isRfidBusy);
+
         Reload();
+        RefreshRfidPorts();
     }
 
     // ── Reload from repository ────────────────────────────────────────────────
@@ -425,10 +482,13 @@ public sealed class SessionViewModel : ViewModelBase
             IsRunning    = true;
 
             // ── RFID coordinator (optional) ───────────────────────────────────
-            // Enabled when AppSettings.RfidComPort is set; silently skipped otherwise.
+            // Runs when the reader is connected via the Session Launcher RFID panel.
+            // If a COM port is selected but not yet connected, auto-connect now.
             // Connection failure is non-fatal — session continues without RFID.
-            string? rfidPort = _repo.Settings.RfidComPort;
-            if (!string.IsNullOrWhiteSpace(rfidPort))
+            if (!IsRfidConnected && !string.IsNullOrWhiteSpace(SelectedRfidPort))
+                await ConnectRfidAsync();
+
+            if (IsRfidConnected && _rfidReader is not null)
             {
                 try
                 {
@@ -494,16 +554,13 @@ public sealed class SessionViewModel : ViewModelBase
                         System.Diagnostics.Debug.WriteLine("[GCP] No GCP prefix list found; GCP validation skipped.");
                     }
 
-#if ASREADER_SDK
-                    var reader    = EpcReaderFactory.CreateAsReaderP35U();
+                    // Reader lifetime is owned by the ViewModel (Connect/Disconnect
+                    // panel) — ownsReader:false keeps the reader connected across
+                    // sessions when the coordinator is disposed at session close.
                     var validator = new RfidValidator(_gcpValidator);
-                    _rfidCoordinator = new RfidScanCoordinator(reader, validator, rfidSettings);
-                    await reader.ConnectAsync(rfidPort, _pollCts.Token);
-                    System.Diagnostics.Debug.WriteLine($"[RFID] Coordinator started on {rfidPort}.");
-#else
-                    System.Diagnostics.Debug.WriteLine(
-                        "[RFID] AsReader SDK DLL not present at compile time — RFID scanning unavailable on this build.");
-#endif
+                    _rfidCoordinator = new RfidScanCoordinator(
+                        _rfidReader, validator, rfidSettings, ownsReader: false);
+                    System.Diagnostics.Debug.WriteLine($"[RFID] Coordinator started on {SelectedRfidPort}.");
                 }
                 catch (Exception ex)
                 {
@@ -593,6 +650,117 @@ public sealed class SessionViewModel : ViewModelBase
                 ""   => $"⚠ Session closed — file locked by Excel and rescue save also failed. {RecordCount} record(s) may be lost.",
                 _    => $"⚠ File was open in Excel — {RecordCount} record(s) saved to rescue copy: {rescuePath}",
             };
+        }
+    }
+
+    // ── RFID connect / disconnect ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Re-enumerates the machine's COM ports into <see cref="AvailableRfidPorts"/>,
+    /// preserving the current selection when the port is still present.
+    /// Pre-selects the port persisted in AppSettings on first population.
+    /// </summary>
+    private void RefreshRfidPorts()
+    {
+        string? current = SelectedRfidPort ?? _repo.Settings.RfidComPort;
+
+        AvailableRfidPorts.Clear();
+        // SerialPort.GetPortNames() directly — AsReaderP35UEpcReader/EpcReaderFactory
+        // are excluded from compilation when the SDK DLL is absent, but the port
+        // picker must still work (it shows what WOULD be used once the DLL lands).
+        foreach (var p in System.IO.Ports.SerialPort.GetPortNames()
+                     .OrderBy(x => x, StringComparer.OrdinalIgnoreCase))
+            AvailableRfidPorts.Add(p);
+
+        SelectedRfidPort = current is not null && AvailableRfidPorts.Contains(current)
+            ? current
+            : AvailableRfidPorts.FirstOrDefault();
+
+        if (AvailableRfidPorts.Count == 0 && !IsRfidConnected)
+            RfidStatusMessage = "No COM ports found — plug in the ASR-P35U and refresh.";
+    }
+
+    /// <summary>
+    /// Connects the ASR-P35U on <see cref="SelectedRfidPort"/> and persists the
+    /// port to AppSettings so future sessions auto-connect. Safe to call when
+    /// already connected (no-op). Failure is non-fatal: status message is set
+    /// and the app continues without RFID.
+    /// </summary>
+    private async Task ConnectRfidAsync()
+    {
+        if (_isRfidBusy || IsRfidConnected) return;
+        if (string.IsNullOrWhiteSpace(SelectedRfidPort))
+        {
+            RfidStatusMessage = "Select a COM port first.";
+            return;
+        }
+
+        _isRfidBusy = true;
+        RelayCommand.Refresh();
+#if ASREADER_SDK
+        IEpcReader? reader = null;
+        try
+        {
+            RfidStatusMessage = $"Connecting to {SelectedRfidPort}…";
+            reader = EpcReaderFactory.CreateAsReaderP35U();
+            await reader.ConnectAsync(SelectedRfidPort);
+            _rfidReader     = reader;
+            IsRfidConnected = true;
+            RfidStatusMessage = $"Connected on {SelectedRfidPort}.";
+
+            // Persist so the port pre-selects next launch and auto-connect works.
+            if (_repo.Settings.RfidComPort != SelectedRfidPort)
+            {
+                _repo.Settings.RfidComPort = SelectedRfidPort;
+                _ = _repo.SaveSettingsAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            RfidStatusMessage = $"Connect failed: {ex.Message}";
+            if (reader is not null)
+                try { await reader.DisposeAsync(); } catch { /* best effort */ }
+            _rfidReader     = null;
+            IsRfidConnected = false;
+        }
+#else
+        RfidStatusMessage =
+            "AsReader SDK DLL not present in this build — RFID unavailable.";
+        await Task.CompletedTask;
+#endif
+        _isRfidBusy = false;
+        RelayCommand.Refresh();
+    }
+
+    /// <summary>
+    /// Disconnects the reader. If a session is running with an active RFID
+    /// coordinator, the coordinator is disposed first so no scan window opens
+    /// against a dead reader; the barcode session itself keeps running.
+    /// </summary>
+    private async Task DisconnectRfidAsync()
+    {
+        if (_isRfidBusy || !IsRfidConnected) return;
+        _isRfidBusy = true;
+        RelayCommand.Refresh();
+        try
+        {
+            if (_rfidCoordinator is not null)
+            {
+                await _rfidCoordinator.DisposeAsync();   // ownsReader:false — reader survives
+                _rfidCoordinator = null;
+            }
+            if (_rfidReader is not null)
+            {
+                try { await _rfidReader.DisposeAsync(); } catch { /* best effort */ }
+                _rfidReader = null;
+            }
+            IsRfidConnected   = false;
+            RfidStatusMessage = "Disconnected.";
+        }
+        finally
+        {
+            _isRfidBusy = false;
+            RelayCommand.Refresh();
         }
     }
 
@@ -924,6 +1092,34 @@ public sealed class SessionViewModel : ViewModelBase
                 $"[VTCCP-WRITER] AddRecord threw {ex.GetType().Name}: {ex.Message}");
         }
 
+        // ── RFID tab row (auxiliary "RFID Scans" worksheet) ───────────────────
+        // Written after AddRecord so LastSummaryRow points at the barcode row
+        // just appended.  Non-fatal: a tab-write failure never drops the record.
+        if (rfidResult is not null && _sessionMgr.Adapter is { } rfidAdapter)
+        {
+            try
+            {
+                _rfidTabWriter ??= new RfidTabWriter(rfidAdapter);
+                _rfidTabWriter.EnsureSheet();
+                _rfidTabWriter.AppendResult(rfidResult, _sessionMgr.LastSummaryRow ?? 0);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RFID] Tab write failed: {ex.Message}");
+            }
+            finally
+            {
+                // Contract: restore the main sheet as the active write target.
+                try { rfidAdapter.EnsureSheet(_sessionMgr.MainSheetName); } catch { }
+            }
+
+            // Persist the tab row now if the file is writable; a lock here is
+            // fine — the row is in the in-memory workbook and lands on the next
+            // successful save or at CloseSession.
+            if (savedToDisk)
+                try { rfidAdapter.Save(); } catch { /* locked — flushed later */ }
+        }
+
         _history.AddRecord(record);
         _recordCount++; OnPropertyChanged(nameof(RecordCount));
 
@@ -1242,10 +1438,20 @@ public sealed class SessionViewModel : ViewModelBase
     /// </summary>
     public async Task StopSessionOnExitAsync()
     {
-        if (!IsRunning) return;
-        _pollCts?.Cancel();
-        await CleanupAsync();
-        IsRunning = false;
+        if (IsRunning)
+        {
+            _pollCts?.Cancel();
+            await CleanupAsync();
+            IsRunning = false;
+        }
+
+        // Reader outlives sessions — release it explicitly on app exit.
+        if (_rfidReader is not null)
+        {
+            try { await _rfidReader.DisposeAsync(); } catch { /* best effort */ }
+            _rfidReader     = null;
+            IsRfidConnected = false;
+        }
     }
 
     private async Task CleanupAsync()
@@ -1267,10 +1473,11 @@ public sealed class SessionViewModel : ViewModelBase
         }
         if (_rfidCoordinator is not null)
         {
-            await _rfidCoordinator.DisposeAsync();
+            await _rfidCoordinator.DisposeAsync();   // ownsReader:false — reader stays connected
             _rfidCoordinator = null;
         }
-        _gcpValidator = null;
+        _rfidTabWriter = null;   // bound to the closed session's adapter
+        _gcpValidator  = null;
         _sessionMgr?.Dispose();
         _sessionMgr = null;
         _pollCts?.Dispose();

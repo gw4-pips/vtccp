@@ -1,28 +1,29 @@
 ---
-name: RFID UI not yet built
-description: RFID DeviceInterface backend is complete but VtccpApp has no UI wired to it as of 2026-08-17.
+name: RFID UI wiring
+description: Session Launcher RFID panel exists and is wired to the DeviceInterface backend; key lifetime/dep decisions to stay consistent with.
 ---
 
-# RFID UI Status (as of 2026-08-17)
+# RFID UI Wiring (built 2026-08-17)
 
-## Backend — complete
-- `vtccp/DeviceInterface/Rfid/IEpcReader.cs` — interface
-- `vtccp/DeviceInterface/Rfid/AsReaderP35UEpcReader.cs` — ASR-P35U implementation (USB/VCP, COM port, 6-delegate SetDelegate)
-- `vtccp/DeviceInterface/Rfid/EpcReaderFactory.cs` — factory + port enumeration (lines 47-54)
-- `vtccp/DeviceInterface/Rfid/RfidScanCoordinator.cs` — scan orchestration (lines 18-117)
-- `vtccp/ExcelEngine/Models/VerificationRecord.cs` — RFID fields at lines 443-528
-- `vtccp/ExcelEngine/Schema/RfidTabSchema.cs` — Excel tab schema
+Session Launcher (SessionView.xaml / SessionViewModel) now has an RFID panel:
+COM port dropdown + refresh, Connect/Disconnect, status dot + message.
 
-## UI — not built
-- No COM port selector, no connect/disconnect button, no RFID status in VtccpApp
-- No ViewModel wires RfidScanCoordinator
-- SettingsView.xaml has no RFID controls
-- SessionView.xaml has no RFID panel
-
-## What needs building (Task #133)
-- RFID section in Session Launcher: COM port dropdown, Connect/Disconnect, status indicator
-- Wire RfidScanCoordinator into SessionViewModel
-- Auto-connect on session start if port configured
-- EPC tags merge into VerificationRecord per scan
-
-**Why:** Confirmed by subagent exploration of all VtccpApp XAML and ViewModels — exhaustive search found zero RFID/AsReader/IEpcReader/EPC bindings.
+## Durable decisions
+- **Reader lifetime is owned by the ViewModel, not the coordinator.** The
+  ASR-P35U reader connects once via the panel and survives across sessions.
+  `RfidScanCoordinator` takes `ownsReader: false` so disposing the per-session
+  coordinator does not disconnect the reader. Disconnect happens only via the
+  panel button or app exit (`StopSessionOnExitAsync`).
+  **Why:** operators run many short sessions; reconnecting per session is slow
+  and flaky on the ASR-P35U VCP.
+- **Port enumeration in the UI uses `System.IO.Ports.SerialPort.GetPortNames()`
+  directly**, not `EpcReaderFactory`/`AsReaderP35UEpcReader` — those files are
+  excluded from compilation when `AsReaderP3xU.dll` is absent, but the picker
+  must compile everywhere. Only reader creation sits behind `#if ASREADER_SDK`.
+- **Selected port is persisted to `AppSettings.RfidComPort` on successful
+  connect**; session start auto-connects when a port is selected but not
+  connected yet.
+- **"RFID Scans" tab writing:** `RfidTabWriter` (DeviceInterface) is driven from
+  SessionViewModel using `SessionManager.Adapter` / `LastSummaryRow` /
+  `MainSheetName` — ExcelEngine cannot reference DeviceInterface (dep rule), so
+  the app layer bridges. Callers must restore the main sheet after aux writes.

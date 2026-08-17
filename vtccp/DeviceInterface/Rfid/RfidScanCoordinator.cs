@@ -21,6 +21,7 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
     private readonly RfidValidator _validator;
     private readonly RfidScanCoordinatorSettings _settings;
     private readonly SemaphoreSlim _scanLock = new(1, 1);
+    private readonly bool _ownsReader;
     private bool _disposed;
 
     /// <summary>
@@ -31,14 +32,22 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
     public event AsyncEventHandler<(RfidValidationResult Result, VerificationRecord BarcodeRecord)>?
         ValidationCompleted;
 
+    /// <param name="ownsReader">
+    /// When true (default) the coordinator disposes the reader in
+    /// <see cref="DisposeAsync"/>. Pass false when the reader's lifetime is
+    /// managed externally (e.g. a UI-level Connect/Disconnect button that keeps
+    /// the reader connected across sessions).
+    /// </param>
     public RfidScanCoordinator(
         IEpcReader reader,
         RfidValidator validator,
-        RfidScanCoordinatorSettings settings)
+        RfidScanCoordinatorSettings settings,
+        bool ownsReader = true)
     {
-        _reader    = reader    ?? throw new ArgumentNullException(nameof(reader));
-        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
-        _settings  = settings  ?? throw new ArgumentNullException(nameof(settings));
+        _reader     = reader    ?? throw new ArgumentNullException(nameof(reader));
+        _validator  = validator ?? throw new ArgumentNullException(nameof(validator));
+        _settings   = settings  ?? throw new ArgumentNullException(nameof(settings));
+        _ownsReader = ownsReader;
     }
 
     /// <summary>
@@ -95,7 +104,8 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
         if (_disposed) return;
         _disposed = true;
         _scanLock.Dispose();
-        await _reader.DisposeAsync().ConfigureAwait(false);
+        if (_ownsReader)
+            await _reader.DisposeAsync().ConfigureAwait(false);
     }
 }
 

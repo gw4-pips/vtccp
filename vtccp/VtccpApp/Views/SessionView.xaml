@@ -8,6 +8,7 @@
             <RowDefinition Height="Auto" />  <!-- header -->
             <RowDefinition Height="Auto" />  <!-- setup card -->
             <RowDefinition Height="Auto" />  <!-- scan mode bar -->
+            <RowDefinition Height="Auto" />  <!-- RFID reader bar -->
             <RowDefinition Height="Auto" />  <!-- device config -->
             <RowDefinition Height="*"    />  <!-- live area -->
             <RowDefinition Height="Auto" />  <!-- status bar -->
@@ -165,8 +166,64 @@
             </StackPanel>
         </Border>
 
+        <!-- ── RFID reader bar ─────────────────────────────────────── -->
+        <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,10" Padding="14,10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="RFID READER (ASR-P35U):"
+                           Style="{StaticResource FieldLabel}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,14,0" />
+
+                <!-- COM port picker (locked while connected) -->
+                <ComboBox ItemsSource="{Binding AvailableRfidPorts}"
+                          SelectedItem="{Binding SelectedRfidPort, Mode=TwoWay}"
+                          Width="110"
+                          VerticalAlignment="Center"
+                          IsEnabled="{Binding IsRfidConnected, Converter={StaticResource InvertBool}}" />
+
+                <Button Content="⟳"
+                        ToolTip="Refresh COM port list"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding RefreshRfidPortsCommand}"
+                        Padding="8,2"
+                        Margin="6,0,14,0"
+                        VerticalAlignment="Center" />
+
+                <Button Content="Connect"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding ConnectRfidCommand}"
+                        Padding="12,4"
+                        Margin="0,0,6,0"
+                        VerticalAlignment="Center" />
+                <Button Content="Disconnect"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding DisconnectRfidCommand}"
+                        Padding="12,4"
+                        Margin="0,0,14,0"
+                        VerticalAlignment="Center" />
+
+                <!-- Connection status indicator -->
+                <Ellipse Width="10" Height="10" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Setter Property="Fill" Value="#BDC3C7" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsRfidConnected}" Value="True">
+                                    <Setter Property="Fill" Value="{StaticResource SuccessBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+                <TextBlock Text="{Binding RfidStatusMessage}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
         <!-- ── Device Configuration card ──────────────────────────── -->
-        <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,10" Padding="14,10"
+        <Border Grid.Row="4" Style="{StaticResource Card}" Margin="0,0,0,10" Padding="14,10"
                 Visibility="{Binding HasSelectedDevice,
                     Converter={StaticResource BoolToVisibility}}">
             <StackPanel>
@@ -223,7 +280,7 @@
         </Border>
 
         <!-- ── Live session area ────────────────────────────────────── -->
-        <Border Grid.Row="4" Style="{StaticResource Card}">
+        <Border Grid.Row="5" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -297,7 +354,7 @@
         </Border>
 
         <!-- ── Status bar ──────────────────────────────────────────── -->
-        <Border Grid.Row="5" Margin="0,8,0,0" Padding="8,4"
+        <Border Grid.Row="6" Margin="0,8,0,0" Padding="8,4"
                 Background="{StaticResource CardBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,1,0,0">

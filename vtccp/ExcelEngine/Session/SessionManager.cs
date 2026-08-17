@@ -75,6 +75,24 @@ public sealed class SessionManager : IDisposable
     /// <summary>Pinned output file path for the current session, or null if closed.</summary>
     public string? OutputPath => _outputPath;
 
+    /// <summary>
+    /// Active Excel adapter for the open session, or null when closed.
+    /// Exposed so auxiliary sheet writers living outside ExcelEngine (e.g. the
+    /// DeviceInterface RFID tab writer — dependency direction forbids ExcelEngine
+    /// referencing it) can append to their own worksheet.  Callers MUST restore
+    /// the active sheet via <c>Adapter.EnsureSheet(MainSheetName)</c> afterwards.
+    /// </summary>
+    public IExcelAdapter? Adapter => _adapter;
+
+    /// <summary>Name of the primary data worksheet.</summary>
+    public string MainSheetName => "Main";
+
+    /// <summary>
+    /// Main-sheet row (1-based) of the last appended record's summary row,
+    /// or null before the first record. Cross-reference key for auxiliary tabs.
+    /// </summary>
+    public int? LastSummaryRow => _writer?.LastSummaryRow;
+
     public SessionManager(ColumnSchema schema)
     {
         _schema = schema;

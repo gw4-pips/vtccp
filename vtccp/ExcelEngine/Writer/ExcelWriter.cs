@@ -49,6 +49,14 @@ public sealed class ExcelWriter : IDisposable
     /// </summary>
     public int? LastParseDetailRow { get; private set; }
 
+    /// <summary>
+    /// Row index (1-based, Main sheet) of the summary row written by the most
+    /// recent <see cref="AppendRecord"/> call, or <c>null</c> before the first
+    /// record. Used by auxiliary sheet writers (e.g. the RFID tab) that need a
+    /// cross-reference back to the barcode row.
+    /// </summary>
+    public int? LastSummaryRow { get; private set; }
+
     public ExcelWriter(IExcelAdapter adapter, ColumnSchema schema, SessionState session, string sheetName = "Main")
     {
         _adapter = adapter;
@@ -129,6 +137,7 @@ public sealed class ExcelWriter : IDisposable
         if (batchOverride is not null)
             values["BatchNumber"] = batchOverride;
 
+        LastSummaryRow = _nextDataRow;
         WriteDataRow(_nextDataRow, values);
 
         if (record.DataFormatCheck is not null)
