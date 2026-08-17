@@ -1411,3 +1411,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Walk me through everything — git/local environment, Azure GCP setup, open tasks, live testing, in whatever order you think best.
 
 **Assistant:** Pushed vtccp to GitHub (rebase onto task-agent divergence; post-commit hook auto-pushed all commits). Fixed Task #98 (EPC Tag URI populated from ParsedEpc in SessionViewModel.BuildEpcTagUri()); bumped to v1.4.12; pushed to GitHub at 18b2916. Wrote full phased walkthrough in chat (Phase 1: Windows git pull + rebuild; Phase 2: Azure GCP service setup; Phase 3: live test sequence). Azure questions flagged before proceeding with that phase.
+
+---
+
+**User:** Walk through git/local env, Azure GCP setup, tasks, live testing. Also: multiple nested vtccp directories (4-5 levels) on lab machine. And should I use one dev environment?
+
+**Assistant:** Diagnosed nested vtccp mess on Windows (Documents\VTCCP + vtccp + vtccp\vtccp + vtccp\vtccp\vtccp + vtccp\vtccp\vtccp\vtccp). Only C:\Users\Administrator\vtccp had .git (workspace root, not vtccp source). Inner copies were v1.3.7. Directed: delete both old directories, clone fresh from gw4-pips/vtccp to C:\dev\vtccp. Clarified: the repo is the full Replit workspace so C:\dev\vtccp\vtccp is the C# source root — intentional double-nesting, not a mess. Confirmed: user never edits code directly (Replit is the sole dev environment). Created vtccp/tools/update-and-build.bat for one-click sync+build. Azure GCP setup questions pending user answers.
