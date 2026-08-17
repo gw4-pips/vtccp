@@ -99,6 +99,50 @@ without socket teardown.
   from the supplied context record.  Handles both 2D (ISO 15415) and 1D (ISO 15416) payloads.
   Wires `SC_RlRd` through the record from the `<SCRlRd>` XML element.
 
+
+### DMST Push Script (Format Data script — current version v1.37)
+Ready-to-paste JavaScript for **Format Data → Scripting → Data Formatting** in DMST.
+Replaces the default plain-text output with a complete
+`<DMCCResponse><DMSymVerResponse>…</DMSymVerResponse></DMCCResponse>` XML push that
+`DmstResultParser` can fully parse, producing a 167-column row in XLSX.
+
+The canonical current script is **v1.37**, available in the Script Viewer app
+(`artifacts/script-viewer/src/v137.txt`). Copy the full script text from there.
+The script is pasted manually into DMST — there is no automated deployment path.
+
+**How to install:**
+1. Open the Script Viewer app and copy the full v1.37 script text
+2. In DMST, click **Format Data** in the Application Steps sidebar (left panel)
+3. On the **Basic** tab: select the **Script-Based Formatting** radio button
+   *(it sits below the "Basic Formatting" radio — confirm any DMST warning prompt)*
+4. Click the **Scripting** tab at the top of the Format Data panel
+5. Paste the script into the editor
+6. Click **Save Settings → Write to device**
+
+**Coverage (firmware 6.x / DMV475):**
+
+| Section | XML elements emitted |
+|---|---|
+| Identity | `DateTime`, `SymbologyName`, `DecodedData` |
+| Grade summary | `FormalGrade`, `OverallGrade`, `OverallGradeNumeric` |
+| Verification settings | `ApertureRef`, `Wavelength`, `Lighting`, `Standard` |
+| 2D ISO 15415 quality | `UECPercent/Grade`, `SCPercent`, `SCRlRd`, `SCGrade`, `MODGrade`, `RMGrade`, `ANUPercent/Grade`, `GNUPercent/Grade`, `FPDGrade`, `DecodeGrade`, `AGValue/Grade` |
+| Matrix characteristics | `MatrixSize`, `HorizontalBWG`, `VerticalBWG`, `EncodedCharacters`, `TotalCodewords`, `DataCodewords`, `ErrorCorrectionBudget`, `ErrorsCorrected`, `ErrorCapacityUsed`, `ErrorCorrectionType`, `NominalXDim`, `PixelsPerModule`, `ImagePolarity`, `ContrastUniformity`, `MRD` |
+| Quiet zones | `LLSGrade`, `BLSGrade`, `LQZGrade`, `BQZGrade`, `TQZGrade`, `RQZGrade` |
+| Transition ratios | `TTRPercent/Grade`, `RTRPercent/Grade`, `TCTGrade`, `RCTGrade` |
+| Quadrant (≥32×32) | `ULQZ…`, `URQZ…`, `RUQZ…`, `RLQZ…`, per-quadrant TTR/RTR/TCT/RCT |
+| 1D ISO 15416 | `SymbolAnsiGrade`, `AvgEdge/RlRd/SC/MinEC/MOD/Defect/Dcod/DEC/LQZ/RQZ/HQZ/MinQZ`, `BWGPercent`, `Magnification`, `Ratio`, `NominalXDim1D` |
+| 1D per-scan | `<ScanResults><Scan number="n">…</Scan></ScanResults>` (max 10 scans) |
+
+The script is ECMAScript 5-compatible (no `const`/`let`, no arrow functions) and uses
+XML entity escaping so barcodes containing `<`, `>`, or `&` survive transit intact.
+All property accesses use a null-safe `prop()` helper — unknown paths emit empty elements
+rather than crashing the script.
+
+**Verifying firmware property names:** if a column arrives blank after enabling the script,
+check the annotated property-name comments in the `.js` file against the *Scripting API
+Reference* (DMST Help menu) for your exact firmware revision.
+
 ### DMST Format Data Script (canonical: `artifacts/script-viewer/src/v137.txt`)
 Ready-to-paste JavaScript for **Format Data → Script-Based Formatting → Scripting tab**
 in DMST. Replaces the default plain-text output with a complete
@@ -375,8 +419,9 @@ If the Format Data script (v1.37) is NOT installed, the device pushes a minimal 
 payload that `DmstResultParser` can still parse for identity and overall-grade columns,
 but the majority of the 167-column schema will be blank.
 
-Install the script for full column coverage (see the **DMST Format Data Script** section
-above and the installation steps in the script's header comments).
+Install the script for full column coverage (see the **DMST Push Script** section
+above). The canonical script is pasted manually via DMST — see the Script Viewer app
+(`artifacts/script-viewer`) for the current version text.
 
 ---
 
