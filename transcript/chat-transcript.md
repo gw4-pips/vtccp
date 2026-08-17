@@ -1405,3 +1405,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Good stopping place. Synopsis of what we'll need to do next session (live 475V, git update, housekeeping, live tests) and any undone tasks that might inhibit us.
 
 **Assistant:** See response in chat — stopping-point briefing provided. No code changes this turn.
+
+---
+
+**User:** Walk me through everything — git/local environment, Azure GCP setup, open tasks, live testing, in whatever order you think best.
+
+**Assistant:** Pushed vtccp to GitHub (rebase onto task-agent divergence; post-commit hook auto-pushed all commits). Fixed Task #98 (EPC Tag URI populated from ParsedEpc in SessionViewModel.BuildEpcTagUri()); bumped to v1.4.12; pushed to GitHub at 18b2916. Wrote full phased walkthrough in chat (Phase 1: Windows git pull + rebuild; Phase 2: Azure GCP service setup; Phase 3: live test sequence). Azure questions flagged before proceeding with that phase.
