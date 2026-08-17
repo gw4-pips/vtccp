@@ -892,6 +892,7 @@ public sealed class SessionViewModel : ViewModelBase
             {
                 RfidStatus         = rfidResult.Status.ToString(),
                 RfidEpcHex         = rfidResult.SelectedRead?.EpcHex,
+                RfidEpcTagUri      = BuildEpcTagUri(rfidResult.ParsedEpc),
                 RfidGtin14         = rfidResult.RfidGtin14,
                 RfidSerial         = rfidResult.RfidSerial,
                 RfidMismatchDetail = rfidResult.MismatchDetail,
@@ -1025,6 +1026,25 @@ public sealed class SessionViewModel : ViewModelBase
             StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}{rfidSuffix}";
         else
             StatusMessage = $"⚠ Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}{rfidSuffix}  [file open in Excel — close Excel before ending session]";
+    }
+
+    /// <summary>
+    /// Builds the EPC Tag URI (urn:epc:tag:...) from a decoded EPC.
+    /// Returns null when the scheme is unknown or any required field is missing.
+    /// </summary>
+    private static string? BuildEpcTagUri(ParsedEpc? epc)
+    {
+        if (epc is null) return null;
+        string? scheme = epc.Scheme switch
+        {
+            EpcScheme.Sgtin96  => "sgtin-96",
+            EpcScheme.Sgtin198 => "sgtin-198",
+            _                  => null,
+        };
+        if (scheme is null || epc.Filter is null || epc.CompanyPrefix is null
+                           || epc.ItemReference is null || epc.Serial is null)
+            return null;
+        return $"urn:epc:tag:{scheme}:{epc.Filter}.{epc.CompanyPrefix}.{epc.ItemReference}.{epc.Serial}";
     }
 
     private static ExcelEngine.Models.OcrResultDto ToOcrDto(OcrResult r, string? encodedData)
