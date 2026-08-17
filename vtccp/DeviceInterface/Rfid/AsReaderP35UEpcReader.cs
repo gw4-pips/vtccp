@@ -124,7 +124,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
 
             // Region MUST be set before StartInventory.
             dev.SetRegion(Types.RegionType.REGION_US);
-            dev.SetTxPower(_txPowerDbm);
+            dev.SetTxPower((uint)_txPowerDbm);
 
             _device    = dev;
             _connected = true;
@@ -192,11 +192,10 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
 
         // maxTags=1: stop after the first tag — hardware-managed, no timer race.
         _device!.StartInventory(
-            rssiEnabled: true,
-            maxTags:     1,
-            maxSecs:     0,
-            maxCycles:   0,
-            antenna:     1
+            maxTags:   1,
+            maxSecs:   0,
+            maxCycles: 0,
+            antenna:   1
         );
 
         // Wait for: hardware auto-stop (cbComplete), timeout, or cancellation.
@@ -268,7 +267,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
                 var td  = result.tagdata;
                 // FW 1.8.0: ReadMemory result comes back in tagdata.data first,
                 // tagdata.tid as fallback.
-                string? raw = td?.data ?? td?.tid;
+                string? raw = td.data ?? td.tid;
                 string? tid = null;
                 if (!string.IsNullOrWhiteSpace(raw))
                     tid = raw.Trim().ToUpperInvariant().Replace(" ", "");
@@ -281,14 +280,14 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
             }
         };
 
-        // SDK: ReadMemory(MemBankType, offset, length, password, epcBytes)
+        // SDK: ReadMemory(MemBankType, startAddr, length, password, epcBytes)
         // 4 words = 8 bytes = 64-bit TID, password=0 (no access protection).
         uint ret = _device.ReadMemory(
             Types.MemBankType.MEM_TID,
-            offset:   0,
-            length:   4,
-            password: 0,
-            epc:      epcBytes
+            0,
+            4,
+            0,
+            epcBytes
         );
 
         if (ret != 0)
@@ -328,7 +327,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
             }
 
             var td = result.tagdata;
-            if (td?.epc is not string epcHex || string.IsNullOrWhiteSpace(epcHex))
+            if (td.epc is not string epcHex || string.IsNullOrWhiteSpace(epcHex))
                 return;
 
             epcHex = epcHex.Trim().ToUpperInvariant().Replace(" ", "");
@@ -381,7 +380,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         }
     }
 
-    private void OnError(int errorCode)
+    private void OnError(uint errorCode)
     {
         Dbg($"DLL error callback: {errorCode}");
         // Only treat as disconnect when inventory is actually running.
@@ -396,7 +395,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         }
     }
 
-    private void OnSuccess(int successCode)
+    private void OnSuccess(uint successCode)
     {
         // successCode: 40=PermaLock, 41=Lock, 42=Unlock (from CheckTagStatus)
         Dbg($"DLL success callback: {successCode}");
