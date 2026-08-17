@@ -41,26 +41,30 @@ The root cause was a different NVRAM parameter written by a prior `COM.DMCC-SAVE
   both can use port 23 simultaneously
 
 **Recovery procedure** (if image disappears again):
-1. Open Telnet/DMCC to device port 23
-2. `CONFIG.DEFAULT` — resets all config to factory
-3. `CONFIG.SAVE` — persists to NVRAM
-4. `REBOOT` — applies the reset
-5. After reboot: restore any custom config (TRIGGER.TYPE, aperture, lighting, etc.)
+1. Open raw TCP to device port 23 — use Get-DmSettings.ps1 or Python (NOT Windows Telnet; it sends IAC bytes the device ignores)
+2. Send `||>SET COM.DMCC-RESPONSE 2` first (switches from Silent mode; no ACK returned for this line)
+3. `||>CONFIG.DEFAULT` — resets all config to factory
+4. `||>CONFIG.SAVE` — persists to NVRAM
+5. `||>REBOOT` — applies the reset
+6. After reboot: restore any custom config (TRIGGER.TYPE, aperture, lighting, etc.)
+
+⚠️ ALL port-23 DMCC commands MUST start with `||>` — bare commands (e.g. `CONFIG.DEFAULT\r\n`) are silently ignored with zero bytes returned. See dmcc-wire-protocol.md.
 
 ---
 
-### Probe — Telnet to port 23 on device IP (10.10.10.7)
+### Probe — raw TCP to port 23 on device IP (10.10.10.7)
 
-Run each `GET` command in sequence. Record the actual response against the expected value.
+Use `Get-DmSettings.ps1` or the Python socket script (see dmcc-wire-protocol.md for setup).
+Send `||>SET COM.DMCC-RESPONSE 2` first, then run each GET with the `||>` prefix.
 
 ```
-GET LIVEIMG.MODE
-GET DATA.IMAGE-TYPE
-GET DATA.RESULT-TYPE
-GET DATA.RESULT-ENCODING
-GET DATA.RESULT-ALWAYSSEND
-GET IMAGE.FORMAT
-GET IMAGE.SIZE
+||>GET LIVEIMG.MODE
+||>GET DATA.IMAGE-TYPE
+||>GET DATA.RESULT-TYPE
+||>GET DATA.RESULT-ENCODING
+||>GET DATA.RESULT-ALWAYSSEND
+||>GET IMAGE.FORMAT
+||>GET IMAGE.SIZE
 ```
 
 **Expected values (known-good state — confirmed 2026-05-31):**
