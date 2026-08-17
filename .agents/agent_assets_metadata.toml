@@ -267,3 +267,10 @@ uri = "file://dist/vccs-pdf-preview-v23.html"
 type = "text"
 title = "VCCS PDF Preview v23"
 description = "PIPS logo fixed (background:#000 removed — floats on header gray); result phrases reordered to 'EPC data matches barcode GTIN…'; GCP note em dash → en dash; v1.4.11"
+
+[[outputs]]
+id = "8FkSyX-xVBCZC_DczLhu6"
+uri = "file://push-script-viewer.html"
+type = "text"
+title = "DmstPushScript_v1.js"
+description = "Click 'Select All & Copy', then paste into DMST Script panel."
