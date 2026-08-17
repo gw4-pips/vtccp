@@ -494,11 +494,16 @@ public sealed class SessionViewModel : ViewModelBase
                         System.Diagnostics.Debug.WriteLine("[GCP] No GCP prefix list found; GCP validation skipped.");
                     }
 
+#if ASREADER_SDK
                     var reader    = EpcReaderFactory.CreateAsReaderP35U();
                     var validator = new RfidValidator(_gcpValidator);
                     _rfidCoordinator = new RfidScanCoordinator(reader, validator, rfidSettings);
                     await reader.ConnectAsync(rfidPort, _pollCts.Token);
                     System.Diagnostics.Debug.WriteLine($"[RFID] Coordinator started on {rfidPort}.");
+#else
+                    System.Diagnostics.Debug.WriteLine(
+                        "[RFID] AsReader SDK DLL not present at compile time — RFID scanning unavailable on this build.");
+#endif
                 }
                 catch (Exception ex)
                 {
