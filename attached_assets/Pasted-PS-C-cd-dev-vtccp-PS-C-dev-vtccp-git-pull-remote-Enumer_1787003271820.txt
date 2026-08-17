@@ -1,0 +1,39 @@
+PS C:\> cd \dev\vtccp
+PS C:\dev\vtccp> git pull
+remote: Enumerating objects: 83, done.
+remote: Counting objects: 100% (83/83), done.
+remote: Compressing objects: 100% (42/42), done.
+remote: Total 71 (delta 45), reused 54 (delta 28), pack-reused 0 (from 0)
+Unpacking objects: 100% (71/71), 100.20 KiB | 520.00 KiB/s, done.
+From https://github.com/gw4-pips/vtccp
+   e64601d..75181d0  main       -> origin/main
+Updating e64601d..75181d0
+Fast-forward
+ .agents/memory/MEMORY.md                           |    1 +
+ .agents/memory/windows-workstation-setup.md        |   39 +
+ ...-https-raw-githubusercontent-_1787001568067.txt |  500 ++++++++
+ ...mote-Enumerating-objects-18-d_1786992436564.txt |   40 +
+ ...dev-vtccp-PS-C-dev-vtccp-git-_1786992238949.txt |   43 +
+ ...lver-main-tools-rfid-wedge-GS_1786993414889.txt |  114 ++
+ ...lver-main-tools-rfid-wedge-Ge_1786993229227.txt | 1269 ++++++++++++++++++++
+ attached_assets/image_1786994550555.png            |  Bin 0 -> 33682 bytes
+ attached_assets/image_1786996194616.png            |  Bin 0 -> 19382 bytes
+ attached_assets/image_1786996314151.png            |  Bin 0 -> 24784 bytes
+ transcript/chat-transcript.md                      |    8 +
+ vtccp/WORKING-NOTES.md                             |   32 +-
+ .../DM475V-DPM_866D76_post-restore_2026-08-17.txt  |  502 ++++++++
+ vtccp/tools/Get-DmSettings.ps1                     |   49 +-
+ vtccp/tools/dmcc_dump.py                           |  176 +++
+ 15 files changed, 2745 insertions(+), 28 deletions(-)
+ create mode 100644 .agents/memory/windows-workstation-setup.md
+ create mode 100644 attached_assets/Pasted-PS-C-Invoke-WebRequest-Uri-https-raw-githubusercontent-_1787001568067.txt
+ create mode 100644 attached_assets/Pasted-PS-C-dev-vtccp-git-pull-remote-Enumerating-objects-18-d_1786992436564.txt
+ create mode 100644 attached_assets/Pasted-PS-C-dev-vtccp-vtccp-cd-C-dev-vtccp-PS-C-dev-vtccp-git-_1786992238949.txt
+ create mode 100644 attached_assets/Pasted-PS-H-gs1-digital-link-resolver-main-tools-rfid-wedge-GS_1786993414889.txt
+ create mode 100644 attached_assets/Pasted-PS-H-gs1-digital-link-resolver-main-tools-rfid-wedge-Ge_1786993229227.txt
+ create mode 100644 attached_assets/image_1786994550555.png
+ create mode 100644 attached_assets/image_1786996194616.png
+ create mode 100644 attached_assets/image_1786996314151.png
+ create mode 100644 vtccp/references/DM475V-DPM_866D76_post-restore_2026-08-17.txt
+ create mode 100644 vtccp/tools/dmcc_dump.py
+PS C:\dev\vtccp>
