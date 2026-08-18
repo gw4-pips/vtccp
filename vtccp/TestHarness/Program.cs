@@ -1,11 +1,27 @@
 // VTCCP TestHarness -- Phase 1 Tasks 1+2
 // Writes sample 2D Data Matrix verification records to both .xlsx and .xls
+//
+// Hardware integration modes (require physical hardware — run on Windows workstation):
+//   --rfid-hw-test <COMPORT>   Phase 7: ASR-P35U TID read integration test
+//                              Example: TestHarness --rfid-hw-test COM4
 
 using ExcelEngine.Adapters;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
 using ExcelEngine.Session;
 using ExcelEngine.Writer;
+
+// ── Hardware test modes (short-circuit before the offline phases) ──────────────
+// ASREADER_SDK is defined by TestHarness.csproj when AsReaderP3xU.dll is present.
+#if ASREADER_SDK
+if (args.Length >= 2 && args[0] == "--rfid-hw-test")
+{
+    string comPort = args[1];
+    bool hwPass = await TestHarness.Fixtures.RfidHardwareFixture.RunAsync(comPort);
+    Environment.Exit(hwPass ? 0 : 1);
+    return;
+}
+#endif
 
 // ─── Schema / session setup ────────────────────────────────────────────────────
 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;

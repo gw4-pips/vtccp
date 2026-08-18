@@ -13,6 +13,17 @@
     </Content>
   </ItemGroup>
 
+  <!-- RfidHardwareFixture requires AsReaderP35UEpcReader, which is only compiled
+       when the AsReader SDK DLL is present (same condition as DeviceInterface.csproj).
+       Exclude the fixture and define ASREADER_SDK so Program.cs can #if-gate the
+       hardware dispatch block. Without the DLL the offline test suite still builds. -->
+  <PropertyGroup Condition="Exists('$(MSBuildThisFileDirectory)..\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll')">
+    <DefineConstants>$(DefineConstants);ASREADER_SDK</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="!Exists('$(MSBuildThisFileDirectory)..\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll')">
+    <Compile Remove="Fixtures\RfidHardwareFixture.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ExcelEngine\ExcelEngine.csproj" />
     <ProjectReference Include="..\DeviceInterface\DeviceInterface.csproj" />
