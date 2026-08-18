@@ -1519,3 +1519,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (18-Aug-2026):** Build error — Cannot implicitly convert type 'AsReaderP3xU.Types.TagStatus' to 'uint'.
 
 **Assistant:** SDK's CheckTagStatus return type is TagStatus enum not uint on the Windows DLL. Added explicit cast: `(uint)_device.CheckTagStatus(epcBytes)`. Pushed 7eae85a. All other errors were cascade from DeviceInterface not compiling; PDFsharp warnings are pre-existing.
+
+---
+
+**User (18-Aug-2026):** RFID vs barcode validation error message is too generic — says "Fail — GTIN or Serial Number mismatch" but should distinguish which field(s) fail.
+
+**Assistant:** Added BuildMismatch2DLabel() to VccsHtmlReportGenerator — parses RfidMismatchDetail (GTIN14:/Serial:/GCP: tokens) and produces specific labels: "Fail — GTIN mismatch" / "Fail — Serial Number mismatch" / "Fail — GTIN and Serial Number mismatch". Removed raw RfidMismatchDetail appends. Report v1.5.1→v1.5.2, pushed 4e87d67.
