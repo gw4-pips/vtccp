@@ -283,27 +283,13 @@ public static class DmstResultParser
         // Firmware 6.x: timestamp is inside the base64-encoded <full_string>.
         // Decode it to extract <DateTime>; fall back to DateTime.Now.
         //
-        // The device clock is UTC (NTP-synced).  The XML timestamp string has no
-        // timezone suffix, so DateTime.TryParse without AssumeUniversal would treat
-        // it as local time, producing a reading 4 h ahead in Eastern.
-        // AssumeUniversal + AdjustToUniversal forces UTC interpretation; ToLocalTime()
-        // then converts to the operator's local timezone.
-        const System.Globalization.DateTimeStyles UtcStyle =
-            System.Globalization.DateTimeStyles.AssumeUniversal |
-            System.Globalization.DateTimeStyles.AdjustToUniversal;
-
-        static DateTime ParseDeviceTimestamp(string s)
-        {
-            if (DateTime.TryParse(s, System.Globalization.CultureInfo.InvariantCulture,
-                    UtcStyle, out DateTime parsed))
-                return parsed.ToLocalTime();
-            return DateTime.Now;
-        }
-
+        // The device clock is set to the operator's local timezone (America/New_York)
+        // via DMCC DEVICE.TIMEZONE.  The XML timestamp string has no timezone suffix
+        // and is already in local time — parse it as-is (no AssumeUniversal needed).
         DateTime verifyDt = DateTime.Now;
         if (Str(map.DateTime) is { } dtStrDirect)
         {
-            verifyDt = ParseDeviceTimestamp(dtStrDirect);
+            DateTime.TryParse(dtStrDirect, out verifyDt);
         }
         else
         {
@@ -320,7 +306,7 @@ public static class DmstResultParser
                     XDocument innerDoc = XDocument.Parse(inner);
                     if (innerDoc.Descendants("DateTime")
                             .FirstOrDefault()?.Value is { } dtInner)
-                        verifyDt = ParseDeviceTimestamp(dtInner);
+                        DateTime.TryParse(dtInner, out verifyDt);
                 }
                 catch { }
             }

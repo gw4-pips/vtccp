@@ -25,7 +25,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.3";
+    public const string ReportVersion = "v1.5.4";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -94,7 +94,7 @@ public static class VccsHtmlReportGenerator
             .Replace("{{HDR_VCCS_LOGO}}",      vccsLogoHtml)
             .Replace("{{HDR_COMPANY_LOGO}}",    companyLogoHtml)
             .Replace("{{HDR_DATETIME}}",        H(r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt")))
-            .Replace("{{HDR_DEVICE}}",          H(r.DeviceModel ?? r.VerifierBrand ?? "\u2014"))
+            .Replace("{{HDR_DEVICE}}",          H(r.DeviceName ?? r.DeviceModel ?? r.VerifierBrand ?? "\u2014"))
             .Replace("{{HDR_SERIAL}}",          H(r.DeviceSerial ?? "\u2014"))
             .Replace("{{HDR_SW}}",              H(r.SoftwareVersion ?? "\u2014"))
             .Replace("{{HDR_FW}}",              H(r.FirmwareVersion ?? "\u2014"))
