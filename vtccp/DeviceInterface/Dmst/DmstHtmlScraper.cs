@@ -646,12 +646,17 @@ public sealed class DmstHtmlScraper : IDisposable
             //
             // Format: "yyyy-MM-dd_HH-mm-ss-mmm_<random>.html"
             // The first 19 chars "yyyy-MM-dd_HH-mm-ss" are always present.
+            // The filename prefix is written by the device clock (UTC, NTP-synced).
+            // AssumeUniversal treats the string as UTC; ToLocalTime() converts to
+            // the operator's local timezone — matching VerificationDateTime treatment.
             DateTime? scanDateTime = null;
             var fn = Path.GetFileNameWithoutExtension(sourcePath);
             if (fn.Length >= 19 && DateTime.TryParseExact(
                     fn[..19], "yyyy-MM-dd_HH-mm-ss",
-                    CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
-                scanDateTime = dt;
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                    out var dt))
+                scanDateTime = dt.ToLocalTime();
 
             var report = new DmstHtmlReport
             {
