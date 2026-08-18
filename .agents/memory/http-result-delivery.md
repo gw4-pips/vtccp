@@ -31,6 +31,17 @@ Filter on `origin="common"` in codes.xml root element. `origin="monitor"` = DMST
 
 **Why:** Confirmed 2026-05-28. Physical button press, DMST Verify button, and raw TCP TRIGGER all produce results only on the HTTP channel. SDK XmlResultArrived never fires for these.
 
+## Concurrency with DMST and DM TC — CANONICAL (confirmed 2026-08-18)
+
+DMST (browser UI / device config) and DM TC (DataMan TruCheck application) do NOT block VTCCP. All three can run simultaneously on the same PC.
+
+- Port 44444 is the **device's** HTTP server — it accepts multiple concurrent clients.
+- VTCCP's `GET /events?enable` HTTP subscription is device-side; the device pushes to it regardless of what PC applications are open.
+- A scan triggered from within DMST or DM TC generates a device event that lands in VTCCP's HTTP subscriber just like any other scan.
+- Operators CAN use DMST for live image viewing or DM TC for one-off checks while VTCCP is running and recording. No need to close either.
+
+**Why:** The user confirmed this empirically — "with VTCCP open a scan triggered from within either app lands in VTCCP." This is expected: port 44444 is not held exclusively by any one PC app.
+
 ## CP software trigger (Path B) — UNRESOLVED
 
 Raw TCP `TRIGGER\r\n` confirmed NOT causing a device scan (HTTP subscriber would have caught it). SDK throws InvalidParameterException for both `TRIGGER` and `TRIGGER 1`. Root cause unknown — may require correct DMCC parameter form or HTTP-channel trigger.
