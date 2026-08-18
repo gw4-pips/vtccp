@@ -1561,3 +1561,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (18-Aug-2026):** Scraping DFC from HTML is the right fix. It ASTOUNDS me this wasn't happening all along. Verifier data is canonical — note that in replit.md. We should NEVER recreate anything unless we discuss the absolute need to do so. Review the report and confirm we do NOT do this anywhere else. Report if we do and we'll discuss. The user needs to be assured that data represented as from the verifier IS the data from the verifier — unadulterated.
 
 **Assistant:** Locked the principle into replit.md ("Verifier data is canonical — never re-derive it"). Full audit of the report pipeline follows in main response. Four HIGH findings, four MEDIUM, one LOW. No fixes made — all require a design discussion per working rules.
+
+---
+
+**User (18-Aug-2026):** [Screenshot attached showing gray labels] I don't understand C. I envision the RFID result being presented in the app display window, nowhere else — just on another line. Both are static until next scan fires. I propose the current No read message be positioned in the results box but closer to the bottom right and say "Waiting for first verification scan..." when app opens then switch to "Waiting for next scan..." thereafter. The three remaining supplemental messages still in gray should be upgraded to the same color as the rest of the labels.
+
+**Assistant:** Result box redesigned: verifier line appears immediately after OCR (before RFID window), RFID line appears below it once RFID resolves, both sticky until next scan clears them. Waiting hint (gray italic, bottom-right) shows "Waiting for first verification scan…" / "Waiting for next scan…" while session is running, only. Auto-poll race guard tightened to also check _pendingAccept == 0. Three gray supplemental labels (push unavailable hint, RfidStatusMessage, SupplementalStatus) switched to TextPrimaryBrush. v1.5.12, pushed 1f08909.
