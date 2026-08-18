@@ -1513,3 +1513,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (18-Aug-2026):** Task #161 (Data Format Check section) disappeared when sending a message — was not explicitly dismissed. Wants DFC restored. Also: will configure DMST NTP/timezone settings directly on device and share updated config file.
 
 **Assistant:** Confirmed NTP/timezone settings were at factory-default values across all three reference snapshots (factory, post-calibration, post-restore): DEVICE.TIMEZONE=UTC, NTP.ENABLE=OFF, NTP.SERVER1/2=(no response). Implemented Data Format Check (Section 5) for 2D GS1 symbols — added BuildDataFormatCheck() to DmstReportValidator.cs: extracts AI(01) GTIN-14 via RfidValidator.ExtractAi01(), validates check digit using existing ValidateGs1CheckDigit(), extracts AI(21) Serial via RfidValidator.ExtractAi21() if present; builds 2–3 row DataFormatCheckResult with Standard="GS1 Application Data Format". Wired into MergeAndValidate() return block alongside LinearDataFormatCheck. BuildDfcSection() in VccsHtmlReportGenerator already handles it — no generator change needed. Bumped report v1.5.0→v1.5.1, app v1.5.7→v1.5.8, pushed 492ef17.
+
+---
+
+**User (18-Aug-2026):** Build error — Cannot implicitly convert type 'AsReaderP3xU.Types.TagStatus' to 'uint'.
+
+**Assistant:** SDK's CheckTagStatus return type is TagStatus enum not uint on the Windows DLL. Added explicit cast: `(uint)_device.CheckTagStatus(epcBytes)`. Pushed 7eae85a. All other errors were cascade from DeviceInterface not compiling; PDFsharp warnings are pre-existing.
