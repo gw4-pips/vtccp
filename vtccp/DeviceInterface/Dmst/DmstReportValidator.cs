@@ -275,6 +275,16 @@ public static class DmstReportValidator
             // deleted path string, so WebscanSourcePath is reliable even after the file is gone.
             WebscanSourcePath  = html.SourceFilePath,
             HtmlVerifiedString = html.HtmlVerifiedString,
+
+            // Verbatim Verification Grades row — used directly in PDF BVG table.
+            // HTML values always win over push-XML when present (push-XML often provides
+            // wrong format for FormalGrade; Grade display format differs too).
+            HtmlStandard            = html.HtmlStandard,
+            HtmlOverallGradeDisplay = html.HtmlOverallGradeDisplay,
+            HtmlAperture            = html.HtmlAperture,
+            HtmlWavelength          = html.HtmlWavelength,
+            HtmlLighting            = html.HtmlLighting,
+            HtmlFormalGrade         = html.HtmlFormalGrade,
         };
     }
 

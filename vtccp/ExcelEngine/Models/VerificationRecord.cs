@@ -194,6 +194,24 @@ public sealed record class VerificationRecord
     public string? Lighting { get; init; }
     public string? Standard { get; init; }
 
+    // ── HTML Verification Grades row — verbatim display strings ───────────────
+    // Scraped from the TruCheck HTML Verification Grades table and used verbatim
+    // in the PDF BVG table.  No reformatting applied — values match the HTML exactly.
+    // Null when no HTML report was correlated (push-XML-only mode).
+
+    /// <summary>e.g. "ISO 15415:2024" (verbatim from HTML)</summary>
+    public string? HtmlStandard { get; init; }
+    /// <summary>e.g. "4.0 (A)" (verbatim from HTML — numeric first, then letter)</summary>
+    public string? HtmlOverallGradeDisplay { get; init; }
+    /// <summary>e.g. "16" (verbatim from HTML)</summary>
+    public string? HtmlAperture { get; init; }
+    /// <summary>e.g. "660" (verbatim from HTML)</summary>
+    public string? HtmlWavelength { get; init; }
+    /// <summary>e.g. "45Q" (verbatim from HTML)</summary>
+    public string? HtmlLighting { get; init; }
+    /// <summary>e.g. "4.0/16/660/45Q" (verbatim from HTML)</summary>
+    public string? HtmlFormalGrade { get; init; }
+
     // ─── Block 2: 1D ISO 15416 Parameters ─────────────────────────────────────
 
     /// <summary>Symbol ANSI Grade (overall for 1D)</summary>

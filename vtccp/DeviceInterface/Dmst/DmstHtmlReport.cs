@@ -220,6 +220,34 @@ public sealed class DmstHtmlReport
     /// </summary>
     public DataFormatCheckResult? ScrapedDataFormatCheck { get; init; }
 
+    // ── HTML Verification Grades row (verbatim display strings) ──────────────
+    //
+    // Scraped directly from the Verification Grades table header row in the
+    // TruCheck HTML.  No parsing, no reformatting — used verbatim in the PDF
+    // BVG table so it stays in perfect sync with the TruCheck report.
+    //
+    // Source cells (column order confirmed from live DM475V scan 2026-08-18):
+    //   Standard | Grade | Aperture | Wavelength | Lighting | Formal Grade
+    //   ISO 15415:2024 | 4.0 (A) | 16 | 660 | 45Q | 4.0/16/660/45Q
+
+    /// <summary>Verbatim standard string, e.g. "ISO 15415:2024".</summary>
+    public string? HtmlStandard { get; init; }
+
+    /// <summary>Verbatim overall grade display, e.g. "4.0 (A)".</summary>
+    public string? HtmlOverallGradeDisplay { get; init; }
+
+    /// <summary>Verbatim aperture string, e.g. "16".</summary>
+    public string? HtmlAperture { get; init; }
+
+    /// <summary>Verbatim wavelength string, e.g. "660".</summary>
+    public string? HtmlWavelength { get; init; }
+
+    /// <summary>Verbatim lighting string, e.g. "45Q".</summary>
+    public string? HtmlLighting { get; init; }
+
+    /// <summary>Verbatim formal grade string, e.g. "4.0/16/660/45Q".</summary>
+    public string? HtmlFormalGrade { get; init; }
+
     // ── HTML header fields ────────────────────────────────────────────────────
 
     /// <summary>

@@ -740,6 +740,45 @@ public sealed class DmstHtmlScraper : IDisposable
                         verifiedMatch.Groups[1].Value.Trim());
             }
 
+            // ── Step 4e: Verification Grades row — verbatim display strings ──────
+            //
+            // The TruCheck HTML Verification Grades table has a header row:
+            //   Standard | Grade | Aperture | Wavelength | Lighting | Formal Grade
+            // followed immediately by the data row (single-mode DM example):
+            //   ISO 15415:2024 | 4.0 (A) | 16 | 660 | 45Q | 4.0/16/660/45Q
+            //
+            // Strategy: FindLastIndex("Formal Grade") in the flat cell list (handles
+            // multi-mode pages where two grade sections appear — the 2D section is last).
+            // Then read the next 6 positions verbatim.  No parsing, no reformatting.
+            string? htmlStandard            = null;
+            string? htmlOverallGradeDisplay = null;
+            string? htmlAperture            = null;
+            string? htmlWavelength          = null;
+            string? htmlLighting            = null;
+            string? htmlFormalGrade         = null;
+            {
+                static string? E(string s) =>
+                    string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+                int fgIdx = cells.FindLastIndex(
+                    c => c.Equals("Formal Grade", StringComparison.OrdinalIgnoreCase));
+                if (fgIdx >= 0 && fgIdx + 6 < cells.Count)
+                {
+                    htmlStandard            = E(cells[fgIdx + 1]);
+                    htmlOverallGradeDisplay = E(cells[fgIdx + 2]);
+                    htmlAperture            = E(cells[fgIdx + 3]);
+                    htmlWavelength          = E(cells[fgIdx + 4]);
+                    htmlLighting            = E(cells[fgIdx + 5]);
+                    htmlFormalGrade         = E(cells[fgIdx + 6]);
+
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SCRAPER] Grade row: std={htmlStandard ?? "null"} " +
+                        $"grade={htmlOverallGradeDisplay ?? "null"} " +
+                        $"ap={htmlAperture ?? "null"} wl={htmlWavelength ?? "null"} " +
+                        $"light={htmlLighting ?? "null"} formal={htmlFormalGrade ?? "null"}");
+                }
+            }
+
             // ── Step 5: DateTime from filename ────────────────────────────────
             //
             // Format: "yyyy-MM-dd_HH-mm-ss-mmm_<random>.html"
@@ -761,6 +800,14 @@ public sealed class DmstHtmlScraper : IDisposable
                 HtmlVerifiedString    = htmlVerifiedString,
                 HtmlSourceFileName    = Path.GetFileName(sourcePath),
                 ParseSucceeded        = scanDateTime.HasValue,
+
+                // ── Verbatim Verification Grades row ──────────────────────────
+                HtmlStandard            = htmlStandard,
+                HtmlOverallGradeDisplay = htmlOverallGradeDisplay,
+                HtmlAperture            = htmlAperture,
+                HtmlWavelength          = htmlWavelength,
+                HtmlLighting            = htmlLighting,
+                HtmlFormalGrade         = htmlFormalGrade,
 
                 // ── Supplemental fields: not accessible via push XML on fw 6.1.16_sr4 ──
                 ECLevel         = Get("Error Correction Level"),   // "M"

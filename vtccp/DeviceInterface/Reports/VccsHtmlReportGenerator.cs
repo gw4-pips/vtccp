@@ -25,7 +25,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.6";
+    public const string ReportVersion = "v1.5.7";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -53,7 +53,7 @@ public static class VccsHtmlReportGenerator
 
         string vccsLogoHtml = vccsB64 is not null
             ? $"<img src=\"data:image/png;base64,{vccsB64}\" style=\"max-height:65pt;max-width:68pt;object-fit:contain;\" alt=\"VCCS\" />"
-            : "<div class=\"logo-name\">VCCS</div><div class=\"logo-sub\">VeriWedge&#x2122; Pro</div>";
+            : "<div class=\"logo-name\">VCCS</div><div class=\"logo-sub\">RFID VeriWedge&#x2122; Pro</div>";
 
         string companyLogoHtml = companyB64 is not null
             ? $"<img src=\"data:image/png;base64,{companyB64}\" style=\"max-height:48pt;max-width:68pt;object-fit:contain;\" alt=\"{H(r.CompanyName ?? "Company")}\" />"
@@ -163,7 +163,7 @@ public static class VccsHtmlReportGenerator
     }
 
     private static string AppSpecStackCell(string label) =>
-        $"<td class=\"app-spec\"><div class=\"app-spec-inner\"><span class=\"app-spec-prefix\">GS1 &#x2014;</span><div class=\"app-spec-stack\">{H(label)}</div></div></td>";
+        $"<td class=\"app-spec\"><div class=\"app-spec-inner\"><span class=\"app-spec-prefix\">GS1 &#x2013;</span><div class=\"app-spec-stack\">{H(label)}</div></div></td>";
 
     private static string LinearAppSpecCell(string? symbology)
     {
@@ -183,6 +183,9 @@ public static class VccsHtmlReportGenerator
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         var sb = new StringBuilder();
 
+        // Linear row: values already scraped verbatim from HTML by the multi-mode
+        // linear parser (LinearFormalGrade etc.); GradeDisplay fallback only when
+        // no HTML was correlated.
         if (multiMode)
             AppendGradeRow(sb, r.LinearSymbology!, r.LinearStandard ?? "ISO/IEC 15416",
                 GradeDisplay(r.LinearOverallGrade),
@@ -190,11 +193,15 @@ public static class VccsHtmlReportGenerator
                 r.LinearWavelength?.ToString() ?? "\u2014",
                 r.LinearLighting ?? "\u2014", r.LinearFormalGrade ?? "\u2014");
 
-        AppendGradeRow(sb, r.Symbology ?? "\u2014", r.Standard ?? "\u2014",
-            GradeDisplay(r.OverallGrade),
-            r.Aperture.HasValue ? r.Aperture.Value.ToString("D2") : "\u2014",
-            r.Wavelength?.ToString() ?? "\u2014",
-            r.Lighting ?? "\u2014", r.FormalGrade ?? "\u2014");
+        // 2D row: prefer verbatim HTML grade strings; fall back to push-XML when
+        // no HTML was correlated (HtmlOverallGradeDisplay etc. are null).
+        AppendGradeRow(sb, r.Symbology ?? "\u2014",
+            r.HtmlStandard            ?? r.Standard              ?? "\u2014",
+            r.HtmlOverallGradeDisplay ?? GradeDisplay(r.OverallGrade),
+            r.HtmlAperture            ?? (r.Aperture.HasValue ? r.Aperture.Value.ToString("D2") : "\u2014"),
+            r.HtmlWavelength          ?? r.Wavelength?.ToString() ?? "\u2014",
+            r.HtmlLighting            ?? r.Lighting              ?? "\u2014",
+            r.HtmlFormalGrade         ?? r.FormalGrade           ?? "\u2014");
 
         return sb.ToString();
     }

@@ -31,7 +31,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>RFID VeriWedge™ Pro Validation Report</title>
+<title>VCCS RFID VeriWedge™ Pro Validation Report</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -73,7 +73,7 @@
   .logo-box .logo-name { font-size: 12pt; font-weight: bold; letter-spacing: 1pt; }
   .logo-box .logo-sub  { font-size: 7pt; color: #6c757d; }
   .header-meta {
-    flex: 0.67; padding: 0 8pt;
+    flex: 0.25; padding: 0 8pt;
     display: flex; flex-direction: column; justify-content: center; gap: 2pt;
   }
   .header-meta .dt  { font-size: 8pt; color: #6c757d; }
@@ -98,7 +98,7 @@
   }
 
   /* ── CONTENT ─────────────────────────────────────────── */
-  .content { flex: 1; margin-top: 6pt; display: flex; flex-direction: column; gap: 6pt; }
+  .content { flex: 1; margin-top: 6pt; display: flex; flex-direction: column; gap: 4pt; }
 
   .sec-hdr {
     background: #1a3a6b; color: white;
@@ -131,7 +131,8 @@
   .sum-table tr:last-child td { border-bottom: none; }
   /* Navy separator above Report Name row — 1px matches the exterior border weight;
      navy colour beats #aaa in border-collapse with equal width + style. */
-  .sum-table tr.sum-meta-start td { border-top: 2px solid #1a3a6b; }
+  /* 1px navy wins over 1px #aaa in border-collapse (equal width, colour tie-break) */
+  .sum-table tr.sum-meta-start td { border-top: 1px solid #1a3a6b; }
   .sum-table .meta-lbl { color: #000; font-size: 8pt; font-weight: bold; }
 
   /* App-spec cell: flex row — "GS1 —" left, stacked two-liner right */
@@ -143,6 +144,7 @@
   .app-spec-inner {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 3pt;
     padding: 2.5pt 0 2pt;
   }
@@ -250,7 +252,7 @@
         <div class="ln">Firmware: {{HDR_FW}}</div>
       </div>
       <div class="header-title">
-        <h1>RFID <em>VeriWedge&#x2122; Pro</em><br>Barcode-to-RFID Validation Report</h1>
+        <h1>VCCS <em>RFID VeriWedge&#x2122; Pro</em><br>Barcode-to-RFID Validation Report</h1>
         <span class="rfid-badge {{HDR_BADGE_CLASS}}">{{HDR_BADGE_TEXT}}</span>
       </div>
       <div class="company-box" style="display:flex;align-items:center;justify-content:center;padding:2pt 4pt;">
@@ -259,7 +261,7 @@
     </div>
     <div class="header-copyright">
       www.vccs.llc &mdash; &copy; Copyright 2026 All rights reserved.&nbsp;
-      <em>RFID VeriWedge&#x2122;</em> is a product of Verifier Calibration &amp; Conformance Solutions, LLC
+      VCCS <em>RFID VeriWedge&#x2122;</em> is a product of Verifier Calibration &amp; Conformance Solutions, LLC
     </div>
   </div>
 
@@ -268,12 +270,12 @@
 
     <!-- ① Barcode Verification Results Summary -->
     <div>
-      <div class="sec-sub-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
+      <div class="sec-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
       <table class="sum-table">
         <colgroup>
-          <col style="width:110pt">
-          <col>
           <col style="width:100pt">
+          <col>
+          <col style="width:90pt">
         </colgroup>
         <thead>
           <tr>
@@ -295,7 +297,7 @@
         </tbody>
       </table>
 
-      <div class="sec-sub-hdr sec-sub-hdr-gap">Barcode Verification Grades</div>
+      <div class="sec-hdr" style="margin-top:-2px">Barcode Verification Grades</div>
       <table class="grades-table">
         <thead>
           <tr>
@@ -316,7 +318,7 @@
 
     <!-- ② VCCS FlexWedge™ Pro RFID Validation Summary -->
     <div>
-      <div class="sec-hdr">RFID <em>VeriWedge&#x2122; Pro</em> {{RFID_ADJ}} RFID Validation Summary</div>
+      <div class="sec-hdr">VCCS <em>RFID VeriWedge&#x2122; Pro</em> {{RFID_ADJ}} RFID Validation Summary</div>
       <table class="rfid-table">
         <thead>
           <tr><th class="lbl-col">Field</th><th>Value</th></tr>
@@ -338,7 +340,7 @@
   <!-- ── FOOTER ─────────────────────────────────────────────── -->
   <div class="footer">
     <div class="fl">
-      RFID <em>VeriWedge&#x2122; Pro</em> Validation Report {{FOOTER_VERSION}}
+      VCCS <em>RFID VeriWedge&#x2122; Pro</em> Validation Report {{FOOTER_VERSION}}
       <span>&nbsp;&#x2014;&nbsp; Generated {{FOOTER_GENERATED}}</span>
     </div>
     <div>Verification Command &amp; Control System (VCCS)</div>
