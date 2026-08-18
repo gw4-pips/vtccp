@@ -129,18 +129,22 @@ public sealed class RfidValidator
 
     /// <summary>
     /// Extract AI (01) GTIN-14 from a decoded barcode data string.
-    /// Handles GS1 DataMatrix (]d2 prefix, FNC1=0x1D) and raw AI strings.
+    /// Handles both GS1 Digital Link URLs (https://.../01/GTIN14/21/Serial)
+    /// and GS1 Element String format (]d2 / FNC1-separated AIs).
     /// Returns the 14-digit GTIN-14 string, or null if AI (01) is not found.
     /// </summary>
     public static string? ExtractAi01(string? decodedData)
     {
         if (string.IsNullOrEmpty(decodedData)) return null;
         string payload = StripAimId(decodedData);
+        if (IsDigitalLinkUrl(payload))
+            return ExtractDlAi(payload, "01");
         return FindFixedLengthAi(payload, "01", 14);
     }
 
     /// <summary>
     /// Extract AI (21) serial number from a decoded barcode data string.
+    /// Handles both GS1 Digital Link URLs and GS1 Element String format.
     /// AI (21) is variable-length, terminated by FNC1 (0x1D) or end-of-data.
     /// Returns null if AI (21) is not present.
     /// </summary>
@@ -148,10 +152,12 @@ public sealed class RfidValidator
     {
         if (string.IsNullOrEmpty(decodedData)) return null;
         string payload = StripAimId(decodedData);
+        if (IsDigitalLinkUrl(payload))
+            return ExtractDlAi(payload, "21");
         return FindVariableLengthAi(payload, "21");
     }
 
-    /// <summary>Strip the AIM identifier prefix (e.g. "]d2", "]C1") from the data string.</summary>
+    /// <summary>Strip the AIM identifier prefix (e.g. "]d2", "]C1", "]Q1") from the data string.</summary>
     private static string StripAimId(string data)
     {
         if (data.Length >= 3 && data[0] == ']')
@@ -160,14 +166,61 @@ public sealed class RfidValidator
     }
 
     /// <summary>
-    /// Find a fixed-length AI value in the GS1 payload.
+    /// Returns true when <paramref name="payload"/> is a GS1 Digital Link URI
+    /// (starts with https:// or http://).
+    /// </summary>
+    private static bool IsDigitalLinkUrl(string payload)
+        => payload.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+        || payload.StartsWith("http://",  StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Extract a GS1 AI value from a GS1 Digital Link URI.
+    ///
+    /// Path-based (most common):
+    ///   https://example.com/01/00012345678905/21/ABC123
+    ///   Segments are paired: /AI/value[/AI/value…]
+    ///
+    /// Query-string-based (less common):
+    ///   https://example.com/gtin?01=00012345678905&amp;21=ABC123
+    /// </summary>
+    private static string? ExtractDlAi(string url, string ai)
+    {
+        try
+        {
+            var uri = new Uri(url);
+
+            // 1. Path-based: /AI/value pairs
+            string[] segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < segments.Length - 1; i++)
+            {
+                if (segments[i] == ai)
+                    return Uri.UnescapeDataString(segments[i + 1]);
+            }
+
+            // 2. Query-string-based: AI=value pairs
+            if (!string.IsNullOrEmpty(uri.Query))
+            {
+                string query = uri.Query.TrimStart('?');
+                foreach (string pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    int eq = pair.IndexOf('=');
+                    if (eq > 0 && pair[..eq] == ai)
+                        return Uri.UnescapeDataString(pair[(eq + 1)..]);
+                }
+            }
+        }
+        catch { /* malformed URL — fall through to null */ }
+        return null;
+    }
+
+    /// <summary>
+    /// Find a fixed-length AI value in the GS1 Element String payload.
     /// GS1 data: AI digits immediately followed by value; FNC1 (0x1D) acts as separator.
     /// </summary>
     private static string? FindFixedLengthAi(string payload, string ai, int valueLen)
     {
         // Normalise FNC1 (0x1D) to pipe for simple parsing
         string normalized = payload.Replace('\x1D', '|');
-        // Split on | to get individual AI+value segments
         foreach (string segment in normalized.Split('|', StringSplitOptions.RemoveEmptyEntries))
         {
             if (segment.StartsWith(ai, StringComparison.Ordinal)

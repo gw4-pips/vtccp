@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>VtccpApp</RootNamespace>
     <AssemblyName>VtccpApp</AssemblyName>
-    <Version>1.5.0</Version>
+    <Version>1.5.1</Version>
     <Company>VCCS</Company>
     <Product>VTCCP</Product>
     <Description>VCCS DMV TruCheck Command Pilot</Description>
@@ -37,6 +37,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- VCCS diamond logo — loaded by PdfReportGenerator at <ExeDir>/resources/vccs_logo.png -->
+    <Content Include="..\DeviceInterface\Resources\vccs_logo.png">
+      <Link>resources\vccs_logo.png</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="..\OcrEngine\tessdata\eng.traineddata">
       <Link>tessdata\eng.traineddata</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
