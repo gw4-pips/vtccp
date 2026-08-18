@@ -1537,3 +1537,15 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (18-Aug-2026):** Do not conflate DataMan TruCheck and Webscan TruCheck. Add that to replit.md. Testing in the DM TC environment now; will move to Webscan TruCheck shortly.
 
 **Assistant:** Added "Product terminology" section to replit.md distinguishing DataMan TruCheck (Cognex, DM475V built-in, current test environment) from Webscan TruCheck (Webscan Inc., separate PC app, next integration target). Rule: any mention of "TruCheck" must specify which one.
+
+---
+
+**User (18-Aug-2026):** App dialog shows the read then clears to "No Read". Last read should be static until next read. NTP working, DM TC shows right time, RFID validation report shows 4 hours later.
+
+**Assistant:** Fixed two bugs. (1) Auto-poll "No read" clobber: RunAutoPollLoopAsync was setting StatusMessage = "No read — waiting…" on every null result, overwriting the last record summary. Fixed with RecordCount == 0 gate — "No read" only shows before the first scan. (2) UTC timestamp: device is NTP/UTC but DateTime.TryParse treated the no-timezone-suffix string as local, making reports 4 hrs ahead in Eastern. Added DateTimeStyles.AssumeUniversal | AdjustToUniversal + ToLocalTime() to both parse paths in DmstResultParser (push XML timestamp) and DmstHtmlScraper (HTML filename timestamp). Both fixes needed together to preserve the ±2s HTML correlation window. v1.5.9, pushed d41d11f + d29e37e.
+
+---
+
+**User (18-Aug-2026):** PDF attached. Device name lost since v1.4.11 port, Device label is bold. UTC timestamp fix was wrong — device timezone is America/New_York set via DMCC, timestamp is already local.
+
+**Assistant:** Two fixes. (1) Device name: {{HDR_DEVICE}} was reading r.DeviceModel (null for SDK-connected devices) instead of r.DeviceName. Changed to r.DeviceName ?? r.DeviceModel ?? r.VerifierBrand. (2) Timestamp: reverted both UTC fixes (DmstResultParser + DmstHtmlScraper) — device clock is local Eastern time per DEVICE.TIMEZONE DMCC setting, no AssumeUniversal needed. Comments updated accordingly. v1.5.10, report v1.5.4, pushed 5223f56.
