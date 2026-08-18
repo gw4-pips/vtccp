@@ -1489,3 +1489,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (18-Aug-2026):** Still working in full VTCCP app for v23 migration testing. Want to rename report title to "VCCS FlexWedge™ Pro / Barcode-to-RFID Validation Report" (2 lines), keep centered, move header-title block ~0.5" left. #153 (TID) looks finished — incorporate and push. #152 is mine to do.
 
 **Assistant:** Made two edits to the template: renamed the h1 to "VCCS FlexWedge™ Pro / Barcode-to-RFID Validation Report" (2 lines), added margin-left:-0.5in; margin-right:0.5in; to .header-title CSS to shift block left by half inch. Bumped report version v1.4.12→v1.4.13, app version 1.5.3→1.5.4. Committed and pushed (949cd22). Task #153 TID changes are not yet in the git repo (pending platform merge approval) — will incorporate once they land. #152 (Windows PDF verification) was cancelled by user — theirs to do on hardware.
+
+---
+
+**User (18-Aug-2026):** #153 approved (TID merge).
+
+**Assistant:** Confirmed task #153 merge (commit 3475cf7) landed cleanly on top of our refactored generator — TID row in BuildRfidRows(), RfidTid in VerificationRecord, ReadTidAsync wired in RfidScanCoordinator (2000ms timeout). Task agent did not bump app version (was working against 1.5.3); bumped 1.5.4→1.5.5 and pushed (9818473 via post-commit hook). Noted task #156 (Show TID in PDF) is already done by the #153 merge — no separate work needed. #154 (Excel TID) and #155 (hardware verification) in progress on their own tracks.
