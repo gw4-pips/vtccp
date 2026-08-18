@@ -43,4 +43,19 @@ public interface IEpcReader : IAsyncDisposable
     /// Safe to call even when idle.
     /// </summary>
     Task CancelAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Read the TID memory bank of a specific tag after inventory.
+    ///
+    /// Call this after <see cref="TriggerInventoryAsync"/> returns an EPC, before
+    /// starting the next inventory.
+    ///
+    /// Default implementation returns null — concrete readers that support TID
+    /// reading (e.g. <see cref="AsReaderP35UEpcReader"/>) override this.
+    /// </summary>
+    /// <param name="epcBytes">EPC bytes identifying the target tag.</param>
+    /// <param name="timeout">Maximum wait for the TID result callback.</param>
+    /// <returns>TID hex string (uppercase), or null on timeout / unsupported / error.</returns>
+    Task<string?> ReadTidAsync(byte[] epcBytes, TimeSpan timeout, CancellationToken ct = default)
+        => Task.FromResult<string?>(null);
 }

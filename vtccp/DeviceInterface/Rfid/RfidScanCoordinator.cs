@@ -25,6 +25,12 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
     private bool _disposed;
 
     /// <summary>
+    /// Maximum time (ms) to wait for a TID read response after inventory.
+    /// 2 000 ms is sufficient — the DLL callback fires within a few hundred ms on FW 1.8.0.
+    /// </summary>
+    private const int TidReadTimeoutMs = 2000;
+
+    /// <summary>
     /// Raised when a scan+validation cycle completes.
     /// The second argument is the <see cref="VerificationRecord"/> that triggered the cycle.
     /// Subscribers should marshal to the UI thread if needed.
@@ -83,6 +89,33 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
                 reads = [];
                 // Log non-fatal read failure; validation result will be NoTag
                 System.Diagnostics.Debug.WriteLine($"[RfidScanCoordinator] Read error: {ex.Message}");
+            }
+
+            // ── TID read (FW 1.8.0 workaround: called after inventory, not during) ──
+            // Attempt TID read for the first/selected tag.  Non-fatal: a null TID
+            // means the field is omitted from the report rather than blocking validation.
+            if (reads.Count > 0 && reads[0].Tid is null)
+            {
+                try
+                {
+                    string? tid = await _reader
+                        .ReadTidAsync(reads[0].EpcBytes, TimeSpan.FromMilliseconds(TidReadTimeoutMs), ct)
+                        .ConfigureAwait(false);
+
+                    if (tid is not null)
+                    {
+                        // EpcReadResult is an immutable record — rebuild with TID populated.
+                        var updated = new List<EpcReadResult>(reads.Count);
+                        updated.Add(reads[0] with { Tid = tid });
+                        for (int i = 1; i < reads.Count; i++)
+                            updated.Add(reads[i]);
+                        reads = updated.AsReadOnly();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[RfidScanCoordinator] TID read error: {ex.Message}");
+                }
             }
 
             int elapsed = (int)sw.ElapsedMilliseconds;

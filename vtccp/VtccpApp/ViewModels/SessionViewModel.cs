@@ -1118,6 +1118,7 @@ public sealed class SessionViewModel : ViewModelBase
                 RfidEpcTagUri      = BuildEpcTagUri(rfidResult.ParsedEpc),
                 RfidGtin14         = rfidResult.RfidGtin14,
                 RfidSerial         = rfidResult.RfidSerial,
+                RfidTid            = rfidResult.SelectedRead?.Tid,
                 RfidMismatchDetail = rfidResult.MismatchDetail,
                 RfidScanWindowMs   = rfidResult.ScanWindowMs,
                 RfidGcpValid       = rfidResult.GcpValid,

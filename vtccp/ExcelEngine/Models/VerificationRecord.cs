@@ -462,6 +462,13 @@ public sealed record class VerificationRecord
     public string? RfidSerial { get; init; }
 
     /// <summary>
+    /// Tag Identifier (TID) hex string from the tag's TID memory bank, e.g. "E2801160200072183DF7ACFC".
+    /// Identifies the chip manufacturer and model (first 8 hex digits = MDID + TMN).
+    /// Null when TID reading was not performed, timed out, or the tag did not respond.
+    /// </summary>
+    public string? RfidTid { get; init; }
+
+    /// <summary>
     /// Cross-validation outcome: "Pass", "Fail", "NoTag", "ParseError",
     /// "MultipleTagsDetected", or "Skipped".
     /// </summary>
