@@ -133,6 +133,14 @@ dotnet run --project TestHarness/TestHarness.csproj -c Release
 
 - **Always close VTCCP before Git Pull**: remind the user to close the running VTCCP app before pulling in Visual Studio, to avoid file-lock conflicts on the binaries.
 
+- **Always bump the app version on every code-change commit**: increment `VtccpApp.csproj <Version>` (patch digit) on every commit that changes any C# code. Never commit a code change without a version bump. This is non-negotiable.
+
+- **Always bump the report version whenever the report format changes**: the canonical VCCS RFID Validation Report is the HTML-based v23 format (`dist/vccs-pdf-preview-v23.html`). Its footer version string (e.g. "v1.4.11") must be incremented any time the report layout, content, or logic changes. The report version and the app version are separate numbers — both must be maintained.
+
+- **The canonical VCCS RFID report is HTML, not PDF (Option B)**: the report generator produces an HTML file matching the v23 design. Users open it in a browser and print/save to PDF. QuestPDF (`PdfReportGenerator.cs`) is not the target — the HTML-based generator is. Do not improve or extend `PdfReportGenerator.cs`; it will be replaced.
+
+- **DO NOT BUILD WITHOUT ASKING first**: before writing or modifying any C# code, confirm the exact approach with the user. Planning and analysis are the default. This is the highest-priority rule for the VTCCP project.
+
 - **Push-script viewer — ALWAYS update on every new version**: every time a new push script version is written (any vX.YY), immediately and without being asked: (1) copy the new script to `artifacts/script-viewer/src/vXYY.txt`, (2) update `App.tsx` to import `vXYY.txt?raw` and change the header label, download filename, and install-confirm `<PushScriptDiag>` string to the new version, (3) restart the `artifacts/script-viewer: web` workflow. This is not optional and must not require a reminder.
 - **Always rev synthesis/architecture documents when updating them**: any time a `.md` or `.html` doc in `references/` (or any other synthesis/design document) is modified, increment its version in the header — e.g. add or bump a `v1.0 → v1.1` tag and revision date in the top section. Never deliver an updated doc without a version bump. If the document has no version header yet, add one on first edit.
 
