@@ -182,6 +182,26 @@ public sealed class RfidValidator
     ///
     /// Query-string-based (less common):
     ///   https://example.com/gtin?01=00012345678905&amp;21=ABC123
+    ///
+    /// Percent-encoding:
+    ///   Values may contain percent-encoded characters (e.g. a serial with a
+    ///   literal "/" encoded as %2F).  Uri.AbsolutePath preserves %2F in .NET
+    ///   Core/.NET 5+ (per RFC 3986 §3.3) so splitting on '/' never
+    ///   misinterprets an encoded slash as a path delimiter.  The raw
+    ///   segment is then decoded with Uri.UnescapeDataString before it is
+    ///   returned, so callers always receive the unencoded value.
+    ///
+    /// Compressed segments (OUT OF SCOPE):
+    ///   GS1 Digital Link v1.3 §7.8 defines a compact binary encoding for
+    ///   numeric-only path segments (e.g. /AIdkMQ encodes GTIN+serial in
+    ///   a base64url-like scheme).  That encoding is NOT decoded here.
+    ///   Compressed DL URIs are rare in the field — no Cognex reader
+    ///   firmware tested produces them — and decoding requires implementing
+    ///   the full GS1 DL numeric compressor.  If a compressed URI arrives
+    ///   this method returns null (no match found), which the validator
+    ///   treats as a barcode-field-not-present (no mismatch asserted).
+    ///   Add decompression support here if compressed URIs are observed in
+    ///   production.
     /// </summary>
     private static string? ExtractDlAi(string url, string ai)
     {
@@ -189,7 +209,11 @@ public sealed class RfidValidator
         {
             var uri = new Uri(url);
 
-            // 1. Path-based: /AI/value pairs
+            // 1. Path-based: /AI/value pairs.
+            //    Uri.AbsolutePath preserves percent-encoded characters (e.g.
+            //    %2F stays as-is and is NOT treated as a path separator), so
+            //    the split is always correct.  Uri.UnescapeDataString then
+            //    decodes the value before returning it to the caller.
             string[] segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < segments.Length - 1; i++)
             {
@@ -197,7 +221,9 @@ public sealed class RfidValidator
                     return Uri.UnescapeDataString(segments[i + 1]);
             }
 
-            // 2. Query-string-based: AI=value pairs
+            // 2. Query-string-based: AI=value pairs.
+            //    uri.Query preserves percent-encoding; UnescapeDataString
+            //    decodes each value before it is returned.
             if (!string.IsNullOrEmpty(uri.Query))
             {
                 string query = uri.Query.TrimStart('?');
