@@ -25,7 +25,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.2";
+    public const string ReportVersion = "v1.5.3";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -503,14 +503,16 @@ public static class VccsHtmlReportGenerator
         if (string.IsNullOrWhiteSpace(mismatchDetail))
             return "Fail &#x2014; GTIN or Serial Number mismatch";
 
-        bool gtinFail   = mismatchDetail.Contains("GTIN14:", StringComparison.Ordinal);
-        bool serialFail = mismatchDetail.Contains("Serial:", StringComparison.Ordinal);
-        bool gcpFail    = mismatchDetail.Contains("GCP:",    StringComparison.Ordinal);
+        bool gtinNoData     = mismatchDetail.Contains("GTIN14:NoBarcodeData",   StringComparison.Ordinal);
+        bool gtinMismatch   = mismatchDetail.Contains("GTIN14:RFID=",           StringComparison.Ordinal);
+        bool serialMissing  = mismatchDetail.Contains("Serial:MissingFromTag",  StringComparison.Ordinal);
+        bool serialMismatch = mismatchDetail.Contains("Serial:RFID=",           StringComparison.Ordinal);
 
-        var parts = new List<string>(3);
-        if (gtinFail)   parts.Add("GTIN");
-        if (serialFail) parts.Add("Serial Number");
-        if (gcpFail)    parts.Add("GCP not registered");
+        var parts = new List<string>(4);
+        if (gtinNoData)     parts.Add("GTIN not in barcode");
+        if (gtinMismatch)   parts.Add("GTIN mismatch");
+        if (serialMissing)  parts.Add("Serial Number missing from tag");
+        if (serialMismatch) parts.Add("Serial Number mismatch");
 
         return parts.Count switch
         {

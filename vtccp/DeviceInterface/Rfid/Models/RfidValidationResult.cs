@@ -83,7 +83,12 @@ public sealed record RfidValidationResult
     // ── Human-readable summary ──────────────────────────────────────────────────
 
     /// <summary>
-    /// Semicolon-separated mismatch fields, e.g. "GTIN14:RFID=00012345678905,BC=00012345678906;Serial:RFID=12345,BC=12346".
+    /// Semicolon-separated mismatch tokens. Possible tokens:
+    ///   GTIN14:NoBarcodeData          — barcode carried no AI (01) to compare against
+    ///   GTIN14:RFID=&lt;x&gt;,BC=&lt;y&gt;       — GTIN-14 values differ
+    ///   Serial:MissingFromTag         — barcode has AI (21) but RFID tag EPC has no serial
+    ///   Serial:RFID=&lt;x&gt;,BC=&lt;y&gt;       — serial values differ
+    /// GCP registration is intentionally excluded — it is not a pass/fail criterion.
     /// Null on Pass or when no comparison was possible.
     /// </summary>
     public string? MismatchDetail { get; init; }

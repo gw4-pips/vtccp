@@ -91,19 +91,22 @@ public sealed class RfidValidator
         // ── Build mismatch detail ──────────────────────────────────────────────
         var mismatches = new List<string>();
 
-        if (barcodeGtin14 is not null && !gtin14Match)
+        if (barcodeGtin14 is null)
+            mismatches.Add("GTIN14:NoBarcodeData");
+        else if (!gtin14Match)
             mismatches.Add($"GTIN14:RFID={rfidGtin14},BC={barcodeGtin14}");
 
-        if (barcodeSerial is not null && rfidSerial is not null && !serialMatch)
+        if (barcodeSerial is not null && rfidSerial is null)
+            mismatches.Add("Serial:MissingFromTag");
+        else if (barcodeSerial is not null && rfidSerial is not null && !serialMatch)
             mismatches.Add($"Serial:RFID={rfidSerial},BC={barcodeSerial}");
 
-        if (gcpValid == false)
-            mismatches.Add($"GCP:NotRegistered={parsedEpc.CompanyPrefix}");
+        // GCP registration status is informational — matching GTIN and Serial is
+        // sufficient for a PASS.  GcpValid is retained on the result for display.
 
         // ── Determine overall status ───────────────────────────────────────────
         bool pass = gtin14Match
-            && (barcodeSerial is null || serialMatch)
-            && gcpValid != false;
+            && (barcodeSerial is null || serialMatch);
 
         RfidValidationStatus status = reads.Count > 1
             ? RfidValidationStatus.MultipleTagsDetected
