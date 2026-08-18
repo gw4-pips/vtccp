@@ -1525,3 +1525,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (18-Aug-2026):** RFID vs barcode validation error message is too generic — says "Fail — GTIN or Serial Number mismatch" but should distinguish which field(s) fail.
 
 **Assistant:** Added BuildMismatch2DLabel() to VccsHtmlReportGenerator — parses RfidMismatchDetail (GTIN14:/Serial:/GCP: tokens) and produces specific labels: "Fail — GTIN mismatch" / "Fail — Serial Number mismatch" / "Fail — GTIN and Serial Number mismatch". Removed raw RfidMismatchDetail appends. Report v1.5.1→v1.5.2, pushed 4e87d67.
+
+---
+
+**User (18-Aug-2026):** GCP not registered is not a FAIL — if they match it's a PASS. What does "no data available" (fallback) mean? If no GTIN → FAIL; if SN missing from either → FAIL.
+
+**Assistant:** Fixed two issues. (1) Removed `gcpValid != false` from RfidValidator pass condition — GCP is informational only, not a fail criterion. (2) Added specific mismatch tokens for previously-silent fail cases: GTIN14:NoBarcodeData (no AI 01 in barcode) and Serial:MissingFromTag (barcode has AI 21, RFID tag has no serial). Updated BuildMismatch2DLabel to parse these into "GTIN not in barcode" and "Serial Number missing from tag" labels. Generic fallback was triggered because mismatch detail was null when the failure was a missing-data case. Report v1.5.2→v1.5.3, pushed 95fc7c8.
