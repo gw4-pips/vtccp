@@ -58,4 +58,20 @@ public interface IEpcReader : IAsyncDisposable
     /// <returns>TID hex string (uppercase), or null on timeout / unsupported / error.</returns>
     Task<string?> ReadTidAsync(byte[] epcBytes, TimeSpan timeout, CancellationToken ct = default)
         => Task.FromResult<string?>(null);
+
+    /// <summary>
+    /// Query the EPC memory bank lock status of a specific tag after inventory
+    /// (e.g. via the ASR-P35U SDK's CheckTagStatus command).
+    ///
+    /// Default implementation returns null — concrete readers that support a
+    /// lock check (e.g. <see cref="AsReaderP35UEpcReader"/>) override this.
+    /// </summary>
+    /// <param name="epcBytes">EPC bytes identifying the target tag.</param>
+    /// <param name="timeout">Maximum wait for the status result callback.</param>
+    /// <returns>
+    /// "PermaLocked" / "Locked" / "Unlocked" / "Unknown", or null when
+    /// unsupported or the command was rejected.
+    /// </returns>
+    Task<string?> ReadLockStatusAsync(byte[] epcBytes, TimeSpan timeout, CancellationToken ct = default)
+        => Task.FromResult<string?>(null);
 }

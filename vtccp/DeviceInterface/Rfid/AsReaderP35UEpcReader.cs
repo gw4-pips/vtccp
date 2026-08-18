@@ -70,6 +70,16 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
     /// </summary>
     private volatile Action<AsReader.InventoryResult>? _pendingTidCb;
 
+    // ── Lock-check correlation ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Correlates CheckTagStatus QC callbacks with the request that issued them,
+    /// draining the delayed stray cbSuccess 41 that a timed-out ReadMemory emits
+    /// on FW 1.8.0 (see ASREADER_TID_DEFECT.md) so it can never be mis-read as a
+    /// "Locked" result.  See <see cref="LockCheckCorrelator"/>.
+    /// </summary>
+    private readonly LockCheckCorrelator _lockCorrelator = new();
+
     // ── Settings ──────────────────────────────────────────────────────────────
 
     private readonly int _txPowerDbm;
@@ -302,8 +312,127 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         catch (OperationCanceledException)
         {
             Interlocked.Exchange(ref _pendingTidCb, null);  // disarm stale hook
+
+            // FW 1.8.0: a TIMED-OUT ReadMemory emits a delayed stray cbSuccess 41
+            // once the hardware finishes the RF operation (ASREADER_TID_DEFECT.md).
+            // Record the expectation ONLY on this failure path so a subsequent
+            // lock check drains the stray ack instead of mis-reading it as
+            // "Locked" — while a normal successful TID read (result delivered
+            // via cbTag) proceeds to CheckTagStatus without the long drain.
+            _lockCorrelator.NoteReadMemoryIssued();
+
             Dbg("ReadTidAsync timed out");
             return null;
+        }
+    }
+
+    // ── Lock status ───────────────────────────────────────────────────────────
+
+    /// <summary>Quiet period with no unclaimed QC callbacks required before arming.</summary>
+    private static readonly TimeSpan LockDrainQuiet = TimeSpan.FromMilliseconds(400);
+
+    /// <summary>Maximum time to spend draining stale QC acks before arming anyway.</summary>
+    private static readonly TimeSpan LockDrainMax = TimeSpan.FromMilliseconds(2500);
+
+    /// <summary>Delay before retrying CheckTagStatus after a busy (cbError 4) response.</summary>
+    private static readonly TimeSpan LockBusyRetryDelay = TimeSpan.FromMilliseconds(250);
+
+    /// <summary>
+    /// Query the EPC memory bank lock status of a specific tag after inventory
+    /// via the SDK's <c>CheckTagStatus</c> command.
+    ///
+    /// CheckTagStatus is asynchronous: the result arrives via cbSuccess
+    /// (40=PermaLock, 41=Lock, 42=Unlock) or cbError.  Correlation is handled by
+    /// <see cref="LockCheckCorrelator"/>:
+    ///   1. Drain — waits out the delayed stray cbSuccess 41 that a preceding
+    ///      (esp. timed-out) ReadMemory emits on FW 1.8.0, so it is never
+    ///      mis-read as "Locked".
+    ///   2. Arm — a one-shot hook consumed only while armed.
+    ///   3. Busy retry — cbError 4 (device conflict while busy) retries until
+    ///      <paramref name="timeout"/> instead of reporting a bogus status.
+    ///
+    /// Call after <see cref="ReadTidAsync"/> (or after inventory when TID is
+    /// skipped), before starting the next inventory.
+    /// </summary>
+    /// <param name="epcBytes">EPC bytes identifying the target tag.</param>
+    /// <param name="timeout">Overall budget for drain + status callback.</param>
+    /// <returns>
+    /// "PermaLocked" / "Locked" / "Unlocked" on a success code, "Unknown" on an
+    /// error callback or timeout, or null when not connected / command rejected.
+    /// </returns>
+    public async Task<string?> ReadLockStatusAsync(
+        byte[] epcBytes,
+        TimeSpan timeout,
+        CancellationToken ct = default)
+    {
+        if (!IsConnected || _device is null)
+            return null;
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        TimeSpan Remaining() => timeout - sw.Elapsed;
+
+        // 1. Drain stale QC acks from the preceding ReadMemory (TID read).
+        try
+        {
+            var drainBudget = Remaining() < LockDrainMax ? Remaining() : LockDrainMax;
+            if (drainBudget > TimeSpan.Zero)
+                await _lockCorrelator.DrainAsync(LockDrainQuiet, drainBudget, ct)
+                                     .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) { return "Unknown"; }
+
+        // 2. Arm + issue, retrying on busy until the timeout budget is spent.
+        while (true)
+        {
+            var resultTask = _lockCorrelator.Arm();
+
+            uint ret = _device.CheckTagStatus(epcBytes);
+            if (ret != 0)
+            {
+                _lockCorrelator.Disarm();   // CheckTagStatus was rejected
+                Dbg($"CheckTagStatus returned {ret} — lock check rejected");
+                return null;
+            }
+
+            string status;
+            var remaining = Remaining();
+            if (remaining <= TimeSpan.Zero)
+            {
+                _lockCorrelator.Disarm();
+                Dbg("ReadLockStatusAsync timed out");
+                return "Unknown";
+            }
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct))
+            {
+                linkedCts.CancelAfter(remaining);
+                try
+                {
+                    status = await resultTask.WaitAsync(linkedCts.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    _lockCorrelator.Disarm();   // disarm stale hook
+                    Dbg("ReadLockStatusAsync timed out");
+                    return "Unknown";
+                }
+            }
+
+            if (status != LockCheckCorrelator.Busy)
+            {
+                Dbg($"Lock status: {status}");
+                return status;
+            }
+
+            // Device busy (cbError 4) — hardware still finishing the previous
+            // RF operation.  Back off and retry within the remaining budget.
+            if (Remaining() <= LockBusyRetryDelay)
+            {
+                Dbg("ReadLockStatusAsync: device stayed busy — giving up");
+                return "Unknown";
+            }
+            Dbg("CheckTagStatus busy (cbError 4) — retrying");
+            try { await Task.Delay(LockBusyRetryDelay, ct).ConfigureAwait(false); }
+            catch (OperationCanceledException) { return "Unknown"; }
         }
     }
 
@@ -379,6 +508,12 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
     private void OnError(uint errorCode)
     {
         Dbg($"DLL error callback: {errorCode}");
+
+        // Armed lock check: CheckTagStatus failure arrives here
+        // (e.g. code 4 = device conflict while busy → Busy sentinel, retried).
+        if (_lockCorrelator.OnError(errorCode))
+            return;   // error belongs to the lock check — not a disconnect
+
         // Only treat as disconnect when inventory is actually running.
         // Errors while idle are typically spurious QC-command responses.
         lock (_stateLock)
@@ -395,6 +530,12 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
     {
         // successCode: 40=PermaLock, 41=Lock, 42=Unlock (from CheckTagStatus)
         Dbg($"DLL success callback: {successCode}");
+
+        // QC codes route through the correlator: consumed only while a lock
+        // check is armed; otherwise recorded as an unclaimed/stale ack (e.g.
+        // the delayed stray 41 a timed-out TID ReadMemory emits on FW 1.8.0)
+        // which the next lock check's drain phase waits out.
+        _lockCorrelator.OnSuccess(successCode);
     }
 
     private void OnCommandData(byte[]? data)
@@ -460,6 +601,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         {
             _hwStopExpected = false;
             _pendingTidCb   = null;
+            _lockCorrelator.Reset();
             _inventoryTcs?.TrySetCanceled();
             _inventoryTcs   = null;
         }

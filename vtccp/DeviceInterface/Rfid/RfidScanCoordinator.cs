@@ -31,6 +31,14 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
     private const int TidReadTimeoutMs = 2000;
 
     /// <summary>
+    /// Overall budget (ms) for the CheckTagStatus (lock check) step.
+    /// Covers the stale-ack drain (up to ~2.5 s after a timed-out TID read — see
+    /// LockCheckCorrelator), the status callback, and busy retries.
+    /// A timeout yields "Unknown" and never blocks the scan result.
+    /// </summary>
+    private const int LockCheckTimeoutMs = 5000;
+
+    /// <summary>
     /// Raised when a scan+validation cycle completes.
     /// The second argument is the <see cref="VerificationRecord"/> that triggered the cycle.
     /// Subscribers should marshal to the UI thread if needed.
@@ -115,6 +123,33 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"[RfidScanCoordinator] TID read error: {ex.Message}");
+                }
+            }
+
+            // ── Lock status check (CheckTagStatus, after the TID read) ─────────────
+            // Non-fatal: a null/Unknown lock status is rendered as "Unknown" in the
+            // report rather than blocking validation.
+            if (reads.Count > 0 && reads[0].LockStatus is null)
+            {
+                try
+                {
+                    string? lockStatus = await _reader
+                        .ReadLockStatusAsync(reads[0].EpcBytes,
+                            TimeSpan.FromMilliseconds(LockCheckTimeoutMs), ct)
+                        .ConfigureAwait(false);
+
+                    if (lockStatus is not null)
+                    {
+                        var updated = new List<EpcReadResult>(reads.Count);
+                        updated.Add(reads[0] with { LockStatus = lockStatus });
+                        for (int i = 1; i < reads.Count; i++)
+                            updated.Add(reads[i]);
+                        reads = updated.AsReadOnly();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[RfidScanCoordinator] Lock check error: {ex.Message}");
                 }
             }
 

@@ -31,4 +31,12 @@ public sealed record EpcReadResult
     /// delivery (see AsReader TID defect report).
     /// </summary>
     public string? Tid { get; init; }
+
+    /// <summary>
+    /// EPC memory bank lock status as reported by the reader's lock-check command
+    /// (e.g. <c>AsReaderP35UEpcReader.ReadLockStatusAsync</c> → SDK CheckTagStatus).
+    /// Values: "PermaLocked" / "Locked" / "Unlocked" / "Unknown".
+    /// Null when lock status was not queried or the query was rejected.
+    /// </summary>
+    public string? LockStatus { get; init; }
 }

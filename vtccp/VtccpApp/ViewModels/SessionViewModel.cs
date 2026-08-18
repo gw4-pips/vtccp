@@ -1119,6 +1119,7 @@ public sealed class SessionViewModel : ViewModelBase
                 RfidGtin14         = rfidResult.RfidGtin14,
                 RfidSerial         = rfidResult.RfidSerial,
                 RfidTid            = rfidResult.SelectedRead?.Tid,
+                RfidTagLockStatus  = rfidResult.SelectedRead?.LockStatus,
                 RfidMismatchDetail = rfidResult.MismatchDetail,
                 RfidScanWindowMs   = rfidResult.ScanWindowMs,
                 RfidGcpValid       = rfidResult.GcpValid,

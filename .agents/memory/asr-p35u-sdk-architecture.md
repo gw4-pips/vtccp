@@ -72,3 +72,6 @@ Same pattern as Cognex SDK reference in DeviceInterface.csproj.
 - Python reference: `vtccp/references/asr-p35u/source/reader.py`
 - Test vectors: `vtccp/references/asr-p35u/test-vectors/epc-decode-vectors.json`
 - TID defect: `vtccp/references/asr-p35u/docs/ASREADER_TID_DEFECT.md`
+
+## CheckTagStatus lock-check hazard (FW 1.8.0)
+A TIMED-OUT TID ReadMemory emits a delayed stray cbSuccess 41 once the hardware finishes the RF op. CheckTagStatus results also arrive as cbSuccess 40/41/42, so a lock check armed right after a timed-out TID read can mis-read the stray 41 as "Locked". Rule: correlate QC callbacks to their command — expect/drain the stray ack only after a TID timeout (a successful TID read via cbTag needs no drain, and delaying it risks the tag leaving RF range); treat cbError 4 as "device busy, retry" not a status.
