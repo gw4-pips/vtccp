@@ -154,6 +154,8 @@ dotnet run --project TestHarness/TestHarness.csproj -c Release
 
 - **When told to use a file as a template, use it literally**: load and modify that exact file (strip junk, add token markers) — do not use it as a reference to reimplement the same content in code. "Use X as the template" means X IS the template, not "make something that looks like X."
 
+- **Verifier data is canonical — never re-derive it**: any value the verifier (DM TC or Webscan TruCheck) reports must be taken verbatim from the verifier's own output (DM TC HTML or push XML). VTCCP must NEVER recalculate, reconstruct, or substitute a locally-computed value (grades, check digits, pass/fail outcomes, AI extraction, codeword counts, symbology names, DFC rows, etc.) in place of what the verifier reported. If the verifier data is absent, the field must be left absent or blank — not filled in algorithmically. Any exception to this rule requires an explicit design discussion before any code is written.
+
 - **Ask more, assume less**: when implementation details are ambiguous or multiple valid approaches exist, ask a clarifying question rather than picking one and discovering the wrong choice after the fact. The cost of a question is far lower than the cost of a rework.
 
 - **Review recent past work in detail before starting any session**: because this development is sporadic and sessions can be days apart, do not assume continuity. At the start of every session — and before writing any code — read `transcript/chat-transcript.md` (recent entries), the active memory index (`.agents/memory/MEMORY.md`), and any topic files relevant to the task. If something is not definitively in active memory or confirmed by direct reading, research it. Never proceed on an assumption; verify first.
