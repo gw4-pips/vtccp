@@ -25,7 +25,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.1";
+    public const string ReportVersion = "v1.5.2";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -315,11 +315,9 @@ public static class VccsHtmlReportGenerator
             string twoDVal = r.RfidStatus switch
             {
                 "Pass" => "Pass &#x2014; EPC data matches barcode GTIN and Serial Number",
-                "Fail" => "Fail &#x2014; GTIN or Serial Number mismatch",
+                "Fail" => BuildMismatch2DLabel(r.RfidMismatchDetail),
                 var s  => H(s ?? "\u2014"),
             };
-            if (!string.IsNullOrWhiteSpace(r.RfidMismatchDetail) && r.RfidStatus is "Fail")
-                twoDVal += $" &#x2014; {H(r.RfidMismatchDetail)}";
             ResultRow($"{twoDSym} Validation Result", twoDVal);
         }
         else
@@ -331,11 +329,9 @@ public static class VccsHtmlReportGenerator
                 "Pass" when is1DOnly => "Pass &#x2014; EPC data matches barcode GTIN",
                 "Fail" when is1DOnly => "Fail &#x2014; GTIN mismatch",
                 "Pass"               => "Pass &#x2014; EPC data matches barcode GTIN and Serial Number",
-                "Fail"               => "Fail &#x2014; GTIN or Serial Number mismatch",
+                "Fail"               => BuildMismatch2DLabel(r.RfidMismatchDetail),
                 var s                => H(s ?? "\u2014"),
             };
-            if (!string.IsNullOrWhiteSpace(r.RfidMismatchDetail) && r.RfidStatus is "Fail")
-                singleVal += $" &#x2014; {H(r.RfidMismatchDetail)}";
             ResultRow($"{symName} Validation Result", singleVal);
         }
 
@@ -489,6 +485,40 @@ public static class VccsHtmlReportGenerator
         if (hasL)         return letter;
         if (hasN)         return g.NumericGrade!.Value.ToString("F1");
         return "\u2014";
+    }
+
+    /// <summary>
+    /// Produces a specific "Fail — …" label for a 2D RFID cross-validation failure
+    /// by inspecting <paramref name="mismatchDetail"/> to name which field(s) failed.
+    ///
+    /// Detail format (from RfidValidator): semicolon-separated tokens, each beginning
+    /// with the field name followed by a colon, e.g.:
+    ///   "GTIN14:RFID=00012345678905,BC=00012345678906;Serial:RFID=12345,BC=12346"
+    ///
+    /// Returned strings use HTML entity &#x2014; for the em dash and are already
+    /// safe to embed in HTML (no user-supplied data is interpolated).
+    /// </summary>
+    private static string BuildMismatch2DLabel(string? mismatchDetail)
+    {
+        if (string.IsNullOrWhiteSpace(mismatchDetail))
+            return "Fail &#x2014; GTIN or Serial Number mismatch";
+
+        bool gtinFail   = mismatchDetail.Contains("GTIN14:", StringComparison.Ordinal);
+        bool serialFail = mismatchDetail.Contains("Serial:", StringComparison.Ordinal);
+        bool gcpFail    = mismatchDetail.Contains("GCP:",    StringComparison.Ordinal);
+
+        var parts = new List<string>(3);
+        if (gtinFail)   parts.Add("GTIN");
+        if (serialFail) parts.Add("Serial Number");
+        if (gcpFail)    parts.Add("GCP not registered");
+
+        return parts.Count switch
+        {
+            0 => "Fail &#x2014; mismatch",
+            1 => $"Fail &#x2014; {parts[0]} mismatch",
+            2 => $"Fail &#x2014; {parts[0]} and {parts[1]} mismatch",
+            _ => $"Fail &#x2014; {string.Join(", ", parts[..^1])} and {parts[^1]} mismatch",
+        };
     }
 
     private static string H(string? s) =>
