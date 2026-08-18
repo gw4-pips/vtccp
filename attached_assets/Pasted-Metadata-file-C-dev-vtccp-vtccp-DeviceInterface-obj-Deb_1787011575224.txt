@@ -1,0 +1,18 @@
+Metadata file 'C:\dev\vtccp\vtccp\DeviceInterface\obj\Debug\net8.0\ref\DeviceInterface.dll' could not be found
+There is no argument given that corresponds to the required parameter 'an1' of 'AsReader.StartInventory(bool, byte, byte, ushort, bool)'
+Metadata file 'C:\dev\vtccp\vtccp\DeviceInterface\obj\Debug\net8.0\ref\DeviceInterface.dll' could not be found
+Metadata file 'C:\dev\vtccp\vtccp\ConfigEngine\obj\Debug\net8.0\ref\ConfigEngine.dll' could not be found
+Metadata file 'C:\dev\vtccp\vtccp\ConfigEngine\bin\Debug\net8.0\ConfigEngine.dll' could not be found
+Metadata file 'C:\dev\vtccp\vtccp\DeviceInterface\bin\Debug\net8.0\DeviceInterface.dll' could not be found
+Package 'PDFsharp-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+Package 'PDFsharp-MigraDoc-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+Package 'PDFsharp-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+Package 'PDFsharp-MigraDoc-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+Package 'PDFsharp-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+Package 'PDFsharp-MigraDoc-GDI 6.2.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.
+This call site is reachable on all platforms. 'FolderBrowserDialog' is only supported on: 'windows' 6.1 and later.
+This call site is reachable on all platforms. 'FolderBrowserDialog.Description' is only supported on: 'windows' 6.1 and later.
+This call site is reachable on all platforms. 'FolderBrowserDialog.UseDescriptionForTitle' is only supported on: 'windows' 6.1 and later.
+This call site is reachable on all platforms. 'FolderBrowserDialog.SelectedPath' is only supported on: 'windows' 6.1 and later.
+This call site is reachable on all platforms. 'CommonDialog.ShowDialog()' is only supported on: 'windows' 6.1 and later.
+This call site is reachable on all platforms. 'FolderBrowserDialog.SelectedPath' is only supported on: 'windows' 6.1 and later.
