@@ -999,7 +999,9 @@ public sealed class SessionViewModel : ViewModelBase
                 var record = await _deviceSession!.TriggerAndGetResultAsync(ctx, ct);
                 if (record is not null)
                     await Application.Current.Dispatcher.InvokeAsync(() => _ = AcceptRecordAsync(record));
-                else
+                else if (RecordCount == 0)
+                    // Only show "No read" before the first scan so the idle loop
+                    // does not overwrite the last successful record summary.
                     Application.Current.Dispatcher.Invoke(() => StatusMessage = "No read — waiting…");
             }
             catch (OperationCanceledException) { break; }
