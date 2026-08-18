@@ -16,17 +16,29 @@ description: Key SDK facts, callback model, FW defects, and C# integration decis
 4. `dev.SetRegion(Types.RegionType.REGION_US)` — required before StartInventory
 5. `dev.SetTxPower(dBm)` — valid range 13–27 dBm (REGION_US)
 
-## StartInventory signature
-`StartInventory(bool rssiEnabled, int maxTags, int maxSecs, int maxCycles, int antenna)`
+## StartInventory signature (confirmed from compiler errors against real DLL)
+`StartInventory(bool rssiEnabled, byte maxTags, byte maxSecs, ushort maxCycles, bool an1)`
+- Named params NOT supported — positional only
+- an1 = antenna 1 enable (bool true)
 - maxTags=1 → hardware auto-stops after first tag (eliminates timer race)
-- antenna=1 (int, not bool)
+- Call: `StartInventory(true, 1, 0, 0, true)`
+
+## SetTxPower signature
+`SetTxPower(uint dBm)` — takes uint, not int; cast at call site
+
+## ReadMemory signature
+`ReadMemory(MemBankType, startAddr, length, password, epc)` — positional only; named param "offset" does not exist
+
+## TagData type
+`AsReader.TagData` is a **struct** (value type) — do NOT use `?.` null-conditional operator on it.
+Access fields directly: `td.epc`, `td.data`, `td.tid`, `td.pc`
 
 ## Callbacks (six, all mandatory in SetDelegate)
 | Delegate | Param | Notes |
 |---|---|---|
-| CallBackReadTagData | InventoryResult result | result.tagdata.epc (string hex), .pc (hex string), .tid, .data; result.rssi (float); result.antenna (int) |
-| CallBackErrorCode | int errorCode | Non-zero during active inventory = hardware disconnect |
-| CallBackSuccessCode | int code | 40=PermaLock, 41=Lock, 42=Unlock (CheckTagStatus) |
+| CallBackReadTagData | InventoryResult result | result.tagdata (TagData struct — not nullable), .epc/.pc/.tid/.data; result.rssi (float) |
+| CallBackErrorCode | **uint** errorCode | Non-zero during active inventory = hardware disconnect |
+| CallBackSuccessCode | **uint** code | 40=PermaLock, 41=Lock, 42=Unlock (CheckTagStatus) |
 | CallBackCommandData | byte[] data | **NEVER fires for ReadMemory on FW 1.8.0** (confirmed DLL defect) |
 | CallBackReadComplete | bool completeStatus | true + _hwStopExpected = clean auto-stop; false = unexpected disconnect |
 | CallBackTriggerHandler | int state | 1=button pressed, 0=released |

@@ -1429,3 +1429,13 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** (Task #133 assigned) Wire the RFID reader into the Session Launcher so you can connect the ASR-P35U and capture EPC tags alongside barcode scans.
 
 **Assistant:** Built the Session Launcher RFID panel and wired it end-to-end. SessionView.xaml gains an "RFID READER (ASR-P35U)" bar (COM port dropdown + refresh, Connect/Disconnect buttons, green status dot + message) between the scan-mode bar and device config. SessionViewModel: persistent reader owned by the VM (survives across sessions — RfidScanCoordinator gains an `ownsReader:false` mode so session cleanup no longer disconnects the reader), port list via SerialPort.GetPortNames() so non-SDK builds still compile, selected port persisted to AppSettings.RfidComPort, auto-connect on session start when a port is selected. Also wired the previously-orphaned RfidTabWriter: ExcelWriter exposes LastSummaryRow, SessionManager exposes Adapter/MainSheetName, and each RFID validation result now writes a row to the "RFID Scans" worksheet cross-referenced to the barcode row. Version bumped to 1.5.0. ExcelEngine + DeviceInterface build clean here; VtccpApp (WPF) needs the lab-machine build to confirm.
+
+**User:** Let's make sure we have the latest DLL.
+
+**Assistant:** Asked user to check DLL version via Properties → Details. Expected: 1.3.0 dated 2026-02-13.
+
+**User:** DLL at C:\dev\vtccp\vtccp\lib\asreader-p3xu-sdk-1.3.0 is correct 1.3.0.
+
+**Assistant:** Code was written against assumed API; actual SDK 1.3.0 has different signatures. Fixed all mismatches: OnError/OnSuccess int→uint, SetTxPower cast to uint, StartInventory remove rssiEnabled (not in this SDK), TagData is struct so removed ?. operators, ReadMemory positional args. Pushed 256d361, 7977022, 490b1b5. Real StartInventory signature: (bool rssiEnabled, byte maxTags, byte maxSecs, ushort maxCycles, bool an1). Updated asr-p35u-sdk-architecture.md memory with confirmed API signatures.
+
+**User:** Clean build.
