@@ -1455,3 +1455,15 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** YOU ARE GROSSLY MISTAKEN. You MAY NOT USE THE VERSION OF THE REPORT (1.5.0) THAT PRINTED -- IN ANY FORM. IT IS INVALID. WHY IS THAT NOT CLEAR? Compare the 2 side by side so to speak -- they are miles apart in their content.
 
 **Assistant:** Did the real side-by-side comparison. Was wrong. The PDF has: broken logos, orphaned "Digital" text rendering artifact, missing "COGNEX DataMan" in section 1 header, wrong word "UHF" instead of "EPC", broken lock status field, no barcode image, wrong footer version, inferior visual quality overall. These are not "just missing logos" — it is a different document with multiple defects. Revised position: Option B (HTML generator matching v23) is correct. Ready to plan properly.
+
+**User:** Why should a user have to open an HTML and save as PDF. That is not acceptable. I want PDF output. / What does Webscan TruCheck do for its reports?
+
+**Assistant:** Webscan TruCheck generates native PDFs directly (confirmed from D61423AFE1783 PDF in attached_assets — no browser step). User is right — HTML-then-print-manually is below that standard. Proposed WebView2 (primary, silent PDF via CoreWebView2.PrintToPdfAsync) with seamless wkhtmltopdf fallback if WebView2 unavailable. No user action either way.
+
+**User:** Did WebView2 ship with Win 10?
+
+**Assistant:** Not as part of the core OS — it shipped with Microsoft Edge updates starting mid-2021. Present on most updated Win10 machines, not guaranteed on locked-down enterprise/air-gapped systems. Windows 11 has it built in.
+
+**User:** You have shown a great deal of doubt about QuestPDF. I cannot bear revisiting this. What about making WebView2 the tool, with fallback to wkhtmltopdf if WebView2 not available — seamlessly, without user intervention?
+
+**Assistant:** Yes — correct architecture. WebView2 primary (CoreWebView2.PrintToPdfAsync, no window), wkhtmltopdf fallback (bundled .exe, silent Process.Start). Detection is a simple registry/environment check. User never knows which path ran. Proposed as task #149: VccsHtmlReportGenerator.cs (v23 template fill-in) + VccsPdfRenderer.cs (WebView2/wkhtmltopdf logic) + archive PdfReportGenerator.cs + remove QuestPDF.
