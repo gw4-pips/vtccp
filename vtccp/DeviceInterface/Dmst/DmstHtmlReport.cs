@@ -220,6 +220,26 @@ public sealed class DmstHtmlReport
     /// </summary>
     public DataFormatCheckResult? ScrapedDataFormatCheck { get; init; }
 
+    // ── HTML header fields ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Raw "Verified: …" string scraped from the HTML report header,
+    /// e.g. "Tue 18-Aug-2026 05:10:32(520ms) PM".
+    /// Already in local Eastern time (device clock is DEVICE.TIMEZONE=America/New_York).
+    /// Used verbatim as {{REPORT_DATETIME}} in the PDF — more faithful than the push
+    /// XML VerificationDateTime, which may carry a UTC offset.
+    /// </summary>
+    public string? HtmlVerifiedString { get; init; }
+
+    /// <summary>
+    /// Filename-only (no directory) of the HTML source file, e.g.
+    /// "2026-08-18_17-10-34-142_1787087819821.html".
+    /// Captured before the file is deleted in DeleteAfterParse mode so the
+    /// name is always available even after the transient file is gone.
+    /// Maps to VerificationRecord.WebscanSourcePath (used for TruCheck Report Name in PDF).
+    /// </summary>
+    public string? HtmlSourceFileName { get; init; }
+
     // ── Parse provenance ──────────────────────────────────────────────────────
 
     /// <summary>

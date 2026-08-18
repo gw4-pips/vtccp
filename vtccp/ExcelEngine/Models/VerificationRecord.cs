@@ -549,6 +549,15 @@ public sealed record class VerificationRecord
     /// </summary>
     public string? WebscanSourcePath { get; init; }
 
+    /// <summary>
+    /// Raw "Verified: …" string scraped from the DM TC HTML report header,
+    /// e.g. "Tue 18-Aug-2026 05:10:32(520ms) PM". Used verbatim as
+    /// {{REPORT_DATETIME}} in the VCCS PDF — preserves local Eastern time
+    /// as displayed by the TruCheck verifier.
+    /// Null when no HTML report was correlated.
+    /// </summary>
+    public string? HtmlVerifiedString { get; init; }
+
     // ─── Linear Symbol (Multi-mode) ───────────────────────────────────────────
     // Populated when the verifier runs in multi-mode (EAN/UPC + 2D simultaneously).
     // When present, the PDF grades table shows two rows (linear first, then 2D).

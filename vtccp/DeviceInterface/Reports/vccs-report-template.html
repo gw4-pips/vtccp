@@ -9,18 +9,16 @@
   TOKEN list (simple string replacements):
     {{HDR_VCCS_LOGO}}      — <img> tag (base64 PNG) or text fallback
     {{HDR_COMPANY_LOGO}}   — <img> tag (base64 PNG) or text fallback
-    {{HDR_DATETIME}}       — e.g. "Mon 18-Aug-2026 09:14:22 AM"
-    {{HDR_DEVICE}}         — device model string
+    {{HDR_DEVICE}}         — device model/name string
     {{HDR_SERIAL}}         — device serial number
-    {{HDR_SW}}             — software version
     {{HDR_FW}}             — firmware version
     {{HDR_BADGE_CLASS}}    — badge-pass / badge-fail / badge-warn
     {{HDR_BADGE_TEXT}}     — e.g. "&#x2713; RFID MATCHED" (raw HTML, not escaped)
     {{SECTION1_TITLE}}     — "COGNEX DataMan TruCheck…" (HTML-escaped)
-    {{REPORT_NAME}}        — filename of this report (HTML-escaped)
-    {{REPORT_DATETIME}}    — same as HDR_DATETIME (HTML-escaped)
+    {{REPORT_NAME}}        — DM TC HTML filename (HTML-escaped)
+    {{REPORT_DATETIME}}    — raw "Verified:" string from DM TC HTML header (HTML-escaped)
     {{RFID_ADJ}}           — "EPC" or "UHF"
-    {{FOOTER_VERSION}}     — report format version, e.g. "v1.4.12"
+    {{FOOTER_VERSION}}     — report format version, e.g. "v1.5.6"
     {{FOOTER_GENERATED}}   — "yyyy-MM-dd HH:mm:ss"
 
   SLOT list (replaced with generated HTML blocks):
@@ -33,7 +31,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>VCCS FlexWedge™ Pro RFID Validation Report</title>
+<title>RFID VeriWedge™ Pro Validation Report</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -56,8 +54,16 @@
   /* ── HEADER ─────────────────────────────────────────── */
   .header {
     background: #edf1f7; border-bottom: 2px solid #1a3a6b;
-    padding: 6pt 0; display: flex; flex-direction: row;
-    align-items: stretch; gap: 0; margin-bottom: 0;
+    padding: 6pt 0 0 0; display: flex; flex-direction: column;
+    gap: 0; margin-bottom: 0;
+  }
+  .header-row {
+    display: flex; flex-direction: row;
+    align-items: stretch; gap: 0;
+  }
+  .header-copyright {
+    font-size: 7pt; color: #444;
+    padding: 2pt 8pt 3pt 10pt; /* left edge aligned with VCCS logo */
   }
   .logo-box {
     width: 72pt; min-width: 72pt;
@@ -67,7 +73,7 @@
   .logo-box .logo-name { font-size: 12pt; font-weight: bold; letter-spacing: 1pt; }
   .logo-box .logo-sub  { font-size: 7pt; color: #6c757d; }
   .header-meta {
-    flex: 1; padding: 0 8pt;
+    flex: 0.67; padding: 0 8pt;
     display: flex; flex-direction: column; justify-content: center; gap: 2pt;
   }
   .header-meta .dt  { font-size: 8pt; color: #6c757d; }
@@ -109,7 +115,7 @@
   /* ── BARCODE SUMMARY TABLE ───────────────────────────── */
   .sum-table {
     width: 100%; border-collapse: collapse; table-layout: fixed;
-    border: 1px solid #1a3a6b; font-size: 9pt;
+    border: 2px solid #1a3a6b; font-size: 9pt;
   }
   .sum-table th {
     background: white; border-bottom: 1px solid #999; border-right: 1px solid #999;
@@ -125,8 +131,8 @@
   .sum-table tr:last-child td { border-bottom: none; }
   /* Navy separator above Report Name row — 1px matches the exterior border weight;
      navy colour beats #aaa in border-collapse with equal width + style. */
-  .sum-table tr.sum-meta-start td { border-top: 1px solid #1a3a6b; }
-  .sum-table .meta-lbl { color: #555; font-size: 8.5pt; }
+  .sum-table tr.sum-meta-start td { border-top: 2px solid #1a3a6b; }
+  .sum-table .meta-lbl { color: #000; font-size: 8pt; font-weight: bold; }
 
   /* App-spec cell: flex row — "GS1 —" left, stacked two-liner right */
   .sum-table td.app-spec {
@@ -146,7 +152,7 @@
   /* ── BARCODE GRADES TABLE ────────────────────────────── */
   .grades-table {
     width: 100%; border-collapse: collapse;
-    border: 1px solid #1a3a6b; font-size: 8pt;
+    border: 2px solid #1a3a6b; font-size: 8pt;
   }
   .grades-table th {
     border-bottom: 1px solid #999; border-right: 1px solid #999;
@@ -163,7 +169,7 @@
   /* ── RFID TABLE ──────────────────────────────────────── */
   .rfid-table {
     width: 100%; border-collapse: collapse;
-    border: 1px solid #1a3a6b; font-size: 9pt;
+    border: 2px solid #1a3a6b; font-size: 9pt;
   }
   .rfid-table th {
     background: #e8eef5; border-bottom: 1px solid #aaa;
@@ -183,7 +189,7 @@
   .gcp-inline-note { font-size: 7.5pt; font-style: italic; }
 
   /* ── BARCODE IMAGE ───────────────────────────────────── */
-  .img-frame { border: 1px solid #1a3a6b; text-align: center; padding: 8pt; }
+  .img-frame { border: 2px solid #1a3a6b; text-align: center; padding: 8pt; }
   .img-placeholder {
     background: #f5f5f5; border: 1px dashed #aaa;
     display: inline-block; padding: 18pt 32pt; color: #888; font-size: 8pt;
@@ -192,7 +198,7 @@
   /* ── DATA FORMAT CHECK ───────────────────────────────── */
   .dfc-table {
     width: 100%; border-collapse: collapse;
-    border: 1px solid #1a3a6b; font-size: 8pt;
+    border: 2px solid #1a3a6b; font-size: 8pt;
   }
   .dfc-table th {
     background: #e8eef5; border-bottom: 1px solid #aaa;
@@ -234,22 +240,26 @@
 
   <!-- ── HEADER ─────────────────────────────────────────────── -->
   <div class="header">
-    <div class="logo-box" style="padding:3pt 2pt;">
-      {{HDR_VCCS_LOGO}}
+    <div class="header-row">
+      <div class="logo-box" style="padding:3pt 2pt;">
+        {{HDR_VCCS_LOGO}}
+      </div>
+      <div class="header-meta">
+        <div class="dev">Device: {{HDR_DEVICE}}</div>
+        <div class="ln">Serial: {{HDR_SERIAL}}</div>
+        <div class="ln">Firmware: {{HDR_FW}}</div>
+      </div>
+      <div class="header-title">
+        <h1>RFID <em>VeriWedge&#x2122; Pro</em><br>Barcode-to-RFID Validation Report</h1>
+        <span class="rfid-badge {{HDR_BADGE_CLASS}}">{{HDR_BADGE_TEXT}}</span>
+      </div>
+      <div class="company-box" style="display:flex;align-items:center;justify-content:center;padding:2pt 4pt;">
+        {{HDR_COMPANY_LOGO}}
+      </div>
     </div>
-    <div class="header-meta">
-      <div class="dt">{{HDR_DATETIME}}</div>
-      <div class="dev">Device: {{HDR_DEVICE}}</div>
-      <div class="ln">Serial: {{HDR_SERIAL}}</div>
-      <div class="ln">Software: {{HDR_SW}}</div>
-      <div class="ln">Firmware: {{HDR_FW}}</div>
-    </div>
-    <div class="header-title">
-      <h1>VCCS <em>FlexWedge&#x2122; Pro</em><br>Barcode-to-RFID Validation Report</h1>
-      <span class="rfid-badge {{HDR_BADGE_CLASS}}">{{HDR_BADGE_TEXT}}</span>
-    </div>
-    <div class="company-box" style="display:flex;align-items:center;justify-content:center;padding:2pt 4pt;">
-      {{HDR_COMPANY_LOGO}}
+    <div class="header-copyright">
+      www.vccs.llc &mdash; &copy; Copyright 2026 All rights reserved.&nbsp;
+      <em>RFID VeriWedge&#x2122;</em> is a product of Verifier Calibration &amp; Conformance Solutions, LLC
     </div>
   </div>
 
@@ -261,21 +271,21 @@
       <div class="sec-sub-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
       <table class="sum-table">
         <colgroup>
-          <col style="width:76pt">
+          <col style="width:110pt">
           <col>
-          <col style="width:88pt">
+          <col style="width:100pt">
         </colgroup>
         <thead>
           <tr>
             <th>Symbology</th>
             <th>Encoded Data</th>
-            <th>Application Spec.</th>
+            <th>Application Standard</th>
           </tr>
         </thead>
         <tbody>
           {{SLOT_SYMBOL_ROWS}}
           <tr class="sum-meta-start">
-            <td class="meta-lbl">Report Name</td>
+            <td class="meta-lbl">TruCheck Report Name</td>
             <td colspan="2">{{REPORT_NAME}}</td>
           </tr>
           <tr>
@@ -306,7 +316,7 @@
 
     <!-- ② VCCS FlexWedge™ Pro RFID Validation Summary -->
     <div>
-      <div class="sec-hdr">VCCS <em>FlexWedge&#x2122; Pro</em> {{RFID_ADJ}} RFID Validation Summary</div>
+      <div class="sec-hdr">RFID <em>VeriWedge&#x2122; Pro</em> {{RFID_ADJ}} RFID Validation Summary</div>
       <table class="rfid-table">
         <thead>
           <tr><th class="lbl-col">Field</th><th>Value</th></tr>
@@ -328,7 +338,7 @@
   <!-- ── FOOTER ─────────────────────────────────────────────── -->
   <div class="footer">
     <div class="fl">
-      VCCS <em>FlexWedge&#x2122; Pro</em> RFID Validation Report {{FOOTER_VERSION}}
+      RFID <em>VeriWedge&#x2122; Pro</em> Validation Report {{FOOTER_VERSION}}
       <span>&nbsp;&#x2014;&nbsp; Generated {{FOOTER_GENERATED}}</span>
     </div>
     <div>Verification Command &amp; Control System (VCCS)</div>

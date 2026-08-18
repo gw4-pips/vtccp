@@ -18,14 +18,14 @@ using ExcelEngine.Models;
 namespace DeviceInterface.Reports;
 
 /// <summary>
-/// Generates the v23-design VCCS FlexWedge™ Pro RFID Validation Report as a
+/// Generates the v23-design RFID VeriWedge™ Pro Validation Report as a
 /// self-contained HTML string by loading the embedded template and substituting
 /// live data via token replacement.
 /// </summary>
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.5";
+    public const string ReportVersion = "v1.5.6";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -53,7 +53,7 @@ public static class VccsHtmlReportGenerator
 
         string vccsLogoHtml = vccsB64 is not null
             ? $"<img src=\"data:image/png;base64,{vccsB64}\" style=\"max-height:65pt;max-width:68pt;object-fit:contain;\" alt=\"VCCS\" />"
-            : "<div class=\"logo-name\">VCCS</div><div class=\"logo-sub\">FlexWedge&#x2122; Pro</div>";
+            : "<div class=\"logo-name\">VCCS</div><div class=\"logo-sub\">VeriWedge&#x2122; Pro</div>";
 
         string companyLogoHtml = companyB64 is not null
             ? $"<img src=\"data:image/png;base64,{companyB64}\" style=\"max-height:48pt;max-width:68pt;object-fit:contain;\" alt=\"{H(r.CompanyName ?? "Company")}\" />"
@@ -72,9 +72,17 @@ public static class VccsHtmlReportGenerator
         };
 
         // ── section ① title ───────────────────────────────────────────────
-        string? brand = r.VerifierBrand ?? (r.DeviceModel is { Length: > 0 } ? "COGNEX" : null);
+        // VerifierBrand is set explicitly for Webscan ("WEBSCAN") and similar.
+        // For COGNEX DataMan devices connected via DMCC, DeviceModel may be null
+        // while DeviceName is set (e.g. "DM475-866D76").  Any name starting with
+        // "DM" or containing "DataMan" gets the "COGNEX DataMan" prefix.
+        string? brand = r.VerifierBrand
+            ?? (r.DeviceModel is { Length: > 0 } ? "COGNEX" : null)
+            ?? (r.DeviceName  is { Length: > 0 } ? "COGNEX" : null);
+        string? deviceRef   = r.DeviceModel ?? r.DeviceName;
         string? dataManInfix = (brand == "COGNEX" &&
-            r.DeviceModel?.Contains("DataMan", StringComparison.OrdinalIgnoreCase) == true)
+            (deviceRef?.Contains("DataMan", StringComparison.OrdinalIgnoreCase) == true ||
+             deviceRef?.StartsWith("DM",    StringComparison.OrdinalIgnoreCase) == true))
             ? "DataMan " : null;
         string section1Title = brand is not null
             ? $"{H(brand)} {dataManInfix}TruCheck Barcode Verification Results Summary"
@@ -89,21 +97,27 @@ public static class VccsHtmlReportGenerator
         bool isGS1 = r.ApplicationStandard?.StartsWith("GS1", StringComparison.OrdinalIgnoreCase) != false;
         string rfidAdj = isGS1 ? "EPC" : "UHF";
 
+        // ── report date/time ──────────────────────────────────────────────
+        // Prefer the raw "Verified:" string scraped from the DM TC HTML header
+        // (already local Eastern time, includes the (ms) fragment shown in TruCheck).
+        // Fall back to VerificationDateTime only when no HTML was correlated.
+        string reportDateTime = !string.IsNullOrWhiteSpace(r.HtmlVerifiedString)
+            ? H(r.HtmlVerifiedString)
+            : H(r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt"));
+
         // ── token replacement ─────────────────────────────────────────────
         return _template.Value
             .Replace("{{HDR_VCCS_LOGO}}",      vccsLogoHtml)
             .Replace("{{HDR_COMPANY_LOGO}}",    companyLogoHtml)
-            .Replace("{{HDR_DATETIME}}",        H(r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt")))
             .Replace("{{HDR_DEVICE}}",          H(r.DeviceName ?? r.DeviceModel ?? r.VerifierBrand ?? "\u2014"))
             .Replace("{{HDR_SERIAL}}",          H(r.DeviceSerial ?? "\u2014"))
-            .Replace("{{HDR_SW}}",              H(r.SoftwareVersion ?? "\u2014"))
             .Replace("{{HDR_FW}}",              H(r.FirmwareVersion ?? "\u2014"))
             .Replace("{{HDR_BADGE_CLASS}}",     badgeCls)
             .Replace("{{HDR_BADGE_TEXT}}",      badgeTxt)
             .Replace("{{SECTION1_TITLE}}",      section1Title)
             .Replace("{{SLOT_SYMBOL_ROWS}}",    BuildSymbolRows(r))
             .Replace("{{REPORT_NAME}}",         reportName)
-            .Replace("{{REPORT_DATETIME}}",     H(r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt")))
+            .Replace("{{REPORT_DATETIME}}",     reportDateTime)
             .Replace("{{SLOT_GRADE_ROWS}}",     BuildGradeRows(r))
             .Replace("{{RFID_ADJ}}",            rfidAdj)
             .Replace("{{SLOT_RFID_ROWS}}",      BuildRfidRows(r))
@@ -140,16 +154,16 @@ public static class VccsHtmlReportGenerator
     {
         string? s = r.Symbology;
         if (s?.Contains("DataMatrix", StringComparison.OrdinalIgnoreCase) == true)
-            return AppSpecStackCell("Element", "String");
+            return AppSpecStackCell("Element String");
         if (s?.Contains("QR", StringComparison.OrdinalIgnoreCase) == true)
-            return AppSpecStackCell("Digital", "Link");
+            return AppSpecStackCell("Digital Link");
         string fallback = !string.IsNullOrWhiteSpace(r.ApplicationStandard)
             ? r.ApplicationStandard : r.Standard ?? "\u2014";
         return $"<td style=\"font-size:8pt;\">{H(fallback)}</td>";
     }
 
-    private static string AppSpecStackCell(string line1, string line2) =>
-        $"<td class=\"app-spec\"><div class=\"app-spec-inner\"><span class=\"app-spec-prefix\">GS1 &#x2014;</span><div class=\"app-spec-stack\">{H(line1)}<br>{H(line2)}</div></div></td>";
+    private static string AppSpecStackCell(string label) =>
+        $"<td class=\"app-spec\"><div class=\"app-spec-inner\"><span class=\"app-spec-prefix\">GS1 &#x2014;</span><div class=\"app-spec-stack\">{H(label)}</div></div></td>";
 
     private static string LinearAppSpecCell(string? symbology)
     {

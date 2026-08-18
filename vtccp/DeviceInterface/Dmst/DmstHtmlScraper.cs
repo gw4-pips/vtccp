@@ -721,6 +721,25 @@ public sealed class DmstHtmlScraper : IDisposable
                     $"[VTCCP-SCRAPER] DFC: {(scrapedDfc is null ? "not found" : $"{scrapedDfc.Rows.Count} rows, {scrapedDfc.Overall}")}");
             }
 
+            // ── Step 4d: Verified datetime string from HTML header ────────────
+            //
+            // The TruCheck HTML header contains a <p> element with the text:
+            //   "Verified: Tue 18-Aug-2026 05:10:32(520ms) PM"
+            // This is the local Eastern time (device clock = America/New_York) and
+            // is used verbatim as {{REPORT_DATETIME}} in the VCCS PDF so the displayed
+            // time matches the TruCheck report exactly — including the (ms) fragment.
+            //
+            // Note: the in-page <td>-based DateTime header cells show Unix epoch and
+            // are intentionally ignored (see ScanDateTime parsing below from filename).
+            string? htmlVerifiedString = null;
+            {
+                var verifiedMatch = Regex.Match(htmlContent,
+                    @"Verified:\s*([^<\r\n]+)", RegexOptions.IgnoreCase);
+                if (verifiedMatch.Success)
+                    htmlVerifiedString = WebUtility.HtmlDecode(
+                        verifiedMatch.Groups[1].Value.Trim());
+            }
+
             // ── Step 5: DateTime from filename ────────────────────────────────
             //
             // Format: "yyyy-MM-dd_HH-mm-ss-mmm_<random>.html"
@@ -739,6 +758,8 @@ public sealed class DmstHtmlScraper : IDisposable
             {
                 ScanDateTime          = scanDateTime,
                 SourceFilePath        = sourcePath,
+                HtmlVerifiedString    = htmlVerifiedString,
+                HtmlSourceFileName    = Path.GetFileName(sourcePath),
                 ParseSucceeded        = scanDateTime.HasValue,
 
                 // ── Supplemental fields: not accessible via push XML on fw 6.1.16_sr4 ──

@@ -269,6 +269,12 @@ public static class DmstReportValidator
             ValidationDiscrepancies = discrepancies.Count > 0
                                       ? string.Join(";", discrepancies)
                                       : null,
+
+            // Provenance from the matched HTML file — drives PDF Report Name and Date/Time.
+            // SourceFilePath is captured before deletion; Path.GetFileName() works on a
+            // deleted path string, so WebscanSourcePath is reliable even after the file is gone.
+            WebscanSourcePath  = html.SourceFilePath,
+            HtmlVerifiedString = html.HtmlVerifiedString,
         };
     }
 
