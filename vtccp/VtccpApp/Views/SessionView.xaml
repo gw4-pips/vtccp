@@ -150,7 +150,7 @@
                 <!-- Push unavailable hint — shown when DmstListenPort == 0 -->
                 <TextBlock Text="(set DmstListenPort &gt; 0 in device profile to enable)"
                            FontSize="11" FontStyle="Italic"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{StaticResource TextPrimaryBrush}"
                            VerticalAlignment="Center">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -225,7 +225,7 @@
                 </Ellipse>
                 <TextBlock Text="{Binding RfidStatusMessage}"
                            FontSize="11"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{StaticResource TextPrimaryBrush}"
                            VerticalAlignment="Center" />
             </StackPanel>
         </Border>
@@ -283,7 +283,7 @@
                 <!-- Status line -->
                 <TextBlock Text="{Binding SupplementalStatus}"
                            FontSize="11" FontStyle="Italic"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{StaticResource TextPrimaryBrush}" />
             </StackPanel>
         </Border>
 
@@ -350,13 +350,79 @@
                         Background="{StaticResource SurfaceBrush}"
                         BorderBrush="{StaticResource BorderBrush}"
                         BorderThickness="1" CornerRadius="4"
-                        Padding="16">
-                    <TextBlock Text="{Binding StatusMessage}"
-                               FontSize="14"
-                               TextWrapping="Wrap"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                               Foreground="{StaticResource TextSecondaryBrush}" />
+                        Padding="16" MinHeight="80">
+                    <Grid>
+
+                        <!-- Scan result — shown after a record is accepted -->
+                        <StackPanel VerticalAlignment="Center"
+                                    Visibility="{Binding HasScanResult, Converter={StaticResource BoolToVisibility}}">
+                            <!-- Verifier result line (grade, symbology, OCR) -->
+                            <TextBlock Text="{Binding VerifierResultLine}"
+                                       FontSize="14"
+                                       TextWrapping="Wrap"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                            <!-- RFID result line — hidden until RFID resolves -->
+                            <TextBlock Text="{Binding RfidResultLine}"
+                                       FontSize="13"
+                                       TextWrapping="Wrap"
+                                       Margin="0,6,0,0"
+                                       Foreground="{StaticResource TextPrimaryBrush}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasRfidResult}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+
+                        <!-- Session state message (connecting, error, closed) —
+                             shown when no scan result and session is not running -->
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   FontSize="13"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{StaticResource TextSecondaryBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <!-- Show when no result yet -->
+                                        <DataTrigger Binding="{Binding HasScanResult}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <!-- Hide again while the session is running (WaitingMessage handles that) -->
+                                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <!-- Waiting hint — bottom-right, visible only while session is running -->
+                        <TextBlock Text="{Binding WaitingMessage}"
+                                   FontSize="11" FontStyle="Italic"
+                                   HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                   Foreground="{StaticResource TextSecondaryBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                    </Grid>
                 </Border>
             </Grid>
         </Border>

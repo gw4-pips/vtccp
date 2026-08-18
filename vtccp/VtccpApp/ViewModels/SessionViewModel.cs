@@ -79,6 +79,10 @@ public sealed class SessionViewModel : ViewModelBase
     private string      _rfidStatusMessage = "Not connected.";
     private string?     _selectedRfidPort;
 
+    // ── Scan result display ───────────────────────────────────────────────────
+    private string  _verifierResultLine = string.Empty;
+    private string? _rfidResultLine;
+
     // ── Session output directory ───────────────────────────────────────────────
     // Captured at OnStartAsync so fire-and-forget report generators have the path
     // without relying on mutable session-manager state after the session closes.
@@ -233,6 +237,33 @@ public sealed class SessionViewModel : ViewModelBase
         get => _rfidStatusMessage;
         private set => Set(ref _rfidStatusMessage, value);
     }
+
+    // ── Scan result display properties ───────────────────────────────────────
+
+    /// <summary>Verifier result line shown in the result box (symbology, grade, OCR).</summary>
+    public string VerifierResultLine
+    {
+        get => _verifierResultLine;
+        private set { Set(ref _verifierResultLine, value); OnPropertyChanged(nameof(HasScanResult)); }
+    }
+
+    /// <summary>RFID result line shown below the verifier line; null when no RFID ran.</summary>
+    public string? RfidResultLine
+    {
+        get => _rfidResultLine;
+        private set { Set(ref _rfidResultLine, value); OnPropertyChanged(nameof(HasRfidResult)); }
+    }
+
+    /// <summary>True when a scan result is ready to display.</summary>
+    public bool HasScanResult => !string.IsNullOrEmpty(_verifierResultLine);
+
+    /// <summary>True when an RFID result is available to display below the verifier line.</summary>
+    public bool HasRfidResult => !string.IsNullOrEmpty(_rfidResultLine);
+
+    /// <summary>Waiting hint shown in the bottom-right of the result box while the session is running.</summary>
+    public string WaitingMessage => _recordCount == 0
+        ? "Waiting for first verification scan…"
+        : "Waiting for next scan…";
 
     // ── UPC/EAN Supplemental properties ──────────────────────────────────────
 
@@ -654,6 +685,8 @@ public sealed class SessionViewModel : ViewModelBase
         {
             await CleanupAsync();
             IsRunning = false;
+            VerifierResultLine = string.Empty;
+            RfidResultLine     = null;
             StatusMessage = rescuePath switch
             {
                 null => $"Session closed. {RecordCount} record(s) written.",
@@ -999,10 +1032,10 @@ public sealed class SessionViewModel : ViewModelBase
                 var record = await _deviceSession!.TriggerAndGetResultAsync(ctx, ct);
                 if (record is not null)
                     await Application.Current.Dispatcher.InvokeAsync(() => _ = AcceptRecordAsync(record));
-                else if (RecordCount == 0)
-                    // Only show "No read" before the first scan so the idle loop
-                    // does not overwrite the last successful record summary.
-                    Application.Current.Dispatcher.Invoke(() => StatusMessage = "No read — waiting…");
+                else if (RecordCount == 0 && _pendingAccept == 0)
+                    // Only show waiting state before the first scan and only when no
+                    // accept is in-flight — prevents race during the RFID scan window.
+                    Application.Current.Dispatcher.Invoke(() => StatusMessage = "Waiting for first verification scan…");
             }
             catch (OperationCanceledException) { break; }
             catch (Exception ex)
@@ -1061,6 +1094,10 @@ public sealed class SessionViewModel : ViewModelBase
     {
         if (_sessionMgr is null) return;
 
+        // Reset result display so the new scan starts clean.
+        VerifierResultLine = string.Empty;
+        RfidResultLine     = null;
+
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-WRITER] AcceptRecordInnerAsync: symbology={record.Symbology}  grade={record.OverallGrade?.LetterGradeString}");
 
@@ -1089,6 +1126,16 @@ public sealed class SessionViewModel : ViewModelBase
                 record = record with { OcrResult = ToOcrDto(ocrResult, record.DecodedData) };
             }
             catch { /* OCR failure must never block record acceptance */ }
+        }
+
+        // Show the verifier result immediately — before the RFID window opens so
+        // the operator sees the grade the moment OCR finishes.  Record number is an
+        // estimate (_recordCount + 1); it is confirmed after the Excel write below.
+        {
+            string preGrade = record.OverallGrade?.LetterGradeString is { Length: > 0 } pg ? pg : "?";
+            string preNum   = record.OverallGrade?.NumericGrade is { } pn ? $" ({pn:F1})" : string.Empty;
+            string preOcr   = record.OcrResult?.Tier is { Length: > 0 } pt ? $"  |  OCR: {pt}" : string.Empty;
+            VerifierResultLine = $"Record {_recordCount + 1}: {record.Symbology} — {preGrade}{preNum}{preOcr}";
         }
 
         // ── RFID cross-validation (awaited before Excel write) ────────────────
@@ -1126,6 +1173,17 @@ public sealed class SessionViewModel : ViewModelBase
                 RfidScanWindowMs   = rfidResult.ScanWindowMs,
                 RfidGcpValid       = rfidResult.GcpValid,
                 RfidGcpTableDate   = gcpTableDate,
+            };
+
+            // Update the RFID result line in the display.
+            RfidResultLine = rfidResult.Status switch
+            {
+                RfidValidationStatus.Pass                 => $"RFID ✓  EPC: {rfidResult.SelectedRead?.EpcHex ?? "—"}",
+                RfidValidationStatus.Fail                 => $"RFID ✗  Mismatch — {rfidResult.MismatchDetail ?? "see report"}",
+                RfidValidationStatus.NoTag                => "RFID ·  No tag detected",
+                RfidValidationStatus.ParseError           => "RFID ⚠  Parse error",
+                RfidValidationStatus.MultipleTagsDetected => "RFID ⚠  Multiple tags detected",
+                _                                         => null,
             };
         }
 
@@ -1174,7 +1232,7 @@ public sealed class SessionViewModel : ViewModelBase
         }
 
         _history.AddRecord(record);
-        _recordCount++; OnPropertyChanged(nameof(RecordCount));
+        _recordCount++; OnPropertyChanged(nameof(RecordCount)); OnPropertyChanged(nameof(WaitingMessage));
 
         // ── Hybrid HTML report (fire-and-forget) ──────────────────────────────
         // Generates a self-contained report combining barcode grades + RFID data.
@@ -1262,23 +1320,15 @@ public sealed class SessionViewModel : ViewModelBase
                 record, pdfDir, _sessionId, _pollCts?.Token ?? default);
         }
 
-        string grade     = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
-        string num       = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
-        string ocrSuffix = record.OcrResult?.Tier is { Length: > 0 } t ? $"  | OCR: {t}" : string.Empty;
-        string rfidSuffix = rfidResult?.Status switch
+        // Confirm the verifier result line with the actual record number and save status.
+        // RfidResultLine was already set above when RFID ran.
         {
-            RfidValidationStatus.Pass                 => "  | RFID: ✓",
-            RfidValidationStatus.Fail                 => "  | RFID: ✗ mismatch",
-            RfidValidationStatus.NoTag                => "  | RFID: no tag",
-            RfidValidationStatus.ParseError           => "  | RFID: parse error",
-            RfidValidationStatus.MultipleTagsDetected => "  | RFID: multi-tag",
-            _                                         => string.Empty,
-        } ?? string.Empty;
-
-        if (savedToDisk)
-            StatusMessage = $"Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}{rfidSuffix}";
-        else
-            StatusMessage = $"⚠ Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}{rfidSuffix}  [file open in Excel — close Excel before ending session]";
+            string grade     = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
+            string num       = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
+            string ocrSuffix = record.OcrResult?.Tier is { Length: > 0 } t ? $"  |  OCR: {t}" : string.Empty;
+            string prefix    = savedToDisk ? string.Empty : "⚠ ";
+            VerifierResultLine = $"{prefix}Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}";
+        }
     }
 
     /// <summary>
