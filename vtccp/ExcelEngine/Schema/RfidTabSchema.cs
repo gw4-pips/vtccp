@@ -15,21 +15,22 @@ public static class RfidTabSchema
     public const int ColTimestamp       = 1;   // A — UTC timestamp of the scan
     public const int ColBarcodeRow      = 2;   // B — row number in main sheet (for lookup)
     public const int ColEpcHex          = 3;   // C — raw EPC as hex string
-    public const int ColScheme          = 4;   // D — e.g. "SGTIN-96"
-    public const int ColCompanyPrefix   = 5;   // E — GS1 Company Prefix
-    public const int ColRfidGtin14      = 6;   // F — GTIN-14 from EPC
-    public const int ColRfidSerial      = 7;   // G — Serial from EPC
-    public const int ColBarcodeGtin14   = 8;   // H — GTIN-14 from barcode (AI 01)
-    public const int ColBarcodeSerial   = 9;   // I — Serial from barcode (AI 21)
-    public const int ColGtin14Match     = 10;  // J — TRUE / FALSE
-    public const int ColSerialMatch     = 11;  // K — TRUE / FALSE / N/A
-    public const int ColGcpValid        = 12;  // L — TRUE / FALSE / N/A
-    public const int ColValidationStatus= 13;  // M — Pass / Fail / NoTag / ParseError / etc.
-    public const int ColScanWindowMs    = 14;  // N — actual scan window duration
-    public const int ColMismatchDetail  = 15;  // O — semicolon-separated mismatch field list
-    public const int ColTagCount        = 16;  // P — number of distinct EPCs detected
+    public const int ColTid             = 4;   // D — TID memory bank hex string (chip identity)
+    public const int ColScheme          = 5;   // E — e.g. "SGTIN-96"
+    public const int ColCompanyPrefix   = 6;   // F — GS1 Company Prefix
+    public const int ColRfidGtin14      = 7;   // G — GTIN-14 from EPC
+    public const int ColRfidSerial      = 8;   // H — Serial from EPC
+    public const int ColBarcodeGtin14   = 9;   // I — GTIN-14 from barcode (AI 01)
+    public const int ColBarcodeSerial   = 10;  // J — Serial from barcode (AI 21)
+    public const int ColGtin14Match     = 11;  // K — TRUE / FALSE
+    public const int ColSerialMatch     = 12;  // L — TRUE / FALSE / N/A
+    public const int ColGcpValid        = 13;  // M — TRUE / FALSE / N/A
+    public const int ColValidationStatus= 14;  // N — Pass / Fail / NoTag / ParseError / etc.
+    public const int ColScanWindowMs    = 15;  // O — actual scan window duration
+    public const int ColMismatchDetail  = 16;  // P — semicolon-separated mismatch field list
+    public const int ColTagCount        = 17;  // Q — number of distinct EPCs detected
 
-    public const int TotalColumns       = 16;
+    public const int TotalColumns       = 17;
 
     /// <summary>Column headers in display order (index = ColXxx - 1).</summary>
     public static readonly string[] Headers =
@@ -37,6 +38,7 @@ public static class RfidTabSchema
         "Timestamp (UTC)",
         "Barcode Row",
         "EPC (Hex)",
+        "TID (Hex)",
         "EPC Scheme",
         "Company Prefix",
         "RFID GTIN-14",
@@ -61,6 +63,7 @@ public static class RfidTabSchema
         22,  // Timestamp
         11,  // Barcode Row
         32,  // EPC Hex
+        28,  // TID Hex
         12,  // Scheme
         16,  // Company Prefix
         18,  // RFID GTIN-14

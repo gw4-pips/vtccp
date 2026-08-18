@@ -71,7 +71,10 @@ public sealed class RfidTabWriter
         // C — EPC hex
         _adapter.WriteString(row, RfidTabSchema.ColEpcHex, result.SelectedRead?.EpcHex ?? "");
 
-        // D — EPC scheme
+        // D — TID hex (chip identity; null when TID read was not performed or timed out)
+        _adapter.WriteString(row, RfidTabSchema.ColTid, result.SelectedRead?.Tid ?? "");
+
+        // E — EPC scheme
         _adapter.WriteString(row, RfidTabSchema.ColScheme, FormatScheme(result.ParsedEpc?.Scheme));
 
         // E — Company prefix
