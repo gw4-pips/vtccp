@@ -163,7 +163,7 @@
     <!-- Field label -->
     <Style x:Key="FieldLabel" TargetType="TextBlock">
         <Setter Property="FontSize"   Value="{StaticResource FontSmall}" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="Margin"     Value="0,8,0,2" />
         <Setter Property="FontWeight" Value="Medium" />
     </Style>

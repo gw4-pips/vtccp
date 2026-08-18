@@ -45,7 +45,7 @@
                                    FontSize="22" FontWeight="Bold"
                                    Foreground="White" />
                         <TextBlock Text="DMV TruCheck Command Pilot"
-                                   FontSize="10" Foreground="#7F8C8D"
+                                   FontSize="10" Foreground="#9BB5CC"
                                    TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
