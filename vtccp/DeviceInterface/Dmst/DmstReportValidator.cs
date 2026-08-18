@@ -2,6 +2,7 @@ namespace DeviceInterface.Dmst;
 
 using System.Globalization;
 using System.Text.RegularExpressions;
+using DeviceInterface.Rfid;
 using ExcelEngine.Models;
 
 /// <summary>
@@ -256,6 +257,8 @@ public static class DmstReportValidator
             LinearJpegImageBase64 = linearJpegImageBase64,
             LinearDataFormatCheck = linearDataFormatCheck,
 
+            DataFormatCheck         = BuildDataFormatCheck(record),
+
             DataSourceExceptions    = exceptions.Count > 0
                                       ? string.Join(";", exceptions)
                                       : null,
@@ -390,6 +393,57 @@ public static class DmstReportValidator
 
         // No threshold: F band (0.0) fails; everything else passes.
         return numericGrade > 0.0m ? "PASS" : "FAIL";
+    }
+
+    /// <summary>
+    /// Builds a <see cref="DataFormatCheckResult"/> for a 2D GS1-encoded symbol
+    /// (QR Code or DataMatrix) by parsing AI (01) GTIN-14 and AI (21) Serial Number
+    /// from the barcode's decoded data string.
+    ///
+    /// Handles both GS1 Digital Link URIs and GS1 Element Strings via
+    /// <see cref="RfidValidator.ExtractAi01"/> / <see cref="RfidValidator.ExtractAi21"/>.
+    ///
+    /// Returns null when:
+    ///   • The symbology is not recognised as a 2D GS1 carrier.
+    ///   • AI (01) is absent or not a 14-digit string.
+    ///   • DecodedData is null/empty.
+    /// </summary>
+    internal static DataFormatCheckResult? BuildDataFormatCheck(VerificationRecord record)
+    {
+        // Only attempt 2D GS1 symbols.
+        string? symb = record.Symbology;
+        if (string.IsNullOrWhiteSpace(symb)) return null;
+        bool is2D = symb.Contains("DataMatrix", StringComparison.OrdinalIgnoreCase)
+                 || symb.Contains("QR",         StringComparison.OrdinalIgnoreCase);
+        if (!is2D) return null;
+
+        // Extract GTIN-14 (AI 01).
+        string? gtin14 = RfidValidator.ExtractAi01(record.DecodedData);
+        if (gtin14 is null || gtin14.Length != 14 || !gtin14.All(char.IsAsciiDigit))
+            return null;
+
+        bool   checkOk    = ValidateGs1CheckDigit(gtin14);
+        string checkResult = checkOk ? "PASS" : "FAIL";
+        string checkDigit  = gtin14[^1].ToString();
+        string gtinBody    = gtin14[..^1];   // 13 digits without the check digit
+
+        var rows = new List<DataFormatCheckRow>
+        {
+            new() { Name = "AI (01) GTIN-14", Data = gtinBody, Check = checkResult },
+            new() { Name = "Check Digit",      Data = checkDigit, Check = checkResult },
+        };
+
+        // Extract Serial Number (AI 21) if present.
+        string? serial = RfidValidator.ExtractAi21(record.DecodedData);
+        if (!string.IsNullOrWhiteSpace(serial))
+            rows.Add(new() { Name = "AI (21) Serial", Data = serial, Check = "PASS" });
+
+        return new DataFormatCheckResult
+        {
+            Overall  = checkOk ? OverallPassFail.Pass : OverallPassFail.Fail,
+            Standard = "GS1 Application Data Format",
+            Rows     = rows,
+        };
     }
 
     /// <summary>
