@@ -84,6 +84,9 @@ public sealed class SessionViewModel : ViewModelBase
     // without relying on mutable session-manager state after the session closes.
     private string _sessionOutputDir = string.Empty;
 
+    // Session identifier (start-time stamp) — suffix for per-scan VCCS PDF filenames.
+    private string _sessionId = string.Empty;
+
     /// <summary>
     /// FileSystem watcher (DmstHtmlScraper) started only in Push mode when
     /// <see cref="ConfigEngine.Models.HybridReportMode.Replace"/> is active.
@@ -400,6 +403,7 @@ public sealed class SessionViewModel : ViewModelBase
             ? SelectedTemplate.OutputDirectory
             : _repo.Settings.DefaultOutputDirectory;
         _sessionOutputDir = outputDir;   // captured for hybrid report generation
+        _sessionId        = DateTime.Now.ToString("yyyyMMdd-HHmmss");
 
         SessionState state = SelectedTemplate.ToSessionState(outputDir);
         if (!string.IsNullOrWhiteSpace(OperatorOverride))
@@ -1248,12 +1252,10 @@ public sealed class SessionViewModel : ViewModelBase
                 ? _repo.Settings.VccsReportOutputDirectory
                 : _sessionOutputDir;
 
-            // WebscanSourcePath is non-null only when DMST correlated an HTML/PDF file;
-            // MergeAsync inside GenerateAsync checks for .pdf extension automatically.
-            string? wsPath = record.WebscanSourcePath;
-
-            _ = DeviceInterface.Reports.PdfReportGenerator.GenerateAsync(
-                record, pdfDir, wsPath, _pollCts?.Token ?? default);
+            // v23-faithful HTML → PDF pipeline (WebView2 primary, wkhtmltopdf
+            // silent fallback).  Never throws — failures are Debug-logged only.
+            _ = DeviceInterface.Reports.VccsPdfRenderer.GenerateReportAsync(
+                record, pdfDir, _sessionId, _pollCts?.Token ?? default);
         }
 
         string grade     = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";

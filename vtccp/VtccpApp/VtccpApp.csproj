@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>VtccpApp</RootNamespace>
     <AssemblyName>VtccpApp</AssemblyName>
-    <Version>1.5.1</Version>
+    <Version>1.5.2</Version>
     <Company>VCCS</Company>
     <Product>VTCCP</Product>
     <Description>VCCS DMV TruCheck Command Pilot</Description>
@@ -37,9 +37,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- VCCS diamond logo — loaded by PdfReportGenerator at <ExeDir>/resources/vccs_logo.png -->
+    <!-- VCCS diamond logo — loaded by VccsHtmlReportGenerator at <ExeDir>/resources/vccs_logo.png -->
     <Content Include="..\DeviceInterface\Resources\vccs_logo.png">
       <Link>resources\vccs_logo.png</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- PIPS company logo — default company-box logo, base64-inlined into the v23 report -->
+    <Content Include="..\DeviceInterface\Resources\pips_logo.png">
+      <Link>resources\pips_logo.png</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- wkhtmltopdf — silent HTML→PDF fallback when WebView2 runtime is absent -->
+    <Content Include="..\DeviceInterface\Resources\wkhtmltopdf.exe">
+      <Link>resources\wkhtmltopdf.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\OcrEngine\tessdata\eng.traineddata">

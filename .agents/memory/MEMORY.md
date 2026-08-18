@@ -29,6 +29,7 @@
 - [Axicon 15500 and LVS 9510 verifiers](axicon-lvs-verifiers.md) — LVS=Omron Microscan (not Webscan); both use file-export integration path; need user to confirm export format before building adapters
 - [CP Inline project status](cp-inline-project-status.md) — CP Inline abandoned for Serview 475V-LBL inline application (5 Aug 2026); CP continues as desktop tool; DPM unit factory-reset to fw 6.1.16_tc9
 - [TRUCHECK.APPLICATION-STANDARD mapping](trucheck-app-standard-mapping.md) — DMCC ref says 4=Auto/5=Custom but fw 6.1.16_tc9 returns 5 for a unit showing "Auto" in UI; treat 5=Auto until Cognex clarifies
+- [WebView2 headless PDF](webview2-headless-pdf.md) — STA thread + hidden window + manual pump; file:// temp HTML; wkhtmltopdf static exe fallback; QuestPDF retired
 - [git push hook](git-push-hook.md) — real hook is workspace root .githooks/post-commit; vtccp/ is a subdir not a separate repo; must unset GIT_ASKPASS before push
 - [Hybrid Report generator](hybrid-report-generator.md) — DeviceInterface/Reports/HybridReportGenerator.cs; fire-and-forget from SessionViewModel after AddRecord; mirrors Webscan TruCheck CSS exactly; RFID block after Verification Grades
 - [Windows workstation setup](windows-workstation-setup.md) — clone to C:\dev\vtccp; source root is C:\dev\vtccp\vtccp; AsReader DLL at Q:\VendorDOC\AsReader…; known Windows-only build errors catalogued
