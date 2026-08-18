@@ -137,7 +137,7 @@ dotnet run --project TestHarness/TestHarness.csproj -c Release
 
 - **Always bump the report version whenever the report format changes**: the canonical VCCS RFID Validation Report is the HTML-based v23 format (`dist/vccs-pdf-preview-v23.html`). Its footer version string (e.g. "v1.4.11") must be incremented any time the report layout, content, or logic changes. The report version and the app version are separate numbers — both must be maintained.
 
-- **The canonical VCCS RFID report is HTML, not PDF (Option B)**: the report generator produces an HTML file matching the v23 design. Users open it in a browser and print/save to PDF. QuestPDF (`PdfReportGenerator.cs`) is not the target — the HTML-based generator is. Do not improve or extend `PdfReportGenerator.cs`; it will be replaced.
+- **The canonical VCCS RFID report is v23 HTML rendered silently to PDF**: the generator produces v23 HTML (`dist/vccs-pdf-preview-v23.html` is the design reference), then converts it to a PDF automatically using WebView2 (Edge, primary) with a seamless silent fallback to bundled `wkhtmltopdf.exe`. The user never sees the HTML and takes no manual step — a `.pdf` file is the only output. QuestPDF (`PdfReportGenerator.cs`) has been archived and must not be extended or resurrected. Do not ask the user to open HTML and print.
 
 - **DO NOT BUILD WITHOUT ASKING first**: before writing or modifying any C# code, confirm the exact approach with the user. Planning and analysis are the default. This is the highest-priority rule for the VTCCP project.
 
@@ -145,5 +145,7 @@ dotnet run --project TestHarness/TestHarness.csproj -c Release
 - **Always rev synthesis/architecture documents when updating them**: any time a `.md` or `.html` doc in `references/` (or any other synthesis/design document) is modified, increment its version in the header — e.g. add or bump a `v1.0 → v1.1` tag and revision date in the top section. Never deliver an updated doc without a version bump. If the document has no version header yet, add one on first edit.
 
 - **Language**: say "waiting for you" not "waiting on you."
+
+- **Review recent past work in detail before starting any session**: because this development is sporadic and sessions can be days apart, do not assume continuity. At the start of every session — and before writing any code — read `transcript/chat-transcript.md` (recent entries), the active memory index (`.agents/memory/MEMORY.md`), and any topic files relevant to the task. If something is not definitively in active memory or confirmed by direct reading, research it. Never proceed on an assumption; verify first.
 
 - **Always provide complete URLs when referencing mockup previews or any hosted artifact**: never give a bare path fragment like `/preview/grading/GradingStandards`. Always give the full URL the user can open directly, e.g. `https://3e1c7688-a8f7-43a4-a93e-fbbb755e6a82-00-2uu0hix24eyfn.worf.replit.dev/__mockup/preview/grading/GradingStandards`. Mockup sandbox base: `https://3e1c7688-a8f7-43a4-a93e-fbbb755e6a82-00-2uu0hix24eyfn.worf.replit.dev/__mockup/preview/<subfolder>/<ComponentName>` where subfolder/ComponentName mirrors the file path under `artifacts/mockup-sandbox/src/components/mockups/`.
