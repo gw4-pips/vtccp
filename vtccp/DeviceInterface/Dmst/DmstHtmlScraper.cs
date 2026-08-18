@@ -642,6 +642,85 @@ public sealed class DmstHtmlScraper : IDisposable
                     $"lighting={linearLighting ?? "null"}");
             }
 
+            // ── Step 4c: Data Format Check table (DM TC HTML) ─────────────────
+            //
+            // The DM TC HTML contains a dedicated DFC table identified by a <th>
+            // reading "Data Format Check".  The device has already validated the
+            // GS1 AIs — scraping this is more reliable than re-parsing the push
+            // XML decoded data string (which BarcodeDataFormatter may have altered).
+            //
+            // Table structure (minified, single line):
+            //   <th>Data Format Check</th>
+            //   <th>GS1 Application Data Format: PASS</th>
+            //   <tr><td><strong>Name</strong></td>…</tr>   ← skip (header)
+            //   <tr><td>GS1 Header</td><td>&lt;F1&gt;</td><td>PASS</td></tr>
+            //   …
+            DataFormatCheckResult? scrapedDfc = null;
+            {
+                // Split on </table> to isolate the DFC table without nested-table risk.
+                string[] tableParts = htmlContent.Split("</table>", StringSplitOptions.None);
+                foreach (string part in tableParts)
+                {
+                    if (!part.Contains("Data Format Check", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    // Overall verdict from the second <th>: "…: PASS" or "…: FAIL".
+                    string? dfcStandard = null;
+                    var dfcOverall = OverallPassFail.Pass;
+                    foreach (Match thm in Regex.Matches(part,
+                        @"<th[^>]*>(.*?)</th>", RegexOptions.Singleline | RegexOptions.IgnoreCase))
+                    {
+                        string th = WebUtility.HtmlDecode(
+                            Regex.Replace(thm.Groups[1].Value, "<[^>]+>", "").Trim());
+                        if (th.Contains("Data Format Check", StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        int colon = th.LastIndexOf(':');
+                        if (colon > 0)
+                        {
+                            dfcStandard = th[..colon].Trim();
+                            if (th[(colon + 1)..].Trim()
+                                    .Equals("FAIL", StringComparison.OrdinalIgnoreCase))
+                                dfcOverall = OverallPassFail.Fail;
+                        }
+                        break;
+                    }
+
+                    // Data rows: <tr> containing exactly 3 <td> cells, no <th> or <strong>.
+                    var dfcRows = new List<DataFormatCheckRow>();
+                    foreach (Match trm in Regex.Matches(part,
+                        @"<tr>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase))
+                    {
+                        string row = trm.Groups[1].Value;
+                        if (row.Contains("<th",     StringComparison.OrdinalIgnoreCase)) continue;
+                        if (row.Contains("<strong", StringComparison.OrdinalIgnoreCase)) continue;
+                        var tds = Regex.Matches(row,
+                            @"<td[^>]*>(.*?)</td>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                        if (tds.Count < 3) continue;
+                        string rName  = WebUtility.HtmlDecode(
+                            Regex.Replace(tds[0].Groups[1].Value, "<[^>]+>", "").Trim());
+                        string rData  = WebUtility.HtmlDecode(
+                            Regex.Replace(tds[1].Groups[1].Value, "<[^>]+>", "").Trim());
+                        string rCheck = WebUtility.HtmlDecode(
+                            Regex.Replace(tds[2].Groups[1].Value, "<[^>]+>", "").Trim());
+                        if (!string.IsNullOrEmpty(rName))
+                            dfcRows.Add(new DataFormatCheckRow
+                                { Name = rName, Data = rData, Check = rCheck });
+                    }
+
+                    if (dfcRows.Count > 0)
+                        scrapedDfc = new DataFormatCheckResult
+                        {
+                            Overall  = dfcOverall,
+                            Standard = dfcStandard ?? "GS1 Application Data Format",
+                            Rows     = dfcRows,
+                        };
+                    break;
+                }
+
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SCRAPER] DFC: {(scrapedDfc is null ? "not found" : $"{scrapedDfc.Rows.Count} rows, {scrapedDfc.Overall}")}");
+            }
+
             // ── Step 5: DateTime from filename ────────────────────────────────
             //
             // Format: "yyyy-MM-dd_HH-mm-ss-mmm_<random>.html"
@@ -692,6 +771,9 @@ public sealed class DmstHtmlScraper : IDisposable
                 SCPercent  = GetGradePct("2. Symbol Contrast (SC)"),       // null on IMAGE.LOAD
                 ANUPercent = GetGradePct("4. Axial Nonuniformity (ANU)"),
                 GNUPercent = GetGradePct("5. Grid Nonuniformity (GNU)"),
+
+                // ── GS1 Data Format Check (scraped from DM TC HTML) ───────────
+                ScrapedDataFormatCheck   = scrapedDfc,
 
                 // ── Multi-mode linear symbol ───────────────────────────────────
                 IsMultiMode              = isMultiMode,

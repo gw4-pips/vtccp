@@ -1,5 +1,7 @@
 namespace DeviceInterface.Dmst;
 
+using ExcelEngine.Models;
+
 /// <summary>
 /// Fields extracted from a DMST TruCheck HTML report for one scan.
 ///
@@ -201,6 +203,22 @@ public sealed class DmstHtmlReport
     /// Always "ISO/IEC 15416" when IsMultiMode is true.
     /// </summary>
     public string? LinearStandard { get; init; }
+
+    // ── GS1 Data Format Check (scraped directly from DM TC HTML) ─────────────
+
+    /// <summary>
+    /// GS1 Data Format Check result scraped from the "Data Format Check" table
+    /// in the DM TC HTML report.  The device has already validated the GS1
+    /// Application Identifiers — this is the authoritative source.
+    ///
+    /// Null when the DM TC HTML does not contain a DFC table (non-GS1 symbol,
+    /// linear-only scan, or older firmware that omits the section).
+    ///
+    /// DmstReportValidator.MergeAndValidate() prefers this over the computed
+    /// BuildDataFormatCheck() result, which re-parses the push XML decoded-data
+    /// string and is unreliable when BarcodeDataFormatter has transformed FNC1.
+    /// </summary>
+    public DataFormatCheckResult? ScrapedDataFormatCheck { get; init; }
 
     // ── Parse provenance ──────────────────────────────────────────────────────
 

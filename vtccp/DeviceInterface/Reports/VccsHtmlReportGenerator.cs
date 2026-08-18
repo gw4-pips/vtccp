@@ -25,7 +25,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.4";
+    public const string ReportVersion = "v1.5.5";
 
     // ── Template ────────────────────────────────────────────────────────────
 

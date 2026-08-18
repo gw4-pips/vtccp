@@ -257,7 +257,11 @@ public static class DmstReportValidator
             LinearJpegImageBase64 = linearJpegImageBase64,
             LinearDataFormatCheck = linearDataFormatCheck,
 
-            DataFormatCheck         = BuildDataFormatCheck(record),
+            // Prefer DFC scraped directly from the DM TC HTML (device-validated,
+            // immune to BarcodeDataFormatter FNC1 encoding).  Fall back to the
+            // push-XML re-derived result only when no HTML report was matched.
+            DataFormatCheck         = html.ScrapedDataFormatCheck
+                                      ?? BuildDataFormatCheck(record),
 
             DataSourceExceptions    = exceptions.Count > 0
                                       ? string.Join(";", exceptions)
