@@ -275,10 +275,13 @@ public static class VccsHtmlReportGenerator
         sb.Append($"            <td style=\"font-family:Consolas,monospace;\">{H(r.RfidSerial ?? "\u2014")}</td>\n");
         sb.Append($"          </tr>\n");
 
-        sb.Append($"          <tr class=\"row-hi\">\n");
-        sb.Append($"            <td>TID (Chip Identity)</td>\n");
-        sb.Append($"            <td style=\"font-family:Consolas,monospace;\">{H(r.RfidTid ?? "\u2014")}</td>\n");
-        sb.Append($"          </tr>\n");
+        if (!string.IsNullOrWhiteSpace(r.RfidTid))
+        {
+            sb.Append($"          <tr class=\"row-hi\">\n");
+            sb.Append($"            <td>TID (Chip Identity)</td>\n");
+            sb.Append($"            <td style=\"font-family:Consolas,monospace;\">{H(r.RfidTid)}</td>\n");
+            sb.Append($"          </tr>\n");
+        }
 
         // Result row(s) — coloured by pass/fail/warn
         string rowCls = r.RfidStatus switch
