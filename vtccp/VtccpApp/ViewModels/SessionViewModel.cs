@@ -356,6 +356,7 @@ public sealed class SessionViewModel : ViewModelBase
 
         Reload();
         RefreshRfidPorts();
+        AutoFindRfidPortOnStartup();
     }
 
     // ── Reload from repository ────────────────────────────────────────────────
@@ -659,6 +660,30 @@ public sealed class SessionViewModel : ViewModelBase
     }
 
     // ── RFID connect / disconnect ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Runs silently at startup: tries the VID/PID registry lookup and updates the
+    /// RFID status note so the operator sees "ASR-P35U found on COMx" or
+    /// "Last used: COMx — reader not detected" without touching anything.
+    /// Must be called after <see cref="RefreshRfidPorts"/> so the port list is
+    /// already populated.
+    /// </summary>
+    private void AutoFindRfidPortOnStartup()
+    {
+        var found = EpcReaderFactory.FindAsReaderPort();
+        if (found is not null && AvailableRfidPorts.Contains(found))
+        {
+            // Device is plugged in — pre-select it and show a clear note.
+            SelectedRfidPort  = found;
+            RfidStatusMessage = $"ASR-P35U found on {found}.";
+        }
+        else if (!string.IsNullOrWhiteSpace(SelectedRfidPort))
+        {
+            // Device not detected but we have a previously-used port from AppSettings.
+            RfidStatusMessage = $"Last used: {SelectedRfidPort} — reader not detected.";
+        }
+        // When neither condition holds the default "Not connected." message stands.
+    }
 
     /// <summary>
     /// Re-enumerates the machine's COM ports into <see cref="AvailableRfidPorts"/>,
