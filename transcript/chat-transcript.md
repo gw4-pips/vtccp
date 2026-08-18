@@ -1531,3 +1531,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (18-Aug-2026):** GCP not registered is not a FAIL — if they match it's a PASS. What does "no data available" (fallback) mean? If no GTIN → FAIL; if SN missing from either → FAIL.
 
 **Assistant:** Fixed two issues. (1) Removed `gcpValid != false` from RfidValidator pass condition — GCP is informational only, not a fail criterion. (2) Added specific mismatch tokens for previously-silent fail cases: GTIN14:NoBarcodeData (no AI 01 in barcode) and Serial:MissingFromTag (barcode has AI 21, RFID tag has no serial). Updated BuildMismatch2DLabel to parse these into "GTIN not in barcode" and "Serial Number missing from tag" labels. Generic fallback was triggered because mismatch detail was null when the failure was a missing-data case. Report v1.5.2→v1.5.3, pushed 95fc7c8.
+
+---
+
+**User (18-Aug-2026):** Do not conflate DataMan TruCheck and Webscan TruCheck. Add that to replit.md. Testing in the DM TC environment now; will move to Webscan TruCheck shortly.
+
+**Assistant:** Added "Product terminology" section to replit.md distinguishing DataMan TruCheck (Cognex, DM475V built-in, current test environment) from Webscan TruCheck (Webscan Inc., separate PC app, next integration target). Rule: any mention of "TruCheck" must specify which one.

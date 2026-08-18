@@ -127,6 +127,12 @@ dotnet run --project TestHarness/TestHarness.csproj -c Release
 - Phase 3 is complete: ConfigEngine (JSON persistence) + VtccpApp WPF shell (MainWindow navigation, DevicesView, TemplatesView, SessionView).
 - Phase 4 is complete: HistoryView DataGrid (live-updating, grade/pass-fail/symbology filters, copy-TSV); ScanResultRow + HistoryFilter models; HistoryViewModel wired into SessionViewModel on every trigger.
 
+## Product terminology
+
+- **DataMan TruCheck (DM TC)** — Cognex's built-in verification interface running on the DM475V device. HTML reports written to `Documents\{DeviceName}\CodeQuality\` are produced by DM TC. This is the current test environment.
+- **Webscan TruCheck** — a separate, third-party PC verification application (Webscan Inc.). It has its own HTML report format and UI. The project will integrate with Webscan TruCheck next, after DM TC testing is complete.
+- **Do not conflate these two products.** They share the "TruCheck" name but are entirely different software from different vendors. Any mention of "TruCheck" must specify which one.
+
 ## User preferences
 
 - **Append to transcript after every response**: at the end of every response, append the user's message and my reply (text only, no tool detail) to `transcript/chat-transcript.md`. Format: `**User:** …` then `**Assistant:** …` separated by a blank line, under the current date heading. This is a standing rule — never skip it.
