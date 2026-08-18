@@ -191,12 +191,8 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         }
 
         // maxTags=1: stop after the first tag — hardware-managed, no timer race.
-        _device!.StartInventory(
-            maxTags:   1,
-            maxSecs:   0,
-            maxCycles: 0,
-            antenna:   1
-        );
+        // SDK does not expose named parameters — positional only.
+        _device!.StartInventory(1, 0, 0, 1);
 
         // Wait for: hardware auto-stop (cbComplete), timeout, or cancellation.
         using var linkedCts =
