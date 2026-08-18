@@ -386,7 +386,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         {
             var resultTask = _lockCorrelator.Arm();
 
-            uint ret = _device.CheckTagStatus(epcBytes);
+            uint ret = (uint)_device.CheckTagStatus(epcBytes);
             if (ret != 0)
             {
                 _lockCorrelator.Disarm();   // CheckTagStatus was rejected
