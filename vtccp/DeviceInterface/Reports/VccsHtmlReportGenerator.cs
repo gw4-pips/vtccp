@@ -25,7 +25,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.4.13";
+    public const string ReportVersion = "v1.5.0";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -244,12 +244,19 @@ public static class VccsHtmlReportGenerator
 
         var sb = new StringBuilder();
 
-        // Fixed data rows
+        // Fixed data rows — Row 1: tag detected + lock status
         sb.Append($"          <tr>\n");
         sb.Append($"            <td>Tag Detected / Lock Status</td>\n");
         sb.Append($"            <td>{H(tagLabel)} &#x2014; {H(lockDisplay)} <span style=\"color:#555;font-size:8pt;\">(Permalocked / Locked / Unlocked / Unknown)</span></td>\n");
         sb.Append($"          </tr>\n");
 
+        // Row 2: TID — always shown immediately after Tag Detected; blank when no tag
+        sb.Append($"          <tr class=\"row-hi\">\n");
+        sb.Append($"            <td>TID (Chip Identity)</td>\n");
+        sb.Append($"            <td style=\"font-family:Consolas,monospace;\">{H(r.RfidTid ?? (tagDetected ? "\u2014" : ""))}</td>\n");
+        sb.Append($"          </tr>\n");
+
+        // Row 3+: EPC decoded fields
         sb.Append($"          <tr class=\"row-hi\">\n");
         sb.Append($"            <td>EPC Encoding Scheme / GCP Length</td>\n");
         sb.Append($"            <td><span style=\"font-family:Consolas,monospace;\">{H(schemePart)}</span> &#x2014; {H(gcpDisplay)}{gcpNote}</td>\n");
@@ -274,14 +281,6 @@ public static class VccsHtmlReportGenerator
         sb.Append($"            <td>Serial Number</td>\n");
         sb.Append($"            <td style=\"font-family:Consolas,monospace;\">{H(r.RfidSerial ?? "\u2014")}</td>\n");
         sb.Append($"          </tr>\n");
-
-        if (!string.IsNullOrWhiteSpace(r.RfidTid))
-        {
-            sb.Append($"          <tr class=\"row-hi\">\n");
-            sb.Append($"            <td>TID (Chip Identity)</td>\n");
-            sb.Append($"            <td style=\"font-family:Consolas,monospace;\">{H(r.RfidTid)}</td>\n");
-            sb.Append($"          </tr>\n");
-        }
 
         // Result row(s) — coloured by pass/fail/warn
         string rowCls = r.RfidStatus switch
@@ -360,11 +359,11 @@ public static class VccsHtmlReportGenerator
             sb.Append("        <table style=\"width:100%;border-collapse:collapse;\"><tr>\n");
             sb.Append($"          <td style=\"width:50%;text-align:center;vertical-align:middle;\">\n");
             sb.Append($"            <div style=\"font-size:7pt;color:#6c757d;font-style:italic;\">{H(r.LinearSymbology!)}</div>\n");
-            sb.Append($"            <img src=\"data:image/jpeg;base64,{imgLinear}\" alt=\"{H(r.LinearSymbology!)}\" style=\"max-width:3.4in;max-height:1.6in;object-fit:contain;\"/>\n");
+            sb.Append($"            <img src=\"data:image/jpeg;base64,{imgLinear}\" alt=\"{H(r.LinearSymbology!)}\" style=\"max-width:3.4in;max-height:1.2in;object-fit:contain;\"/>\n");
             sb.Append($"          </td>\n");
             sb.Append($"          <td style=\"width:50%;text-align:center;vertical-align:middle;\">\n");
             sb.Append($"            <div style=\"font-size:7pt;color:#6c757d;font-style:italic;\">{H(r.Symbology ?? "2D")}</div>\n");
-            sb.Append($"            <img src=\"data:image/jpeg;base64,{img2DForDual}\" alt=\"{H(r.Symbology ?? "2D")}\" style=\"max-width:3.4in;max-height:1.6in;object-fit:contain;\"/>\n");
+            sb.Append($"            <img src=\"data:image/jpeg;base64,{img2DForDual}\" alt=\"{H(r.Symbology ?? "2D")}\" style=\"max-width:3.4in;max-height:1.2in;object-fit:contain;\"/>\n");
             sb.Append($"          </td>\n");
             sb.Append("        </tr></table>\n");
             sb.Append("      </div>\n");
@@ -373,7 +372,7 @@ public static class VccsHtmlReportGenerator
         {
             sb.Append("      <div class=\"sec-sub-hdr\">Barcode Image</div>\n");
             sb.Append("      <div class=\"img-frame\">\n");
-            sb.Append($"        <img src=\"data:image/jpeg;base64,{img2D}\" alt=\"Barcode\" style=\"max-width:100%;max-height:1.8in;object-fit:contain;\"/>\n");
+            sb.Append($"        <img src=\"data:image/jpeg;base64,{img2D}\" alt=\"Barcode\" style=\"max-width:100%;max-height:1.35in;object-fit:contain;\"/>\n");
             sb.Append("      </div>\n");
         }
         else
