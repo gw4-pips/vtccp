@@ -1495,3 +1495,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (18-Aug-2026):** #153 approved (TID merge).
 
 **Assistant:** Confirmed task #153 merge (commit 3475cf7) landed cleanly on top of our refactored generator — TID row in BuildRfidRows(), RfidTid in VerificationRecord, ReadTidAsync wired in RfidScanCoordinator (2000ms timeout). Task agent did not bump app version (was working against 1.5.3); bumped 1.5.4→1.5.5 and pushed (9818473 via post-commit hook). Noted task #156 (Show TID in PDF) is already done by the #153 merge — no separate work needed. #154 (Excel TID) and #155 (hardware verification) in progress on their own tracks.
+
+---
+
+**User (18-Aug-2026):** TID on PDF report is in a task (#156); thought it was finished. Will run a test without it. #154 approved (Excel TID merge).
+
+**Assistant:** Clarified: TID IS already in the PDF (added by #153 task agent — BuildRfidRows emits "TID (Chip Identity)" row-hi row between Serial Number and result rows). Task #156 is a duplicate — suggested cancelling it. Pulled and incorporated #154 Excel TID merge (786252f: ColTid inserted at col D=4, all subsequent cols shifted, TotalColumns 16→17). Bumped app version 1.5.5→1.5.6 and pushed (38dc116). Current PDF RFID table order: Tag Detected, EPC Scheme/GCP, EPC Hex, EPC Tag URI, GTIN-14, Serial Number, TID (Chip Identity), Validation Result(s). Task #157 proposed (hide EPC/Serial rows when no tag detected) — noted as reasonable but not urgent.
