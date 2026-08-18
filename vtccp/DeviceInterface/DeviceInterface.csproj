@@ -57,6 +57,13 @@
     <Compile Remove="NetworkDiscoverer.cs" />
   </ItemGroup>
 
+  <!-- vccs-report-template.html — HTML template for the VCCS RFID Validation Report.
+       Loaded at runtime by VccsHtmlReportGenerator via GetManifestResourceStream.
+       ALL visual/layout changes go here; C# only substitutes {{TOKEN}} markers. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Reports/vccs-report-template.html" />
+  </ItemGroup>
+
   <!-- AsReader ASR-P35U SDK — canonical VCCS RFID reader hardware (confirmed 2026-08-06).
        DLL not committed; place AsReaderP3xU.dll in vtccp\lib\asreader-p3xu-sdk-1.3.0\
        before building — see PLACE-DLL-HERE.md in that folder.

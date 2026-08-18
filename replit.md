@@ -146,6 +146,10 @@ dotnet run --project TestHarness/TestHarness.csproj -c Release
 
 - **Language**: say "waiting for you" not "waiting on you."
 
+- **When told to use a file as a template, use it literally**: load and modify that exact file (strip junk, add token markers) — do not use it as a reference to reimplement the same content in code. "Use X as the template" means X IS the template, not "make something that looks like X."
+
+- **Ask more, assume less**: when implementation details are ambiguous or multiple valid approaches exist, ask a clarifying question rather than picking one and discovering the wrong choice after the fact. The cost of a question is far lower than the cost of a rework.
+
 - **Review recent past work in detail before starting any session**: because this development is sporadic and sessions can be days apart, do not assume continuity. At the start of every session — and before writing any code — read `transcript/chat-transcript.md` (recent entries), the active memory index (`.agents/memory/MEMORY.md`), and any topic files relevant to the task. If something is not definitively in active memory or confirmed by direct reading, research it. Never proceed on an assumption; verify first.
 
 - **Always provide complete URLs when referencing mockup previews or any hosted artifact**: never give a bare path fragment like `/preview/grading/GradingStandards`. Always give the full URL the user can open directly, e.g. `https://3e1c7688-a8f7-43a4-a93e-fbbb755e6a82-00-2uu0hix24eyfn.worf.replit.dev/__mockup/preview/grading/GradingStandards`. Mockup sandbox base: `https://3e1c7688-a8f7-43a4-a93e-fbbb755e6a82-00-2uu0hix24eyfn.worf.replit.dev/__mockup/preview/<subfolder>/<ComponentName>` where subfolder/ComponentName mirrors the file path under `artifacts/mockup-sandbox/src/components/mockups/`.
