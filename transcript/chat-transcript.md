@@ -1735,3 +1735,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Approved implementation of the RFID lock-status correction.
 
 **Assistant:** Replaced the incorrect callback-correlator path with direct `CheckTagStatus` return mapping: 0=Unlocked, 1=Locked, 2=Permalocked, and other values=Unknown. The vendor call runs on a worker with the existing timeout. Added return-mapping and PDF-wording regressions, enabled normal `dotnet test` execution, and advanced VTCCP to v1.5.35. All 120 DeviceInterface tests passed; a Windows rebuild and known-tag scan remain required because the vendor AsReader SDK is unavailable in this Linux workspace.
+
+---
+
+**User:** Requested a broad plan for a more complete user/settings configuration tab, including previously discussed and potentially applicable options, with a preference for starting broad and culling later.
+
+**Assistant:** Mapped the current configuration surface. The existing Settings page is limited to hybrid reports and GCP prefix-table updates; device profiles, job templates, session acquisition, RFID, UPC/EAN device settings, output behavior, OCR, and diagnostics are distributed across other pages and models. Drafted a broad settings architecture and implementation plan for later review; no application code changed.
