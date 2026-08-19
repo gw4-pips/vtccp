@@ -1615,3 +1615,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** There must be NO FALLBACKS!
 
 **Assistant:** Completed the strict HTML-only provenance change. VCCS PDFs are now fail-closed: no PDF is generated without a real local DMST HTML artifact correlated by the literal HTML `Verified:` value, and no timestamp or filename correlation fallback remains. Barcode summary fields, grades, DFC, report time, application standard, and image now use dedicated HTML-backed values only; missing values are marked unavailable rather than reconstructed or taken from reader transport. The exact local HTML basename is written to Excel only for verified filesystem provenance. Push-mode acceptance waits for the local artifact before PDF scheduling. Core tests passed (119); the Windows app build remains blocked in this environment because the cached Tesseract 5.2.0 package is missing.
+
+---
+
+**User (19-Aug-2026):** Attached an unchanged VCCS PDF (still report v1.5.12) and its exact DMST HTML report, and asked for the issue to be fixed.
+
+**Assistant:** Confirmed the PDF came from an old executable and found the corrected source had not been pushed to GitHub. Published the accumulated changes, then tested the attached HTML with the current parser. Fixed its real report-summary labels (`Data` and the DFC heading) so decoded data and the GS1 application standard are captured directly from HTML. Corrected a Windows build access error for the provenance status method. Published app v1.5.22 / report v1.5.14 at GitHub commit cbd10bc. Core tests passed (120).
