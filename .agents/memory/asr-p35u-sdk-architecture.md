@@ -38,7 +38,7 @@ Access fields directly: `td.epc`, `td.data`, `td.tid`, `td.pc`
 |---|---|---|
 | CallBackReadTagData | InventoryResult result | result.tagdata (TagData struct — not nullable), .epc/.pc/.tid/.data; result.rssi (float) |
 | CallBackErrorCode | **uint** errorCode | Non-zero during active inventory = hardware disconnect |
-| CallBackSuccessCode | **uint** code | 40=PermaLock, 41=Lock, 42=Unlock (CheckTagStatus) |
+| CallBackSuccessCode | **uint** code | Do not use for `CheckTagStatus`; a delayed 41 can acknowledge a timed-out TID read |
 | CallBackCommandData | byte[] data | **NEVER fires for ReadMemory on FW 1.8.0** (confirmed DLL defect) |
 | CallBackReadComplete | bool completeStatus | true + _hwStopExpected = clean auto-stop; false = unexpected disconnect |
 | CallBackTriggerHandler | int state | 1=button pressed, 0=released |

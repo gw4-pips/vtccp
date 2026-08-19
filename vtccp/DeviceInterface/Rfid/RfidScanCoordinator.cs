@@ -32,8 +32,7 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
 
     /// <summary>
     /// Overall budget (ms) for the CheckTagStatus (lock check) step.
-    /// Covers the stale-ack drain (up to ~2.5 s after a timed-out TID read — see
-    /// LockCheckCorrelator), the status callback, and busy retries.
+    /// The vendor SDK call runs on a worker and returns the lock status directly.
     /// A timeout yields "Unknown" and never blocks the scan result.
     /// </summary>
     private const int LockCheckTimeoutMs = 5000;

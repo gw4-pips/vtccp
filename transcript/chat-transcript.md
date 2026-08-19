@@ -1729,3 +1729,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Attached the Windows Debug Output trace from the RFID lock-status diagnostic.
 
 **Assistant:** Identified the root cause: the trace shows `CheckTagStatus returned 2`. The standalone RFID Wedge reference maps that direct return as Permalocked, but VTCCP treated every non-zero return as a rejected command and displayed Unknown. The preceding callback 41 is the known delayed TID-read acknowledgment, not the lock result. Recorded the direct-return contract; no code change made pending user direction.
+
+---
+
+**User:** Approved implementation of the RFID lock-status correction.
+
+**Assistant:** Replaced the incorrect callback-correlator path with direct `CheckTagStatus` return mapping: 0=Unlocked, 1=Locked, 2=Permalocked, and other values=Unknown. The vendor call runs on a worker with the existing timeout. Added return-mapping and PDF-wording regressions, enabled normal `dotnet test` execution, and advanced VTCCP to v1.5.35. All 120 DeviceInterface tests passed; a Windows rebuild and known-tag scan remain required because the vendor AsReader SDK is unavailable in this Linux workspace.

@@ -227,6 +227,21 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_TagDetectedWithPermanentLock_RendersPermalocked()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Pass",
+            RfidTagLockStatus = "PermaLocked",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("Yes &#x2014; Permalocked", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_NoCorrelatedHtml_NeverLeaksTransportVerifierValues()
     {
         var record = new VerificationRecord
@@ -368,7 +383,13 @@ public sealed class VccsHtmlReportGeneratorTests
     public void Generate_UsesMediumBlueForAllTruCheckHeaders()
     {
         string report = VccsHtmlReportGenerator.Generate(
-            new VerificationRecord { Symbology = "GS1 DataMatrix" });
+            new VerificationRecord
+            {
+                Symbology = "GS1 DataMatrix",
+                HtmlSourceFileName = "source.html",
+                HtmlVerifiedString = "Tue 18-Aug-2026 11:45:27 PM",
+                HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            });
 
         Assert.Contains(
             ".barcode-sec-hdr {\n    background: #2c5296; color: white;",
