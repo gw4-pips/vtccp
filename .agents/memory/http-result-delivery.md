@@ -25,6 +25,16 @@ Device replies `204 No Content`. Keep connection open. Device then pushes:
 
 Filter on `origin="common"` in codes.xml root element. `origin="monitor"` = DMST live-view frame, no TruCheck data.
 
+## HTML-report generation prerequisite
+
+DMST **must be running and connected to the specific DataMan verifier** for that verifier to generate its TruCheck HTML report. This is a device/report-generation prerequisite, not merely a client-side convenience.
+
+- The TruCheck window may remain open or be closed after DMST connects; neither state prevents report generation.
+- Connecting DMST to a V-series reader opens TruCheck in a blank startup state. Operators may close that window if desired.
+- Without DMST's connection, do not expect a correlated HTML report. VTCCP must continue to fail closed for TruCheck-only PDF data rather than substituting XML or inferred values.
+
+**Why:** User-confirmed operational finding. The two attached VCCS reports show that, once a DMST-connected verifier generated correlated HTML, GS1 Data Format fields appeared only when that feature was selected; when it was not selected, the HTML omitted them and the PDF correctly reported them as unavailable.
+
 ## Implementation
 
 `HttpEventSubscriber.cs` is fully implemented. `DeviceSession.StartHttpSubscriberAsync()` starts it. Called after `ConnectAsync()` in `SessionViewModel.cs` with `ResultReceived` wired to `OnPushRecord`.
