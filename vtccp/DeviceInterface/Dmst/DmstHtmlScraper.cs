@@ -1041,8 +1041,9 @@ public sealed class DmstHtmlScraper : IDisposable
             }
 
             // Only accept a barcode/symbol image embedded in the HTML artifact
-            // itself.  TruCheck reports can embed a COGNEX logo before the actual
-            // barcode image; branding must never be mistaken for scan evidence.
+            // itself. TruCheck reports can embed an unlabelled COGNEX logo before
+            // the actual barcode image; branding must never be mistaken for scan
+            // evidence.
             // Images carried by the reader push payload are intentionally not
             // promoted to TruCheck provenance.
             string? embeddedBarcodeImage = SelectEmbeddedBarcodeImage(htmlContent);
@@ -1168,9 +1169,11 @@ public sealed class DmstHtmlScraper : IDisposable
     }
 
     /// <summary>
-    /// Selects an embedded barcode or symbol image from a DMST HTML report while
-    /// explicitly excluding COGNEX and other branding images. The selected image
-    /// remains sourced exclusively from the original HTML artifact.
+    /// Selects a format-agnostic barcode or symbol image from a DMST HTML report.
+    /// The image must have barcode/symbol context in its tag or nearby HTML; an
+    /// ambiguous image is rejected rather than risking a branding image such as
+    /// the COGNEX logo. The selected image remains sourced exclusively from the
+    /// original HTML artifact.
     /// </summary>
     private static string? SelectEmbeddedBarcodeImage(string htmlContent)
     {
@@ -1190,15 +1193,32 @@ public sealed class DmstHtmlScraper : IDisposable
                 continue;
 
             string descriptor = attributes.Remove(source.Index, source.Length);
+            int contextStart = Math.Max(0, imageTag.Index - 500);
+            int contextLength = Math.Min(htmlContent.Length - contextStart,
+                imageTag.Length + 500);
+            string nearbyHtml = WebUtility.HtmlDecode(
+                htmlContent.Substring(contextStart, contextLength));
 
-            // Logos are not barcode evidence, even if they are embedded in the
-            // same authoritative HTML file.
-            if (Regex.IsMatch(descriptor, @"\b(cognex|logo|brand)\b",
+            // Branding is never scan evidence, even if it is embedded in the same
+            // authoritative HTML file. Check both the image metadata and its
+            // immediate section, but not the entire document's product heading.
+            if (Regex.IsMatch(descriptor + " " + nearbyHtml, @"\b(cognex|logo|brand)\b",
                 RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                 continue;
 
+            // Do not assume a particular symbology. These terms cover the
+            // report's generic barcode section and common formats (DataMatrix,
+            // QR, UPC, EAN), while avoiding a blind "first image wins" fallback.
+            bool hasBarcodeContext = Regex.IsMatch(
+                descriptor + " " + nearbyHtml,
+                @"\b(barcode|data[\s-]*matrix|symbol|qr(?:\s*code)?|upc|ean)\b",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            if (!hasBarcodeContext)
+                continue;
+
             int score = source.Groups["data"].Value.Length;
-            if (Regex.IsMatch(descriptor, @"\b(barcode|data[\s-]*matrix|symbol|code)\b",
+            if (Regex.IsMatch(descriptor,
+                @"\b(barcode|data[\s-]*matrix|symbol|qr(?:\s*code)?|upc|ean)\b",
                 RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                 score += 1_000_000;
 

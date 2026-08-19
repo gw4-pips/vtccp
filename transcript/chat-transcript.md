@@ -1645,3 +1645,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Attached a successful VCCS RFID PDF and asked for its header balance to be corrected, the product name to change from Pro to PowerPro, the lock status to be displayed, the GCP note to reference the official GS1 GCP prefix table, and the COGNEX logo image to be replaced with the barcode image.
 
 **Assistant:** Updated the active VCCS PDF HTML template and generator: narrowed the fixed-width center header so the device area expands for longer names, renamed the visible product text to RFID VeriWedge PowerPro, renders a missing detected-tag lock result as Unknown, uses the requested official GS1 GCP prefix-table wording, and changed HTML image selection to ignore branding such as the COGNEX logo and select only an embedded barcode/symbol image. Added regression coverage for the lock display and COGNEX-logo exclusion.
+
+---
+
+**User (19-Aug-2026):** Clarified that the COGNEX logo must never be selected and that the barcode selector must work for any symbology, including DataMatrix, QR, UPC, and other barcode images.
+
+**Assistant:** Tightened image selection to be symbology-agnostic and fail closed for ambiguous images. The parser now requires barcode/symbol context in the image tag or its nearby HTML section, explicitly rejects branding context, and never uses a blind first-image fallback. Added regressions for an unlabelled COGNEX image preceding a barcode and for an ambiguous image with no barcode context.

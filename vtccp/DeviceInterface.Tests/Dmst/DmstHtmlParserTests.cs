@@ -852,19 +852,34 @@ public sealed class DmstHtmlParserTests
     [Fact]
     public void ParseHtml_EmbeddedCognexLogoAndBarcode_UsesBarcodeImageOnly()
     {
-        const string cognexLogo = "Y29nbmV4LWxvZ28=";
+        string cognexLogo = new('A', 200);
         const string barcodeImage = "YmFyY29kZS1pbWFnZQ==";
-        string html = $$"""
-            <html><body>
-              <p>Verified: Tue 18-Aug-2026 09:51:39 PM</p>
-              <img alt="COGNEX logo" src="data:image/png;base64,{{cognexLogo}}" />
-              <img alt="DataMatrix barcode image" src="data:image/png;base64,{{barcodeImage}}" />
-            </body></html>
-            """;
+        string html = "<html><body>" +
+            "<p>Verified: Tue 18-Aug-2026 09:51:39 PM</p>" +
+            $"<img src=\"data:image/png;base64,{cognexLogo}\" />" +
+            new string(' ', 700) +
+            $"<div>Barcode Image — <img src=\"data:image/png;base64,{barcodeImage}\" /></div>" +
+            "</body></html>";
 
         var report = DmstHtmlScraper.ParseHtml(html, FixturePath);
 
         Assert.Equal(barcodeImage, report.HtmlBarcodeImageBase64);
         Assert.NotEqual(cognexLogo, report.HtmlBarcodeImageBase64);
+    }
+
+    [Fact]
+    public void ParseHtml_UnknownUnlabelledImage_IsNotPromotedToBarcodeEvidence()
+    {
+        const string onlyImage = "Y29nbmV4LWxvZ28=";
+        string html = $$"""
+            <html><body>
+              <p>Verified: Tue 18-Aug-2026 09:51:39 PM</p>
+              <img src="data:image/png;base64,{{onlyImage}}" />
+            </body></html>
+            """;
+
+        var report = DmstHtmlScraper.ParseHtml(html, FixturePath);
+
+        Assert.Null(report.HtmlBarcodeImageBase64);
     }
 }
