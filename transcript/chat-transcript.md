@@ -1597,3 +1597,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Stopped the review after noticing that the Barcode Verification Grades section displayed apparently valid results despite the report saying no DMST HTML report had been correlated. Asked why those values existed.
 
 **Assistant:** Confirmed an internal contradiction and a verifier-data rule violation. The BVG renderer falls back to DataMan push/XML fields when HTML fields are absent while retaining a heading that claims the values are taken directly from the DataMan verification report. Grade display is locally formatted from separate XML grade letter and numeric values, and the displayed formal grade “4/A” is explicitly synthesized by the DMST format-data script as grade value plus slash plus grade letter; it is not the verifier’s formal-grade string. Standard, aperture, wavelength, and lighting are emitted from raw push-script operator/metrics fields, not correlated HTML provenance. No report changes made.
+
+---
+
+**User (19-Aug-2026):** Challenged the phrase “DMST push script,” explaining that scans are triggered outside DMST and asking how VeriWedge could have such a script.
+
+**Assistant:** Corrected the terminology: VeriWedge does not own or execute the script, and DMST is only the configuration UI used to paste the Format Data script and write it to the DataMan reader. The saved script executes on the reader after an external decode, regardless of whether DMST is open; the reader then sends the generated XML to VeriWedge over the HTTP event subscription. The `4/A` value is therefore generated on-device by the installed Format Data script, not by DMST, while the other push fields are reader payload fields. The prior “DMST push script” wording was misleading. No code changes made.
