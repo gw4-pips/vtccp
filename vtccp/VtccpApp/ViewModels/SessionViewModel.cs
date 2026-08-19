@@ -497,10 +497,7 @@ public sealed class SessionViewModel : ViewModelBase
                 if (needsFilesystemHtml)
                 {
                     var watchPath = DeviceInterface.Dmst.DmstHtmlScraper.ConfiguredReportDirectory;
-                    _htmlWatcher = new DeviceInterface.Dmst.DmstHtmlScraper(watchPath)
-                    {
-                        DeleteAfterParse = isReplaceHybrid,
-                    };
+                    _htmlWatcher = new DeviceInterface.Dmst.DmstHtmlScraper(watchPath);
                     _htmlWatcher.Start();
                     System.Diagnostics.Debug.WriteLine(
                         $"[VTCCP-PROVENANCE] HTML watcher started: '{watchPath}'");
@@ -513,9 +510,6 @@ public sealed class SessionViewModel : ViewModelBase
                 var cfg = SelectedDevice.ToDeviceConfig();
                 _deviceSession = new DeviceSession(cfg, _xmlMap);
                 await _deviceSession.ConnectAsync();
-                _deviceSession.ConfigureScraperDeletion(
-                    _repo.Settings.GenerateHybridReport &&
-                    _repo.Settings.HybridReportMode == ConfigEngine.Models.HybridReportMode.Replace);
 
                 // Subscribe to the device's HTTP result push channel — same channel
                 // DMST uses for all TC verification results (codes.xml origin="common").

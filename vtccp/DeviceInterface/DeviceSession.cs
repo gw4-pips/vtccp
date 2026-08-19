@@ -67,23 +67,6 @@ public sealed class DeviceSession : IAsyncDisposable
     public void RegisterOwnedHybridPath(string path) => _scraper?.RegisterOwnedPath(path);
 
     /// <summary>
-    /// Configures whether the internal <see cref="DmstHtmlScraper"/> deletes Webscan HTML
-    /// files from the CodeQuality folder after parsing them.
-    ///
-    /// Pass <c>true</c> only for explicitly selected Replace mode, where the hybrid
-    /// report will be written back to the same path. Pass <c>false</c> to preserve
-    /// the original Webscan HTML on disk.
-    ///
-    /// Must be called after <see cref="ConnectAsync"/> but before the first scan.
-    /// No-op when no scraper is running.
-    /// </summary>
-    public void ConfigureScraperDeletion(bool deleteAfterParse)
-    {
-        if (_scraper is not null)
-            _scraper.DeleteAfterParse = deleteAfterParse;
-    }
-
-    /// <summary>
     /// Device information queried during <see cref="ConnectAsync"/>.
     /// Populated fields: Type, Serial, Name, FirmwareVersion, CalibrationDate.
     /// Use these to pre-fill <see cref="SessionState"/> before opening an Excel session.
@@ -519,8 +502,8 @@ public sealed class DeviceSession : IAsyncDisposable
                 // (Manual/AutoPoll mode with DMST open), call TryMergeAsync so the pending
                 // HTML report is drained from the scraper's queue and its source path is
                 // propagated onto the record.  In Replace mode this path is the write
-                // target for the hybrid report; in Alongside mode the scraper leaves the
-                // original file on disk (DeleteAfterParse = false) so both coexist.
+                // target for the hybrid report; the scraper always preserves the
+                // original source HTML.
                 // HttpEventSubscriber already merges HTML data inline from PUT /pcm_report.html;
                 // TryMergeAsync here simply adds the filesystem source path, with a short
                 // effective wait because the HTML is already in _pending by the time

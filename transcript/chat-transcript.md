@@ -1627,3 +1627,15 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Objected to an inferred DMST report folder, provided the actual CodeQuality directory, and required that report paths never be assumed from a device name.
 
 **Assistant:** Replaced device-name-derived report-directory logic with the supplied explicit installation path for both Manual/Auto-Poll and Push mode. Removed the device-name prerequisite that could prevent the watcher from starting, added a regression test, and published app v1.5.23 at GitHub commit fdaabe4. Parser tests passed (121); the Linux environment cannot complete the Windows desktop build because its cached Tesseract 5.2.0 package is missing.
+
+---
+
+**User (19-Aug-2026):** Reported that all DMST HTML reports in the configured CodeQuality directory, including the file used to generate the newly attached VCCS PDF, had been deleted.
+
+**Assistant:** Confirmed the PDF successfully used the real HTML filename and verifier fields, then identified the scraper's default DeleteAfterParse behavior as the cause of the deletion. Changed normal operation to preserve original DMST HTML provenance files and limited deletion to an explicitly selected Hybrid Replace workflow. Published app v1.5.24 at GitHub commit 61de608. Parser tests passed (122).
+
+---
+
+**User (19-Aug-2026):** Reported that every HTML report had still been deleted.
+
+**Assistant:** Identified that the prior change mistakenly retained a Hybrid Replace switch capable of re-enabling deletion. Removed the deletion operation itself, the deletion setting, and every call site that could enable it. The DMST scraper no longer contains a file-delete path. The original source HTML must remain after normal scan processing.

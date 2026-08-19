@@ -334,17 +334,6 @@ public sealed class DmstHtmlScraper : IDisposable
     /// ParseHtml() is fully implemented and validated against the 2026-05-25 live sample.
     /// </summary>
     /// <summary>
-    /// When <c>true</c>, the Webscan HTML file is deleted from the CodeQuality
-    /// folder immediately after parsing. This is only used by the explicitly
-    /// selected Hybrid Replace mode, which writes its replacement to that path.
-    ///
-    /// The default is <c>false</c>: the original DMST HTML is a provenance artifact
-    /// and remains on disk after parsing and PDF generation.
-    ///
-    /// Thread-safe to toggle between scans; respected on every call to OnFileCreated.
-    /// </summary>
-    public bool DeleteAfterParse { get; set; }
-
     public bool DiagnosticCaptureEnabled { get; set; } = false;
 
     /// <summary>
@@ -498,21 +487,8 @@ public sealed class DmstHtmlScraper : IDisposable
                 return;
             }
 
-            // Replace mode deletes the original before making the parsed data
-            // available to TryMergeAsync. This ordering is critical when replacement
-            // was explicitly selected:
-            // if the original were added to _pending first, TryMergeAsync could consume
-            // the entry and write the hybrid while this callback's File.Delete was still
-            // pending — the delete would then silently remove the freshly written hybrid.
-            // By deleting here (BEFORE the _pending.Add below), the original is always
-            // gone before any caller can register a write path or write the replacement.
-            // In the default preservation mode DeleteAfterParse is false; the original
-            // stays on disk.
-            if (DeleteAfterParse)
-                File.Delete(path);
-
-            // Make the parsed report available to TryMergeAsync only after the
-            // original has been replaced or preserved.
+            // Make the parsed report available to TryMergeAsync while preserving
+            // the original DMST HTML as the durable provenance artifact.
             lock (_lock)
             {
                 if (generation == _processingGeneration &&

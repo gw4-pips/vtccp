@@ -470,7 +470,7 @@ public sealed class DmstHtmlParserTests
 
         try
         {
-            using var scraper = new DmstHtmlScraper(dir) { DeleteAfterParse = false };
+            using var scraper = new DmstHtmlScraper(dir);
             scraper.Start();
 
             string tempPath = Path.Combine(dir, "dmst-writing.tmp");
@@ -508,7 +508,7 @@ public sealed class DmstHtmlParserTests
 
         try
         {
-            using var scraper = new DmstHtmlScraper(dir) { DeleteAfterParse = false };
+            using var scraper = new DmstHtmlScraper(dir);
             scraper.Start();
 
             string htmlPath = Path.Combine(
@@ -561,7 +561,7 @@ public sealed class DmstHtmlParserTests
             Assert.Equal(HtmlReportProvenance.HttpStreamOnly, httpEnriched.HtmlReportProvenance);
             Assert.Equal(verified, httpEnriched.HtmlVerifiedString);
 
-            using var scraper = new DmstHtmlScraper(dir) { DeleteAfterParse = false };
+            using var scraper = new DmstHtmlScraper(dir);
             scraper.Start();
             string htmlPath = Path.Combine(dir, "actual-dmst-report.html");
             await File.WriteAllTextAsync(htmlPath,
@@ -640,7 +640,7 @@ public sealed class DmstHtmlParserTests
 
         try
         {
-            using var scraper = new DmstHtmlScraper(dir) { DeleteAfterParse = false };
+            using var scraper = new DmstHtmlScraper(dir);
             scraper.Start();
 
             string htmlPath = Path.Combine(

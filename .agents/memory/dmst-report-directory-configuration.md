@@ -15,3 +15,10 @@ artifact and strict report generation correctly refuses to create a PDF.
 the operator and update the explicit configuration before relying on local HTML
 provenance. A future user-facing settings control should write that explicit
 value; it must not recreate automatic device-name path derivation.
+
+**Artifact retention:** Keep original DMST HTML reports in the configured
+directory after parsing and VCCS PDF generation. The report-processing path
+must never delete a source HTML artifact.
+
+**Why:** The original HTML is the verifier provenance artifact and must remain
+available for audit, troubleshooting, and visual review.
