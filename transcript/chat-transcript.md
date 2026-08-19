@@ -1621,3 +1621,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Attached an unchanged VCCS PDF (still report v1.5.12) and its exact DMST HTML report, and asked for the issue to be fixed.
 
 **Assistant:** Confirmed the PDF came from an old executable and found the corrected source had not been pushed to GitHub. Published the accumulated changes, then tested the attached HTML with the current parser. Fixed its real report-summary labels (`Data` and the DFC heading) so decoded data and the GS1 application standard are captured directly from HTML. Corrected a Windows build access error for the provenance status method. Published app v1.5.22 / report v1.5.14 at GitHub commit cbd10bc. Core tests passed (120).
+
+---
+
+**User (19-Aug-2026):** Objected to an inferred DMST report folder, provided the actual CodeQuality directory, and required that report paths never be assumed from a device name.
+
+**Assistant:** Replaced device-name-derived report-directory logic with the supplied explicit installation path for both Manual/Auto-Poll and Push mode. Removed the device-name prerequisite that could prevent the watcher from starting, added a regression test, and published app v1.5.23 at GitHub commit fdaabe4. Parser tests passed (121); the Linux environment cannot complete the Windows desktop build because its cached Tesseract 5.2.0 package is missing.

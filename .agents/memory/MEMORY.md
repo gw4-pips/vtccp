@@ -38,3 +38,4 @@
 - [PowerShell 5.1 encoding trap](powershell-encoding.md) — PS 5.1 reads .ps1 as Win-1252; em-dash (0x94) and checkmark (0x93) silently close strings; all PS scripts must be ASCII-only
 - [Format Data script is the push script](format-data-script.md) — v1.37 (272 lines) in artifacts/script-viewer/src/v137.txt; pasted into DMST → Format Data → Script-Based Formatting → Scripting tab; COM.SCRIPT is irrelevant to VtccpApp
 - [RFID UI wiring](rfid-ui-status.md) — Session Launcher RFID panel built; VM owns reader lifetime (coordinator ownsReader:false); port picker uses SerialPort directly so non-SDK builds compile
+- [DMST report directory configuration](dmst-report-directory-configuration.md) — report path is installation-specific; never infer it from a device name
