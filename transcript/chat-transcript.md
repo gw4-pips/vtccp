@@ -1717,3 +1717,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Reported that the known RFID tag shows Permalocked in the standalone RFID Wedge decoder, while the VTCCP report shows Unknown; suspected VTCCP may not understand the reader result.
 
 **Assistant:** Traced the current path. VTCCP maps ASR-P35U callback 40 to PermaLocked correctly, so Unknown means no usable correlated lock-status result arrived during the scan rather than proving a display mapping error. Recorded the discrepancy and proposed a focused on-device diagnostic task to capture the CheckTagStatus return and SDK callbacks before changing behavior.
+
+---
+
+**User:** Asked whether task #173 was complete and whether a test should be run, then clarified that the task still appeared to be running.
+
+**Assistant:** Confirmed task #173 is still IN_PROGRESS. The direct test assembly run executed 13 LockCheckCorrelator tests successfully, including callback 40 mapping to PermaLocked. The normal `dotnet test` project command only built because the test project lacks `IsTestProject=true`; the required Windows hardware diagnostic against the known tag has not yet been performed, so the task is not complete.
