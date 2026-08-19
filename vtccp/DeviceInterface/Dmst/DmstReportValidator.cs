@@ -15,10 +15,11 @@ using ExcelEngine.Models;
 ///      (QR_ECLevel, QR_MaskPattern, QR_ECI, ImagePolarity, DataCodewords,
 ///      ErrorCorrectionBudget, EncodedCharacters) are merged into the record and
 ///      catalogued in DataSourceExceptions.
-///      When the HTML is multi-mode (IsMultiMode = true), the ten Linear* fields
+///      When the HTML is multi-mode (IsMultiMode = true), the nine source-backed
+///      Linear* fields
 ///      (LinearSymbology, LinearDecodedData, LinearOverallGrade, LinearFormalGrade,
 ///      LinearAperture, LinearWavelength, LinearLighting, LinearStandard,
-///      LinearJpegImageBase64, LinearDataFormatCheck) are also populated.
+///      LinearJpegImageBase64) are also populated.
 ///      LinearJpegImageBase64 is populated from record.RoiJpegImageBase64 when
 ///      the ROI frame was already captured (SDK-triggered scans); null in push-only
 ///      mode where IMAGE.SEND is not issued before MergeAndValidate runs.
@@ -123,7 +124,7 @@ public static class DmstReportValidator
         // ── 1c. Merge: linear symbol (multi-mode only) ────────────────────────
         //
         // When the HTML report covers a multi-mode scan (EAN/UPC + 2D), populate
-        // all ten Linear* fields.  Single-mode scans leave these null.
+        // the source-backed Linear* fields. Single-mode scans leave these null.
         //
         // LinearJpegImageBase64: HTML reports carry no image data, but the ROI frame
         // captured by IMAGE.SEND (DeviceSession.AttachRoiImageAsync) is already
@@ -133,7 +134,8 @@ public static class DmstReportValidator
         // In push-only mode (HttpEventSubscriber, no SDK) RoiJpegImageBase64 is null
         // and LinearJpegImageBase64 stays null — the PDF falls back to single-image.
         //
-        // LinearDataFormatCheck is computed from the decoded digits (GTIN check).
+        // Data Format Check values are never reconstructed locally. The report may
+        // only display DFC rows scraped from the TruCheck HTML.
 
         string?              linearSymbology      = null;
         string?              linearDecodedData    = null;
@@ -144,7 +146,6 @@ public static class DmstReportValidator
         string?              linearLighting       = null;
         string?              linearStandard       = null;
         string?              linearJpegImageBase64 = null;
-        DataFormatCheckResult? linearDataFormatCheck = null;
 
         if (html.IsMultiMode && !string.IsNullOrWhiteSpace(html.LinearSymbology))
         {
@@ -175,9 +176,6 @@ public static class DmstReportValidator
                     value: null);
             }
 
-            linearDataFormatCheck = BuildLinearDataFormatCheck(
-                html.LinearDecodedData, html.LinearSymbology);
-
             exceptions.Add("LinearSymbology:HtmlReport");
             exceptions.Add("LinearOverallGrade:HtmlReport");
             if (!string.IsNullOrEmpty(html.LinearFormalGrade))
@@ -187,7 +185,7 @@ public static class DmstReportValidator
                 $"[VTCCP-VALID] Multi-mode linear: symb={linearSymbology} " +
                 $"grade={linearOverallGrade?.LetterGradeString ?? "null"} " +
                 $"img={linearJpegImageBase64?.Length.ToString() ?? "null"} chars " +
-                $"dfc={linearDataFormatCheck?.Rows.Count ?? 0} rows");
+                $"dfc={html.ScrapedDataFormatCheck?.Rows.Count ?? 0} HTML rows");
         }
 
         // ── 2. Cross-validation ───────────────────────────────────────────────
@@ -255,13 +253,11 @@ public static class DmstReportValidator
             // the SDK-triggered flow captured it before MergeAndValidate ran.
             // Null in push-only mode — PDF falls back to single-image section.
             LinearJpegImageBase64 = linearJpegImageBase64,
-            LinearDataFormatCheck = linearDataFormatCheck,
+            LinearDataFormatCheck = null,
 
-            // Prefer DFC scraped directly from the DM TC HTML (device-validated,
-            // immune to BarcodeDataFormatter FNC1 encoding).  Fall back to the
-            // push-XML re-derived result only when no HTML report was matched.
-            DataFormatCheck         = html.ScrapedDataFormatCheck
-                                      ?? BuildDataFormatCheck(record),
+            // Canonical verifier data only. If the TruCheck HTML does not contain
+            // a DFC table, leave it unavailable rather than reconstructing one.
+            DataFormatCheck         = html.ScrapedDataFormatCheck,
 
             DataSourceExceptions    = exceptions.Count > 0
                                       ? string.Join(";", exceptions)

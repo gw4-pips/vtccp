@@ -84,6 +84,11 @@ public sealed class DmstHtmlScraper : IDisposable
     private FileSystemWatcher?               _watcher;
     private readonly List<PendingHtmlReport> _pending   = [];
     private readonly HashSet<string>         _ownedPaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string>         _processingPaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string>         _consumedPaths = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<Task>           _processingTasks = [];
+    private CancellationTokenSource?         _processingCts;
+    private int                              _processingGeneration;
     private readonly object                  _lock      = new();
 
     // ── Source-path tracking (Replace mode support) ───────────────────────────
@@ -146,14 +151,24 @@ public sealed class DmstHtmlScraper : IDisposable
     {
         if (_watcher is not null) return;
 
+        lock (_lock)
+        {
+            _processingGeneration++;
+            _processingCts = new CancellationTokenSource();
+        }
+
         _watcher = new FileSystemWatcher(_watchDirectory, "*.html")
         {
             NotifyFilter          = NotifyFilters.FileName | NotifyFilters.LastWrite,
-            EnableRaisingEvents   = true,
+            EnableRaisingEvents   = false,
             IncludeSubdirectories = false,
         };
 
         _watcher.Created += OnFileCreated;
+        _watcher.Renamed += OnFileRenamed;
+        _watcher.Changed += OnFileChanged;
+        _watcher.EnableRaisingEvents = true;
+        ScanDirectoryForReports();
 
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-SCRAPER] Watching '{_watchDirectory}' for DMST HTML reports.");
@@ -165,9 +180,49 @@ public sealed class DmstHtmlScraper : IDisposable
         if (_watcher is null) return;
         _watcher.EnableRaisingEvents = false;
         _watcher.Created -= OnFileCreated;
+        _watcher.Renamed -= OnFileRenamed;
+        _watcher.Changed -= OnFileChanged;
         _watcher.Dispose();
         _watcher = null;
-        lock (_lock) { _pending.Clear(); }
+
+        CancellationTokenSource? processingCts;
+        Task[] processingTasks;
+        lock (_lock)
+        {
+            _processingGeneration++;
+            processingCts = _processingCts;
+            _processingCts = null;
+            processingTasks = _processingTasks.ToArray();
+            foreach (string path in _processingPaths)
+                _consumedPaths.Add(path);
+        }
+
+        processingCts?.Cancel();
+        try
+        {
+            Task.WhenAll(processingTasks).GetAwaiter().GetResult();
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected: Stop invalidates all generation-scoped file work.
+        }
+        catch (AggregateException ex) when (
+            ex.InnerExceptions.All(e => e is OperationCanceledException))
+        {
+            // Expected when multiple queued reads observe cancellation.
+        }
+        finally
+        {
+            processingCts?.Dispose();
+        }
+
+        lock (_lock)
+        {
+            _pending.Clear();
+            _ownedPaths.Clear();
+            _processingPaths.Clear();
+            _processingTasks.Clear();
+        }
         System.Diagnostics.Debug.WriteLine("[VTCCP-SCRAPER] Stopped.");
     }
 
@@ -176,8 +231,8 @@ public sealed class DmstHtmlScraper : IDisposable
     /// <summary>
     /// Waits up to <see cref="FileArrivalTimeout"/> for an HTML report that
     /// correlates to <paramref name="record"/> by exact HTML "Verified:" text when
-    /// available. Filename timestamps are only a fallback when the incoming record
-    /// does not carry that HTML value.
+    /// available. Harmless case/whitespace differences are normalized second.
+    /// A real filename timestamp is the final guarded fallback.
     ///
     /// When a match is found, runs <see cref="DmstReportValidator.MergeAndValidate"/>:
     ///   - Supplemental fields (QR_ECLevel, QR_MaskPattern, QR_ECI, ImagePolarity)
@@ -202,30 +257,25 @@ public sealed class DmstHtmlScraper : IDisposable
     {
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeoutCts.CancelAfter(FileArrivalTimeout);
+        int pollsUntilRescan = 0;
 
         while (!timeoutCts.Token.IsCancellationRequested)
         {
+            // FileSystemWatcher can miss temp-file-to-HTML renames or events that
+            // happen while the watcher is starting. Periodic idempotent rescans
+            // ensure an on-disk DMST report is still discovered.
+            if (pollsUntilRescan-- <= 0)
+            {
+                ScanDirectoryForReports();
+                pollsUntilRescan = 5;
+            }
+
             PendingHtmlReport? match = null;
             string?            sourcePath;
 
             lock (_lock)
             {
-                bool hasVerifiedTime = !string.IsNullOrWhiteSpace(record.HtmlVerifiedString);
-                match = _pending.FirstOrDefault(p =>
-                    p.Report.ParseSucceeded &&
-                    (
-                        // The HTML value is the authoritative device-local clock. Do
-                        // not compare it through DateTime conversion or UTC offsets.
-                        (hasVerifiedTime &&
-                         !string.IsNullOrWhiteSpace(p.Report.HtmlVerifiedString) &&
-                         string.Equals(record.HtmlVerifiedString, p.Report.HtmlVerifiedString,
-                             StringComparison.Ordinal))
-                        ||
-                        // Only records without the HTML value use a filename timestamp.
-                        (!hasVerifiedTime &&
-                         p.Report.ScanDateTime.HasValue &&
-                         Math.Abs((p.Report.ScanDateTime.Value - record.VerificationDateTime).TotalSeconds)
-                             <= CorrelationWindow.TotalSeconds)));
+                match = FindBestCorrelation(record);
 
                 if (match is not null)
                 {
@@ -258,6 +308,65 @@ public sealed class DmstHtmlScraper : IDisposable
             "Check DMST Options → Reporting → File Extension is set to .html.");
 
         return (record, null);
+    }
+
+    /// <summary>
+    /// Compares two raw TruCheck "Verified:" values without applying any timezone
+    /// conversion. Only harmless presentation differences are normalized.
+    /// </summary>
+    internal static bool VerifiedStringsEquivalent(string? left, string? right)
+    {
+        if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right))
+            return false;
+
+        return string.Equals(
+            NormalizeVerifiedForCorrelation(left),
+            NormalizeVerifiedForCorrelation(right),
+            StringComparison.Ordinal);
+    }
+
+    private static string NormalizeVerifiedForCorrelation(string value)
+    {
+        string normalized = WebUtility.HtmlDecode(value)
+            .Replace('\u00a0', ' ')
+            .Trim();
+        normalized = Regex.Replace(normalized, @"\s+", " ");
+        normalized = Regex.Replace(normalized, @"\s*\(\s*(\d+)\s*ms\s*\)\s*", "($1ms) ",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        return normalized.Trim().ToUpperInvariant();
+    }
+
+    /// <summary>
+    /// Ranks correlation evidence so a timestamp fallback can never steal a report
+    /// from a stronger exact or normalized Verified match.
+    /// </summary>
+    private PendingHtmlReport? FindBestCorrelation(VerificationRecord record)
+    {
+        IEnumerable<PendingHtmlReport> candidates =
+            _pending.Where(p => p.Report.ParseSucceeded);
+
+        if (!string.IsNullOrWhiteSpace(record.HtmlVerifiedString))
+        {
+            PendingHtmlReport? exact = candidates.FirstOrDefault(p =>
+                !string.IsNullOrWhiteSpace(p.Report.HtmlVerifiedString) &&
+                string.Equals(record.HtmlVerifiedString, p.Report.HtmlVerifiedString,
+                    StringComparison.Ordinal));
+            if (exact is not null) return exact;
+
+            PendingHtmlReport? normalized = candidates.FirstOrDefault(p =>
+                VerifiedStringsEquivalent(
+                    record.HtmlVerifiedString, p.Report.HtmlVerifiedString));
+            if (normalized is not null) return normalized;
+        }
+
+        if (record.VerificationDateTime == default)
+            return null;
+
+        return candidates.FirstOrDefault(p =>
+            !p.Report.HasSyntheticSourcePath &&
+            p.Report.ScanDateTime.HasValue &&
+            Math.Abs((p.Report.ScanDateTime.Value - record.VerificationDateTime).TotalSeconds)
+                <= CorrelationWindow.TotalSeconds);
     }
 
     // ── Diagnostic capture ────────────────────────────────────────────────────
@@ -311,74 +420,241 @@ public sealed class DmstHtmlScraper : IDisposable
     }
 
     private void OnFileCreated(object sender, FileSystemEventArgs e)
-    {
-        _ = Task.Run(async () =>
-        {
-            // Brief settle — DMST may not have finished flushing the file.
-            await Task.Delay(150);
+        => QueueFileForProcessing(e.FullPath);
 
-            // ── Skip files written by VTCCP itself (Replace mode hybrid reports) ──
-            // RegisterOwnedPath is called before SaveToPathAsync; if this path is in
-            // the set, the watcher is seeing the hybrid we just wrote — don't re-parse
-            // or delete it.  The entry is removed on first match (one-shot suppression).
-            lock (_lock)
+    private void OnFileRenamed(object sender, RenamedEventArgs e)
+        => QueueFileForProcessing(e.FullPath);
+
+    private void OnFileChanged(object sender, FileSystemEventArgs e)
+        => QueueFileForProcessing(e.FullPath);
+
+    private void ScanDirectoryForReports()
+    {
+        try
+        {
+            foreach (string path in Directory.EnumerateFiles(
+                _watchDirectory, "*.html", SearchOption.TopDirectoryOnly))
+                QueueFileForProcessing(path);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SCRAPER] Directory rescan failed: {ex.Message}");
+        }
+    }
+
+    private void QueueFileForProcessing(string path)
+    {
+        if (!string.Equals(Path.GetExtension(path), ".html",
+                StringComparison.OrdinalIgnoreCase))
+            return;
+
+        int generation;
+        CancellationToken token;
+        lock (_lock)
+        {
+            if (_processingCts is null)
+                return;
+
+            // RegisterOwnedPath is called before SaveToPathAsync. Owned hybrid
+            // output must be suppressed before the consumed-path check because Replace
+            // mode intentionally reuses the original DMST path.
+            if (_ownedPaths.Remove(path))
             {
-                if (_ownedPaths.Remove(e.FullPath))
+                _consumedPaths.Add(path);
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SCRAPER] Skipping owned hybrid path: '{Path.GetFileName(path)}'");
+                return;
+            }
+
+            if (_consumedPaths.Contains(path) || !_processingPaths.Add(path))
+                return;
+
+            generation = _processingGeneration;
+            token = _processingCts.Token;
+        }
+
+        Task task = Task.Run(
+            () => ProcessFileAsync(path, generation, token), token);
+        lock (_lock)
+        {
+            if (generation == _processingGeneration)
+                _processingTasks.Add(task);
+        }
+        _ = task.ContinueWith(
+            _ =>
+            {
+                lock (_lock)
+                {
+                    if (generation == _processingGeneration)
+                        _processingTasks.Remove(task);
+                }
+            },
+            CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
+    }
+
+    private async Task ProcessFileAsync(
+        string path,
+        int generation,
+        CancellationToken token)
+    {
+        try
+        {
+            string html   = await ReadStableHtmlAsync(path, token);
+            var    report = ParseHtml(html, path);
+
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SCRAPER] Parsed '{Path.GetFileName(path)}': " +
+                $"ok={report.ParseSucceeded}, dt={report.ScanDateTime?.ToString("HH:mm:ss") ?? "null"}");
+
+            // ── Diagnostic capture (first sample only) ──────────────────
+            if (DiagnosticCaptureEnabled && !_diagnosticCaptured)
+            {
+                _diagnosticCaptured = true;
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(DiagnosticCapturePath)!);
+                    File.Copy(path, DiagnosticCapturePath, overwrite: true);
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-SCRAPER] Diagnostic copy saved → '{DiagnosticCapturePath}'");
+                }
+                catch (Exception copyEx)
                 {
                     System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-SCRAPER] Skipping owned hybrid path: '{Path.GetFileName(e.FullPath)}'");
-                    return;
+                        $"[VTCCP-SCRAPER] Diagnostic copy failed: {copyEx.Message}");
                 }
             }
+
+            token.ThrowIfCancellationRequested();
+
+            if (!report.ParseSucceeded)
+            {
+                lock (_lock)
+                {
+                    if (generation == _processingGeneration)
+                        _consumedPaths.Add(path);
+                }
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SCRAPER] Ignoring complete but unparseable HTML report: " +
+                    $"'{Path.GetFileName(path)}'.");
+                return;
+            }
+
+            // Delete the transient DMST output before making the parsed data
+            // available to TryMergeAsync.  This ordering is critical for Replace mode:
+            // if the original were added to _pending first, TryMergeAsync could consume
+            // the entry and write the hybrid while this callback's File.Delete was still
+            // pending — the delete would then silently remove the freshly written hybrid.
+            // By deleting here (BEFORE the _pending.Add below), the original is always
+            // gone before any caller can register a write path or write the replacement.
+            // In Alongside mode DeleteAfterParse is false; the original stays on disk.
+            if (DeleteAfterParse)
+                File.Delete(path);
+
+            // Make the parsed report available to TryMergeAsync only after the
+            // original has been deleted (or preserved, in Alongside mode).
+            lock (_lock)
+            {
+                if (generation == _processingGeneration &&
+                    !token.IsCancellationRequested)
+                {
+                    _consumedPaths.Add(path);
+                    _pending.Add(new PendingHtmlReport(report));
+                }
+            }
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // Session stopped or restarted. Generation checks prevent stale reports
+            // from entering the next session's pending queue.
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-SCRAPER] Error reading/parsing '{path}': {ex.Message}");
+        }
+        finally
+        {
+            lock (_lock)
+            {
+                if (generation == _processingGeneration)
+                    _processingPaths.Remove(path);
+            }
+        }
+    }
+
+    private static async Task<string> ReadStableHtmlAsync(
+        string path,
+        CancellationToken token)
+    {
+        Exception? lastError = null;
+
+        // A filename can become visible before DMST finishes flushing it. Require
+        // stable metadata, a stable read, and a closing HTML tag before consuming
+        // or deleting the report. Changed events and rescans remain retryable.
+        for (int attempt = 0; attempt < 25; attempt++)
+        {
+            token.ThrowIfCancellationRequested();
 
             try
             {
-                string html   = await File.ReadAllTextAsync(e.FullPath);
-                var    report = ParseHtml(html, e.FullPath);
-
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SCRAPER] Parsed '{Path.GetFileName(e.FullPath)}': " +
-                    $"ok={report.ParseSucceeded}, dt={report.ScanDateTime?.ToString("HH:mm:ss") ?? "null"}");
-
-                // ── Diagnostic capture (first sample only) ──────────────────
-                if (DiagnosticCaptureEnabled && !_diagnosticCaptured)
+                var before = new FileInfo(path);
+                if (!before.Exists || before.Length == 0)
                 {
-                    _diagnosticCaptured = true;
-                    try
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(DiagnosticCapturePath)!);
-                        File.Copy(e.FullPath, DiagnosticCapturePath, overwrite: true);
-                        System.Diagnostics.Debug.WriteLine(
-                            $"[VTCCP-SCRAPER] Diagnostic copy saved → '{DiagnosticCapturePath}'");
-                    }
-                    catch (Exception copyEx)
-                    {
-                        System.Diagnostics.Debug.WriteLine(
-                            $"[VTCCP-SCRAPER] Diagnostic copy failed: {copyEx.Message}");
-                    }
+                    await Task.Delay(100, token);
+                    continue;
                 }
 
-                // Delete the transient DMST output before making the parsed data
-                // available to TryMergeAsync.  This ordering is critical for Replace mode:
-                // if the original were added to _pending first, TryMergeAsync could consume
-                // the entry and write the hybrid while this callback's File.Delete was still
-                // pending — the delete would then silently remove the freshly written hybrid.
-                // By deleting here (BEFORE the _pending.Add below), the original is always
-                // gone before any caller can register a write path or write the replacement.
-                // In Alongside mode DeleteAfterParse is false; the original stays on disk.
-                if (DeleteAfterParse)
-                    File.Delete(e.FullPath);
+                long lengthBefore = before.Length;
+                DateTime writeBefore = before.LastWriteTimeUtc;
 
-                // Make the parsed report available to TryMergeAsync only after the
-                // original has been deleted (or preserved, in Alongside mode).
-                lock (_lock) { _pending.Add(new PendingHtmlReport(report)); }
+                await Task.Delay(100, token);
+
+                var settled = new FileInfo(path);
+                if (!settled.Exists ||
+                    settled.Length != lengthBefore ||
+                    settled.LastWriteTimeUtc != writeBefore)
+                    continue;
+
+                string html;
+                await using (var stream = new FileStream(
+                    path,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete,
+                    bufferSize: 4096,
+                    useAsync: true))
+                using (var reader = new StreamReader(stream))
+                    html = await reader.ReadToEndAsync(token);
+
+                var after = new FileInfo(path);
+                if (!after.Exists ||
+                    after.Length != lengthBefore ||
+                    after.LastWriteTimeUtc != writeBefore)
+                    continue;
+
+                if (!Regex.IsMatch(html, @"</html\s*>",
+                        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                {
+                    await Task.Delay(100, token);
+                    continue;
+                }
+
+                return html;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (
+                ex is IOException or UnauthorizedAccessException)
             {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[VTCCP-SCRAPER] Error reading/parsing '{e.FullPath}': {ex.Message}");
+                lastError = ex;
+                await Task.Delay(100, token);
             }
-        });
+        }
+
+        throw new IOException(
+            $"HTML report did not become complete and stable: '{path}'.",
+            lastError);
     }
 
     // ── HTML parser ───────────────────────────────────────────────────────────

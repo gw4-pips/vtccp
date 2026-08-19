@@ -214,9 +214,8 @@ public sealed class DmstHtmlReport
     /// Null when the DM TC HTML does not contain a DFC table (non-GS1 symbol,
     /// linear-only scan, or older firmware that omits the section).
     ///
-    /// DmstReportValidator.MergeAndValidate() prefers this over the computed
-    /// BuildDataFormatCheck() result, which re-parses the push XML decoded-data
-    /// string and is unreliable when BarcodeDataFormatter has transformed FNC1.
+    /// This is the only Data Format Check source allowed in the VCCS report.
+    /// When the table is absent, the report shows an explicit unavailable state.
     /// </summary>
     public DataFormatCheckResult? ScrapedDataFormatCheck { get; init; }
 

@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.11";
+    public const string ReportVersion = "v1.5.12";
 
     private static readonly Regex DmstFilenameTimestampRegex = new(
         @"(?<!\d)(?<stamp>\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}(?:-\d{3})?)(?!\d)",
@@ -137,8 +137,7 @@ public static class VccsHtmlReportGenerator
             .Replace("{{SLOT_GRADE_ROWS}}",     BuildGradeRows(r))
             .Replace("{{RFID_ADJ}}",            rfidAdj)
             .Replace("{{SLOT_RFID_ROWS}}",      BuildRfidRows(r))
-            .Replace("{{SLOT_IMAGE}}",          BuildImageSlot(r))
-            .Replace("{{SLOT_DFC_SECTION}}",    BuildDfcSection(r))
+            .Replace("{{SLOT_BARCODE_DETAIL}}", BuildBarcodeDetailSection(r))
             .Replace("{{FOOTER_VERSION}}",      ReportVersion)
             .Replace("{{FOOTER_GENERATED}}",    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
     }
@@ -413,110 +412,90 @@ public static class VccsHtmlReportGenerator
         return sb.ToString();
     }
 
-    private static string BuildImageSlot(VerificationRecord r)
+    private static string BuildBarcodeDetailSection(VerificationRecord r)
     {
         string? img2D     = r.RoiJpegImageBase64 ?? r.JpegImageBase64;
         string? imgLinear = r.LinearJpegImageBase64;
         bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
+        bool hasDfc       = r.DataFormatCheck is { Rows.Count: > 0 };
 
         var sb = new StringBuilder();
-        sb.Append("    <div>\n");
+        sb.Append("    <div class=\"barcode-detail-section\">\n");
+        sb.Append("      <div class=\"sec-sub-hdr barcode-detail-header\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1<span class=\"sec-note\"> &#x2014; <em>See TruCheck report for additional details</em></span></div>\n");
+        sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
+        sb.Append("        <td class=\"barcode-image-column\">\n");
 
         if (multiMode && !string.IsNullOrWhiteSpace(img2D) && !string.IsNullOrWhiteSpace(imgLinear))
         {
             string img2DForDual = r.JpegImageBase64 ?? img2D;
-            sb.Append("      <div class=\"sec-sub-hdr\">Barcode Images</div>\n");
-            sb.Append("      <div class=\"img-frame\">\n");
-            sb.Append("        <table style=\"width:100%;border-collapse:collapse;\"><tr>\n");
-            sb.Append($"          <td style=\"width:50%;text-align:center;vertical-align:middle;\">\n");
-            sb.Append($"            <div style=\"font-size:7pt;color:#6c757d;font-style:italic;\">{H(r.LinearSymbology!)}</div>\n");
-            sb.Append($"            <img src=\"data:image/jpeg;base64,{imgLinear}\" alt=\"{H(r.LinearSymbology!)}\" style=\"max-width:3.4in;max-height:1.2in;object-fit:contain;\"/>\n");
-            sb.Append($"          </td>\n");
-            sb.Append($"          <td style=\"width:50%;text-align:center;vertical-align:middle;\">\n");
-            sb.Append($"            <div style=\"font-size:7pt;color:#6c757d;font-style:italic;\">{H(r.Symbology ?? "2D")}</div>\n");
-            sb.Append($"            <img src=\"data:image/jpeg;base64,{img2DForDual}\" alt=\"{H(r.Symbology ?? "2D")}\" style=\"max-width:3.4in;max-height:1.2in;object-fit:contain;\"/>\n");
-            sb.Append($"          </td>\n");
-            sb.Append("        </tr></table>\n");
-            sb.Append("      </div>\n");
+            sb.Append("          <table class=\"barcode-image-pair\"><tbody><tr>\n");
+            AppendBarcodeImage(sb, imgLinear, r.LinearSymbology!);
+            AppendBarcodeImage(sb, img2DForDual, r.Symbology ?? "2D");
+            sb.Append("          </tr></tbody></table>\n");
         }
         else if (!string.IsNullOrWhiteSpace(img2D))
         {
-            sb.Append("      <div class=\"sec-sub-hdr\">Barcode Image</div>\n");
-            sb.Append("      <div class=\"img-frame\">\n");
-            sb.Append($"        <img src=\"data:image/jpeg;base64,{img2D}\" alt=\"Barcode\" style=\"max-width:100%;max-height:1.35in;object-fit:contain;\"/>\n");
-            sb.Append("      </div>\n");
+            sb.Append($"          <img class=\"barcode-image\" src=\"data:image/jpeg;base64,{img2D}\" alt=\"TruCheck Barcode\"/>\n");
         }
         else
         {
-            sb.Append("      <div class=\"sec-sub-hdr\">Barcode Image</div>\n");
-            sb.Append("      <div class=\"img-frame\">\n");
             sb.Append("        <div class=\"img-placeholder\">[No barcode image available for this scan]</div>\n");
-            sb.Append("      </div>\n");
         }
 
-        sb.Append("    </div>\n");
-        return sb.ToString();
-    }
+        sb.Append("        </td>\n");
+        sb.Append("        <td class=\"barcode-dfc-column\">\n");
 
-    private static string BuildDfcSection(VerificationRecord r)
-    {
-        bool has2D     = r.DataFormatCheck       is { Rows.Count: > 0 };
-        bool hasLinear = r.LinearDataFormatCheck is { Rows.Count: > 0 };
-
-        var sb = new StringBuilder();
-        sb.Append($"    <div class=\"cf\">\n");
-
-        if (!has2D && !hasLinear)
+        if (!hasDfc)
         {
-            string unavailableReason = !string.IsNullOrWhiteSpace(r.HtmlSourceProvenance)
-                ? $"[DATA FORMAT CHECK UNAVAILABLE — {r.HtmlSourceProvenance.ToUpperInvariant()}]"
+            bool hasHtmlSource =
+                !string.IsNullOrWhiteSpace(r.HtmlSourceProvenance) ||
+                !string.IsNullOrWhiteSpace(r.HtmlSourceFileName) ||
+                !string.IsNullOrWhiteSpace(r.WebscanSourcePath);
+            string unavailableReason = hasHtmlSource
+                ? "[DATA FORMAT CHECK UNAVAILABLE — NOT PRESENT IN TRUCHECK HTML]"
                 : "[DATA FORMAT CHECK UNAVAILABLE — NO DMST HTML REPORT CORRELATED]";
-            sb.Append("      <div class=\"sec-sub-hdr\">Data Format Check<span class=\"sec-note\"> &#x2014; <em>Source status shown below</em></span></div>\n");
-            sb.Append("      <table class=\"dfc-table\"><thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead><tbody>\n");
-            sb.Append($"        <tr><td>Source status</td><td>{H(unavailableReason)}</td><td class=\"chk\">UNAVAILABLE</td></tr>\n");
-            sb.Append("      </tbody></table>\n");
-            sb.Append("    </div>\n");
-            return sb.ToString();
+            sb.Append("          <table class=\"dfc-table\"><thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead><tbody>\n");
+            sb.Append($"            <tr><td>Source status</td><td>{H(unavailableReason)}</td><td class=\"chk\">UNAVAILABLE</td></tr>\n");
+            sb.Append("          </tbody></table>\n");
         }
-
-        bool anyFail =
-            (has2D     && r.DataFormatCheck!.Overall       == OverallPassFail.Fail) ||
-            (hasLinear && r.LinearDataFormatCheck!.Overall == OverallPassFail.Fail);
-        string pillCls = anyFail ? "pill-fail" : "pill-pass";
-        string pillTxt = anyFail ? "OVERALL: FAIL" : "OVERALL: PASS";
-
-        string std = r.DataFormatCheck?.Standard
-                  ?? r.LinearDataFormatCheck?.Standard ?? "GS1";
-        string hdrSuffix = std.Contains("GS1", StringComparison.OrdinalIgnoreCase) ? "GS1" : std;
-        sb.Append($"      <div class=\"sec-sub-hdr\">Data Format Check &#x2014; {H(hdrSuffix)}<span class=\"sec-note\"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>\n");
-        sb.Append($"      <table class=\"dfc-table\">\n");
-        sb.Append($"        <thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead>\n");
-        sb.Append($"        <tbody>\n");
-
-        bool bothPresent = has2D && hasLinear;
-
-        void DfcRows(DataFormatCheckResult dfc, string? symbLabel)
+        else
         {
-            if (symbLabel is not null)
-                sb.Append($"          <tr><td colspan=\"3\" style=\"background:#e8eef5;font-weight:bold;\">{H(symbLabel)}</td></tr>\n");
+            DataFormatCheckResult dfc = r.DataFormatCheck!;
+            (string pillCls, string pillTxt) = dfc.Overall switch
+            {
+                OverallPassFail.Fail => ("pill-fail", "OVERALL: FAIL"),
+                OverallPassFail.Pass => ("pill-pass", "OVERALL: PASS"),
+                _                    => ("pill-warn", "OVERALL: UNAVAILABLE"),
+            };
+
+            sb.Append("          <table class=\"dfc-table\">\n");
+            sb.Append("            <thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead>\n");
+            sb.Append("            <tbody>\n");
             foreach (var row in dfc.Rows)
             {
                 bool fail = string.Equals(row.Check, "FAIL", StringComparison.OrdinalIgnoreCase);
                 string cls = fail ? "chk fail-fg" : "chk pass-fg";
                 bool mono = row.Name.Contains("GTIN", StringComparison.OrdinalIgnoreCase);
                 string dataStyle = mono ? " style=\"font-family:Consolas,monospace;\"" : "";
-                sb.Append($"          <tr><td>{H(row.Name)}</td><td{dataStyle}>{H(row.Data)}</td><td class=\"{cls}\">{H(row.Check)}</td></tr>\n");
+                sb.Append($"              <tr><td>{H(row.Name)}</td><td{dataStyle}>{H(row.Data)}</td><td class=\"{cls}\">{H(row.Check)}</td></tr>\n");
             }
+            sb.Append("            </tbody>\n");
+            sb.Append("          </table>\n");
+            sb.Append($"          <div class=\"barcode-dfc-footer\"><span class=\"overall-pill {pillCls}\">{pillTxt}</span></div>\n");
         }
 
-        if (hasLinear) DfcRows(r.LinearDataFormatCheck!, bothPresent ? r.LinearSymbology : null);
-        if (has2D)     DfcRows(r.DataFormatCheck!,       bothPresent ? r.Symbology      : null);
-
-        sb.Append($"        </tbody>\n");
-        sb.Append($"      </table>\n");
-        sb.Append($"      <span class=\"overall-pill {pillCls}\">{pillTxt}</span>\n");
-        sb.Append($"    </div>\n");
+        sb.Append("        </td>\n");
+        sb.Append("      </tr></tbody></table>\n");
+        sb.Append("    </div>\n");
         return sb.ToString();
+    }
+
+    private static void AppendBarcodeImage(StringBuilder sb, string base64, string label)
+    {
+        sb.Append("            <td class=\"barcode-image-item\">\n");
+        sb.Append($"              <div class=\"barcode-image-label\">{H(label)}</div>\n");
+        sb.Append($"              <img class=\"barcode-image\" src=\"data:image/jpeg;base64,{base64}\" alt=\"{H(label)}\"/>\n");
+        sb.Append("            </td>\n");
     }
 
     // ── Logo loading ─────────────────────────────────────────────────────────
@@ -604,9 +583,9 @@ public static class VccsHtmlReportGenerator
         return parts.Count switch
         {
             0 => "Fail &#x2014; mismatch",
-            1 => $"Fail &#x2014; {parts[0]} mismatch",
-            2 => $"Fail &#x2014; {parts[0]} and {parts[1]} mismatch",
-            _ => $"Fail &#x2014; {string.Join(", ", parts[..^1])} and {parts[^1]} mismatch",
+            1 => $"Fail &#x2014; {parts[0]}",
+            2 => $"Fail &#x2014; {parts[0]} and {parts[1]}",
+            _ => $"Fail &#x2014; {string.Join(", ", parts[..^1])} and {parts[^1]}",
         };
     }
 

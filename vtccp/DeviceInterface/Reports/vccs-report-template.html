@@ -25,8 +25,7 @@
     {{SLOT_SYMBOL_ROWS}}   — one or two <tr> rows for the summary table tbody
     {{SLOT_GRADE_ROWS}}    — one or two <tr> rows for the grades table tbody
     {{SLOT_RFID_ROWS}}     — all <tr> rows for the RFID table tbody
-    {{SLOT_IMAGE}}         — full barcode image <div> block (header + frame)
-    {{SLOT_DFC_SECTION}}   — full Data Format Check <div> block, or empty string
+    {{SLOT_BARCODE_DETAIL}} — combined TruCheck barcode image + Data Format Check
 -->
 <html lang="en">
 <head>
@@ -104,12 +103,12 @@
     background: #1a3a6b; color: white;
     font-size: 10pt; font-weight: bold; padding: 3pt 6pt;
   }
-  /* Barcode-report banners stay visibly separate from the dark RFID VeriWedge banner. */
+  /* All barcode-report banners use the same blue/white treatment. */
   .barcode-sec-hdr {
-    background: #cfeaf7; color: #173c5a;
+    background: #1a3a6b; color: white;
   }
   .sec-sub-hdr {
-    background: #e0f2fa; color: #173c5a;
+    background: #1a3a6b; color: white;
     font-size: 8pt; font-weight: bold; padding: 3pt 6pt;
   }
   /* Inline annotation appended to a section sub-header — inherits banner colour */
@@ -194,8 +193,31 @@
 
   .gcp-inline-note { font-size: 7.5pt; font-style: italic; }
 
-  /* ── BARCODE IMAGE ───────────────────────────────────── */
-  .img-frame { border: 2px solid #1a3a6b; text-align: center; padding: 8pt; }
+  /* ── TRUCHECK BARCODE IMAGE + DATA FORMAT CHECK ─────── */
+  .barcode-detail-header .detail-separator { padding: 0 4pt; }
+  .barcode-detail-grid {
+    width: 100%; border-collapse: collapse; table-layout: fixed;
+    border: 2px solid #1a3a6b; border-top: none;
+    min-height: 86pt;
+  }
+  .barcode-image-column {
+    width: 44%; padding: 8pt; vertical-align: middle; text-align: left;
+  }
+  .barcode-dfc-column {
+    width: 56%; border-left: 2px solid #1a3a6b; vertical-align: top;
+  }
+  .barcode-image {
+    display: block; max-width: 100%; max-height: 1.35in;
+    object-fit: contain; object-position: left center; margin: 0;
+  }
+  .barcode-image-pair {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    table-layout: fixed;
+  }
+  .barcode-image-item { width: 50%; padding-right: 6pt; text-align: left; vertical-align: top; }
+  .barcode-image-label {
+    font-size: 7pt; color: #6c757d; font-style: italic; margin-bottom: 2pt;
+  }
   .img-placeholder {
     background: #f5f5f5; border: 1px dashed #aaa;
     display: inline-block; padding: 18pt 32pt; color: #888; font-size: 8pt;
@@ -204,7 +226,7 @@
   /* ── DATA FORMAT CHECK ───────────────────────────────── */
   .dfc-table {
     width: 100%; border-collapse: collapse;
-    border: 2px solid #1a3a6b; font-size: 8pt;
+    border: none; font-size: 8pt;
   }
   .dfc-table th {
     background: #e8eef5; border-bottom: 1px solid #aaa;
@@ -218,10 +240,12 @@
 
   .overall-pill {
     display: inline-block; font-size: 8pt; font-weight: bold;
-    padding: 3pt 8pt; border: 1px solid; margin-top: 4pt; float: right;
+    padding: 3pt 8pt; border: 1px solid;
   }
+  .barcode-dfc-footer { padding: 4pt; text-align: right; }
   .pill-pass { background:#d4edda; color:#155724; border-color:#155724; }
   .pill-fail { background:#f8d7da; color:#721c24; border-color:#721c24; }
+  .pill-warn { background:#fff3cd; color:#856404; border-color:#856404; }
   .cf::after { content:""; display:table; clear:both; }
 
   /* ── FOOTER ──────────────────────────────────────────── */
@@ -333,11 +357,8 @@
       </table>
     </div>
 
-    <!-- ③ Barcode Image -->
-    {{SLOT_IMAGE}}
-
-    <!-- ④ Data Format Check -->
-    {{SLOT_DFC_SECTION}}
+    <!-- ③ TruCheck Barcode Image + Data Format Check -->
+    {{SLOT_BARCODE_DETAIL}}
 
   </div><!-- /content -->
 

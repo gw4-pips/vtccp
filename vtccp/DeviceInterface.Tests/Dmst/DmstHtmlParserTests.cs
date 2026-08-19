@@ -415,6 +415,186 @@ public sealed class DmstHtmlParserTests
         Assert.Equal("Mon 18-Aug-2026 08:04:21 PM", report.HtmlVerifiedString);
     }
 
+    [Fact]
+    public void VerifiedStringsEquivalent_NormalizesOnlyHarmlessFormatting()
+    {
+        Assert.True(DmstHtmlScraper.VerifiedStringsEquivalent(
+            "Tue 18-Aug-2026 05:10:32 ( 520 ms ) PM",
+            "tue\u00a018-Aug-2026   05:10:32(520ms) pm"));
+        Assert.False(DmstHtmlScraper.VerifiedStringsEquivalent(
+            "Tue 18-Aug-2026 05:10:32(520ms) PM",
+            "Tue 18-Aug-2026 05:10:33(520ms) PM"));
+    }
+
+    [Fact]
+    public async Task TryMergeAsync_RenamedHtmlFile_UsesGuardedFilenameTimestampFallback()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"vtccp-dmst-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+
+        try
+        {
+            using var scraper = new DmstHtmlScraper(dir) { DeleteAfterParse = false };
+            scraper.Start();
+
+            string tempPath = Path.Combine(dir, "dmst-writing.tmp");
+            string htmlPath = Path.Combine(
+                dir, "_F1_01006961147042882172803282009_2026-08-18_20-04-21-314.html");
+            await File.WriteAllTextAsync(tempPath,
+                "<html><body><p>Verified: Tue 18-Aug-2026 08:04:22 PM</p></body></html>");
+            File.Move(tempPath, htmlPath);
+
+            var incoming = new VerificationRecord
+            {
+                Symbology = "GS1 DataMatrix",
+                VerificationDateTime = new DateTime(2026, 8, 18, 20, 4, 21),
+                HtmlVerifiedString = "Tue 18-Aug-2026 08:04:21 PM",
+            };
+
+            var (merged, sourcePath) = await scraper.TryMergeAsync(incoming);
+
+            Assert.Equal(htmlPath, sourcePath);
+            Assert.Equal(Path.GetFileName(htmlPath), merged.HtmlSourceFileName);
+            Assert.Equal("DMST filesystem HTML report", merged.HtmlSourceProvenance);
+        }
+        finally
+        {
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task TryMergeAsync_WaitsForCompleteStableHtmlBeforeConsuming()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"vtccp-dmst-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+
+        try
+        {
+            using var scraper = new DmstHtmlScraper(dir) { DeleteAfterParse = false };
+            scraper.Start();
+
+            string htmlPath = Path.Combine(
+                dir, "2026-08-18_20-04-21-314_partial.html");
+            await File.WriteAllTextAsync(htmlPath,
+                "<html><body><p>Verified: Tue 18-Aug-2026 08:04:21 PM");
+
+            var incoming = new VerificationRecord
+            {
+                Symbology = "GS1 DataMatrix",
+                VerificationDateTime = new DateTime(2026, 8, 18, 20, 4, 21),
+                HtmlVerifiedString = "Tue 18-Aug-2026 08:04:21 PM",
+            };
+
+            Task<(VerificationRecord Record, string? SourcePath)> mergeTask =
+                scraper.TryMergeAsync(incoming);
+            await Task.Delay(350);
+            Assert.False(mergeTask.IsCompleted);
+
+            await File.AppendAllTextAsync(htmlPath, "</p></body></html>");
+            var (merged, sourcePath) = await mergeTask;
+
+            Assert.Equal(htmlPath, sourcePath);
+            Assert.Equal(Path.GetFileName(htmlPath), merged.HtmlSourceFileName);
+        }
+        finally
+        {
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Stop_CancelsQueuedPartialReportWithoutLatePendingAdd()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), $"vtccp-dmst-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+
+        try
+        {
+            using var scraper = new DmstHtmlScraper(dir) { DeleteAfterParse = false };
+            scraper.Start();
+
+            string htmlPath = Path.Combine(
+                dir, "2026-08-18_20-04-21-314_stopping.html");
+            await File.WriteAllTextAsync(htmlPath,
+                "<html><body><p>Verified: Tue 18-Aug-2026 08:04:21 PM");
+            await Task.Delay(175);
+
+            scraper.Stop();
+            await File.AppendAllTextAsync(htmlPath, "</p></body></html>");
+
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMilliseconds(350));
+            var incoming = new VerificationRecord
+            {
+                Symbology = "GS1 DataMatrix",
+                VerificationDateTime = new DateTime(2026, 8, 18, 20, 4, 21),
+                HtmlVerifiedString = "Tue 18-Aug-2026 08:04:21 PM",
+            };
+            var (_, sourcePath) = await scraper.TryMergeAsync(incoming, timeout.Token);
+
+            Assert.Null(sourcePath);
+        }
+        finally
+        {
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void MergeAndValidate_DoesNotReconstructMissingHtmlDataFormatCheck()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            DecodedData = "<F1>01006961147042882172803282009",
+        };
+        var html = new DmstHtmlReport
+        {
+            ParseSucceeded = true,
+            SourceFilePath = FixturePath,
+            HtmlSourceFileName = Path.GetFileName(FixturePath),
+        };
+
+        VerificationRecord merged = DmstReportValidator.MergeAndValidate(record, html);
+
+        Assert.Null(merged.DataFormatCheck);
+    }
+
+    [Fact]
+    public void MergeAndValidate_PreservesLiteralHtmlDataFormatCheckRows()
+    {
+        var scraped = new DataFormatCheckResult
+        {
+            Overall = OverallPassFail.Fail,
+            Standard = "GS1 Application Data Format",
+            Rows =
+            [
+                new DataFormatCheckRow
+                {
+                    Name = "AI (21) Serial",
+                    Data = "72803282009",
+                    Check = "FAIL — TruCheck literal",
+                },
+            ],
+        };
+        var html = new DmstHtmlReport
+        {
+            ParseSucceeded = true,
+            SourceFilePath = FixturePath,
+            HtmlSourceFileName = Path.GetFileName(FixturePath),
+            ScrapedDataFormatCheck = scraped,
+        };
+
+        VerificationRecord merged = DmstReportValidator.MergeAndValidate(
+            new VerificationRecord { Symbology = "GS1 DataMatrix" }, html);
+
+        Assert.Same(scraped, merged.DataFormatCheck);
+        Assert.Equal("FAIL — TruCheck literal", merged.DataFormatCheck!.Rows[0].Check);
+    }
+
     // ══ MergeAndValidate — fractional grade × threshold boundary ════════════════
     //
     // These tests verify that pass/fail is decided from the PARSED decimal grade,

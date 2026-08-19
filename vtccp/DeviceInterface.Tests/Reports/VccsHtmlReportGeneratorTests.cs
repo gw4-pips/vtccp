@@ -100,7 +100,10 @@ public sealed class VccsHtmlReportGeneratorTests
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.Contains("Data Format Check &#x2014; GS1", report, StringComparison.Ordinal);
+        Assert.Contains(
+            "TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1",
+            report,
+            StringComparison.Ordinal);
         Assert.Contains("AI (01) GTIN-14", report, StringComparison.Ordinal);
         Assert.DoesNotContain("DATA FORMAT CHECK UNAVAILABLE", report, StringComparison.Ordinal);
     }
@@ -162,5 +165,77 @@ public sealed class VccsHtmlReportGeneratorTests
 
         Assert.Contains($"<td colspan=\"2\">{verified}</td>", report, StringComparison.Ordinal);
         Assert.Equal("2026-08-18_20-04-21", VccsHtmlReportGenerator.GetOutputTimestamp(record));
+    }
+
+    [Fact]
+    public void Generate_UsesOneCombinedImageAndDfcSectionWithFullHeightDivider()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            JpegImageBase64 = "AQID",
+            DataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Standard = "GS1 Application Data Format",
+                Rows =
+                [
+                    new DataFormatCheckRow
+                    {
+                        Name = "AI (21) Serial",
+                        Data = "72803282009",
+                        Check = "PASS",
+                    },
+                ],
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("<table class=\"barcode-detail-grid\"", report, StringComparison.Ordinal);
+        Assert.Contains("<td class=\"barcode-image-column\"", report, StringComparison.Ordinal);
+        Assert.Contains("<td class=\"barcode-dfc-column\"", report, StringComparison.Ordinal);
+        Assert.Contains("border-left: 2px solid #1a3a6b", report, StringComparison.Ordinal);
+        Assert.Contains("object-position: left center", report, StringComparison.Ordinal);
+        Assert.Contains("See TruCheck report for additional details", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("display: grid", report, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("grid-template-columns", report, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(">Barcode Image</div>", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_SerialMismatch_UsesMismatchOnce()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Fail",
+            RfidMismatchDetail =
+                "Serial:RFID=72803282010,BC=72803282009",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "Fail &#x2014; Serial Number mismatch",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("mismatch mismatch", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_UsesUniformBlueWhiteBarcodeBanners()
+    {
+        string report = VccsHtmlReportGenerator.Generate(
+            new VerificationRecord { Symbology = "GS1 DataMatrix" });
+
+        Assert.Contains(
+            ".barcode-sec-hdr {\n    background: #1a3a6b; color: white;",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".sec-sub-hdr {\n    background: #1a3a6b; color: white;",
+            report,
+            StringComparison.Ordinal);
     }
 }
