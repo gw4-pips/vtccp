@@ -868,9 +868,33 @@ public sealed class DmstHtmlParserTests
     }
 
     [Fact]
+    public void ParseHtml_DmstCaptureTable_UsesImageWhenBase64ContainsLogoText()
+    {
+        // A Base64 payload can legitimately contain "logo" by chance. It is not
+        // branding evidence; the DMST Image / General Characteristics table is.
+        const string barcodeImage = "QUJDlogoREVG";
+        string html = $$"""
+            <html><body>
+              <p>Verified: Tue 18-Aug-2026 11:12:13 PM</p>
+              <img alt="COGNEX logo" src="data:image/png;base64,QUJDRA==" />
+              {{new string(' ', 700)}}
+              <table>
+                <tr><th style="width:30%">Image</th><th>General Characteristics</th></tr>
+                <tr><td><img style="display:block" src="data:image/jpeg;base64,{{barcodeImage}}" /></td><td>Matrix Size</td></tr>
+              </table>
+            </body></html>
+            """;
+
+        var report = DmstHtmlScraper.ParseHtml(html, FixturePath);
+
+        Assert.Equal(barcodeImage, report.HtmlBarcodeImageBase64);
+    }
+
+    [Fact]
     public void ParseHtml_UnknownUnlabelledImage_IsNotPromotedToBarcodeEvidence()
     {
-        const string onlyImage = "Y29nbmV4LWxvZ28=";
+        // "qr" in opaque Base64 must not count as QR-code context.
+        const string onlyImage = "qrAAAAAA";
         string html = $$"""
             <html><body>
               <p>Verified: Tue 18-Aug-2026 09:51:39 PM</p>

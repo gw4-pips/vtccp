@@ -1170,10 +1170,13 @@ public sealed class DmstHtmlScraper : IDisposable
 
     /// <summary>
     /// Selects a format-agnostic barcode or symbol image from a DMST HTML report.
-    /// The image must have barcode/symbol context in its tag or nearby HTML; an
-    /// ambiguous image is rejected rather than risking a branding image such as
-    /// the COGNEX logo. The selected image remains sourced exclusively from the
-    /// original HTML artifact.
+    /// The image must have barcode/symbol context or occur in DMST's standard
+    /// Image / General Characteristics capture table. Base64 payload text is
+    /// never treated as evidence because its arbitrary character sequences can
+    /// falsely resemble words such as "logo" or "QR". An ambiguous image is
+    /// rejected rather than risking a branding image such as the COGNEX logo.
+    /// The selected image remains sourced exclusively from the original HTML
+    /// artifact.
     /// </summary>
     private static string? SelectEmbeddedBarcodeImage(string htmlContent)
     {
@@ -1198,25 +1201,40 @@ public sealed class DmstHtmlScraper : IDisposable
                 imageTag.Length + 500);
             string nearbyHtml = WebUtility.HtmlDecode(
                 htmlContent.Substring(contextStart, contextLength));
+            // Image bytes are arbitrary text when represented as Base64. Strip
+            // every embedded payload before inspecting nearby HTML so a real
+            // capture cannot be falsely classified as a logo or QR image.
+            string evidenceHtml = Regex.Replace(nearbyHtml, imageSourcePattern, string.Empty,
+                RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            string evidence = descriptor + " " + evidenceHtml;
 
             // Branding is never scan evidence, even if it is embedded in the same
             // authoritative HTML file. Check both the image metadata and its
             // immediate section, but not the entire document's product heading.
-            if (Regex.IsMatch(descriptor + " " + nearbyHtml, @"\b(cognex|logo|brand)\b",
+            if (Regex.IsMatch(evidence, @"\b(cognex|logo|brand)\b",
                 RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                 continue;
 
             // Do not assume a particular symbology. These terms cover the
             // report's generic barcode section and common formats (DataMatrix,
-            // QR, UPC, EAN), while avoiding a blind "first image wins" fallback.
+            // QR, UPC, EAN). A DMST image capture table is also definitive
+            // structure: its Image column is paired with General Characteristics.
             bool hasBarcodeContext = Regex.IsMatch(
-                descriptor + " " + nearbyHtml,
+                evidence,
                 @"\b(barcode|data[\s-]*matrix|symbol|qr(?:\s*code)?|upc|ean)\b",
                 RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            bool hasDmstCaptureTable = Regex.IsMatch(
+                evidenceHtml,
+                @"<th\b[^>]*>\s*image\s*</th>\s*<th\b[^>]*>\s*general\s+characteristics\s*</th>",
+                RegexOptions.IgnoreCase | RegexOptions.Singleline |
+                RegexOptions.CultureInvariant);
+            hasBarcodeContext |= hasDmstCaptureTable;
             if (!hasBarcodeContext)
                 continue;
 
             int score = source.Groups["data"].Value.Length;
+            if (hasDmstCaptureTable)
+                score += 1_000_000;
             if (Regex.IsMatch(descriptor,
                 @"\b(barcode|data[\s-]*matrix|symbol|qr(?:\s*code)?|upc|ean)\b",
                 RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))

@@ -1669,3 +1669,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Asked to restore the barcode section header’s original slightly lighter blue after the shading difference had been eliminated, explicitly not the pale-blue experiment, and to push this together with the previous header correction.
 
 **Assistant:** Restored the barcode summary header to the original medium blue `#2c5296` with white text, retained the fixed-position header geometry, and pushed the combined source changes without rebuilding.
+
+---
+
+**User (19-Aug-2026):** Attached a VCCS RFID PDF and its correlated DMST HTML. The PDF incorrectly said the barcode image was not embedded, although the HTML contains the image.
+
+**Assistant:** Confirmed the embedded JPEG appears in DMST's standard Image / General Characteristics capture table. Fixed the selector so opaque Base64 bytes cannot be mistaken for branding or symbology words, and so that verified DMST table structure is accepted as barcode-image evidence. Added regression coverage for this exact failure mode.

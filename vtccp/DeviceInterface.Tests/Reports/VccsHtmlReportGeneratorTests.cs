@@ -365,13 +365,13 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_UsesUniformBlueWhiteBarcodeBanners()
+    public void Generate_UsesMediumBlueBarcodeSummaryBanner()
     {
         string report = VccsHtmlReportGenerator.Generate(
             new VerificationRecord { Symbology = "GS1 DataMatrix" });
 
         Assert.Contains(
-            ".barcode-sec-hdr {\n    background: #1a3a6b; color: white;",
+            ".barcode-sec-hdr {\n    background: #2c5296; color: white;",
             report,
             StringComparison.Ordinal);
         Assert.Contains(
