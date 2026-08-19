@@ -443,7 +443,7 @@ public static class VccsHtmlReportGenerator
         return sb.ToString();
     }
 
-    internal static bool HasCorrelatedFilesystemHtml(VerificationRecord r)
+    public static bool HasCorrelatedFilesystemHtml(VerificationRecord r)
         => r.HtmlReportProvenance == HtmlReportProvenance.CorrelatedFilesystem &&
            !string.IsNullOrWhiteSpace(r.HtmlSourceFileName) &&
            !string.IsNullOrWhiteSpace(r.HtmlVerifiedString);
