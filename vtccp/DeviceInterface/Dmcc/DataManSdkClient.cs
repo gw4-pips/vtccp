@@ -164,6 +164,8 @@ public sealed class DataManSdkClient : IAsyncDisposable
         if (!IsConnected)
             throw new InvalidOperationException("Not connected. Call ConnectAsync() first.");
 
+        CognexSdk.DataManSystem system = _system
+            ?? throw new InvalidOperationException("DataMan SDK system is unavailable.");
         var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         CognexSdk.XmlResultArrivedHandler xmlHandler = (_, args) =>
@@ -186,7 +188,7 @@ public sealed class DataManSdkClient : IAsyncDisposable
             tcs.TrySetResult(xml);
         };
 
-        _system!.XmlResultArrived += xmlHandler;
+        system.XmlResultArrived += xmlHandler;
         try
         {
             // Fire the trigger.  Try each form in turn; every exception is caught
@@ -404,7 +406,17 @@ public sealed class DataManSdkClient : IAsyncDisposable
         }
         finally
         {
-            _system.XmlResultArrived -= xmlHandler;
+            try
+            {
+                system.XmlResultArrived -= xmlHandler;
+            }
+            catch (Exception ex)
+            {
+                // Disconnect can race timeout cleanup. Never replace the real
+                // trigger result/timeout with an SDK event-detach exception.
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-SDK] XmlResultArrived cleanup skipped: {ex.Message}");
+            }
         }
     }
 
@@ -442,6 +454,8 @@ public sealed class DataManSdkClient : IAsyncDisposable
             return null;
         }
 
+        CognexSdk.DataManSystem system = _system
+            ?? throw new InvalidOperationException("DataMan SDK system is unavailable.");
         var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         CognexSdk.XmlResultArrivedHandler xmlHandler = (_, args) =>
@@ -455,7 +469,7 @@ public sealed class DataManSdkClient : IAsyncDisposable
             tcs.TrySetResult(xml);
         };
 
-        _system!.XmlResultArrived += xmlHandler;
+        system.XmlResultArrived += xmlHandler;
         try
         {
             // Load image into device buffer: read file as bytes, send via SDK.
@@ -491,7 +505,15 @@ public sealed class DataManSdkClient : IAsyncDisposable
         }
         finally
         {
-            _system!.XmlResultArrived -= xmlHandler;
+            try
+            {
+                system.XmlResultArrived -= xmlHandler;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-D4] XmlResultArrived cleanup skipped: {ex.Message}");
+            }
         }
     }
 
@@ -513,6 +535,8 @@ public sealed class DataManSdkClient : IAsyncDisposable
         if (!IsConnected)
             throw new InvalidOperationException("Not connected. Call ConnectAsync() first.");
 
+        CognexSdk.DataManSystem system = _system
+            ?? throw new InvalidOperationException("DataMan SDK system is unavailable.");
         var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         CognexSdk.XmlResultArrivedHandler xmlHandler = (_, args) =>
@@ -527,7 +551,7 @@ public sealed class DataManSdkClient : IAsyncDisposable
             tcs.TrySetResult(xml);
         };
 
-        _system!.XmlResultArrived += xmlHandler;
+        system.XmlResultArrived += xmlHandler;
         try
         {
             // Attempt IMAGE.REPLAY to request a fresh grade cycle.
@@ -554,7 +578,15 @@ public sealed class DataManSdkClient : IAsyncDisposable
         }
         finally
         {
-            _system!.XmlResultArrived -= xmlHandler;
+            try
+            {
+                system.XmlResultArrived -= xmlHandler;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-REPLAY] XmlResultArrived cleanup skipped: {ex.Message}");
+            }
         }
     }
 

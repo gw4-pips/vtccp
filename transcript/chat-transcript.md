@@ -1651,3 +1651,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Clarified that the COGNEX logo must never be selected and that the barcode selector must work for any symbology, including DataMatrix, QR, UPC, and other barcode images.
 
 **Assistant:** Tightened image selection to be symbology-agnostic and fail closed for ambiguous images. The parser now requires barcode/symbol context in the image tag or its nearby HTML section, explicitly rejects branding context, and never uses a blind first-image fallback. Added regressions for an unlabelled COGNEX image preceding a barcode and for an ambiguous image with no barcode context.
+
+---
+
+**User (19-Aug-2026):** Attached a Visual Studio screenshot showing a System.NullReferenceException at DataManSdkClient event cleanup while the DataMan SDK connection was disconnecting.
+
+**Assistant:** Identified a shutdown race: disconnect cleared the SDK system field while a trigger/image operation was unwinding its XmlResultArrived event cleanup. Each result operation now retains the exact SDK system instance it subscribed to and performs defensive event detachment, so cleanup cannot dereference a cleared shared field or mask the real operation result.
