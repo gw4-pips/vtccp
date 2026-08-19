@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.19";
+    public const string ReportVersion = "v1.5.20";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -383,8 +383,8 @@ public static class VccsHtmlReportGenerator
         var sb = new StringBuilder();
         sb.Append("    <div class=\"barcode-detail-section\">\n");
         sb.Append(hasHtml
-            ? "      <div class=\"sec-sub-hdr barcode-detail-header\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1<span class=\"sec-note\"> &#x2014; <em>Only values present in the correlated report are shown</em></span></div>\n"
-            : "      <div class=\"sec-sub-hdr barcode-detail-header\">Barcode Verification Capture Unavailable<span class=\"sec-note\"> &#x2014; <em>No correlated DMST HTML report</em></span></div>\n");
+            ? "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1</span><span class=\"sec-note\"> &#x2014; <em>Only values present in the correlated report are shown</em></span></div>\n"
+            : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">Barcode Verification Capture Unavailable</span><span class=\"sec-note\"> &#x2014; <em>No correlated DMST HTML report</em></span></div>\n");
         sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
         sb.Append("        <td class=\"barcode-image-column\">\n");
 

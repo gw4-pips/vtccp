@@ -1687,3 +1687,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Attached a Visual Studio screenshot of a `NullReferenceException` in `AsReaderP3xU.dll` at `RcpProtocolHandler.RxRspParsed` during application close and asked that it be addressed in the next build.
 
 **Assistant:** Identified an AsReader SDK 1.3.0 shutdown race: `DisConnect()` can clear the SDK receive callback before its worker has finished dispatching. Added a shutdown-only RFID path used by application exit that stops inventory and lets Windows release the VCP handle at process termination; the ordinary Disconnect button retains its explicit close-and-reconnect behavior. Advanced the app version to 1.5.32. The core test suite passed; this Linux workspace cannot compile the full Windows desktop project because the Cognex SDK is absent.
+
+---
+
+**User (19-Aug-2026):** Attached a VCCS RFID PDF and requested that all three TruCheck headers use the light blue, that the TruCheck Barcode Verification Grades and TruCheck Barcode Image headers use the same height, and that the grades title be bold. Clarified that only those two barcode headers should have matching heights.
+
+**Assistant:** Updated the three TruCheck banner styles to the medium light blue. Applied one fixed 17pt height only to the Barcode Verification Grades and Barcode Image/Data Format Check banners, leaving the RFID summary height unchanged. Wrapped both barcode-title labels in explicit bold styling. Advanced the report to v1.5.20 and the app to v1.5.33; report tests passed.

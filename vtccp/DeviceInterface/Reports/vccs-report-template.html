@@ -118,6 +118,15 @@
     background: #1a3a6b; color: white;
     font-size: 8pt; font-weight: bold; padding: 3pt 6pt;
   }
+  /* The three TruCheck barcode headers share the original medium blue. The
+     two lower barcode headers also share a fixed banner height. */
+  .trucheck-barcode-hdr {
+    background: #2c5296; color: white;
+    height: 17pt; box-sizing: border-box;
+    display: flex; align-items: center;
+    padding: 0 6pt;
+  }
+  .trucheck-barcode-hdr .trucheck-header-title { font-weight: bold; }
   /* Inline annotation appended to a section sub-header — inherits banner colour */
   .sec-note { font-size: 7.5pt; font-weight: normal; }
   .sec-sub-hdr-gap { margin-top: 6pt; }
@@ -332,7 +341,7 @@
         </tbody>
       </table>
 
-      <div class="sec-sub-hdr" style="margin-top:-2px">TruCheck Barcode Verification Grades<span class="sec-note"> &#x2014; <em>Only fields present in the correlated HTML report are shown</em></span></div>
+      <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades</span><span class="sec-note"> &#x2014; <em>Only fields present in the correlated HTML report are shown</em></span></div>
       <table class="grades-table">
         <thead>
           <tr>

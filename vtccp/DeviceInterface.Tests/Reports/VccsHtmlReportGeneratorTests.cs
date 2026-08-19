@@ -365,7 +365,7 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_UsesMediumBlueBarcodeSummaryBanner()
+    public void Generate_UsesMediumBlueForAllTruCheckHeaders()
     {
         string report = VccsHtmlReportGenerator.Generate(
             new VerificationRecord { Symbology = "GS1 DataMatrix" });
@@ -375,7 +375,15 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            ".sec-sub-hdr {\n    background: #1a3a6b; color: white;",
+            ".trucheck-barcode-hdr {\n    background: #2c5296; color: white;\n    height: 17pt;",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "<span class=\"trucheck-header-title\">TruCheck Barcode Verification Grades</span>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "<span class=\"trucheck-header-title\">TruCheck Barcode Image ",
             report,
             StringComparison.Ordinal);
     }
