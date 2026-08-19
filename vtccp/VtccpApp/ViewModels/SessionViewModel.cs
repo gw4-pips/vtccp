@@ -1569,7 +1569,19 @@ public sealed class SessionViewModel : ViewModelBase
         // Reader outlives sessions — release it explicitly on app exit.
         if (_rfidReader is not null)
         {
-            try { await _rfidReader.DisposeAsync(); } catch { /* best effort */ }
+            try
+            {
+#if ASREADER_SDK
+                // AsReader SDK 1.3.0 races an internal receive callback against
+                // DisConnect during process exit. Use its shutdown-only path;
+                // the ordinary Disconnect button still uses DisposeAsync.
+                if (_rfidReader is AsReaderP35UEpcReader asReader)
+                    await asReader.ShutdownForApplicationExitAsync();
+                else
+#endif
+                    await _rfidReader.DisposeAsync();
+            }
+            catch { /* best effort */ }
             _rfidReader     = null;
             IsRfidConnected = false;
         }

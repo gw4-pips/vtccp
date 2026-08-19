@@ -166,6 +166,48 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         }
     }
 
+    /// <summary>
+    /// Stops RFID work during application termination without calling the vendor
+    /// SDK's <c>DisConnect()</c> method.
+    /// </summary>
+    /// <remarks>
+    /// AsReaderP3xU SDK 1.3.0 can clear its internal receive callback before its
+    /// receive worker has finished dispatching a response. Calling
+    /// <c>DisConnect()</c> during process shutdown then raises a
+    /// <see cref="NullReferenceException"/> inside the vendor DLL's
+    /// <c>RcpProtocolHandler</c>. Windows releases the VCP handle when the
+    /// application process exits, so the safe shutdown path is to stop inventory,
+    /// discard managed state, and let process termination close the port.
+    ///
+    /// This is deliberately distinct from <see cref="DisconnectAsync"/>, which
+    /// remains the explicit close-and-reconnect path while the application is
+    /// still running.
+    /// </remarks>
+    public async Task ShutdownForApplicationExitAsync()
+    {
+        await _lock.WaitAsync(CancellationToken.None).ConfigureAwait(false);
+        try
+        {
+            if (_disposed) return;
+
+            _disposed  = true;
+            _connected = false;
+            AbortActiveInventory();
+
+            if (_device is { } dev)
+            {
+                try { dev.StopInventory(); } catch { /* best effort */ }
+            }
+
+            // Do not call dev.DisConnect() here — see the SDK race documented above.
+            _device = null;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     // ── IEpcReader — Inventory ────────────────────────────────────────────────
 
     /// <inheritdoc />

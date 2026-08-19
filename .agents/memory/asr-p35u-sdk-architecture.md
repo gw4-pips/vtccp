@@ -75,3 +75,11 @@ Same pattern as Cognex SDK reference in DeviceInterface.csproj.
 
 ## CheckTagStatus lock-check hazard (FW 1.8.0)
 A TIMED-OUT TID ReadMemory emits a delayed stray cbSuccess 41 once the hardware finishes the RF op. CheckTagStatus results also arrive as cbSuccess 40/41/42, so a lock check armed right after a timed-out TID read can mis-read the stray 41 as "Locked". Rule: correlate QC callbacks to their command — expect/drain the stray ack only after a TID timeout (a successful TID read via cbTag needs no drain, and delaying it risks the tag leaving RF range); treat cbError 4 as "device busy, retry" not a status.
+
+## Application-exit disconnect race (SDK 1.3.0)
+
+**Rule:** On final application exit, stop inventory but do not call the vendor SDK's `DisConnect()` method; use the dedicated shutdown path and let Windows release the VCP handle when the process terminates. Keep explicit disconnect for an in-app disconnect/reconnect.
+
+**Why:** The SDK can clear `RcpProtocolHandler.RxRspParsed` while its receive worker is still dispatching a response, producing a `NullReferenceException` inside `AsReaderP3xU.dll` during application close.
+
+**How to apply:** Only use the shutdown-only path from the application exit handler. Do not substitute it for the normal Disconnect button, which must release the reader for an in-process reconnect.

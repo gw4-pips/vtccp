@@ -1675,3 +1675,15 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Attached a VCCS RFID PDF and its correlated DMST HTML. The PDF incorrectly said the barcode image was not embedded, although the HTML contains the image.
 
 **Assistant:** Confirmed the embedded JPEG appears in DMST's standard Image / General Characteristics capture table. Fixed the selector so opaque Base64 bytes cannot be mistaken for branding or symbology words, and so that verified DMST table structure is accepted as barcode-image evidence. Added regression coverage for this exact failure mode.
+
+---
+
+**User (19-Aug-2026):** Asked what COGNEX logo was being referenced.
+
+**Assistant:** Corrected the prior answer after inspecting the attached HTML images: its first embedded image is the yellow-and-black COGNEX logo, while its second embedded image is the DataMatrix barcode. The selector must reject the first and select the second; RFID serial data is unrelated.
+
+---
+
+**User (19-Aug-2026):** Attached a Visual Studio screenshot of a `NullReferenceException` in `AsReaderP3xU.dll` at `RcpProtocolHandler.RxRspParsed` during application close and asked that it be addressed in the next build.
+
+**Assistant:** Identified an AsReader SDK 1.3.0 shutdown race: `DisConnect()` can clear the SDK receive callback before its worker has finished dispatching. Added a shutdown-only RFID path used by application exit that stops inventory and lets Windows release the VCP handle at process termination; the ordinary Disconnect button retains its explicit close-and-reconnect behavior. Advanced the app version to 1.5.32. The core test suite passed; this Linux workspace cannot compile the full Windows desktop project because the Cognex SDK is absent.
