@@ -83,7 +83,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
     // ── Settings ──────────────────────────────────────────────────────────────
 
     private readonly int _txPowerDbm;
-    private const int DefaultTxPowerDbm = 20;  // 20 dBm: safe short-range working default
+    private const int DefaultTxPowerDbm = 13;  // 13 dBm: minimum US-region power
     private const int MinTxPower        = 13;
     private const int MaxTxPower        = 27;
 

@@ -1693,3 +1693,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Attached a VCCS RFID PDF and requested that all three TruCheck headers use the light blue, that the TruCheck Barcode Verification Grades and TruCheck Barcode Image headers use the same height, and that the grades title be bold. Clarified that only those two barcode headers should have matching heights.
 
 **Assistant:** Updated the three TruCheck banner styles to the medium light blue. Applied one fixed 17pt height only to the Barcode Verification Grades and Barcode Image/Data Format Check banners, leaving the RFID summary height unchanged. Wrapped both barcode-title labels in explicit bold styling. Advanced the report to v1.5.20 and the app to v1.5.33; report tests passed.
+
+---
+
+**User:** Asked to reduce the ASR-P35U RFID reader transmit-power default from 20 dBm to 13 dBm.
+
+**Assistant:** Changed both the reader constructor default and the factory default to 13 dBm, retained the valid 13–27 dBm clamp, advanced the app version to 1.5.34, and confirmed the test suite passed.

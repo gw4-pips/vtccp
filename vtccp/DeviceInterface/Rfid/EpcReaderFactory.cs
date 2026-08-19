@@ -24,8 +24,8 @@ public static class EpcReaderFactory
     ///      (e.g. "COM4").  Use <see cref="AsReaderP35UEpcReader.GetAvailablePorts"/>
     ///      to enumerate candidates.
     /// </summary>
-    /// <param name="txPowerDbm">TX power in dBm (13–27). Default 20 dBm.</param>
-    public static IEpcReader CreateAsReaderP35U(int txPowerDbm = 20)
+    /// <param name="txPowerDbm">TX power in dBm (13–27). Default 13 dBm.</param>
+    public static IEpcReader CreateAsReaderP35U(int txPowerDbm = 13)
         => new AsReaderP35UEpcReader(txPowerDbm);
 
     /// <summary>
