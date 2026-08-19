@@ -1573,3 +1573,15 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (18-Aug-2026):** Asked to resume Task #169 and finish the Manual-mode VCCS RFID PDF correction: use the real DMST/TruCheck HTML filename and Verified timestamp, preserve verifier-supplied grades and Data Format Check values, keep strict RFID mismatch validation with one mismatch label, restore navy/white banners, and combine the TruCheck barcode image with DFC in a two-column section.
 
 **Assistant:** Completed Task #169. Manual HTML intake now correlates exact/normalized Verified timestamps first, uses guarded real filename timestamps only as fallback, recovers create/rename/change events and rescans, waits for complete stable HTML before consuming it, and cancels/drains in-flight work on stop. Report DFC is HTML-only with no local reconstruction; synthetic HTTP paths are never shown as real filenames. The report uses a wkhtmltopdf-compatible two-column table with a full-height divider, left-aligned image, uniform navy/white banners, and one specific "Serial Number mismatch" label. Browser-rendered layout inspection passed, independent review passed, and all 113 DeviceInterface tests passed. Report version is v1.5.12; app version is 1.5.19.
+
+---
+
+**User (19-Aug-2026):** Attached a VCCS RFID PDF and asked whether the filename correlation logic was correct. The report showed “[NO DMST HTML REPORT CORRELATED]” and unavailable DFC.
+
+**Assistant:** Confirmed that no DMST HTML was correlated, so no source filename was selected. The VCCS output PDF filename is never used as source provenance. The PDF showed conflicting local and four-hours-ahead timestamps, making the current timestamp fallback unreliable; requested the raw DMST HTML filename and its Verified line to diagnose the capture/correlation path.
+
+---
+
+**User (19-Aug-2026):** Asked for a complete explanation of all date/time sources and emphasized that the required outcome is simply to capture and display the exact HTML filename written by DMST/reader into the Windows directory, without treating small timestamp differences as relevant.
+
+**Assistant:** Confirmed the watcher receives a filesystem path directly from the Windows CodeQuality directory and can capture its basename without parsing any timestamp. Identified that the current design wrongly withholds that captured filename until a separate timestamp-based correlation succeeds; explained that Manual mode should pair the next complete observed HTML file with the next verification record in arrival order, while retaining the exact basename as provenance.
