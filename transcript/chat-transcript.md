@@ -1744,6 +1744,12 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 ---
 
+**User:** Asked whether the broad settings task should begin before refining the options list, given that FlexWedge PowerPro is more important than the full Command Pilot and its one-page report/interface should be perfected first, while still being built within CP for later extraction.
+
+**Assistant:** Recommended keeping the broad settings task parked until the FWPP workflow, report data contract, and first essential settings list are stable. Suggested an FWPP-first sequence: define the confirmed FWPP configuration subset, build only the shared settings foundation and product interface needed by FWPP, then use that proven structure to start the broader CP settings hub rather than implementing speculative CP options first.
+
+---
+
 **User (19-Aug-2026):** Requested final completion of the RFID permanent-lock correction, including verified return/callback behavior, safe timeout handling, release-build diagnostics, and automated regressions.
 
 **Assistant:** Preserved the verified on-device finding that CheckTagStatus returns raw 2 for the known Permalocked tag and that callback 41 was the delayed TID acknowledgment. Strengthened the correction so raw 0–3 is authoritative, callback 40 is a fallback only when the direct result is unavailable, blocked SDK calls remain physically isolated after the UI deadline, and delayed callbacks cannot leak into a later scan. Added persistent diagnostics and focused executor/report regressions; VTCCP remains v1.5.35.
