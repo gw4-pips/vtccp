@@ -234,7 +234,8 @@ public sealed class HttpEventSubscriber : IAsyncDisposable
         DateTime dt = DateTime.Now;
         if (dateHeader is not null)
             DateTime.TryParse(dateHeader, out dt);   // HTTP Date is always UTC
-        dt = dt.ToLocalTime();
+        // This path is synthetic correlation metadata only. Never convert it to
+        // local time; report time comes from HTML Verified: or the real filename.
         return Path.Combine("C:", "HTTP_STREAM_PLACEHOLDER",
             $"{dt:yyyy-MM-dd_HH-mm-ss}-000_http.html");
     }

@@ -43,3 +43,11 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User:** The v1.5.8 PDF still omitted the real DMST filename and the Data Format Check section. Barcode verification banners must be lighter blue than the dark VCCS RFID VeriWedge banner. Manual trigger mode is in use.
 
 **Assistant:** Confirmed the Manual-mode root cause from the supplied PDF and filename pattern: real GS1 DataMatrix DMST reports begin with `_F1_<encoded data>_` and carry their local timestamp later in the name, but the watcher only accepted timestamps at character zero. It therefore rejected the actual HTML and the PDF fell back to a generated name and had no HTML DFC data. The parser now finds the timestamp anywhere in the DMST filename and retains the true filename. DFC is rendered from the correlated source; if it is genuinely unavailable it is shown with an explicit labelled status rather than omitted. Barcode summary, grades, image, and DFC banners are lighter blue; the RFID VeriWedge banner remains dark blue. Report v1.5.10, app v1.5.17; all 101 DeviceInterface tests pass.
+
+---
+
+**`2026-08-18 — evening`**
+
+**User:** All VeriWedge work is Manual mode. A DMST filename cannot be relied on to contain date/time; the HTML `Verified:` time is always available. Use filename time only when present, otherwise use `Verified:`, with no time offsets.
+
+**Assistant:** Corrected the Manual-mode correlation and report clock rule. HTML reports with no filename timestamp are now accepted through their `Verified:` header. When present, the real filename timestamp remains first choice; otherwise the raw HTML `Verified:` text is preserved exactly for the report and used without UTC/local conversion. The generated PDF filename follows the same source-time precedence. Report v1.5.11, app v1.5.18; all 104 DeviceInterface tests pass.

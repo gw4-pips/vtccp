@@ -41,7 +41,7 @@ public static class VccsPdfRenderer
         try
         {
             Directory.CreateDirectory(outputDir);
-            string ts      = record.VerificationDateTime.ToString("yyyy-MM-dd_HH-mm-ss");
+            string ts      = VccsHtmlReportGenerator.GetOutputTimestamp(record);
             string suffix  = string.IsNullOrWhiteSpace(sessionId) ? "" : $"_{sessionId}";
             string pdfPath = Path.Combine(outputDir, $"{ts}_vccs_rfid{suffix}.pdf");
 

@@ -403,6 +403,18 @@ public sealed class DmstHtmlParserTests
             report.HtmlSourceFileName);
     }
 
+    [Fact]
+    public void ParseHtml_TimestamplessFilename_WithVerifiedHeader_IsAccepted()
+    {
+        var report = DmstHtmlScraper.ParseHtml(
+            "<html><body><p>Verified: Mon 18-Aug-2026 08:04:21 PM</p></body></html>",
+            @"C:\CodeQuality\barcode-report.html");
+
+        Assert.True(report.ParseSucceeded);
+        Assert.Null(report.ScanDateTime);
+        Assert.Equal("Mon 18-Aug-2026 08:04:21 PM", report.HtmlVerifiedString);
+    }
+
     // ══ MergeAndValidate — fractional grade × threshold boundary ════════════════
     //
     // These tests verify that pass/fail is decided from the PARSED decimal grade,

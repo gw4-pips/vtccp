@@ -121,4 +121,46 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Generate_UsesFilenameTimeBeforeHtmlVerifiedTime()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology          = "GS1 DataMatrix",
+            HtmlSourceFileName = "_F1_01006961147042882172803282009_2026-08-18_20-04-21-314.html",
+            HtmlVerifiedString = "Wed 19-Aug-2026 12:04:21 AM",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "<td colspan=\"2\">2026-08-18 20-04-21-314</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "<td colspan=\"2\">Wed 19-Aug-2026 12:04:21 AM</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Equal(
+            "2026-08-18_20-04-21-314",
+            VccsHtmlReportGenerator.GetOutputTimestamp(record));
+    }
+
+    [Fact]
+    public void Generate_UsesRawHtmlVerifiedTimeWhenFilenameHasNoTimestamp()
+    {
+        const string verified = "Mon 18-Aug-2026 08:04:21(520ms) PM";
+        var record = new VerificationRecord
+        {
+            Symbology          = "GS1 DataMatrix",
+            HtmlSourceFileName = "barcode-report.html",
+            HtmlVerifiedString = verified,
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains($"<td colspan=\"2\">{verified}</td>", report, StringComparison.Ordinal);
+        Assert.Equal("2026-08-18_20-04-21", VccsHtmlReportGenerator.GetOutputTimestamp(record));
+    }
 }

@@ -13,6 +13,8 @@
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 using System.Text;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using ExcelEngine.Models;
 
 namespace DeviceInterface.Reports;
@@ -25,7 +27,11 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.10";
+    public const string ReportVersion = "v1.5.11";
+
+    private static readonly Regex DmstFilenameTimestampRegex = new(
+        @"(?<!\d)(?<stamp>\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}(?:-\d{3})?)(?!\d)",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -111,12 +117,9 @@ public static class VccsHtmlReportGenerator
         string rfidAdj = isGS1 ? "EPC" : "UHF";
 
         // ── report date/time ──────────────────────────────────────────────
-        // Prefer the raw "Verified:" string scraped from the DM TC HTML header
-        // (already local Eastern time, includes the (ms) fragment shown in TruCheck).
-        // Fall back to VerificationDateTime only when no HTML was correlated.
-        string reportDateTime = !string.IsNullOrWhiteSpace(r.HtmlVerifiedString)
-            ? H(r.HtmlVerifiedString)
-            : H(r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt"));
+        // The DMST filename wins only when it contains a timestamp. Otherwise
+        // preserve the HTML Verified: string exactly as displayed by the device.
+        string reportDateTime = H(GetSourceDateTimeText(r));
 
         // ── token replacement ─────────────────────────────────────────────
         return _template.Value
@@ -138,6 +141,44 @@ public static class VccsHtmlReportGenerator
             .Replace("{{SLOT_DFC_SECTION}}",    BuildDfcSection(r))
             .Replace("{{FOOTER_VERSION}}",      ReportVersion)
             .Replace("{{FOOTER_GENERATED}}",    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+    }
+
+    /// <summary>
+    /// Returns the report's device-local time without applying a timezone offset.
+    /// Filename timestamp has priority; raw HTML Verified: is the fallback.
+    /// </summary>
+    internal static string GetSourceDateTimeText(VerificationRecord r)
+    {
+        if (!string.IsNullOrWhiteSpace(r.HtmlSourceFileName))
+        {
+            Match fileMatch = DmstFilenameTimestampRegex.Match(r.HtmlSourceFileName);
+            if (fileMatch.Success)
+                return fileMatch.Groups["stamp"].Value.Replace('_', ' ');
+        }
+
+        if (!string.IsNullOrWhiteSpace(r.HtmlVerifiedString))
+            return r.HtmlVerifiedString;
+
+        return r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt");
+    }
+
+    /// <summary>Timestamp used for the generated PDF filename, with no offset conversion.</summary>
+    internal static string GetOutputTimestamp(VerificationRecord r)
+    {
+        string sourceText = GetSourceDateTimeText(r);
+        Match fileMatch = DmstFilenameTimestampRegex.Match(sourceText.Replace(' ', '_'));
+        if (fileMatch.Success)
+            return fileMatch.Groups["stamp"].Value;
+
+        string parseable = Regex.Replace(sourceText, @"\(\d+ms\)", string.Empty,
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant).Trim();
+        parseable = Regex.Replace(parseable, @"^[A-Za-z]{3}\s+", string.Empty,
+            RegexOptions.CultureInvariant);
+        return DateTime.TryParseExact(parseable,
+                ["dd-MMM-yyyy hh:mm:ss tt"],
+                CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out DateTime dt)
+            ? dt.ToString("yyyy-MM-dd_HH-mm-ss")
+            : r.VerificationDateTime.ToString("yyyy-MM-dd_HH-mm-ss");
     }
 
     // ── Slot builders ───────────────────────────────────────────────────────

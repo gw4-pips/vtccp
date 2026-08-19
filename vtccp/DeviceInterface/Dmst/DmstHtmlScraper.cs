@@ -175,8 +175,9 @@ public sealed class DmstHtmlScraper : IDisposable
 
     /// <summary>
     /// Waits up to <see cref="FileArrivalTimeout"/> for an HTML report that
-    /// correlates to <paramref name="record"/> by
-    /// <see cref="VerificationRecord.VerificationDateTime"/> (±<see cref="CorrelationWindow"/>).
+    /// correlates to <paramref name="record"/> by exact HTML "Verified:" text when
+    /// available. Filename timestamps are only a fallback when the incoming record
+    /// does not carry that HTML value.
     ///
     /// When a match is found, runs <see cref="DmstReportValidator.MergeAndValidate"/>:
     ///   - Supplemental fields (QR_ECLevel, QR_MaskPattern, QR_ECI, ImagePolarity)
@@ -209,24 +210,22 @@ public sealed class DmstHtmlScraper : IDisposable
 
             lock (_lock)
             {
+                bool hasVerifiedTime = !string.IsNullOrWhiteSpace(record.HtmlVerifiedString);
                 match = _pending.FirstOrDefault(p =>
                     p.Report.ParseSucceeded &&
                     (
-                        // Primary correlation: device filename timestamp compared with
-                        // the push-XML verification timestamp.
-                        (p.Report.ScanDateTime.HasValue &&
-                         Math.Abs((p.Report.ScanDateTime.Value - record.VerificationDateTime).TotalSeconds)
-                             <= CorrelationWindow.TotalSeconds)
-                        ||
-                        // HTTP event delivery receives the same report body before the
-                        // DMST file-system copy. The stream does not include the original
-                        // filename and can be a few seconds ahead of the local file write.
-                        // Its verbatim Verified: value identifies that exact report without
-                        // inventing or displaying a synthetic HTTP filename.
-                        (!string.IsNullOrWhiteSpace(record.HtmlVerifiedString) &&
+                        // The HTML value is the authoritative device-local clock. Do
+                        // not compare it through DateTime conversion or UTC offsets.
+                        (hasVerifiedTime &&
                          !string.IsNullOrWhiteSpace(p.Report.HtmlVerifiedString) &&
                          string.Equals(record.HtmlVerifiedString, p.Report.HtmlVerifiedString,
-                             StringComparison.Ordinal))));
+                             StringComparison.Ordinal))
+                        ||
+                        // Only records without the HTML value use a filename timestamp.
+                        (!hasVerifiedTime &&
+                         p.Report.ScanDateTime.HasValue &&
+                         Math.Abs((p.Report.ScanDateTime.Value - record.VerificationDateTime).TotalSeconds)
+                             <= CorrelationWindow.TotalSeconds)));
 
                 if (match is not null)
                 {
@@ -821,7 +820,10 @@ public sealed class DmstHtmlScraper : IDisposable
                                           ? null
                                           : Path.GetFileName(sourcePath.Replace('\\', '/')),
                 HasSyntheticSourcePath = hasSyntheticSourcePath,
-                ParseSucceeded        = scanDateTime.HasValue,
+                // A timestamp-less filename is still a valid report when the HTML
+                // always-present Verified: header was scraped successfully.
+                ParseSucceeded        = scanDateTime.HasValue ||
+                                         !string.IsNullOrWhiteSpace(htmlVerifiedString),
 
                 // ── Verbatim Verification Grades row ──────────────────────────
                 HtmlStandard            = htmlStandard,

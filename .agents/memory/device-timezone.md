@@ -11,7 +11,10 @@ The timestamp string in the push XML `<DateTime>` element has no timezone suffix
 
 **Correct parse:** `DateTime.TryParse(s, out dt)` — no `AssumeUniversal`, no `ToLocalTime()` call needed.
 
-The DM TC HTML filename prefix (e.g., `2026-08-18_15-59-08`) is also in local time (device clock). Parse with `DateTimeStyles.None`.
+DMST filenames may contain the local device timestamp anywhere in the name (or no
+timestamp at all). If present, use it as-is with `DateTimeStyles.None`; do not
+assume it is a prefix. If absent, the HTML `Verified:` header is always present
+and is the authoritative device-local report time.
 
 ## Why this matters
 
@@ -20,7 +23,12 @@ An earlier session (2026-08-18) applied `AssumeUniversal | AdjustToUniversal + T
 ## How to apply
 
 - `DmstResultParser.cs` — `DateTime.TryParse(dtStrDirect, out verifyDt)` — no style flags.
-- `DmstHtmlScraper.cs` filename parse — `DateTimeStyles.None`.
+- `DmstHtmlScraper.cs` — accept an HTML report when either its filename timestamp
+  or its `Verified:` header is available. Prefer exact `Verified:` equality for
+  Manual-mode file correlation; only use filename-versus-record comparison when
+  the incoming record lacks `Verified:`.
+- VCCS PDF — display filename time only when present; otherwise preserve raw
+  HTML `Verified:` text. Do not derive report time from a generated PDF name.
 - Do NOT add `AssumeUniversal` unless the user confirms the device timezone has been reset to UTC.
 
 ## Verification
