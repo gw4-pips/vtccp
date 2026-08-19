@@ -1741,3 +1741,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Requested a broad plan for a more complete user/settings configuration tab, including previously discussed and potentially applicable options, with a preference for starting broad and culling later.
 
 **Assistant:** Mapped the current configuration surface. The existing Settings page is limited to hybrid reports and GCP prefix-table updates; device profiles, job templates, session acquisition, RFID, UPC/EAN device settings, output behavior, OCR, and diagnostics are distributed across other pages and models. Drafted a broad settings architecture and implementation plan for later review; no application code changed.
+
+---
+
+**User (19-Aug-2026):** Requested final completion of the RFID permanent-lock correction, including verified return/callback behavior, safe timeout handling, release-build diagnostics, and automated regressions.
+
+**Assistant:** Preserved the verified on-device finding that CheckTagStatus returns raw 2 for the known Permalocked tag and that callback 41 was the delayed TID acknowledgment. Strengthened the correction so raw 0–3 is authoritative, callback 40 is a fallback only when the direct result is unavailable, blocked SDK calls remain physically isolated after the UI deadline, and delayed callbacks cannot leak into a later scan. Added persistent diagnostics and focused executor/report regressions; VTCCP remains v1.5.35.

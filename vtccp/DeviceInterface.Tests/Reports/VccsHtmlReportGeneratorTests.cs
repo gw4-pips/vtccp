@@ -239,6 +239,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains("Yes &#x2014; Permalocked", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Yes &#x2014; Unknown", report, StringComparison.Ordinal);
     }
 
     [Fact]

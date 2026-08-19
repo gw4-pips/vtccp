@@ -70,6 +70,19 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
     /// </summary>
     private volatile Action<AsReader.InventoryResult>? _pendingTidCb;
 
+    // ── Lock-check correlation ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Correlates CheckTagStatus QC callbacks with the request that issued them,
+    /// draining the delayed stray cbSuccess 41 that a timed-out ReadMemory emits
+    /// on FW 1.8.0 (see ASREADER_TID_DEFECT.md) so it can never be mis-read as a
+    /// "Locked" result.  See <see cref="LockCheckCorrelator"/>.
+    /// </summary>
+    private readonly LockCheckCorrelator _lockCorrelator = new();
+    private long _nextLockCheckRequestId;
+    private long _activeLockCheckRequestId;
+    private volatile bool _lockCheckPhysicalCallPending;
+
     // ── Settings ──────────────────────────────────────────────────────────────
 
     private readonly int _txPowerDbm;
@@ -218,6 +231,9 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         TimeSpan      timeout,
         CancellationToken ct = default)
     {
+        await _lock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
         if (!IsConnected)
             throw new InvalidOperationException("Not connected. Call ConnectAsync first.");
 
@@ -259,12 +275,25 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
             _hwStopExpected = false;
         }
         return results.AsReadOnly();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     /// <inheritdoc />
     public Task CancelAsync(CancellationToken ct = default)
     {
-        try { _device?.StopInventory(); } catch { /* best effort */ }
+        // CheckTagStatus has no cancellation primitive. Never touch the SDK while
+        // a timed-out physical call is quarantined under the reader semaphore.
+        lock (_stateLock)
+        {
+            if (_lockCheckPhysicalCallPending)
+                return Task.CompletedTask;
+
+            try { _device?.StopInventory(); } catch { /* best effort */ }
+        }
         AbortActiveInventory();
         return Task.CompletedTask;
     }
@@ -291,6 +320,9 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         TimeSpan timeout,
         CancellationToken ct = default)
     {
+        await _lock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
         if (!IsConnected || _device is null)
             return null;
 
@@ -345,57 +377,192 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         {
             Interlocked.Exchange(ref _pendingTidCb, null);  // disarm stale hook
 
+            // FW 1.8.0: a TIMED-OUT ReadMemory emits a delayed stray cbSuccess 41
+            // once the hardware finishes the RF operation (ASREADER_TID_DEFECT.md).
+            // Record the expectation ONLY on this failure path so a subsequent
+            // lock check drains the stray ack instead of mis-reading it as
+            // "Locked" — while a normal successful TID read (result delivered
+            // via cbTag) proceeds to CheckTagStatus without the long drain.
+            _lockCorrelator.NoteReadMemoryIssued();
+
             Dbg("ReadTidAsync timed out");
             return null;
+        }
+        }
+        finally
+        {
+            _lock.Release();
         }
     }
 
     // ── Lock status ───────────────────────────────────────────────────────────
 
+    /// <summary>Quiet period with no unclaimed QC callbacks required before arming.</summary>
+    private static readonly TimeSpan LockDrainQuiet = TimeSpan.FromMilliseconds(400);
+
+    /// <summary>Maximum time to spend draining stale QC acks before arming anyway.</summary>
+    private static readonly TimeSpan LockDrainMax = TimeSpan.FromMilliseconds(2500);
+
+    /// <summary>Delay before retrying CheckTagStatus after a busy (cbError 4) response.</summary>
+    private static readonly TimeSpan LockBusyRetryDelay = TimeSpan.FromMilliseconds(250);
+
     /// <summary>
     /// Query the EPC memory bank lock status of a specific tag after inventory
     /// via the SDK's <c>CheckTagStatus</c> command.
     ///
-    /// The SDK returns the status directly: 0=Unlocked, 1=Locked,
-    /// 2=Permalocked, 3=Unknown, 4=Error. The call runs on a worker because the
-    /// vendor DLL can block when the tag leaves the RF field.
+    /// SDK 1.3.0 returns <c>Types.TagStatus</c> synchronously:
+    /// 0=UnLock, 1=Lock, 2=PermaLock, 3=Unknown, 4=Error.  This direct return is
+    /// authoritative. Some SDK paths additionally emit cbSuccess
+    /// (40=PermaLock, 41=Lock, 42=Unlock) or cbError, so correlation is retained
+    /// as a fallback:
+    ///   1. Drain — waits out the delayed stray cbSuccess 41 that a preceding
+    ///      (esp. timed-out) ReadMemory emits on FW 1.8.0, so it is never
+    ///      mis-read as "Locked".
+    ///   2. Arm — a one-shot hook consumed only while armed.
+    ///   3. Busy retry — cbError 4 (device conflict while busy) retries until
+    ///      <paramref name="timeout"/> instead of reporting a bogus status.
+    ///
+    /// Call after <see cref="ReadTidAsync"/> (or after inventory when TID is
+    /// skipped), before starting the next inventory.
     /// </summary>
     /// <param name="epcBytes">EPC bytes identifying the target tag.</param>
     /// <param name="timeout">Overall budget for drain + status callback.</param>
     /// <returns>
-    /// "PermaLocked" / "Locked" / "Unlocked" on a known direct return value,
-    /// "Unknown" on SDK Unknown/Error or timeout, or null when not connected.
+    /// "PermaLocked" / "Locked" / "Unlocked" on a known reader result, "Unknown"
+    /// when the reader reports Unknown/Error or times out, or null when not connected.
     /// </returns>
     public async Task<string?> ReadLockStatusAsync(
         byte[] epcBytes,
         TimeSpan timeout,
         CancellationToken ct = default)
     {
+        await _lock.WaitAsync(ct).ConfigureAwait(false);
+        bool releaseReaderLock = true;
+        long requestId = 0;
+        try
+        {
         if (!IsConnected || _device is null)
             return null;
 
-        var device = _device;
+        _lockCheckPhysicalCallPending = true;
+        requestId = Interlocked.Increment(ref _nextLockCheckRequestId);
+        Volatile.Write(ref _activeLockCheckRequestId, requestId);
+        string epcHex = Convert.ToHexString(epcBytes);
+        RfidLockDiagnosticLog.Record(
+            requestId, "begin", $"epc={epcHex} timeoutMs={(int)timeout.TotalMilliseconds}");
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        TimeSpan Remaining() => timeout - sw.Elapsed;
+
+        // 1. Drain stale QC acks from the preceding ReadMemory (TID read).
         try
         {
-            var statusTask = Task.Run(() => (uint)device.CheckTagStatus(epcBytes));
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            linkedCts.CancelAfter(timeout);
-
-            uint statusCode = await statusTask.WaitAsync(linkedCts.Token)
-                                              .ConfigureAwait(false);
-            string status = AsReaderLockStatus.FromCheckTagStatus(statusCode);
-            Dbg($"CheckTagStatus returned {statusCode} — lock status: {status}");
-            return status;
+            var drainBudget = Remaining() < LockDrainMax ? Remaining() : LockDrainMax;
+            RfidLockDiagnosticLog.Record(
+                requestId, "drain-start", $"budgetMs={(int)drainBudget.TotalMilliseconds}");
+            if (drainBudget > TimeSpan.Zero)
+                await _lockCorrelator.DrainAsync(LockDrainQuiet, drainBudget, ct)
+                                     .ConfigureAwait(false);
+            RfidLockDiagnosticLog.Record(requestId, "drain-complete", "");
         }
         catch (OperationCanceledException)
         {
-            Dbg("ReadLockStatusAsync timed out");
+            RfidLockDiagnosticLog.Record(requestId, "cancelled", "phase=drain");
             return "Unknown";
         }
-        catch (Exception ex)
+
+        // 2. Issue CheckTagStatus. The executor handles both the synchronous
+        // Types.TagStatus result and callback fallback, including busy retries.
+        LockStatusCheckOutcome outcome;
+        TimeSpan checkBudget = Remaining();
+        if (checkBudget <= TimeSpan.Zero)
         {
-            Dbg($"ReadLockStatusAsync error: {ex.Message}");
+            RfidLockDiagnosticLog.Record(requestId, "complete", "status=Unknown reason=drain-timeout");
             return "Unknown";
+        }
+        outcome = await LockStatusCheckExecutor.ExecuteAsync(
+                () => (uint)_device.CheckTagStatus(epcBytes),
+                _lockCorrelator,
+                checkBudget,
+                LockBusyRetryDelay,
+                message => RfidLockDiagnosticLog.Record(
+                    requestId, "check", message),
+                ct)
+            .ConfigureAwait(false);
+
+        // Return the user-facing result now, but transfer ownership of the reader
+        // semaphore through a post-command quiet drain. This applies even when the
+        // synchronous call completed normally: its delayed callback must never be
+        // consumed as the next request's fallback result.
+        releaseReaderLock = false;
+        bool callWasPending = outcome.PendingSdkCall is not null;
+        _ = CompleteLockCheckIsolationAsync(
+            outcome.PendingSdkCall ?? Task.CompletedTask,
+            requestId,
+            callWasPending);
+
+        string status = outcome.Status;
+        RfidLockDiagnosticLog.Record(requestId, "complete", $"status={status}");
+        Dbg($"Lock status: {status}");
+        return status;
+        }
+        finally
+        {
+            if (releaseReaderLock)
+            {
+                _lockCheckPhysicalCallPending = false;
+                if (requestId != 0)
+                {
+                    Interlocked.CompareExchange(
+                        ref _activeLockCheckRequestId, 0, requestId);
+                }
+                _lock.Release();
+            }
+        }
+    }
+
+    private async Task CompleteLockCheckIsolationAsync(
+        Task pendingSdkCall,
+        long requestId,
+        bool callWasPending)
+    {
+        try
+        {
+            try
+            {
+                await pendingSdkCall.ConfigureAwait(false);
+                if (callWasPending)
+                {
+                    RfidLockDiagnosticLog.Record(
+                        requestId, "quarantine-call-complete", "");
+                }
+            }
+            catch (Exception ex)
+            {
+                RfidLockDiagnosticLog.Record(
+                    requestId,
+                    "quarantine-call-failed",
+                    $"type={ex.GetType().Name} message={ex.Message}");
+            }
+
+            // Keep ownership through a quiet period so a trailing SDK callback
+            // cannot be consumed by the next request.
+            await _lockCorrelator.DrainAsync(
+                    LockDrainQuiet,
+                    LockDrainMax,
+                    CancellationToken.None)
+                .ConfigureAwait(false);
+            RfidLockDiagnosticLog.Record(
+                requestId, "post-check-drain-complete", "");
+        }
+        finally
+        {
+            Interlocked.CompareExchange(
+                ref _activeLockCheckRequestId, 0, requestId);
+            lock (_stateLock)
+            {
+                _lockCheckPhysicalCallPending = false;
+                _lock.Release();
+            }
         }
     }
 
@@ -472,8 +639,19 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
     {
         Dbg($"DLL error callback: {errorCode}");
 
+        // Armed lock check: CheckTagStatus failure arrives here
+        // (e.g. code 4 = device conflict while busy → Busy sentinel, retried).
+        long requestId = Volatile.Read(ref _activeLockCheckRequestId);
+        bool consumed = _lockCorrelator.OnError(errorCode);
+        RfidLockDiagnosticLog.Record(
+            requestId,
+            "sdk-error-callback",
+            $"code={errorCode} consumedByLockCheck={consumed}");
+        if (consumed)
+            return;   // error belongs to the lock check — not a disconnect
+
         // Only treat as disconnect when inventory is actually running.
-        // Errors while idle are typically vendor-command responses.
+        // Errors while idle are typically spurious QC-command responses.
         lock (_stateLock)
         {
             if (_inventoryTcs is not null)
@@ -486,7 +664,19 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
 
     private void OnSuccess(uint successCode)
     {
+        // successCode: 40=PermaLock, 41=Lock, 42=Unlock (from CheckTagStatus)
         Dbg($"DLL success callback: {successCode}");
+
+        // QC codes route through the correlator: consumed only while a lock
+        // check is armed; otherwise recorded as an unclaimed/stale ack (e.g.
+        // the delayed stray 41 a timed-out TID ReadMemory emits on FW 1.8.0)
+        // which the next lock check's drain phase waits out.
+        long requestId = Volatile.Read(ref _activeLockCheckRequestId);
+        bool consumed = _lockCorrelator.OnSuccess(successCode);
+        RfidLockDiagnosticLog.Record(
+            requestId,
+            "sdk-success-callback",
+            $"code={successCode} consumedByLockCheck={consumed}");
     }
 
     private void OnCommandData(byte[]? data)
@@ -552,6 +742,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
         {
             _hwStopExpected = false;
             _pendingTidCb   = null;
+            _lockCorrelator.Reset();
             _inventoryTcs?.TrySetCanceled();
             _inventoryTcs   = null;
         }
