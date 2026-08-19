@@ -416,6 +416,14 @@ public sealed class DmstHtmlParserTests
     }
 
     [Fact]
+    public void ConfiguredReportDirectory_IsExplicitInstallationPath()
+    {
+        Assert.Equal(
+            @"C:\Users\Administrator\Documents\DM Reports & Decoded Images\DM475-866D76\CodeQuality",
+            DmstHtmlScraper.ConfiguredReportDirectory);
+    }
+
+    [Fact]
     public void ParseHtml_RealDmstReportSummary_UsesDataAndDfcHeadingVerbatim()
     {
         const string html = """

@@ -201,14 +201,11 @@ public sealed class DeviceSession : IAsyncDisposable
         //
         // Safe no-op when DMST is not running — TryMergeAsync times out in 4 s
         // and returns the push-XML record unmodified, with no exception thrown.
-        if (DeviceInfo.Name is { Length: > 0 } deviceName)
-        {
-            var reportPath = DmstHtmlScraper.BuildReportPath(deviceName);
-            _scraper = new DmstHtmlScraper(reportPath);
-            _scraper.Start();
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-SCRAPER] Started watching '{reportPath}'.");
-        }
+        var reportPath = DmstHtmlScraper.ConfiguredReportDirectory;
+        _scraper = new DmstHtmlScraper(reportPath);
+        _scraper.Start();
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-SCRAPER] Started watching explicitly configured path '{reportPath}'.");
     }
 
     /// <summary>Closes the DMCC connection and stops any active push listener.</summary>

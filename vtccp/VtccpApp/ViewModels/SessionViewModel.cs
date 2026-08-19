@@ -494,10 +494,9 @@ public sealed class SessionViewModel : ViewModelBase
                     _repo.Settings.GenerateVccsReport ||
                     (_repo.Settings.GenerateHybridReport &&
                      _repo.Settings.HybridReportMode == ConfigEngine.Models.HybridReportMode.Replace);
-                if (needsFilesystemHtml &&
-                    SelectedDevice.Name is { Length: > 0 } devName)
+                if (needsFilesystemHtml)
                 {
-                    var watchPath = DeviceInterface.Dmst.DmstHtmlScraper.BuildReportPath(devName);
+                    var watchPath = DeviceInterface.Dmst.DmstHtmlScraper.ConfiguredReportDirectory;
                     _htmlWatcher = new DeviceInterface.Dmst.DmstHtmlScraper(watchPath);
                     _htmlWatcher.Start();
                     System.Diagnostics.Debug.WriteLine(

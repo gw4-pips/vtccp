@@ -10,19 +10,11 @@ using ExcelEngine.Models;
 /// each report as it arrives, cross-validates it against the push XML result,
 /// and deletes the file.
 ///
-/// ── Path derivation (no registry, no user config) ────────────────────────────
+/// ── Explicit report directory ────────────────────────────────────────────────
 ///
-/// DMST always writes quality reports to:
-///   {Documents}\{DeviceName}\CodeQuality\
-/// regardless of what the "Path" field shows in DMST Options → Data Logging →
-/// Reporting. The Options UI displays only the base path; DMST appends the
-/// device name and "CodeQuality" subdirectory automatically.
-///
-/// VTCCP constructs this path from two already-known values at ConnectAsync time:
-///   - Environment.SpecialFolder.MyDocuments  (Windows API — no registry)
-///   - DeviceInfo.Name                        (read from device on connect)
-///
-/// Call BuildReportPath(deviceInfo.Name) to get the watch directory.
+/// The report directory is installation-specific and cannot be safely inferred
+/// from the device name. It is explicitly configured here until the application
+/// exposes a user-editable setting.
 ///
 /// ── One-time prerequisite ────────────────────────────────────────────────────
 ///
@@ -37,7 +29,7 @@ using ExcelEngine.Models;
 ///
 /// ── Lifecycle ────────────────────────────────────────────────────────────────
 ///
-///   1. string watchPath = DmstHtmlScraper.BuildReportPath(deviceInfo.Name);
+///   1. string watchPath = DmstHtmlScraper.ConfiguredReportDirectory;
 ///   2. var scraper = new DmstHtmlScraper(watchPath);
 ///   3. scraper.Start();
 ///   4. [per scan] var enrichedRecord = await scraper.TryMergeAsync(pushRecord);
@@ -52,11 +44,11 @@ public sealed class DmstHtmlScraper : IDisposable
     // ── Constants ─────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Fixed DMST report subfolder name. DMST always creates this under
-    /// {Documents}\{DeviceName}\ regardless of DMST version or configuration.
-    /// Confirmed on DM475-63530E-PIPS-Verif-Lab (2026-05-25).
+    /// Explicit DMST report directory for this installation.
+    /// This must be changed when the operator's DMST reporting path changes.
     /// </summary>
-    public const string DmstReportSubfolder = "CodeQuality";
+    public const string ConfiguredReportDirectory =
+        @"C:\Users\Administrator\Documents\DM Reports & Decoded Images\DM475-866D76\CodeQuality";
 
     /// <summary>
     /// Linear (1D) symbology names that trigger multi-mode detection when found
@@ -103,33 +95,13 @@ public sealed class DmstHtmlScraper : IDisposable
 
     /// <summary>
     /// Initialises the scraper to watch <paramref name="watchDirectory"/>.
-    /// Use <see cref="BuildReportPath"/> to obtain the correct path from the
-    /// device name. The directory is created if it does not exist.
+    /// The directory is created if it does not exist.
     /// </summary>
     public DmstHtmlScraper(string watchDirectory)
     {
         _watchDirectory = watchDirectory;
         Directory.CreateDirectory(watchDirectory);
     }
-
-    // ── Path construction ─────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Constructs the DMST report watch path from the device name.
-    ///
-    /// <paramref name="deviceName"/> is the name returned by DeviceInfo.Name at
-    /// connect time — e.g. "DM475-63530E-PIPS-Verif-Lab".
-    ///
-    /// Result: C:\Users\{user}\Documents\DM475-63530E-PIPS-Verif-Lab\CodeQuality
-    ///
-    /// No registry access, no user configuration — both inputs are known to VTCCP
-    /// at connect time via Windows API and the DMCC device identity response.
-    /// </summary>
-    public static string BuildReportPath(string deviceName)
-        => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            deviceName,
-            DmstReportSubfolder);
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 

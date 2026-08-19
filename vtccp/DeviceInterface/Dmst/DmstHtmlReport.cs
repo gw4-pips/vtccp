@@ -5,9 +5,10 @@ using ExcelEngine.Models;
 /// <summary>
 /// Fields extracted from a DMST TruCheck HTML report for one scan.
 ///
-/// HTML format confirmed 2026-05-25 from live scan (QR GUID, fw 6.1.16_sr4,
-/// DM475-63530E-PIPS-Verif-Lab). Report file saved to:
-///   {Documents}\{DeviceName}\CodeQuality\yyyy-MM-dd_HH-mm-ss-mmm_*.html
+/// HTML format confirmed 2026-05-25 from live scan (QR GUID, fw 6.1.16_sr4).
+/// The watched report directory is explicitly configured in
+/// <see cref="DmstHtmlScraper.ConfiguredReportDirectory"/>; it must not be
+/// inferred from a device name.
 ///
 /// Structure: two distinct tables.
 ///   1. Simple characteristics table (label → next-cell value pairs):
@@ -16,8 +17,8 @@ using ExcelEngine.Models;
 ///   2. Grade parameters table (6-cell rows per parameter):
 ///        [label][secondary][pct%][numeric_grade][letter][PASS/FAIL]
 ///
-/// DateTime in the HTML header is CORRUPT (shows Unix epoch "31-Dec-1970").
-/// Use filename timestamp (yyyy-MM-dd_HH-mm-ss prefix) for correlation.
+/// The literal <c>Verified:</c> value in the HTML is used for correlation.
+/// Filename timestamps are retained only as report metadata.
 ///
 /// Source routing:
 ///   Push XML fields  → DmstResultParser   → VerificationRecord (primary)
