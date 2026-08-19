@@ -73,16 +73,31 @@ Same pattern as Cognex SDK reference in DeviceInterface.csproj.
 - Test vectors: `vtccp/references/asr-p35u/test-vectors/epc-decode-vectors.json`
 - TID defect: `vtccp/references/asr-p35u/docs/ASREADER_TID_DEFECT.md`
 
-## CheckTagStatus lock-check hazard (FW 1.8.0)
-A TIMED-OUT TID ReadMemory emits a delayed stray cbSuccess 41 once the hardware finishes the RF op. CheckTagStatus results also arrive as cbSuccess 40/41/42, so a lock check armed right after a timed-out TID read can mis-read the stray 41 as "Locked". Rule: correlate QC callbacks to their command — expect/drain the stray ack only after a TID timeout (a successful TID read via cbTag needs no drain, and delaying it risks the tag leaving RF range); treat cbError 4 as "device busy, retry" not a status.
+## CheckTagStatus direct-return contract (confirmed)
+
+`CheckTagStatus(epc)` returns the tag lock status directly; it is not a command-accepted result that must await a status callback:
+
+| Return | Meaning |
+|---:|---|
+| 0 | Unlocked |
+| 1 | Locked |
+| 2 | Permalocked |
+| 3 | Unknown |
+| 4 | Error |
+
+The standalone RFID Wedge reference maps these direct return values and reports the known test tag as Permalocked. A VTCCP Windows trace showed `CheckTagStatus returned 2`, proving the app discarded the correct Permalocked status by treating every non-zero return as a rejected command.
+
+**Why:** A timed-out TID `ReadMemory` can still emit a delayed `cbSuccess 41`; that callback is a stale acknowledgment, not the subsequent tag-lock result. The prior callback-correlator assumption conflated the two SDK behaviors.
+
+**How to apply:** Map `CheckTagStatus`'s direct return on a worker task (the SDK can block while the tag leaves the RF field), with a timeout that preserves `Unknown` only for a genuine timeout/error. Do not await `cbSuccess 40/41/42` for this operation.
 
 ## Known permanent-lock discrepancy
 
-A known test tag reports **Permalocked** through the standalone RFID Wedge decoder, while VTCCP reported **Unknown** for the same tag. VTCCP's callback map already defines SDK success code `40` as `PermaLocked`, so this does not yet establish a mapping defect.
+A known test tag reports **Permalocked** through the standalone RFID Wedge decoder, while VTCCP reported **Unknown** for the same tag. The Windows trace resolved the discrepancy: VTCCP received direct return `2` (Permalocked) and incorrectly treated it as a rejected command.
 
-**Why:** `Unknown` is returned when `CheckTagStatus` is rejected, errors, remains busy until timeout, or does not deliver a correlated callback. Changing the displayed status without observing the raw command return and callback would conceal the actual hardware/SDK failure mode.
+**Why:** The method contract had been implemented as asynchronous callback delivery, but the working standalone reference demonstrates that its direct return is the lock-status enum. The TID read's delayed `cbSuccess 41` added misleading evidence.
 
-**How to apply:** On the Windows workstation, capture the immediate `CheckTagStatus` return plus the SDK success/error callbacks against the known tag. Confirm that callback `40` reaches the correlator before changing behavior; retain `Unknown` for a genuinely unavailable result.
+**How to apply:** Replace the callback-correlator lock-status path with a direct return mapping, then test the known tag on the Windows workstation. The expected PDF value is **Permalocked**.
 
 ## Application-exit disconnect race (SDK 1.3.0)
 

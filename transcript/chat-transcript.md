@@ -1723,3 +1723,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked whether task #173 was complete and whether a test should be run, then clarified that the task still appeared to be running.
 
 **Assistant:** Confirmed task #173 is still IN_PROGRESS. The direct test assembly run executed 13 LockCheckCorrelator tests successfully, including callback 40 mapping to PermaLocked. The normal `dotnet test` project command only built because the test project lacks `IsTestProject=true`; the required Windows hardware diagnostic against the known tag has not yet been performed, so the task is not complete.
+
+---
+
+**User:** Attached the Windows Debug Output trace from the RFID lock-status diagnostic.
+
+**Assistant:** Identified the root cause: the trace shows `CheckTagStatus returned 2`. The standalone RFID Wedge reference maps that direct return as Permalocked, but VTCCP treated every non-zero return as a rejected command and displayed Unknown. The preceding callback 41 is the known delayed TID-read acknowledgment, not the lock result. Recorded the direct-return contract; no code change made pending user direction.
