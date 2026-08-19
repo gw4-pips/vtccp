@@ -31,14 +31,15 @@ Filter on `origin="common"` in codes.xml root element. `origin="monitor"` = DMST
 
 **Why:** Confirmed 2026-05-28. Physical button press, DMST Verify button, and raw TCP TRIGGER all produce results only on the HTTP channel. SDK XmlResultArrived never fires for these.
 
-## Concurrency with DMST and DM TC — CANONICAL (confirmed 2026-08-18)
+## Concurrency with DMST and DM TC — CANONICAL (refined by user)
 
 DMST (browser UI / device config) and DM TC (DataMan TruCheck application) do NOT block VTCCP. All three can run simultaneously on the same PC.
 
 - Port 44444 is the **device's** HTTP server — it accepts multiple concurrent clients.
 - VTCCP's `GET /events?enable` HTTP subscription is device-side; the device pushes to it regardless of what PC applications are open.
 - A scan triggered from within DMST or DM TC generates a device event that lands in VTCCP's HTTP subscriber just like any other scan.
-- Operators CAN use DMST for live image viewing or DM TC for one-off checks while VTCCP is running and recording. No need to close either.
+- Operators CAN leave DMST and DM TC open while VTCCP is running and recording; no need to close either.
+- **Exception:** if TruCheck is in **LIVE mode**, VTCCP cannot trigger a scan. LIVE mode must not have been activated, or the user must cancel/exit LIVE mode before VTCCP attempts a trigger.
 
 **Why:** The user confirmed this empirically — "with VTCCP open a scan triggered from within either app lands in VTCCP." This is expected: port 44444 is not held exclusively by any one PC app.
 

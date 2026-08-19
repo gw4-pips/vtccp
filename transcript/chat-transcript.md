@@ -1699,3 +1699,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked to reduce the ASR-P35U RFID reader transmit-power default from 20 dBm to 13 dBm.
 
 **Assistant:** Changed both the reader constructor default and the factory default to 13 dBm, retained the valid 13–27 dBm clamp, advanced the app version to 1.5.34, and confirmed the test suite passed.
+
+---
+
+**User:** Refined the DMST/TruCheck concurrency rule: leaving the applications open does not inherently block VTCCP, but VTCCP cannot trigger a scan while TruCheck is in LIVE mode. LIVE must not have been activated, or the user must cancel it first.
+
+**Assistant:** Recorded the LIVE-mode exception separately from the general application-open concurrency rule. No code changes made.
