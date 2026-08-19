@@ -39,3 +39,4 @@
 - [Format Data script is the push script](format-data-script.md) — v1.37 (272 lines) in artifacts/script-viewer/src/v137.txt; pasted into DMST → Format Data → Script-Based Formatting → Scripting tab; COM.SCRIPT is irrelevant to VtccpApp
 - [RFID UI wiring](rfid-ui-status.md) — Session Launcher RFID panel built; VM owns reader lifetime (coordinator ownsReader:false); port picker uses SerialPort directly so non-SDK builds compile
 - [DMST report directory configuration](dmst-report-directory-configuration.md) — report path is installation-specific; never infer it from a device name
+- [DMST embedded barcode evidence](dmst-embedded-barcode-evidence.md) — classify images from HTML structure/metadata, never opaque Base64 text
