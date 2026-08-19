@@ -1711,3 +1711,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Reported that DMST must be running and connected to the particular DataMan verifier before it will generate an HTML report. TruCheck may be open or closed after that connection; a V-series connection opens a blank TruCheck startup window. Attached two VCCS reports with GS1 Data Format selected and not selected.
 
 **Assistant:** Inspected both reports. Each has a correlated HTML report, QR grade, barcode image, and RFID match. The GS1-selected report includes the Data Format Check and shows an F1-required failure with an overall failure; the non-GS1 report correctly marks Application Standard and Data Format Check unavailable because those fields are absent from the HTML. Recorded the DMST-connection prerequisite and retained the fail-closed rule for TruCheck-only PDF data.
+
+---
+
+**User:** Reported that the known RFID tag shows Permalocked in the standalone RFID Wedge decoder, while the VTCCP report shows Unknown; suspected VTCCP may not understand the reader result.
+
+**Assistant:** Traced the current path. VTCCP maps ASR-P35U callback 40 to PermaLocked correctly, so Unknown means no usable correlated lock-status result arrived during the scan rather than proving a display mapping error. Recorded the discrepancy and proposed a focused on-device diagnostic task to capture the CheckTagStatus return and SDK callbacks before changing behavior.

@@ -76,6 +76,14 @@ Same pattern as Cognex SDK reference in DeviceInterface.csproj.
 ## CheckTagStatus lock-check hazard (FW 1.8.0)
 A TIMED-OUT TID ReadMemory emits a delayed stray cbSuccess 41 once the hardware finishes the RF op. CheckTagStatus results also arrive as cbSuccess 40/41/42, so a lock check armed right after a timed-out TID read can mis-read the stray 41 as "Locked". Rule: correlate QC callbacks to their command — expect/drain the stray ack only after a TID timeout (a successful TID read via cbTag needs no drain, and delaying it risks the tag leaving RF range); treat cbError 4 as "device busy, retry" not a status.
 
+## Known permanent-lock discrepancy
+
+A known test tag reports **Permalocked** through the standalone RFID Wedge decoder, while VTCCP reported **Unknown** for the same tag. VTCCP's callback map already defines SDK success code `40` as `PermaLocked`, so this does not yet establish a mapping defect.
+
+**Why:** `Unknown` is returned when `CheckTagStatus` is rejected, errors, remains busy until timeout, or does not deliver a correlated callback. Changing the displayed status without observing the raw command return and callback would conceal the actual hardware/SDK failure mode.
+
+**How to apply:** On the Windows workstation, capture the immediate `CheckTagStatus` return plus the SDK success/error callbacks against the known tag. Confirm that callback `40` reaches the correlator before changing behavior; retain `Unknown` for a genuinely unavailable result.
+
 ## Application-exit disconnect race (SDK 1.3.0)
 
 **Rule:** On final application exit, stop inventory but do not call the vendor SDK's `DisConnect()` method; use the dedicated shutdown path and let Windows release the VCP handle when the process terminates. Keep explicit disconnect for an in-app disconnect/reconnect.
