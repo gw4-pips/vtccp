@@ -1585,3 +1585,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Asked for a complete explanation of all date/time sources and emphasized that the required outcome is simply to capture and display the exact HTML filename written by DMST/reader into the Windows directory, without treating small timestamp differences as relevant.
 
 **Assistant:** Confirmed the watcher receives a filesystem path directly from the Windows CodeQuality directory and can capture its basename without parsing any timestamp. Identified that the current design wrongly withholds that captured filename until a separate timestamp-based correlation succeeds; explained that Manual mode should pair the next complete observed HTML file with the next verification record in arrival order, while retaining the exact basename as provenance.
+
+---
+
+**User (19-Aug-2026):** Asked whether an operator must specify the DMST report folder, requested that the real HTML filename eventually be written to Excel as well as the PDF, and asked where the PDF Report Date/Time comes from. Requested a report only, with no changes.
+
+**Assistant:** Reported that VCCS derives the watch folder automatically as Windows Documents plus the connected DataMan device name plus CodeQuality; the operator only needs DMST’s preferred report extension set to .html. The application does not discover arbitrary alternative report locations. Confirmed no Excel schema or mapper currently writes HtmlSourceFileName. Confirmed that the attached PDF’s Report Date/Time fell through to the DataMan push/XML DateTime value because no HTML was correlated; it was parsed without timezone conversion and is therefore not the HTML’s local Verified time. The PDF footer and session-id suffix are separately generated from Windows local DateTime.Now.
