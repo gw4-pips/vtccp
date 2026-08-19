@@ -8,7 +8,7 @@ using ExcelEngine.Models;
 /// <summary>
 /// Watches the DMST TruCheck quality-report directory for HTML files, scrapes
 /// each report as it arrives, cross-validates it against the push XML result,
-/// and deletes the file.
+/// and preserves the original file by default.
 ///
 /// ── Explicit report directory ────────────────────────────────────────────────
 ///
@@ -24,7 +24,8 @@ using ExcelEngine.Models;
 ///
 /// When set to .html, DMST writes one HTML file per scan to the CodeQuality
 /// directory. VTCCP picks it up within ~200 ms, scrapes it, cross-validates,
-/// merges supplemental fields into the VerificationRecord, and deletes the file.
+/// and merges supplemental fields into the VerificationRecord without removing
+/// the original report.
 /// No per-scan setup is required; the watcher runs continuously for the session.
 ///
 /// ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -328,21 +329,21 @@ public sealed class DmstHtmlScraper : IDisposable
 
     /// <summary>
     /// When true, the first HTML report received is copied to
-    /// <see cref="DiagnosticCapturePath"/> before being deleted.
+    /// <see cref="DiagnosticCapturePath"/>.
     /// Set to true temporarily to capture an HTML sample for parser diagnostics.
     /// ParseHtml() is fully implemented and validated against the 2026-05-25 live sample.
     /// </summary>
     /// <summary>
-    /// When <c>true</c> (default), the Webscan HTML file is deleted from the
-    /// CodeQuality folder immediately after parsing.  Data is retained in memory.
+    /// When <c>true</c>, the Webscan HTML file is deleted from the CodeQuality
+    /// folder immediately after parsing. This is only used by the explicitly
+    /// selected Hybrid Replace mode, which writes its replacement to that path.
     ///
-    /// Set to <c>false</c> in Alongside mode so the original Webscan report remains
-    /// on disk alongside the separately-written hybrid HTML.  In Replace mode keep
-    /// the default (<c>true</c>) — the file is deleted and the hybrid takes its place.
+    /// The default is <c>false</c>: the original DMST HTML is a provenance artifact
+    /// and remains on disk after parsing and PDF generation.
     ///
     /// Thread-safe to toggle between scans; respected on every call to OnFileCreated.
     /// </summary>
-    public bool DeleteAfterParse { get; set; } = true;
+    public bool DeleteAfterParse { get; set; }
 
     public bool DiagnosticCaptureEnabled { get; set; } = false;
 
@@ -497,19 +498,21 @@ public sealed class DmstHtmlScraper : IDisposable
                 return;
             }
 
-            // Delete the transient DMST output before making the parsed data
-            // available to TryMergeAsync.  This ordering is critical for Replace mode:
+            // Replace mode deletes the original before making the parsed data
+            // available to TryMergeAsync. This ordering is critical when replacement
+            // was explicitly selected:
             // if the original were added to _pending first, TryMergeAsync could consume
             // the entry and write the hybrid while this callback's File.Delete was still
             // pending — the delete would then silently remove the freshly written hybrid.
             // By deleting here (BEFORE the _pending.Add below), the original is always
             // gone before any caller can register a write path or write the replacement.
-            // In Alongside mode DeleteAfterParse is false; the original stays on disk.
+            // In the default preservation mode DeleteAfterParse is false; the original
+            // stays on disk.
             if (DeleteAfterParse)
                 File.Delete(path);
 
             // Make the parsed report available to TryMergeAsync only after the
-            // original has been deleted (or preserved, in Alongside mode).
+            // original has been replaced or preserved.
             lock (_lock)
             {
                 if (generation == _processingGeneration &&

@@ -62,7 +62,7 @@ public sealed class DeviceSession : IAsyncDisposable
     /// of a hybrid report to the CodeQuality folder (Replace mode).
     ///
     /// Call this immediately before writing the hybrid file to prevent the scraper from
-    /// re-parsing and deleting the newly written report.  No-op when no scraper is running.
+    /// re-parsing the newly written report. No-op when no scraper is running.
     /// </summary>
     public void RegisterOwnedHybridPath(string path) => _scraper?.RegisterOwnedPath(path);
 
@@ -70,9 +70,9 @@ public sealed class DeviceSession : IAsyncDisposable
     /// Configures whether the internal <see cref="DmstHtmlScraper"/> deletes Webscan HTML
     /// files from the CodeQuality folder after parsing them.
     ///
-    /// Pass <c>true</c> (Replace mode) to delete after parse — the hybrid report will be
-    /// written back to the same path.  Pass <c>false</c> (Alongside mode) to leave the
-    /// original Webscan HTML on disk so both files coexist.
+    /// Pass <c>true</c> only for explicitly selected Replace mode, where the hybrid
+    /// report will be written back to the same path. Pass <c>false</c> to preserve
+    /// the original Webscan HTML on disk.
     ///
     /// Must be called after <see cref="ConnectAsync"/> but before the first scan.
     /// No-op when no scraper is running.

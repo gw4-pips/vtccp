@@ -582,6 +582,38 @@ public sealed class DmstHtmlParserTests
     }
 
     [Fact]
+    public async Task TryMergeAsync_DefaultMode_PreservesCorrelatedHtmlFile()
+    {
+        const string verified = "Tue 18-Aug-2026 10:21:42(159ms) PM";
+        string dir = Path.Combine(Path.GetTempPath(), $"vtccp-dmst-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+
+        try
+        {
+            using var scraper = new DmstHtmlScraper(dir);
+            scraper.Start();
+            string htmlPath = Path.Combine(dir, "actual-dmst-report.html");
+            await File.WriteAllTextAsync(htmlPath,
+                $"<html><body><p>Verified: {verified}</p></body></html>");
+
+            var incoming = new VerificationRecord
+            {
+                Symbology = "GS1 DataMatrix",
+                HtmlVerifiedString = verified,
+            };
+            var (_, sourcePath) = await scraper.TryMergeAsync(incoming);
+
+            Assert.Equal(htmlPath, sourcePath);
+            Assert.True(File.Exists(htmlPath));
+        }
+        finally
+        {
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void MergeAndValidate_MismatchedSourceBasename_CannotGrantFilesystemProvenance()
     {
         var record = new VerificationRecord { Symbology = "GS1 DataMatrix" };

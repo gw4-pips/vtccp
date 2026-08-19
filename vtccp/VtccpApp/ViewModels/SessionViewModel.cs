@@ -94,8 +94,8 @@ public sealed class SessionViewModel : ViewModelBase
     /// <summary>
     /// FileSystem watcher (DmstHtmlScraper) started only in Push mode when
     /// <see cref="ConfigEngine.Models.HybridReportMode.Replace"/> is active.
-    /// Watches the CodeQuality folder, parses and deletes the Webscan HTML files,
-    /// and makes them available (by timestamp correlation) so AcceptRecordInnerAsync
+    /// Watches the CodeQuality folder, preserves the Webscan HTML files, and makes
+    /// them available by literal Verified-value correlation so AcceptRecordInnerAsync
     /// can write the hybrid report back to the original file path.
     /// Not used in Manual/AutoPoll mode — DeviceSession owns the scraper there.
     /// </summary>
@@ -490,14 +490,17 @@ public sealed class SessionViewModel : ViewModelBase
                 // the same watcher whenever either a strict PDF or Replace-mode hybrid
                 // report needs that artifact. Correlation is by the verifier's literal
                 // Verified: value only — never the filename or a timestamp tolerance.
-                bool needsFilesystemHtml =
-                    _repo.Settings.GenerateVccsReport ||
-                    (_repo.Settings.GenerateHybridReport &&
-                     _repo.Settings.HybridReportMode == ConfigEngine.Models.HybridReportMode.Replace);
+                bool isReplaceHybrid =
+                    _repo.Settings.GenerateHybridReport &&
+                    _repo.Settings.HybridReportMode == ConfigEngine.Models.HybridReportMode.Replace;
+                bool needsFilesystemHtml = _repo.Settings.GenerateVccsReport || isReplaceHybrid;
                 if (needsFilesystemHtml)
                 {
                     var watchPath = DeviceInterface.Dmst.DmstHtmlScraper.ConfiguredReportDirectory;
-                    _htmlWatcher = new DeviceInterface.Dmst.DmstHtmlScraper(watchPath);
+                    _htmlWatcher = new DeviceInterface.Dmst.DmstHtmlScraper(watchPath)
+                    {
+                        DeleteAfterParse = isReplaceHybrid,
+                    };
                     _htmlWatcher.Start();
                     System.Diagnostics.Debug.WriteLine(
                         $"[VTCCP-PROVENANCE] HTML watcher started: '{watchPath}'");
@@ -510,6 +513,9 @@ public sealed class SessionViewModel : ViewModelBase
                 var cfg = SelectedDevice.ToDeviceConfig();
                 _deviceSession = new DeviceSession(cfg, _xmlMap);
                 await _deviceSession.ConnectAsync();
+                _deviceSession.ConfigureScraperDeletion(
+                    _repo.Settings.GenerateHybridReport &&
+                    _repo.Settings.HybridReportMode == ConfigEngine.Models.HybridReportMode.Replace);
 
                 // Subscribe to the device's HTTP result push channel — same channel
                 // DMST uses for all TC verification results (codes.xml origin="common").
@@ -1258,7 +1264,8 @@ public sealed class SessionViewModel : ViewModelBase
         //   Report lands in the session output dir (or HybridReportOutputDirectory).
         //
         // Replace mode:
-        //   The original Webscan HTML was parsed and deleted by DmstHtmlScraper.
+        //   The original Webscan HTML is deleted only after Replace mode was explicitly
+        //   selected, then the hybrid report is written to the same source path.
         //   The hybrid report is written back to the same path (same folder, same
         //   filename) so downstream tools watching the CodeQuality folder see only
         //   the enriched version.  The original file path is captured synchronously

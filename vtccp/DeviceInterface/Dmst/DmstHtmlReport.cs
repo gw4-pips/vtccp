@@ -285,8 +285,8 @@ public sealed class DmstHtmlReport
     /// <summary>
     /// Filename-only (no directory) of the HTML source file, e.g.
     /// "2026-08-18_17-10-34-142_1787087819821.html".
-    /// Captured before the file is deleted in DeleteAfterParse mode so the
-    /// name is always available even after the transient file is gone.
+    /// Captured from the local DMST report so the exact provenance filename is
+    /// retained in the verification record.
     /// Maps to VerificationRecord.WebscanSourcePath (used for TruCheck Report Name in PDF).
     /// </summary>
     public string? HtmlSourceFileName { get; init; }
