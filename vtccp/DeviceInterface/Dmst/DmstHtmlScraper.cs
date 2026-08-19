@@ -1040,18 +1040,12 @@ public sealed class DmstHtmlScraper : IDisposable
                 }
             }
 
-            string? embeddedBarcodeImage = null;
-            {
-                // Only accept an image that is embedded in the HTML artifact itself.
-                // Images carried by the reader push payload are intentionally not
-                // promoted to TruCheck provenance.
-                Match imageMatch = Regex.Match(
-                    htmlContent,
-                    @"<img\b[^>]*\bsrc\s*=\s*[""']data:image/(?:jpeg|jpg|png);base64,([^""']+)[""']",
-                    RegexOptions.IgnoreCase | RegexOptions.Singleline);
-                if (imageMatch.Success)
-                    embeddedBarcodeImage = imageMatch.Groups[1].Value.Trim();
-            }
+            // Only accept a barcode/symbol image embedded in the HTML artifact
+            // itself.  TruCheck reports can embed a COGNEX logo before the actual
+            // barcode image; branding must never be mistaken for scan evidence.
+            // Images carried by the reader push payload are intentionally not
+            // promoted to TruCheck provenance.
+            string? embeddedBarcodeImage = SelectEmbeddedBarcodeImage(htmlContent);
 
             // ── Step 5: DateTime from filename ────────────────────────────────
             //
@@ -1171,6 +1165,51 @@ public sealed class DmstHtmlScraper : IDisposable
                 ParseError     = ex.Message,
             };
         }
+    }
+
+    /// <summary>
+    /// Selects an embedded barcode or symbol image from a DMST HTML report while
+    /// explicitly excluding COGNEX and other branding images. The selected image
+    /// remains sourced exclusively from the original HTML artifact.
+    /// </summary>
+    private static string? SelectEmbeddedBarcodeImage(string htmlContent)
+    {
+        const string imageSourcePattern =
+            @"\bsrc\s*=\s*[""']data:image/(?:jpeg|jpg|png);base64,(?<data>[^""']+)[""']";
+
+        string? bestImage = null;
+        int bestScore = int.MinValue;
+
+        foreach (Match imageTag in Regex.Matches(
+            htmlContent, @"<img\b(?<attributes>[^>]*)>", RegexOptions.IgnoreCase | RegexOptions.Singleline))
+        {
+            string attributes = WebUtility.HtmlDecode(imageTag.Groups["attributes"].Value);
+            Match source = Regex.Match(attributes, imageSourcePattern,
+                RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            if (!source.Success)
+                continue;
+
+            string descriptor = attributes.Remove(source.Index, source.Length);
+
+            // Logos are not barcode evidence, even if they are embedded in the
+            // same authoritative HTML file.
+            if (Regex.IsMatch(descriptor, @"\b(cognex|logo|brand)\b",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                continue;
+
+            int score = source.Groups["data"].Value.Length;
+            if (Regex.IsMatch(descriptor, @"\b(barcode|data[\s-]*matrix|symbol|code)\b",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                score += 1_000_000;
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestImage = source.Groups["data"].Value.Trim();
+            }
+        }
+
+        return bestImage;
     }
 
     // ── IDisposable ───────────────────────────────────────────────────────────

@@ -210,6 +210,23 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_TagDetectedWithoutReaderLockResult_RendersUnknownLockStatus()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Pass",
+            RfidGcpTableDate = "2026-05-03",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("Yes &#x2014; Unknown", report, StringComparison.Ordinal);
+        Assert.Contains("from official GS1 GCP prefix table as of 2026-05-03",
+            report, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_NoCorrelatedHtml_NeverLeaksTransportVerifierValues()
     {
         var record = new VerificationRecord

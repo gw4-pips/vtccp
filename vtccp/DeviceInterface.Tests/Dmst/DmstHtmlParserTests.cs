@@ -848,4 +848,23 @@ public sealed class DmstHtmlParserTests
             expected ? OverallPassFail.Pass : OverallPassFail.Fail,
             result.Overall);
     }
+
+    [Fact]
+    public void ParseHtml_EmbeddedCognexLogoAndBarcode_UsesBarcodeImageOnly()
+    {
+        const string cognexLogo = "Y29nbmV4LWxvZ28=";
+        const string barcodeImage = "YmFyY29kZS1pbWFnZQ==";
+        string html = $$"""
+            <html><body>
+              <p>Verified: Tue 18-Aug-2026 09:51:39 PM</p>
+              <img alt="COGNEX logo" src="data:image/png;base64,{{cognexLogo}}" />
+              <img alt="DataMatrix barcode image" src="data:image/png;base64,{{barcodeImage}}" />
+            </body></html>
+            """;
+
+        var report = DmstHtmlScraper.ParseHtml(html, FixturePath);
+
+        Assert.Equal(barcodeImage, report.HtmlBarcodeImageBase64);
+        Assert.NotEqual(cognexLogo, report.HtmlBarcodeImageBase64);
+    }
 }

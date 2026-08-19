@@ -1639,3 +1639,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Reported that every HTML report had still been deleted.
 
 **Assistant:** Identified that the prior change mistakenly retained a Hybrid Replace switch capable of re-enabling deletion. Removed the deletion operation itself, the deletion setting, and every call site that could enable it. The DMST scraper no longer contains a file-delete path. The original source HTML must remain after normal scan processing.
+
+---
+
+**User (19-Aug-2026):** Attached a successful VCCS RFID PDF and asked for its header balance to be corrected, the product name to change from Pro to PowerPro, the lock status to be displayed, the GCP note to reference the official GS1 GCP prefix table, and the COGNEX logo image to be replaced with the barcode image.
+
+**Assistant:** Updated the active VCCS PDF HTML template and generator: narrowed the fixed-width center header so the device area expands for longer names, renamed the visible product text to RFID VeriWedge PowerPro, renders a missing detected-tag lock result as Unknown, uses the requested official GS1 GCP prefix-table wording, and changed HTML image selection to ignore branding such as the COGNEX logo and select only an embedded barcode/symbol image. Added regression coverage for the lock display and COGNEX-logo exclusion.

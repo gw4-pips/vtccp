@@ -20,14 +20,14 @@ using ExcelEngine.Models;
 namespace DeviceInterface.Reports;
 
 /// <summary>
-/// Generates the v23-design RFID VeriWedge™ Pro Validation Report as a
+/// Generates the v23-design RFID VeriWedge™ PowerPro Validation Report as a
 /// self-contained HTML string by loading the embedded template and substituting
 /// live data via token replacement.
 /// </summary>
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.14";
+    public const string ReportVersion = "v1.5.15";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ public static class VccsHtmlReportGenerator
 
         string vccsLogoHtml = vccsB64 is not null
             ? $"<img src=\"data:image/png;base64,{vccsB64}\" style=\"max-height:65pt;max-width:68pt;object-fit:contain;\" alt=\"VCCS\" />"
-            : "<div class=\"logo-name\">VCCS</div><div class=\"logo-sub\">RFID VeriWedge&#x2122; Pro</div>";
+            : "<div class=\"logo-name\">VCCS</div><div class=\"logo-sub\">RFID VeriWedge&#x2122; PowerPro</div>";
 
         string companyLogoHtml = companyB64 is not null
             ? $"<img src=\"data:image/png;base64,{companyB64}\" style=\"max-height:48pt;max-width:68pt;object-fit:contain;\" alt=\"{H(r.CompanyName ?? "Company")}\" />"
@@ -248,11 +248,11 @@ public static class VccsHtmlReportGenerator
         string lockDisplay = !tagDetected ? "N/A" : r.RfidTagLockStatus switch
         {
             "Locked"      => "Locked",
-            "PermaLocked" => "Permanently Locked",
+            "PermaLocked" => "Permalocked",
             "Unlocked"    => "Unlocked",
             "Unknown"     => "Unknown",
-            null          => "\u2014",
-            var other     => other,
+            null          => "Unknown",
+            _             => "Unknown",
         };
 
         // EPC encoding scheme — derived from Tag URI (urn:epc:tag:<scheme>:…).
@@ -273,7 +273,7 @@ public static class VccsHtmlReportGenerator
             null  => "\u2014",
         };
         string gcpNote = !string.IsNullOrWhiteSpace(r.RfidGcpTableDate)
-            ? $"<em class=\"gcp-inline-note\"> &ndash; From GCP prefix table as of {H(r.RfidGcpTableDate)}</em>"
+            ? $"<em class=\"gcp-inline-note\"> &ndash; from official GS1 GCP prefix table as of {H(r.RfidGcpTableDate)}</em>"
             : string.Empty;
 
         var sb = new StringBuilder();

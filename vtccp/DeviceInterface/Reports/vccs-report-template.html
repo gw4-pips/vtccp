@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  VCCS FlexWedge™ Pro RFID Validation Report — HTML template (v23 design)
+  VCCS RFID VeriWedge™ PowerPro Validation Report — HTML template (v23 design)
   =========================================================================
   This file is an EmbeddedResource loaded at runtime by VccsHtmlReportGenerator.
   ALL visual changes (CSS, layout, section structure) belong here.
@@ -14,7 +14,7 @@
     {{HDR_FW}}             — firmware version
     {{HDR_BADGE_CLASS}}    — badge-pass / badge-fail / badge-warn
     {{HDR_BADGE_TEXT}}     — e.g. "&#x2713; RFID MATCHED" (raw HTML, not escaped)
-    {{SECTION1_TITLE}}     — "COGNEX DataMan TruCheck…" (HTML-escaped)
+    {{SECTION1_TITLE}}     — "TruCheck Barcode Verification Results Summary" (HTML-escaped)
     {{REPORT_NAME}}        — DM TC HTML filename (HTML-escaped)
     {{REPORT_DATETIME}}    — raw "Verified:" string from DM TC HTML header (HTML-escaped)
     {{RFID_ADJ}}           — "EPC" or "UHF"
@@ -30,7 +30,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>VCCS RFID VeriWedge™ Pro Validation Report</title>
+<title>VCCS RFID VeriWedge™ PowerPro Validation Report</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -72,14 +72,14 @@
   .logo-box .logo-name { font-size: 12pt; font-weight: bold; letter-spacing: 1pt; }
   .logo-box .logo-sub  { font-size: 7pt; color: #6c757d; }
   .header-meta {
-    flex: 0.25; padding: 0 8pt;
+    flex: 1 1 auto; min-width: 0; padding: 0 8pt;
     display: flex; flex-direction: column; justify-content: center; gap: 2pt;
   }
   .header-meta .dt  { font-size: 8pt; color: #6c757d; }
   .header-meta .dev { font-size: 9pt; font-weight: bold; }
   .header-meta .ln  { font-size: 8pt; }
   .header-title {
-    flex: 1; text-align: center;
+    flex: 0 0 185pt; text-align: center;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6pt;
   }
   .header-title h1 { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
@@ -280,7 +280,7 @@
         <div class="ln">Firmware: {{HDR_FW}}</div>
       </div>
       <div class="header-title">
-        <h1>VCCS <em>RFID VeriWedge&#x2122; Pro</em><br>Barcode-to-RFID Validation Report</h1>
+        <h1>VCCS <em>RFID VeriWedge&#x2122; PowerPro</em><br>Barcode-to-RFID Validation Report</h1>
         <span class="rfid-badge {{HDR_BADGE_CLASS}}">{{HDR_BADGE_TEXT}}</span>
       </div>
       <div class="company-box" style="display:flex;align-items:center;justify-content:center;padding:2pt 4pt;">
@@ -344,9 +344,9 @@
       </table>
     </div>
 
-    <!-- ② VCCS FlexWedge™ Pro RFID Validation Summary -->
+    <!-- ② VCCS RFID VeriWedge™ PowerPro RFID Validation Summary -->
     <div>
-      <div class="sec-hdr">VCCS <em>RFID VeriWedge&#x2122; Pro</em> {{RFID_ADJ}} RFID Validation Summary</div>
+      <div class="sec-hdr">VCCS <em>RFID VeriWedge&#x2122; PowerPro</em> {{RFID_ADJ}} RFID Validation Summary</div>
       <table class="rfid-table">
         <thead>
           <tr><th class="lbl-col">Field</th><th>Value</th></tr>
@@ -365,7 +365,7 @@
   <!-- ── FOOTER ─────────────────────────────────────────────── -->
   <div class="footer">
     <div class="fl">
-      VCCS <em>RFID VeriWedge&#x2122; Pro</em> Validation Report {{FOOTER_VERSION}}
+      VCCS <em>RFID VeriWedge&#x2122; PowerPro</em> Validation Report {{FOOTER_VERSION}}
       <span>&nbsp;&#x2014;&nbsp; Generated {{FOOTER_GENERATED}}</span>
     </div>
     <div>Verification Command &amp; Control System (VCCS)</div>
