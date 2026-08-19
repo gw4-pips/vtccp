@@ -1663,3 +1663,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** The prior PDF header adjustment moved the center header instead of reducing its fixed boundary. Restore its former position, shrink only the title box to fit its fixed text, widen the left device-data area, and do not rebuild yet.
 
 **Assistant:** Restored the center header to its prior horizontal center. The fixed 185pt title box now releases equal left/right space: the left release widens the device-data column and the right release remains spacer space before the fixed company-logo box. No rebuild was run.
+
+---
+
+**User (19-Aug-2026):** Asked to restore the barcode section header’s original slightly lighter blue after the shading difference had been eliminated, explicitly not the pale-blue experiment, and to push this together with the previous header correction.
+
+**Assistant:** Restored the barcode summary header to the original medium blue `#2c5296` with white text, retained the fixed-position header geometry, and pushed the combined source changes without rebuilding.
