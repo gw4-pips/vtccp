@@ -416,6 +416,34 @@ public sealed class DmstHtmlParserTests
     }
 
     [Fact]
+    public void ParseHtml_RealDmstReportSummary_UsesDataAndDfcHeadingVerbatim()
+    {
+        const string html = """
+            <html><body>
+              <p>Verified: Tue 18-Aug-2026 09:51:39(375ms) PM</p>
+              <table>
+                <tr><td class="gc"><strong>Data</strong></td><td class="gc">&lt;F1&gt;01006961147042882172803282009</td></tr>
+                <tr><td class="gc"><strong>Symbology</strong></td><td class="gc">GS1 DataMatrix</td></tr>
+              </table>
+              <table>
+                <tr><th colspan="3">Data Format Check</th></tr>
+                <tr><th colspan="3">GS1 Application Data Format: PASS</th></tr>
+                <tr><td><strong>Name</strong></td><td><strong>Data</strong></td><td><strong>Check</strong></td></tr>
+                <tr><td>GS1 Header</td><td>&lt;F1&gt;</td><td>PASS</td></tr>
+              </table>
+            </body></html>
+            """;
+
+        var report = DmstHtmlScraper.ParseHtml(html, FixturePath);
+
+        Assert.Equal("<F1>01006961147042882172803282009", report.HtmlDecodedData);
+        Assert.Equal("GS1 DataMatrix", report.HtmlSymbology);
+        Assert.Equal("GS1 Application Data Format", report.HtmlApplicationStandard);
+        Assert.NotNull(report.ScrapedDataFormatCheck);
+        Assert.Single(report.ScrapedDataFormatCheck!.Rows);
+    }
+
+    [Fact]
     public void VerifiedStringsEquivalent_NormalizesOnlyHarmlessFormatting()
     {
         Assert.True(DmstHtmlScraper.VerifiedStringsEquivalent(
