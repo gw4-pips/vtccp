@@ -1,0 +1,34 @@
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'InteropRuntimeImplementer.LeptonicaApiSignaturesInstance'. 
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'InteropRuntimeImplementer.TessApiSignaturesInstance'. 
+[AsReaderP35U] DLL success callback: 58
+[AsReaderP35U] TAG epc=30342A7CC844C7D0F36A0683 tid=(none) rssi=-24 pc=0x3000
+[AsReaderP35U] DLL read complete: status=True hwStopExpected=True
+[AsReaderP35U] DLL success callback: 41
+[AsReaderP35U] CheckTagStatus returned 2 — lock check rejected
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\EPPlus.Interfaces.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\EPPlus.System.Drawing.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\8.0.11\System.Drawing.Common.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-WRITER] AddRecord complete.  savedToDisk=True
+[VCCS-PDF] Capture failure: PDF not generated because no correlated DMST filesystem HTML report was attached to this scan.
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] Receive loop ended.
+[VTCCP-HTTP-SUB] Stopped.
+[VTCCP-SCRAPER] Stopped.
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Writer Thread' (17424) has exited with code 0 (0x0).
+The thread 'DataMan SDK CallbackDispatcher Thread' (12144) has exited with code 0 (0x0).
+Exception thrown: 'System.IO.IOException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Reader Thread' (26996) has exited with code 0 (0x0).
+[VTCCP-SDK] Disconnected.
+[VTCCP-SDK] Disconnected.
+Exception thrown: 'System.Threading.Tasks.TaskCanceledException' in System.Private.CoreLib.dll
+[VTCCP-SDK] TriggerAndWaitForXml: timed out.
+The thread 21948 has exited with code 0 (0x0).
+The thread '.NET TP Worker' (22920) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (23544) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (10860) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (20296) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (22164) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (13352) has exited with code 0 (0x0).
+The thread '.NET TP Worker' (21368) has exited with code 0 (0x0).
+The thread 14220 has exited with code 0 (0x0).
