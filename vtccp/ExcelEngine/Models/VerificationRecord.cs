@@ -568,6 +568,18 @@ public sealed record class VerificationRecord
     public string? WebscanSourcePath { get; init; }
 
     /// <summary>
+    /// Original DMST TruCheck HTML filename, captured from the file-system report
+    /// watcher. This is deliberately separate from <see cref="WebscanSourcePath"/>
+    /// so the human-facing PDF can retain the source filename even when a later
+    /// workflow only needs the path for replacement output.
+    ///
+    /// Null when the record was received solely through the HTTP event stream,
+    /// because that stream supplies the report body but not the DMST-generated
+    /// filesystem filename.
+    /// </summary>
+    public string? HtmlSourceFileName { get; init; }
+
+    /// <summary>
     /// Raw "Verified: …" string scraped from the DM TC HTML report header,
     /// e.g. "Tue 18-Aug-2026 05:10:32(520ms) PM". Used verbatim as
     /// {{REPORT_DATETIME}} in the VCCS PDF — preserves local Eastern time

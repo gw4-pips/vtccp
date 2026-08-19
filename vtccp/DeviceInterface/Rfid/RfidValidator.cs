@@ -248,8 +248,7 @@ public sealed class RfidValidator
     /// </summary>
     private static string? FindFixedLengthAi(string payload, string ai, int valueLen)
     {
-        // Normalise FNC1 (0x1D) to pipe for simple parsing
-        string normalized = payload.Replace('\x1D', '|');
+        string normalized = NormalizeElementStringSeparators(payload);
         foreach (string segment in normalized.Split('|', StringSplitOptions.RemoveEmptyEntries))
         {
             if (segment.StartsWith(ai, StringComparison.Ordinal)
@@ -265,14 +264,63 @@ public sealed class RfidValidator
     /// <summary>Find a variable-length AI value terminated by FNC1 or end of data.</summary>
     private static string? FindVariableLengthAi(string payload, string ai)
     {
-        string normalized = payload.Replace('\x1D', '|');
+        string normalized = NormalizeElementStringSeparators(payload);
         foreach (string segment in normalized.Split('|', StringSplitOptions.RemoveEmptyEntries))
         {
-            if (segment.StartsWith(ai, StringComparison.Ordinal) && segment.Length > ai.Length)
+            int position = 0;
+            while (position + 2 <= segment.Length)
             {
-                return segment[ai.Length..];
+                if (segment.AsSpan(position).StartsWith(ai, StringComparison.Ordinal)
+                    && segment.Length > position + ai.Length)
+                {
+                    return segment[(position + ai.Length)..];
+                }
+
+                // A GS1 separator is not required after a fixed-length AI.
+                // Advance over the fixed data so AI(21) can be discovered after
+                // a leading AI(01), as in <F1>01006961147042882172803282009.
+                if (TryGetFixedLengthAi(segment, position, out int dataLength))
+                {
+                    position += 2 + dataLength;
+                    continue;
+                }
+
+                break;
             }
         }
         return null;
     }
+
+    private static bool TryGetFixedLengthAi(string value, int position, out int dataLength)
+    {
+        dataLength = 0;
+        if (position + 2 > value.Length) return false;
+
+        return value.AsSpan(position, 2) switch
+        {
+            "00" => SetFixedLength(18, out dataLength),
+            "01" => SetFixedLength(14, out dataLength),
+            "02" => SetFixedLength(14, out dataLength),
+            "11" or "12" or "13" or "15" or "16" or "17" => SetFixedLength(6, out dataLength),
+            _ => false,
+        };
+    }
+
+    private static bool SetFixedLength(int length, out int dataLength)
+    {
+        dataLength = length;
+        return true;
+    }
+
+    /// <summary>
+    /// Normalises the three FNC1/GS representations that can reach VTCCP:
+    /// raw ASCII GS (0x1D), DMST/TruCheck's literal &lt;F1&gt; marker, and the
+    /// conventional literal &lt;GS&gt; marker. Treating each as the same delimiter
+    /// lets Element String extraction work identically for push XML and HTML data.
+    /// </summary>
+    private static string NormalizeElementStringSeparators(string payload)
+        => payload
+            .Replace('\x1D', '|')
+            .Replace("<F1>", "|", StringComparison.OrdinalIgnoreCase)
+            .Replace("<GS>", "|", StringComparison.OrdinalIgnoreCase);
 }

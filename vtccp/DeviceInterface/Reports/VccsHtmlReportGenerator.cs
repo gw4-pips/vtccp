@@ -25,7 +25,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.7";
+    public const string ReportVersion = "v1.5.8";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -89,7 +89,9 @@ public static class VccsHtmlReportGenerator
             : "TruCheck Barcode Verification Results Summary";
 
         // ── report name ───────────────────────────────────────────────────
-        string reportName = !string.IsNullOrWhiteSpace(r.WebscanSourcePath)
+        string reportName = !string.IsNullOrWhiteSpace(r.HtmlSourceFileName)
+            ? H(r.HtmlSourceFileName)
+            : !string.IsNullOrWhiteSpace(r.WebscanSourcePath)
             ? H(Path.GetFileName(r.WebscanSourcePath))
             : H($"{r.VerificationDateTime:yyyy-MM-dd_HH-mm-ss}_vccs_rfid.pdf");
 

@@ -268,6 +268,13 @@ public sealed class DmstHtmlReport
     /// </summary>
     public string? HtmlSourceFileName { get; init; }
 
+    /// <summary>
+    /// True when the parser received this report over the DataMan HTTP event
+    /// stream and used a synthetic path only to establish a correlation timestamp.
+    /// Synthetic paths are never report provenance and must not be shown to users.
+    /// </summary>
+    public bool HasSyntheticSourcePath { get; init; }
+
     // ── Parse provenance ──────────────────────────────────────────────────────
 
     /// <summary>

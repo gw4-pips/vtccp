@@ -207,10 +207,14 @@ public sealed class HttpEventSubscriber : IAsyncDisposable
 
     private void HandleHtml(string html, string? dateHeader)
     {
-        // Build a fake file path so ParseHtml can extract the scan datetime from
-        // the "filename".  The HTTP Date: header gives us the timestamp.
+        // Build a synthetic path solely so ParseHtml can extract a correlation
+        // timestamp. The HTTP stream transports report content, not the original
+        // DMST filesystem filename, so clear file provenance before the parsed
+        // report is merged into the record. If DMST also writes its local HTML
+        // report, DmstHtmlScraper later supplies the genuine filename.
         string fakePath = MakeFakeHtmlPath(dateHeader);
-        _pendingHtml    = DmstHtmlScraper.ParseHtml(html, fakePath);
+        _pendingHtml = DmstHtmlScraper.ParseHtml(
+            html, fakePath, hasSyntheticSourcePath: true);
 
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-HTTP-SUB] pcm_report.html parsed: ok={_pendingHtml.ParseSucceeded} " +

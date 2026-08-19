@@ -273,7 +273,8 @@ public static class DmstReportValidator
             // Provenance from the matched HTML file — drives PDF Report Name and Date/Time.
             // SourceFilePath is captured before deletion; Path.GetFileName() works on a
             // deleted path string, so WebscanSourcePath is reliable even after the file is gone.
-            WebscanSourcePath  = html.SourceFilePath,
+            WebscanSourcePath  = html.HasSyntheticSourcePath ? null : html.SourceFilePath,
+            HtmlSourceFileName = html.HasSyntheticSourcePath ? null : html.HtmlSourceFileName,
             HtmlVerifiedString = html.HtmlVerifiedString,
 
             // Verbatim Verification Grades row — used directly in PDF BVG table.

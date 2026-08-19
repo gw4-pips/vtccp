@@ -211,9 +211,22 @@ public sealed class DmstHtmlScraper : IDisposable
             {
                 match = _pending.FirstOrDefault(p =>
                     p.Report.ParseSucceeded &&
-                    p.Report.ScanDateTime.HasValue &&
-                    Math.Abs((p.Report.ScanDateTime.Value - record.VerificationDateTime).TotalSeconds)
-                        <= CorrelationWindow.TotalSeconds);
+                    (
+                        // Primary correlation: device filename timestamp compared with
+                        // the push-XML verification timestamp.
+                        (p.Report.ScanDateTime.HasValue &&
+                         Math.Abs((p.Report.ScanDateTime.Value - record.VerificationDateTime).TotalSeconds)
+                             <= CorrelationWindow.TotalSeconds)
+                        ||
+                        // HTTP event delivery receives the same report body before the
+                        // DMST file-system copy. The stream does not include the original
+                        // filename and can be a few seconds ahead of the local file write.
+                        // Its verbatim Verified: value identifies that exact report without
+                        // inventing or displaying a synthetic "_http.html" filename.
+                        (!string.IsNullOrWhiteSpace(record.HtmlVerifiedString) &&
+                         !string.IsNullOrWhiteSpace(p.Report.HtmlVerifiedString) &&
+                         string.Equals(record.HtmlVerifiedString, p.Report.HtmlVerifiedString,
+                             StringComparison.Ordinal))));
 
                 if (match is not null)
                 {
@@ -231,7 +244,8 @@ public sealed class DmstHtmlScraper : IDisposable
                 lock (_lock) { LastMatchedSourcePath = match.Report.SourceFilePath; }
                 System.Diagnostics.Debug.WriteLine(
                     $"[VTCCP-SCRAPER] Correlated HTML report to scan at " +
-                    $"{record.VerificationDateTime:HH:mm:ss}. Running merge+validate.");
+                    $"{record.VerificationDateTime:HH:mm:ss}; source='" +
+                    $"{Path.GetFileName(match.Report.SourceFilePath)}'. Running merge+validate.");
                 return (DmstReportValidator.MergeAndValidate(record, match.Report), sourcePath);
             }
 
@@ -424,7 +438,10 @@ public sealed class DmstHtmlScraper : IDisposable
     /// The minified single-line HTML makes regex extraction reliable and fast.
     /// HtmlAgilityPack is not needed and has not been added as a dependency.
     /// </summary>
-    internal static DmstHtmlReport ParseHtml(string htmlContent, string sourcePath)
+    internal static DmstHtmlReport ParseHtml(
+        string htmlContent,
+        string sourcePath,
+        bool hasSyntheticSourcePath = false)
     {
         try
         {
@@ -799,6 +816,7 @@ public sealed class DmstHtmlScraper : IDisposable
                 SourceFilePath        = sourcePath,
                 HtmlVerifiedString    = htmlVerifiedString,
                 HtmlSourceFileName    = Path.GetFileName(sourcePath),
+                HasSyntheticSourcePath = hasSyntheticSourcePath,
                 ParseSucceeded        = scanDateTime.HasValue,
 
                 // ── Verbatim Verification Grades row ──────────────────────────
