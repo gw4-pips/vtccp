@@ -1657,3 +1657,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Attached a Visual Studio screenshot showing a System.NullReferenceException at DataManSdkClient event cleanup while the DataMan SDK connection was disconnecting.
 
 **Assistant:** Identified a shutdown race: disconnect cleared the SDK system field while a trigger/image operation was unwinding its XmlResultArrived event cleanup. Each result operation now retains the exact SDK system instance it subscribed to and performs defensive event detachment, so cleanup cannot dereference a cleared shared field or mask the real operation result.
+
+---
+
+**User (19-Aug-2026):** The prior PDF header adjustment moved the center header instead of reducing its fixed boundary. Restore its former position, shrink only the title box to fit its fixed text, widen the left device-data area, and do not rebuild yet.
+
+**Assistant:** Restored the center header to its prior horizontal center. The fixed 185pt title box now releases equal left/right space: the left release widens the device-data column and the right release remains spacer space before the fixed company-logo box. No rebuild was run.
