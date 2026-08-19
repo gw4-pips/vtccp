@@ -484,20 +484,24 @@ public sealed class SessionViewModel : ViewModelBase
                     cfg.Host, cfg.Port, _xmlMap, ctx, OnPushRecord);
                 await _pushHttpSubscriber.StartAsync(_pollCts.Token);
 
-                // ── Replace mode: watch the CodeQuality folder in Push mode ───
+                // ── HTML provenance watcher in Push mode ─────────────────────
                 // In Push mode, DeviceSession (and its built-in DmstHtmlScraper) is
-                // not used.  When Replace mode is active, start a standalone scraper
-                // here so we can correlate the Webscan HTML file by timestamp, record
-                // its path, and write the hybrid report back to the same location.
-                if (_repo.Settings.GenerateHybridReport &&
-                    _repo.Settings.HybridReportMode == ConfigEngine.Models.HybridReportMode.Replace &&
+                // not used.  A VCCS PDF requires a real local HTML artifact, so start
+                // the same watcher whenever either a strict PDF or Replace-mode hybrid
+                // report needs that artifact. Correlation is by the verifier's literal
+                // Verified: value only — never the filename or a timestamp tolerance.
+                bool needsFilesystemHtml =
+                    _repo.Settings.GenerateVccsReport ||
+                    (_repo.Settings.GenerateHybridReport &&
+                     _repo.Settings.HybridReportMode == ConfigEngine.Models.HybridReportMode.Replace);
+                if (needsFilesystemHtml &&
                     SelectedDevice.Name is { Length: > 0 } devName)
                 {
                     var watchPath = DeviceInterface.Dmst.DmstHtmlScraper.BuildReportPath(devName);
                     _htmlWatcher = new DeviceInterface.Dmst.DmstHtmlScraper(watchPath);
                     _htmlWatcher.Start();
                     System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-REPLACE] HTML watcher started: '{watchPath}'");
+                        $"[VTCCP-PROVENANCE] HTML watcher started: '{watchPath}'");
                 }
             }
             else
@@ -1057,11 +1061,23 @@ public sealed class SessionViewModel : ViewModelBase
     private void OnPushRecord(VerificationRecord pushRecord)
     {
         System.Threading.Interlocked.Increment(ref _pendingAccept);
-        _ = Application.Current.Dispatcher.InvokeAsync(async () =>
+        _ = Task.Run(async () =>
         {
             try
             {
-                await AcceptRecordInnerAsync(pushRecord);
+                VerificationRecord record = pushRecord;
+                var watcher = _htmlWatcher;
+                if (watcher is not null)
+                {
+                    var (merged, sourcePath) = await watcher.TryMergeAsync(
+                        record, _pollCts?.Token ?? default);
+                    record = sourcePath is not null
+                        ? merged with { WebscanSourcePath = sourcePath }
+                        : merged;
+                }
+
+                await Application.Current.Dispatcher.InvokeAsync(
+                    () => AcceptRecordInnerAsync(record)).Task.Unwrap();
             }
             catch { /* non-fatal write error */ }
             finally
@@ -1088,7 +1104,7 @@ public sealed class SessionViewModel : ViewModelBase
     /// <summary>
     /// Inner write — no _pendingAccept tracking (caller owns it).
     /// Used directly by OnPushRecord (which manages the counter itself across
-    /// the whole DMCC fetch + write span).
+    /// the provenance-correlation and write span).
     /// </summary>
     private async Task AcceptRecordInnerAsync(VerificationRecord record)
     {
@@ -1326,8 +1342,12 @@ public sealed class SessionViewModel : ViewModelBase
             string grade     = record.OverallGrade?.LetterGradeString is { Length: > 0 } g ? g : "?";
             string num       = record.OverallGrade?.NumericGrade is { } n ? $" ({n:F1})" : string.Empty;
             string ocrSuffix = record.OcrResult?.Tier is { Length: > 0 } t ? $"  |  OCR: {t}" : string.Empty;
+            string pdfSuffix = _repo.Settings.GenerateVccsReport &&
+                               !DeviceInterface.Reports.VccsHtmlReportGenerator.HasCorrelatedFilesystemHtml(record)
+                ? "  |  PDF: NOT GENERATED — no correlated DMST HTML"
+                : string.Empty;
             string prefix    = savedToDisk ? string.Empty : "⚠ ";
-            VerifierResultLine = $"{prefix}Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}";
+            VerifierResultLine = $"{prefix}Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}{pdfSuffix}";
         }
     }
 

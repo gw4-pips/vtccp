@@ -57,6 +57,15 @@ public static class DmstReportValidator
     {
         var exceptions    = new List<string>();
         var discrepancies = new List<string>();
+        bool hasCorrelatedFilesystemHtml =
+            html.ParseSucceeded &&
+            !html.HasSyntheticSourcePath &&
+            !string.IsNullOrWhiteSpace(html.SourceFilePath) &&
+            !string.IsNullOrWhiteSpace(html.HtmlSourceFileName) &&
+            string.Equals(
+                Path.GetFileName(html.SourceFilePath.Replace('\\', '/')),
+                html.HtmlSourceFileName,
+                StringComparison.Ordinal);
 
         // Carry forward any existing DataSourceExceptions (e.g. from SYMBOL.RESULT FULL).
         if (!string.IsNullOrEmpty(record.DataSourceExceptions))
@@ -269,14 +278,30 @@ public static class DmstReportValidator
             // Provenance from the matched HTML file — drives PDF Report Name and Date/Time.
             // SourceFilePath is captured before deletion; Path.GetFileName() works on a
             // deleted path string, so WebscanSourcePath is reliable even after the file is gone.
-            WebscanSourcePath  = html.HasSyntheticSourcePath ? null : html.SourceFilePath,
-            HtmlSourceFileName = html.HasSyntheticSourcePath ? null : html.HtmlSourceFileName,
-            HtmlSourceProvenance = html.HasSyntheticSourcePath
-                                   ? "HTTP stream placeholder — original DMST filename unavailable"
-                                   : html.SourceFilePath is not null
+            WebscanSourcePath  = hasCorrelatedFilesystemHtml ? html.SourceFilePath : null,
+            HtmlSourceFileName = hasCorrelatedFilesystemHtml ? html.HtmlSourceFileName : null,
+            HtmlReportProvenance = hasCorrelatedFilesystemHtml
+                                   ? HtmlReportProvenance.CorrelatedFilesystem
+                                   : html.HasSyntheticSourcePath
+                                   ? HtmlReportProvenance.HttpStreamOnly
+                                   : HtmlReportProvenance.None,
+            HtmlSourceProvenance = hasCorrelatedFilesystemHtml
                                    ? "DMST filesystem HTML report"
+                                   : html.HasSyntheticSourcePath
+                                   ? "HTTP stream placeholder — original DMST filename unavailable"
                                    : null,
             HtmlVerifiedString = html.HtmlVerifiedString,
+            HtmlSymbology = html.HtmlSymbology,
+            HtmlDecodedData = html.HtmlDecodedData,
+            HtmlApplicationStandard = html.HtmlApplicationStandard,
+            HtmlLinearStandard = html.HtmlLinearStandard,
+            HtmlLinearGradeDisplay = html.HtmlLinearGradeDisplay,
+            HtmlLinearAperture = html.HtmlLinearAperture,
+            HtmlLinearWavelength = html.HtmlLinearWavelength,
+            HtmlLinearLighting = html.HtmlLinearLighting,
+            HtmlLinearFormalGrade = html.HtmlLinearFormalGrade,
+            HtmlBarcodeImageBase64 = html.HtmlBarcodeImageBase64,
+            HtmlDataFormatCheck = html.ScrapedDataFormatCheck,
 
             // Verbatim Verification Grades row — used directly in PDF BVG table.
             // HTML values always win over push-XML when present (push-XML often provides

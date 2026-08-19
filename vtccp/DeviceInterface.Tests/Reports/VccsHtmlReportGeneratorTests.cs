@@ -1,5 +1,7 @@
 using DeviceInterface.Reports;
 using ExcelEngine.Models;
+using ExcelEngine.Schema;
+using ExcelEngine.Writer;
 using Xunit;
 
 namespace DeviceInterface.Tests.Reports;
@@ -18,6 +20,8 @@ public sealed class VccsHtmlReportGeneratorTests
         {
             Symbology         = "GS1 DataMatrix",
             HtmlSourceFileName = realFileName,
+            HtmlVerifiedString = "Mon 18-Aug-2026 07:44:37 PM",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
             WebscanSourcePath = syntheticPath,
         };
 
@@ -28,7 +32,7 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_LabelsHttpOnlySourceAsPlaceholder()
+    public void Generate_DoesNotTreatHttpOnlySourceAsAReport()
     {
         var record = new VerificationRecord
         {
@@ -38,15 +42,12 @@ public sealed class VccsHtmlReportGeneratorTests
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.Contains(
-            "[HTTP stream placeholder — original DMST filename unavailable]",
-            report,
-            StringComparison.Ordinal);
-        Assert.DoesNotContain("_vccs_rfid.pdf", report, StringComparison.Ordinal);
+        Assert.Contains("[NO CORRELATED DMST HTML REPORT]", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("HTTP stream placeholder", report, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Generate_LabelsLegacyHttpPathAsPlaceholder()
+    public void Generate_DoesNotTreatLegacyHttpPathAsAReport()
     {
         var record = new VerificationRecord
         {
@@ -56,10 +57,7 @@ public sealed class VccsHtmlReportGeneratorTests
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.Contains(
-            "[HTTP STREAM PLACEHOLDER — ORIGINAL DMST FILENAME UNAVAILABLE]",
-            report,
-            StringComparison.Ordinal);
+        Assert.Contains("[NO CORRELATED DMST HTML REPORT]", report, StringComparison.Ordinal);
         Assert.DoesNotContain("_http.html", report, StringComparison.Ordinal);
     }
 
@@ -73,7 +71,7 @@ public sealed class VccsHtmlReportGeneratorTests
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.Contains("[NO DMST HTML REPORT CORRELATED]", report, StringComparison.Ordinal);
+        Assert.Contains("[NO CORRELATED DMST HTML REPORT]", report, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -82,7 +80,10 @@ public sealed class VccsHtmlReportGeneratorTests
         var record = new VerificationRecord
         {
             Symbology = "GS1 DataMatrix",
-            DataFormatCheck = new DataFormatCheckResult
+            HtmlSourceFileName = "source.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlDataFormatCheck = new DataFormatCheckResult
             {
                 Overall = OverallPassFail.Pass,
                 Standard = "GS1 Application Data Format",
@@ -126,27 +127,28 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_UsesFilenameTimeBeforeHtmlVerifiedTime()
+    public void Generate_UsesVerbatimHtmlVerifiedTimeNeverFilenameTime()
     {
         var record = new VerificationRecord
         {
             Symbology          = "GS1 DataMatrix",
             HtmlSourceFileName = "_F1_01006961147042882172803282009_2026-08-18_20-04-21-314.html",
             HtmlVerifiedString = "Wed 19-Aug-2026 12:04:21 AM",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
         };
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "<td colspan=\"2\">2026-08-18 20-04-21-314</td>",
-            report,
-            StringComparison.Ordinal);
-        Assert.DoesNotContain(
             "<td colspan=\"2\">Wed 19-Aug-2026 12:04:21 AM</td>",
             report,
             StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "<td colspan=\"2\">2026-08-18 20-04-21-314</td>",
+            report,
+            StringComparison.Ordinal);
         Assert.Equal(
-            "2026-08-18_20-04-21-314",
+            "2026-08-19_00-04-21",
             VccsHtmlReportGenerator.GetOutputTimestamp(record));
     }
 
@@ -159,6 +161,7 @@ public sealed class VccsHtmlReportGeneratorTests
             Symbology          = "GS1 DataMatrix",
             HtmlSourceFileName = "barcode-report.html",
             HtmlVerifiedString = verified,
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
         };
 
         string report = VccsHtmlReportGenerator.Generate(record);
@@ -173,8 +176,11 @@ public sealed class VccsHtmlReportGeneratorTests
         var record = new VerificationRecord
         {
             Symbology = "GS1 DataMatrix",
-            JpegImageBase64 = "AQID",
-            DataFormatCheck = new DataFormatCheckResult
+            HtmlSourceFileName = "source.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlBarcodeImageBase64 = "AQID",
+            HtmlDataFormatCheck = new DataFormatCheckResult
             {
                 Overall = OverallPassFail.Pass,
                 Standard = "GS1 Application Data Format",
@@ -197,10 +203,128 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("<td class=\"barcode-dfc-column\"", report, StringComparison.Ordinal);
         Assert.Contains("border-left: 2px solid #1a3a6b", report, StringComparison.Ordinal);
         Assert.Contains("object-position: left center", report, StringComparison.Ordinal);
-        Assert.Contains("See TruCheck report for additional details", report, StringComparison.Ordinal);
+        Assert.Contains("Only values present in the correlated report are shown", report, StringComparison.Ordinal);
         Assert.DoesNotContain("display: grid", report, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("grid-template-columns", report, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(">Barcode Image</div>", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_NoCorrelatedHtml_NeverLeaksTransportVerifierValues()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            DecodedData = "TRANSPORT_DECODED_DATA",
+            Standard = "TRANSPORT_STANDARD",
+            FormalGrade = "4/A",
+            Aperture = 99,
+            Wavelength = 999,
+            Lighting = "TRANSPORT_LIGHTING",
+            OverallGrade = GradingResult.FromLetterAndNumeric("A", 4.0m, "PASS"),
+            DataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Standard = "TRANSPORT_DFC_STANDARD",
+                Rows = [new DataFormatCheckRow { Name = "TRANSPORT_DFC_ROW", Data = "X", Check = "PASS" }],
+            },
+            JpegImageBase64 = "TRANSPORT_IMAGE",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("[NO CORRELATED DMST HTML REPORT]", report, StringComparison.Ordinal);
+        Assert.Contains("[UNAVAILABLE — NO CORRELATED DMST HTML]", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("TRANSPORT_DECODED_DATA", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("TRANSPORT_STANDARD", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("TRANSPORT_LIGHTING", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("TRANSPORT_DFC_STANDARD", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("TRANSPORT_DFC_ROW", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("TRANSPORT_IMAGE", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("4/A", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_CorrelatedHtml_UsesOnlyLiteralHtmlVerifierValues()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "Transport Symbology",
+            DecodedData = "TRANSPORT_DATA",
+            Standard = "TRANSPORT_STANDARD",
+            FormalGrade = "4/A",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verifier-output.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlSymbology = "GS1 DataMatrix",
+            HtmlDecodedData = "(01)00696114704283(21)72803282009",
+            HtmlApplicationStandard = "GS1 Application Data Format",
+            HtmlStandard = "ISO 15415:2024",
+            HtmlOverallGradeDisplay = "4.0 (A)",
+            HtmlAperture = "16",
+            HtmlWavelength = "660",
+            HtmlLighting = "45Q",
+            HtmlFormalGrade = "4.0/16/660/45Q",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("verifier-output.html", report, StringComparison.Ordinal);
+        Assert.Contains("Mon 18-Aug-2026 08:04:21 PM", report, StringComparison.Ordinal);
+        Assert.Contains("GS1 Application Data Format", report, StringComparison.Ordinal);
+        Assert.Contains("4.0/16/660/45Q", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("TRANSPORT_DATA", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("TRANSPORT_STANDARD", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("4/A", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_CorrelatedHtml_DoesNotUseLegacyCalculatedDfc()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verifier-output.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            DataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Standard = "LEGACY_LOCAL_DFC",
+                Rows = [new DataFormatCheckRow
+                    { Name = "LEGACY_LOCAL_DFC_ROW", Data = "X", Check = "PASS" }],
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("[DATA FORMAT CHECK UNAVAILABLE — NOT PRESENT IN TRUCHECK HTML]",
+            report, StringComparison.Ordinal);
+        Assert.DoesNotContain("LEGACY_LOCAL_DFC", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("LEGACY_LOCAL_DFC_ROW", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ExcelMappers_WriteExactLocalHtmlBasenameOnlyForCorrelatedReports()
+    {
+        const string fileName = "_F1_01006961147042882172803282009_2026-08-18_20-04-21-314.html";
+        ColumnSchema schema = TruCheckCompatibleSchema.Build();
+
+        var correlated = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = fileName,
+        };
+        var uncorrelated = correlated with
+        {
+            HtmlReportProvenance = HtmlReportProvenance.HttpStreamOnly,
+        };
+
+        Assert.Equal(fileName, DataMatrix2DMapper.Map(correlated, schema)["HtmlSourceFileName"]);
+        Assert.Equal(fileName, ISO15416Mapper.Map(correlated, schema)["HtmlSourceFileName"]);
+        Assert.Null(DataMatrix2DMapper.Map(uncorrelated, schema)["HtmlSourceFileName"]);
+        Assert.Null(ISO15416Mapper.Map(uncorrelated, schema)["HtmlSourceFileName"]);
     }
 
     [Fact]

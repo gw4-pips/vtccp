@@ -27,11 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.12";
-
-    private static readonly Regex DmstFilenameTimestampRegex = new(
-        @"(?<!\d)(?<stamp>\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}(?:-\d{3})?)(?!\d)",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    public const string ReportVersion = "v1.5.13";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -53,6 +49,8 @@ public static class VccsHtmlReportGenerator
 
     public static string Generate(VerificationRecord r)
     {
+        bool hasCorrelatedHtml = HasCorrelatedFilesystemHtml(r);
+
         // ── logos ──────────────────────────────────────────────────────────
         string? vccsB64    = LoadLogoBase64("vccs_logo.png");
         string? companyB64 = LoadLogoBase64FromPath(r.LogoPath) ?? LoadLogoBase64("pips_logo.png");
@@ -78,39 +76,15 @@ public static class VccsHtmlReportGenerator
         };
 
         // ── section ① title ───────────────────────────────────────────────
-        // VerifierBrand is set explicitly for Webscan ("WEBSCAN") and similar.
-        // For COGNEX DataMan devices connected via DMCC, DeviceModel may be null
-        // while DeviceName is set (e.g. "DM475-866D76").  Any name starting with
-        // "DM" or containing "DataMan" gets the "COGNEX DataMan" prefix.
-        string? brand = r.VerifierBrand
-            ?? (r.DeviceModel is { Length: > 0 } ? "COGNEX" : null)
-            ?? (r.DeviceName  is { Length: > 0 } ? "COGNEX" : null);
-        string? deviceRef   = r.DeviceModel ?? r.DeviceName;
-        string? dataManInfix = (brand == "COGNEX" &&
-            (deviceRef?.Contains("DataMan", StringComparison.OrdinalIgnoreCase) == true ||
-             deviceRef?.StartsWith("DM",    StringComparison.OrdinalIgnoreCase) == true))
-            ? "DataMan " : null;
-        string section1Title = brand is not null
-            ? $"{H(brand)} {dataManInfix}TruCheck Barcode Verification Results Summary"
-            : "TruCheck Barcode Verification Results Summary";
+        // Do not infer a verifier brand or report identity from reader metadata.
+        string section1Title = hasCorrelatedHtml
+            ? "TruCheck Barcode Verification Results Summary"
+            : "[BARCODE VERIFICATION UNAVAILABLE — NO CORRELATED DMST HTML]";
 
         // ── report name ───────────────────────────────────────────────────
-        const string noDmstReportLabel = "[NO DMST HTML REPORT CORRELATED]";
-        const string httpPlaceholderMarker = "_http.html";
-        string? pathFileName = !string.IsNullOrWhiteSpace(r.WebscanSourcePath)
-            ? Path.GetFileName(r.WebscanSourcePath)
-            : null;
-        bool syntheticHttpPath = pathFileName?.Contains(
-            httpPlaceholderMarker, StringComparison.OrdinalIgnoreCase) == true;
-        string reportName = !string.IsNullOrWhiteSpace(r.HtmlSourceFileName)
-            ? H(r.HtmlSourceFileName)
-            : !string.IsNullOrWhiteSpace(r.HtmlSourceProvenance)
-            ? H($"[{r.HtmlSourceProvenance}]")
-            : !syntheticHttpPath && !string.IsNullOrWhiteSpace(pathFileName)
-            ? H(pathFileName)
-            : H(syntheticHttpPath
-                ? "[HTTP STREAM PLACEHOLDER — ORIGINAL DMST FILENAME UNAVAILABLE]"
-                : noDmstReportLabel);
+        string reportName = hasCorrelatedHtml
+            ? H(r.HtmlSourceFileName!)
+            : "[NO CORRELATED DMST HTML REPORT]";
 
         // ── RFID section adjective (EPC vs UHF) ───────────────────────────
         bool isGS1 = r.ApplicationStandard?.StartsWith("GS1", StringComparison.OrdinalIgnoreCase) != false;
@@ -125,7 +99,7 @@ public static class VccsHtmlReportGenerator
         return _template.Value
             .Replace("{{HDR_VCCS_LOGO}}",      vccsLogoHtml)
             .Replace("{{HDR_COMPANY_LOGO}}",    companyLogoHtml)
-            .Replace("{{HDR_DEVICE}}",          H(r.DeviceName ?? r.DeviceModel ?? r.VerifierBrand ?? "\u2014"))
+            .Replace("{{HDR_DEVICE}}",          H(r.DeviceName ?? "\u2014"))
             .Replace("{{HDR_SERIAL}}",          H(r.DeviceSerial ?? "\u2014"))
             .Replace("{{HDR_FW}}",              H(r.FirmwareVersion ?? "\u2014"))
             .Replace("{{HDR_BADGE_CLASS}}",     badgeCls)
@@ -143,32 +117,21 @@ public static class VccsHtmlReportGenerator
     }
 
     /// <summary>
-    /// Returns the report's device-local time without applying a timezone offset.
-    /// Filename timestamp has priority; raw HTML Verified: is the fallback.
+    /// Returns the literal local <c>Verified:</c> value from the correlated HTML.
     /// </summary>
     internal static string GetSourceDateTimeText(VerificationRecord r)
     {
-        if (!string.IsNullOrWhiteSpace(r.HtmlSourceFileName))
-        {
-            Match fileMatch = DmstFilenameTimestampRegex.Match(r.HtmlSourceFileName);
-            if (fileMatch.Success)
-                return fileMatch.Groups["stamp"].Value.Replace('_', ' ');
-        }
-
-        if (!string.IsNullOrWhiteSpace(r.HtmlVerifiedString))
+        if (HasCorrelatedFilesystemHtml(r) &&
+            !string.IsNullOrWhiteSpace(r.HtmlVerifiedString))
             return r.HtmlVerifiedString;
 
-        return r.VerificationDateTime.ToString("ddd dd-MMM-yyyy hh:mm:ss tt");
+        return "[UNAVAILABLE — NO CORRELATED DMST HTML]";
     }
 
     /// <summary>Timestamp used for the generated PDF filename, with no offset conversion.</summary>
     internal static string GetOutputTimestamp(VerificationRecord r)
     {
         string sourceText = GetSourceDateTimeText(r);
-        Match fileMatch = DmstFilenameTimestampRegex.Match(sourceText.Replace(' ', '_'));
-        if (fileMatch.Success)
-            return fileMatch.Groups["stamp"].Value;
-
         string parseable = Regex.Replace(sourceText, @"\(\d+ms\)", string.Empty,
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant).Trim();
         parseable = Regex.Replace(parseable, @"^[A-Za-z]{3}\s+", string.Empty,
@@ -177,20 +140,32 @@ public static class VccsHtmlReportGenerator
                 ["dd-MMM-yyyy hh:mm:ss tt"],
                 CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out DateTime dt)
             ? dt.ToString("yyyy-MM-dd_HH-mm-ss")
-            : r.VerificationDateTime.ToString("yyyy-MM-dd_HH-mm-ss");
+            : "unknown";
     }
 
     // ── Slot builders ───────────────────────────────────────────────────────
 
     private static string BuildSymbolRows(VerificationRecord r)
     {
+        if (!HasCorrelatedFilesystemHtml(r))
+            return UnavailableSymbolRow();
+
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         var sb = new StringBuilder();
         if (multiMode)
-            AppendSymbolRow(sb, r.LinearSymbology!, r.LinearDecodedData, LinearAppSpecCell(r.LinearSymbology));
-        AppendSymbolRow(sb, r.Symbology ?? "\u2014", r.DecodedData, AppSpecCell(r));
+            AppendSymbolRow(sb, r.LinearSymbology!, r.LinearDecodedData,
+                AppSpecCell(r.HtmlLinearStandard));
+        AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData,
+            AppSpecCell(r.HtmlApplicationStandard));
         return sb.ToString();
     }
+
+    private static string UnavailableSymbolRow()
+        => "          <tr>\n" +
+           "            <td>[UNAVAILABLE]</td>\n" +
+           "            <td>[UNAVAILABLE — NOT PRESENT IN CORRELATED TRUCHECK HTML]</td>\n" +
+           "            <td>[UNAVAILABLE]</td>\n" +
+           "          </tr>\n";
 
     private static void AppendSymbolRow(StringBuilder sb, string symb, string? encoded, string appSpecCell)
     {
@@ -203,73 +178,58 @@ public static class VccsHtmlReportGenerator
 
     // 2D symbols use the flex two-liner app-spec cell ("GS1 —" | stacked pair);
     // linear symbols use the single-line form — both verbatim v23 structures.
-    private static string AppSpecCell(VerificationRecord r)
-    {
-        string? s = r.Symbology;
-        if (s?.Contains("DataMatrix", StringComparison.OrdinalIgnoreCase) == true)
-            return AppSpecStackCell("Element String");
-        if (s?.Contains("QR", StringComparison.OrdinalIgnoreCase) == true)
-            return AppSpecStackCell("Digital Link");
-        string fallback = !string.IsNullOrWhiteSpace(r.ApplicationStandard)
-            ? r.ApplicationStandard : r.Standard ?? "\u2014";
-        return $"<td style=\"font-size:8pt;\">{H(fallback)}</td>";
-    }
-
-    private static string AppSpecStackCell(string label) =>
-        $"<td class=\"app-spec\"><div class=\"app-spec-inner\"><span class=\"app-spec-prefix\">GS1 &#x2013;</span><div class=\"app-spec-stack\">{H(label)}</div></div></td>";
-
-    private static string LinearAppSpecCell(string? symbology)
-    {
-        string txt = symbology switch
-        {
-            var s when s?.Contains("UPC",     StringComparison.OrdinalIgnoreCase) == true => "GS1 \u2014 GTIN-12",
-            var s when s?.Contains("EAN-8",   StringComparison.OrdinalIgnoreCase) == true => "GS1 \u2014 GTIN-8",
-            var s when s?.Contains("EAN",     StringComparison.OrdinalIgnoreCase) == true => "GS1 \u2014 GTIN-13",
-            var s when s?.Contains("DataBar", StringComparison.OrdinalIgnoreCase) == true => "GS1 \u2014 GTIN-14",
-            _ => "GS1",
-        };
-        return $"<td style=\"font-size:8pt;\">{H(txt)}</td>";
-    }
+    private static string AppSpecCell(string? htmlValue)
+        => $"<td style=\"font-size:8pt;\">{H(htmlValue ?? "[UNAVAILABLE — NOT PRESENT IN CORRELATED TRUCHECK HTML]")}</td>";
 
     private static string BuildGradeRows(VerificationRecord r)
     {
+        if (!HasCorrelatedFilesystemHtml(r))
+            return UnavailableGradeRow();
+
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         var sb = new StringBuilder();
 
-        // Linear row: values already scraped verbatim from HTML by the multi-mode
-        // linear parser (LinearFormalGrade etc.); GradeDisplay fallback only when
-        // no HTML was correlated.
         if (multiMode)
-            AppendGradeRow(sb, r.LinearSymbology!, r.LinearStandard ?? "ISO/IEC 15416",
-                GradeDisplay(r.LinearOverallGrade),
-                r.LinearAperture.HasValue ? r.LinearAperture.Value.ToString("D2") : "\u2014",
-                r.LinearWavelength?.ToString() ?? "\u2014",
-                r.LinearLighting ?? "\u2014", r.LinearFormalGrade ?? "\u2014");
+            AppendGradeRow(sb, r.LinearSymbology!,
+                r.HtmlLinearStandard,
+                r.HtmlLinearGradeDisplay,
+                r.HtmlLinearAperture,
+                r.HtmlLinearWavelength,
+                r.HtmlLinearLighting,
+                r.HtmlLinearFormalGrade);
 
-        // 2D row: prefer verbatim HTML grade strings; fall back to push-XML when
-        // no HTML was correlated (HtmlOverallGradeDisplay etc. are null).
-        AppendGradeRow(sb, r.Symbology ?? "\u2014",
-            r.HtmlStandard            ?? r.Standard              ?? "\u2014",
-            r.HtmlOverallGradeDisplay ?? GradeDisplay(r.OverallGrade),
-            r.HtmlAperture            ?? (r.Aperture.HasValue ? r.Aperture.Value.ToString("D2") : "\u2014"),
-            r.HtmlWavelength          ?? r.Wavelength?.ToString() ?? "\u2014",
-            r.HtmlLighting            ?? r.Lighting              ?? "\u2014",
-            r.HtmlFormalGrade         ?? r.FormalGrade           ?? "\u2014");
+        AppendGradeRow(sb, r.HtmlSymbology,
+            r.HtmlStandard,
+            r.HtmlOverallGradeDisplay,
+            r.HtmlAperture,
+            r.HtmlWavelength,
+            r.HtmlLighting,
+            r.HtmlFormalGrade);
 
         return sb.ToString();
     }
 
-    private static void AppendGradeRow(StringBuilder sb, string symb, string standard,
-        string grade, string aperture, string wavelength, string lighting, string formal)
+    private static string UnavailableGradeRow()
+        => "          <tr>\n" +
+           "            <td>[UNAVAILABLE]</td>\n" +
+           "            <td colspan=\"6\">[UNAVAILABLE — NO CORRELATED DMST HTML]</td>\n" +
+           "          </tr>\n";
+
+    private static void AppendGradeRow(StringBuilder sb, string? symb, string? standard,
+        string? grade, string? aperture, string? wavelength,
+        string? lighting, string? formal)
     {
+        static string Display(string? value)
+            => H(value ?? "[UNAVAILABLE — NOT PRESENT IN CORRELATED TRUCHECK HTML]");
+
         sb.Append($"          <tr>\n");
-        sb.Append($"            <td>{H(symb)}</td>\n");
-        sb.Append($"            <td>{H(standard)}</td>\n");
-        sb.Append($"            <td>{H(grade)}</td>\n");
-        sb.Append($"            <td>{H(aperture)}</td>\n");
-        sb.Append($"            <td>{H(wavelength)}</td>\n");
-        sb.Append($"            <td>{H(lighting)}</td>\n");
-        sb.Append($"            <td>{H(formal)}</td>\n");
+        sb.Append($"            <td>{Display(symb)}</td>\n");
+        sb.Append($"            <td>{Display(standard)}</td>\n");
+        sb.Append($"            <td>{Display(grade)}</td>\n");
+        sb.Append($"            <td>{Display(aperture)}</td>\n");
+        sb.Append($"            <td>{Display(wavelength)}</td>\n");
+        sb.Append($"            <td>{Display(lighting)}</td>\n");
+        sb.Append($"            <td>{Display(formal)}</td>\n");
         sb.Append($"          </tr>\n");
     }
 
@@ -414,32 +374,29 @@ public static class VccsHtmlReportGenerator
 
     private static string BuildBarcodeDetailSection(VerificationRecord r)
     {
-        string? img2D     = r.RoiJpegImageBase64 ?? r.JpegImageBase64;
-        string? imgLinear = r.LinearJpegImageBase64;
+        bool hasHtml       = HasCorrelatedFilesystemHtml(r);
+        string? img2D      = hasHtml ? r.HtmlBarcodeImageBase64 : null;
         bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
-        bool hasDfc       = r.DataFormatCheck is { Rows.Count: > 0 };
+        DataFormatCheckResult? htmlDfc = hasHtml ? r.HtmlDataFormatCheck : null;
+        bool hasDfc       = htmlDfc is { Rows.Count: > 0 };
 
         var sb = new StringBuilder();
         sb.Append("    <div class=\"barcode-detail-section\">\n");
-        sb.Append("      <div class=\"sec-sub-hdr barcode-detail-header\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1<span class=\"sec-note\"> &#x2014; <em>See TruCheck report for additional details</em></span></div>\n");
+        sb.Append(hasHtml
+            ? "      <div class=\"sec-sub-hdr barcode-detail-header\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1<span class=\"sec-note\"> &#x2014; <em>Only values present in the correlated report are shown</em></span></div>\n"
+            : "      <div class=\"sec-sub-hdr barcode-detail-header\">Barcode Verification Capture Unavailable<span class=\"sec-note\"> &#x2014; <em>No correlated DMST HTML report</em></span></div>\n");
         sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
         sb.Append("        <td class=\"barcode-image-column\">\n");
 
-        if (multiMode && !string.IsNullOrWhiteSpace(img2D) && !string.IsNullOrWhiteSpace(imgLinear))
+        if (hasHtml && !string.IsNullOrWhiteSpace(img2D))
         {
-            string img2DForDual = r.JpegImageBase64 ?? img2D;
-            sb.Append("          <table class=\"barcode-image-pair\"><tbody><tr>\n");
-            AppendBarcodeImage(sb, imgLinear, r.LinearSymbology!);
-            AppendBarcodeImage(sb, img2DForDual, r.Symbology ?? "2D");
-            sb.Append("          </tr></tbody></table>\n");
-        }
-        else if (!string.IsNullOrWhiteSpace(img2D))
-        {
-            sb.Append($"          <img class=\"barcode-image\" src=\"data:image/jpeg;base64,{img2D}\" alt=\"TruCheck Barcode\"/>\n");
+            sb.Append($"          <img class=\"barcode-image\" src=\"data:image/jpeg;base64,{img2D}\" alt=\"TruCheck Barcode Image\"/>\n");
         }
         else
         {
-            sb.Append("        <div class=\"img-placeholder\">[No barcode image available for this scan]</div>\n");
+            sb.Append(hasHtml
+                ? "        <div class=\"img-placeholder\">[BARCODE IMAGE NOT EMBEDDED IN CORRELATED TRUCHECK HTML]</div>\n"
+                : "        <div class=\"img-placeholder\">[BARCODE IMAGE UNAVAILABLE — NO CORRELATED DMST HTML]</div>\n");
         }
 
         sb.Append("        </td>\n");
@@ -447,11 +404,7 @@ public static class VccsHtmlReportGenerator
 
         if (!hasDfc)
         {
-            bool hasHtmlSource =
-                !string.IsNullOrWhiteSpace(r.HtmlSourceProvenance) ||
-                !string.IsNullOrWhiteSpace(r.HtmlSourceFileName) ||
-                !string.IsNullOrWhiteSpace(r.WebscanSourcePath);
-            string unavailableReason = hasHtmlSource
+            string unavailableReason = hasHtml
                 ? "[DATA FORMAT CHECK UNAVAILABLE — NOT PRESENT IN TRUCHECK HTML]"
                 : "[DATA FORMAT CHECK UNAVAILABLE — NO DMST HTML REPORT CORRELATED]";
             sb.Append("          <table class=\"dfc-table\"><thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead><tbody>\n");
@@ -460,7 +413,7 @@ public static class VccsHtmlReportGenerator
         }
         else
         {
-            DataFormatCheckResult dfc = r.DataFormatCheck!;
+            DataFormatCheckResult dfc = htmlDfc!;
             (string pillCls, string pillTxt) = dfc.Overall switch
             {
                 OverallPassFail.Fail => ("pill-fail", "OVERALL: FAIL"),
@@ -490,13 +443,10 @@ public static class VccsHtmlReportGenerator
         return sb.ToString();
     }
 
-    private static void AppendBarcodeImage(StringBuilder sb, string base64, string label)
-    {
-        sb.Append("            <td class=\"barcode-image-item\">\n");
-        sb.Append($"              <div class=\"barcode-image-label\">{H(label)}</div>\n");
-        sb.Append($"              <img class=\"barcode-image\" src=\"data:image/jpeg;base64,{base64}\" alt=\"{H(label)}\"/>\n");
-        sb.Append("            </td>\n");
-    }
+    internal static bool HasCorrelatedFilesystemHtml(VerificationRecord r)
+        => r.HtmlReportProvenance == HtmlReportProvenance.CorrelatedFilesystem &&
+           !string.IsNullOrWhiteSpace(r.HtmlSourceFileName) &&
+           !string.IsNullOrWhiteSpace(r.HtmlVerifiedString);
 
     // ── Logo loading ─────────────────────────────────────────────────────────
 
@@ -540,18 +490,6 @@ public static class VccsHtmlReportGenerator
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-
-    private static string GradeDisplay(GradingResult? g)
-    {
-        if (g is null) return "\u2014";
-        string letter = g.LetterGradeString;
-        bool hasL = letter is { Length: > 0 };
-        bool hasN = g.NumericGrade.HasValue;
-        if (hasL && hasN) return $"{letter} ({g.NumericGrade!.Value:F1})";
-        if (hasL)         return letter;
-        if (hasN)         return g.NumericGrade!.Value.ToString("F1");
-        return "\u2014";
-    }
 
     /// <summary>
     /// Produces a specific "Fail — …" label for a 2D RFID cross-validation failure

@@ -1,6 +1,18 @@
 namespace ExcelEngine.Models;
 
 /// <summary>
+/// Describes whether a barcode-verification record was paired with the original
+/// DMST filesystem report.  Transport and HTTP-stream data are useful scan inputs,
+/// but they are not proof of a locally named TruCheck report artifact.
+/// </summary>
+public enum HtmlReportProvenance
+{
+    None,
+    HttpStreamOnly,
+    CorrelatedFilesystem,
+}
+
+/// <summary>
 /// Represents a single barcode verification event — one row in the VTCCP Excel log.
 /// Holds fields for all symbology types (most will be null for any given record).
 /// Maps directly to the 163-column TruCheckCompatible schema.
@@ -580,6 +592,12 @@ public sealed record class VerificationRecord
     public string? HtmlSourceFileName { get; init; }
 
     /// <summary>
+    /// Explicit report-artifact provenance.  Only <see cref="HtmlReportProvenance.CorrelatedFilesystem"/>
+    /// authorizes the VCCS PDF to describe barcode fields as TruCheck report data.
+    /// </summary>
+    public HtmlReportProvenance HtmlReportProvenance { get; init; } = HtmlReportProvenance.None;
+
+    /// <summary>
     /// Human-readable provenance label used when no real DMST filename is
     /// available. Examples include "HTTP stream placeholder — original DMST
     /// filename unavailable". This is intentionally explicit so a synthetic
@@ -595,6 +613,27 @@ public sealed record class VerificationRecord
     /// Null when no HTML report was correlated.
     /// </summary>
     public string? HtmlVerifiedString { get; init; }
+
+    // ─── HTML top-summary fields ───────────────────────────────────────────────
+    // These are literal cells extracted from the attached TruCheck HTML report.
+    // They must never be populated from reader transport fields for VCCS rendering.
+    public string? HtmlSymbology { get; init; }
+    public string? HtmlDecodedData { get; init; }
+    public string? HtmlApplicationStandard { get; init; }
+    public string? HtmlLinearStandard { get; init; }
+    public string? HtmlLinearGradeDisplay { get; init; }
+    public string? HtmlLinearAperture { get; init; }
+    public string? HtmlLinearWavelength { get; init; }
+    public string? HtmlLinearLighting { get; init; }
+    public string? HtmlLinearFormalGrade { get; init; }
+    public string? HtmlBarcodeImageBase64 { get; init; }
+
+    /// <summary>
+    /// Data Format Check table scraped verbatim from the correlated HTML artifact.
+    /// VCCS PDF output must use this explicit source, never the generic field that
+    /// can be filled by legacy local validation logic.
+    /// </summary>
+    public DataFormatCheckResult? HtmlDataFormatCheck { get; init; }
 
     // ─── Linear Symbol (Multi-mode) ───────────────────────────────────────────
     // Populated when the verifier runs in multi-mode (EAN/UPC + 2D simultaneously).

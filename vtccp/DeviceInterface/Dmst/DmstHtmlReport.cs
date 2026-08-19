@@ -247,6 +247,29 @@ public sealed class DmstHtmlReport
     /// <summary>Verbatim formal grade string, e.g. "4.0/16/660/45Q".</summary>
     public string? HtmlFormalGrade { get; init; }
 
+    // ── HTML top-summary fields (literal report cells) ────────────────────────
+
+    /// <summary>Literal HTML "Symbology" or "Symbol Type" value, when present.</summary>
+    public string? HtmlSymbology { get; init; }
+
+    /// <summary>Literal HTML "Encoded Data" or "Decoded Data" value, when present.</summary>
+    public string? HtmlDecodedData { get; init; }
+
+    /// <summary>Literal HTML "Application Standard" value, when present.</summary>
+    public string? HtmlApplicationStandard { get; init; }
+    public string? HtmlLinearStandard { get; init; }
+    public string? HtmlLinearGradeDisplay { get; init; }
+    public string? HtmlLinearAperture { get; init; }
+    public string? HtmlLinearWavelength { get; init; }
+    public string? HtmlLinearLighting { get; init; }
+    public string? HtmlLinearFormalGrade { get; init; }
+
+    /// <summary>
+    /// Embedded barcode image from the HTML report, when the report actually carries
+    /// a data URI. Reader transport images are not copied into this field.
+    /// </summary>
+    public string? HtmlBarcodeImageBase64 { get; init; }
+
     // ── HTML header fields ────────────────────────────────────────────────────
 
     /// <summary>

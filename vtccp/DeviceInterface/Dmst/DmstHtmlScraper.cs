@@ -66,13 +66,6 @@ public sealed class DmstHtmlScraper : IDisposable
         ["EAN-13", "EAN-8", "UPC-A", "UPC-E"];
 
     /// <summary>
-    /// Correlation tolerance: push XML DateTime vs HTML report DateTime.
-    /// The firmware timestamp in both should agree within 1 second; 2 seconds
-    /// absorbs any clock or file-write jitter.
-    /// </summary>
-    public static readonly TimeSpan CorrelationWindow = TimeSpan.FromSeconds(2);
-
-    /// <summary>
     /// How long to wait for an HTML file to appear after a scan before giving up.
     /// DMST typically writes the file within 200–500 ms of the scan completing.
     /// </summary>
@@ -230,9 +223,9 @@ public sealed class DmstHtmlScraper : IDisposable
 
     /// <summary>
     /// Waits up to <see cref="FileArrivalTimeout"/> for an HTML report that
-    /// correlates to <paramref name="record"/> by exact HTML "Verified:" text when
-    /// available. Harmless case/whitespace differences are normalized second.
-    /// A real filename timestamp is the final guarded fallback.
+    /// correlates to <paramref name="record"/> by exact HTML "Verified:" text.
+    /// Harmless case/whitespace differences are normalized second.  There is no
+    /// timestamp or filename fallback: an uncertain association is left unmerged.
     ///
     /// When a match is found, runs <see cref="DmstReportValidator.MergeAndValidate"/>:
     ///   - Supplemental fields (QR_ECLevel, QR_MaskPattern, QR_ECI, ImagePolarity)
@@ -337,36 +330,26 @@ public sealed class DmstHtmlScraper : IDisposable
     }
 
     /// <summary>
-    /// Ranks correlation evidence so a timestamp fallback can never steal a report
-    /// from a stronger exact or normalized Verified match.
+    /// Matches only a verifier-supplied <c>Verified:</c> identity.  A filename
+    /// timestamp is never evidence that a report belongs to a transport record.
     /// </summary>
     private PendingHtmlReport? FindBestCorrelation(VerificationRecord record)
     {
         IEnumerable<PendingHtmlReport> candidates =
             _pending.Where(p => p.Report.ParseSucceeded);
 
-        if (!string.IsNullOrWhiteSpace(record.HtmlVerifiedString))
-        {
-            PendingHtmlReport? exact = candidates.FirstOrDefault(p =>
-                !string.IsNullOrWhiteSpace(p.Report.HtmlVerifiedString) &&
-                string.Equals(record.HtmlVerifiedString, p.Report.HtmlVerifiedString,
-                    StringComparison.Ordinal));
-            if (exact is not null) return exact;
-
-            PendingHtmlReport? normalized = candidates.FirstOrDefault(p =>
-                VerifiedStringsEquivalent(
-                    record.HtmlVerifiedString, p.Report.HtmlVerifiedString));
-            if (normalized is not null) return normalized;
-        }
-
-        if (record.VerificationDateTime == default)
+        if (string.IsNullOrWhiteSpace(record.HtmlVerifiedString))
             return null;
 
+        PendingHtmlReport? exact = candidates.FirstOrDefault(p =>
+            !string.IsNullOrWhiteSpace(p.Report.HtmlVerifiedString) &&
+            string.Equals(record.HtmlVerifiedString, p.Report.HtmlVerifiedString,
+                StringComparison.Ordinal));
+        if (exact is not null) return exact;
+
         return candidates.FirstOrDefault(p =>
-            !p.Report.HasSyntheticSourcePath &&
-            p.Report.ScanDateTime.HasValue &&
-            Math.Abs((p.Report.ScanDateTime.Value - record.VerificationDateTime).TotalSeconds)
-                <= CorrelationWindow.TotalSeconds);
+            VerifiedStringsEquivalent(
+                record.HtmlVerifiedString, p.Report.HtmlVerifiedString));
     }
 
     // ── Diagnostic capture ────────────────────────────────────────────────────
@@ -745,6 +728,17 @@ public sealed class DmstHtmlScraper : IDisposable
                 return string.IsNullOrEmpty(v) ? null : v;
             }
 
+            string? GetAny(params string[] labels)
+            {
+                foreach (string label in labels)
+                {
+                    string? value = Get(label);
+                    if (!string.IsNullOrWhiteSpace(value))
+                        return value;
+                }
+                return null;
+            }
+
             int? GetInt(string label)
             {
                 var s = Get(label);
@@ -1048,6 +1042,12 @@ public sealed class DmstHtmlScraper : IDisposable
             string? htmlWavelength          = null;
             string? htmlLighting            = null;
             string? htmlFormalGrade         = null;
+            string? htmlLinearStandard      = null;
+            string? htmlLinearGradeDisplay  = null;
+            string? htmlLinearAperture      = null;
+            string? htmlLinearWavelength    = null;
+            string? htmlLinearLighting      = null;
+            string? htmlLinearFormalGrade   = null;
             {
                 static string? E(string s) =>
                     string.IsNullOrWhiteSpace(s) ? null : s.Trim();
@@ -1069,6 +1069,35 @@ public sealed class DmstHtmlScraper : IDisposable
                         $"ap={htmlAperture ?? "null"} wl={htmlWavelength ?? "null"} " +
                         $"light={htmlLighting ?? "null"} formal={htmlFormalGrade ?? "null"}");
                 }
+
+                if (isMultiMode)
+                {
+                    int linearFgIdx = cells.FindIndex(
+                        c => c.Equals("Formal Grade", StringComparison.OrdinalIgnoreCase));
+                    if (linearFgIdx >= 0 && linearFgIdx + 6 < cells.Count &&
+                        linearFgIdx != fgIdx)
+                    {
+                        htmlLinearStandard     = E(cells[linearFgIdx + 1]);
+                        htmlLinearGradeDisplay = E(cells[linearFgIdx + 2]);
+                        htmlLinearAperture     = E(cells[linearFgIdx + 3]);
+                        htmlLinearWavelength   = E(cells[linearFgIdx + 4]);
+                        htmlLinearLighting     = E(cells[linearFgIdx + 5]);
+                        htmlLinearFormalGrade  = E(cells[linearFgIdx + 6]);
+                    }
+                }
+            }
+
+            string? embeddedBarcodeImage = null;
+            {
+                // Only accept an image that is embedded in the HTML artifact itself.
+                // Images carried by the reader push payload are intentionally not
+                // promoted to TruCheck provenance.
+                Match imageMatch = Regex.Match(
+                    htmlContent,
+                    @"<img\b[^>]*\bsrc\s*=\s*[""']data:image/(?:jpeg|jpg|png);base64,([^""']+)[""']",
+                    RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                if (imageMatch.Success)
+                    embeddedBarcodeImage = imageMatch.Groups[1].Value.Trim();
             }
 
             // ── Step 5: DateTime from filename ────────────────────────────────
@@ -1108,6 +1137,16 @@ public sealed class DmstHtmlScraper : IDisposable
                 HtmlWavelength          = htmlWavelength,
                 HtmlLighting            = htmlLighting,
                 HtmlFormalGrade         = htmlFormalGrade,
+                HtmlSymbology           = GetAny("Symbology", "Symbol Type"),
+                HtmlDecodedData          = GetAny("Encoded Data", "Decoded Data"),
+                HtmlApplicationStandard = Get("Application Standard"),
+                HtmlLinearStandard      = htmlLinearStandard,
+                HtmlLinearGradeDisplay  = htmlLinearGradeDisplay,
+                HtmlLinearAperture      = htmlLinearAperture,
+                HtmlLinearWavelength    = htmlLinearWavelength,
+                HtmlLinearLighting      = htmlLinearLighting,
+                HtmlLinearFormalGrade   = htmlLinearFormalGrade,
+                HtmlBarcodeImageBase64  = embeddedBarcodeImage,
 
                 // ── Supplemental fields: not accessible via push XML on fw 6.1.16_sr4 ──
                 ECLevel         = Get("Error Correction Level"),   // "M"

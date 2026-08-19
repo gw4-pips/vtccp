@@ -1609,3 +1609,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Asked what XML actually exists and clarified that the project has only HTML reports.
 
 **Assistant:** Clarified that there is only one report artifact: the DMST/DataMan TruCheck HTML file written to CodeQuality. The XML is not a second report file and is not stored in CodeQuality; it is the transient HTTP scan-result message received from the DataMan reader so VeriWedge can create a scan record. The suspect BVG row was populated from record fields available from that non-HTML scan message because the HTML report was not correlated. Therefore, the BVG section must not present those fields as HTML/TruCheck report data when the only authoritative report file was unavailable. No code changes made.
+
+---
+
+**User (19-Aug-2026):** There must be NO FALLBACKS!
+
+**Assistant:** Completed the strict HTML-only provenance change. VCCS PDFs are now fail-closed: no PDF is generated without a real local DMST HTML artifact correlated by the literal HTML `Verified:` value, and no timestamp or filename correlation fallback remains. Barcode summary fields, grades, DFC, report time, application standard, and image now use dedicated HTML-backed values only; missing values are marked unavailable rather than reconstructed or taken from reader transport. The exact local HTML basename is written to Excel only for verified filesystem provenance. Push-mode acceptance waits for the local artifact before PDF scheduling. Core tests passed (119); the Windows app build remains blocked in this environment because the cached Tesseract 5.2.0 package is missing.

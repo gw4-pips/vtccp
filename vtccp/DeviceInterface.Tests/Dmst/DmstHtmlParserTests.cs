@@ -427,7 +427,7 @@ public sealed class DmstHtmlParserTests
     }
 
     [Fact]
-    public async Task TryMergeAsync_RenamedHtmlFile_UsesGuardedFilenameTimestampFallback()
+    public async Task TryMergeAsync_RenamedHtmlFile_DoesNotUseFilenameTimestampFallback()
     {
         string dir = Path.Combine(Path.GetTempPath(), $"vtccp-dmst-{Guid.NewGuid():N}");
         Directory.CreateDirectory(dir);
@@ -453,9 +453,9 @@ public sealed class DmstHtmlParserTests
 
             var (merged, sourcePath) = await scraper.TryMergeAsync(incoming);
 
-            Assert.Equal(htmlPath, sourcePath);
-            Assert.Equal(Path.GetFileName(htmlPath), merged.HtmlSourceFileName);
-            Assert.Equal("DMST filesystem HTML report", merged.HtmlSourceProvenance);
+            Assert.Null(sourcePath);
+            Assert.Null(merged.HtmlSourceFileName);
+            Assert.Equal(HtmlReportProvenance.None, merged.HtmlReportProvenance);
         }
         finally
         {
@@ -503,6 +503,65 @@ public sealed class DmstHtmlParserTests
             if (Directory.Exists(dir))
                 Directory.Delete(dir, recursive: true);
         }
+    }
+
+    [Fact]
+    public async Task TryMergeAsync_HttpIdentityThenLocalHtml_GrantsFilesystemProvenance()
+    {
+        const string verified = "Tue 18-Aug-2026 08:04:21 PM";
+        string dir = Path.Combine(Path.GetTempPath(), $"vtccp-dmst-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(dir);
+
+        try
+        {
+            var transportRecord = new VerificationRecord { Symbology = "GS1 DataMatrix" };
+            var httpReport = DmstHtmlScraper.ParseHtml(
+                $"<html><body><p>Verified: {verified}</p></body></html>",
+                @"C:\HTTP_STREAM_PLACEHOLDER\2026-08-18_20-04-21-000_http.html",
+                hasSyntheticSourcePath: true);
+            VerificationRecord httpEnriched =
+                DmstReportValidator.MergeAndValidate(transportRecord, httpReport);
+
+            Assert.Equal(HtmlReportProvenance.HttpStreamOnly, httpEnriched.HtmlReportProvenance);
+            Assert.Equal(verified, httpEnriched.HtmlVerifiedString);
+
+            using var scraper = new DmstHtmlScraper(dir) { DeleteAfterParse = false };
+            scraper.Start();
+            string htmlPath = Path.Combine(dir, "actual-dmst-report.html");
+            await File.WriteAllTextAsync(htmlPath,
+                $"<html><body><p>Verified: {verified}</p></body></html>");
+
+            var (merged, sourcePath) = await scraper.TryMergeAsync(httpEnriched);
+
+            Assert.Equal(htmlPath, sourcePath);
+            Assert.Equal(HtmlReportProvenance.CorrelatedFilesystem, merged.HtmlReportProvenance);
+            Assert.Equal("actual-dmst-report.html", merged.HtmlSourceFileName);
+            Assert.Equal(verified, merged.HtmlVerifiedString);
+        }
+        finally
+        {
+            if (Directory.Exists(dir))
+                Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void MergeAndValidate_MismatchedSourceBasename_CannotGrantFilesystemProvenance()
+    {
+        var record = new VerificationRecord { Symbology = "GS1 DataMatrix" };
+        var report = new DmstHtmlReport
+        {
+            ParseSucceeded = true,
+            SourceFilePath = @"C:\CodeQuality\actual-dmst-report.html",
+            HtmlSourceFileName = "claimed-other-report.html",
+            HtmlVerifiedString = "Tue 18-Aug-2026 08:04:21 PM",
+        };
+
+        VerificationRecord merged = DmstReportValidator.MergeAndValidate(record, report);
+
+        Assert.Equal(HtmlReportProvenance.None, merged.HtmlReportProvenance);
+        Assert.Null(merged.HtmlSourceFileName);
+        Assert.Null(merged.WebscanSourcePath);
     }
 
     [Fact]

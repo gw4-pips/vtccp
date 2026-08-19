@@ -38,6 +38,13 @@ public static class VccsPdfRenderer
         CancellationToken  ct = default)
     {
         if (string.IsNullOrWhiteSpace(outputDir)) return;
+        if (!VccsHtmlReportGenerator.HasCorrelatedFilesystemHtml(record))
+        {
+            Debug.WriteLine(
+                "[VCCS-PDF] Capture failure: PDF not generated because no correlated " +
+                "DMST filesystem HTML report was attached to this scan.");
+            return;
+        }
         try
         {
             Directory.CreateDirectory(outputDir);

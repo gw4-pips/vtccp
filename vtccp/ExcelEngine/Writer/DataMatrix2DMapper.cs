@@ -223,6 +223,9 @@ public static class DataMatrix2DMapper
         d["RfidMismatchDetail"] = r.RfidMismatchDetail;
         d["RfidScanWindowMs"]   = r.RfidScanWindowMs.HasValue ? (object)r.RfidScanWindowMs.Value : null;
         d["RfidGcpValid"]       = r.RfidGcpValid.HasValue ? (object)r.RfidGcpValid.Value : null;
+        d["HtmlSourceFileName"] = r.HtmlReportProvenance == HtmlReportProvenance.CorrelatedFilesystem
+                                  ? r.HtmlSourceFileName
+                                  : null;
 
         return d;
     }

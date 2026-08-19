@@ -48,6 +48,24 @@ Any value the verifier (DM TC or Webscan TruCheck) reports must be taken verbati
 **L9. GS1Parser.cs (ExcelEngine)**
 - What: independently parses GS1 AIs from decoded data for batch/lot metadata in Excel. Not a quality/grade field.
 
+## HTML-only VCCS PDF decision
+
+The VCCS barcode-verification PDF is fail-closed: it can render only after a real
+local DMST HTML artifact is correlated by the verifier's literal `Verified:` identity.
+HTTP content, reader transport values, timestamps, filenames, and locally generated
+values cannot qualify or fill a missing barcode-verifier field. If the HTML lacks a
+field, the PDF must state that it is unavailable; it must not substitute another source.
+
+**Why:** A barcode-verification PDF must never present uncorrelated or reconstructed
+values as TruCheck data. A false-looking-complete report is worse than no report.
+
+**How to apply:** Preserve an explicit filesystem-artifact provenance state through
+acceptance, Excel, and rendering. Render only the dedicated HTML-backed field for
+barcode summary, grades, Data Format Check, report time, application standard, and
+image. Keep RFID-reader values visibly separate.
+
 ## Status
 
-All violations are known and reported. No fixes made — each requires a design discussion per the VTCCP working rules (DO NOT BUILD WITHOUT ASKING).
+The strict HTML-only VCCS PDF path is remediated. The broader generic-record
+violations above remain known and need a separate, explicitly discussed scope before
+they are changed.

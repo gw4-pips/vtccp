@@ -265,6 +265,11 @@ public static class TruCheckCompatibleSchema
         cols.Add(Col("RfidScanWindowMs",   "RFID Window (ms)", 14, SymbologyGroup.Universal));
         cols.Add(Col("RfidGcpValid",       "RFID GCP Valid",   12, SymbologyGroup.Universal));
 
+        // ── Block L: DMST report provenance ───────────────────────────────────
+        // Exact basename of the locally observed HTML report, never a synthetic
+        // HTTP placeholder or a value reconstructed from a timestamp.
+        cols.Add(Col("HtmlSourceFileName", "TruCheck HTML File", 42, SymbologyGroup.Universal));
+
         return cols;
     }
 
