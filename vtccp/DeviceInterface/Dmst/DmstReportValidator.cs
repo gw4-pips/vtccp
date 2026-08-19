@@ -275,6 +275,11 @@ public static class DmstReportValidator
             // deleted path string, so WebscanSourcePath is reliable even after the file is gone.
             WebscanSourcePath  = html.HasSyntheticSourcePath ? null : html.SourceFilePath,
             HtmlSourceFileName = html.HasSyntheticSourcePath ? null : html.HtmlSourceFileName,
+            HtmlSourceProvenance = html.HasSyntheticSourcePath
+                                   ? "HTTP stream placeholder — original DMST filename unavailable"
+                                   : html.SourceFilePath is not null
+                                   ? "DMST filesystem HTML report"
+                                   : null,
             HtmlVerifiedString = html.HtmlVerifiedString,
 
             // Verbatim Verification Grades row — used directly in PDF BVG table.

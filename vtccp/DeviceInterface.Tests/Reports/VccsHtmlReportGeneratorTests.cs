@@ -26,4 +26,53 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains(realFileName, report, StringComparison.Ordinal);
         Assert.DoesNotContain("_http.html", report, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Generate_LabelsHttpOnlySourceAsPlaceholder()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology           = "GS1 DataMatrix",
+            HtmlSourceProvenance = "HTTP stream placeholder — original DMST filename unavailable",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "[HTTP stream placeholder — original DMST filename unavailable]",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("_vccs_rfid.pdf", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_LabelsLegacyHttpPathAsPlaceholder()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology         = "GS1 DataMatrix",
+            WebscanSourcePath = @"C:\HTTP_STREAM_PLACEHOLDER\2026-08-18_19-44-37-000_http.html",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "[HTTP STREAM PLACEHOLDER — ORIGINAL DMST FILENAME UNAVAILABLE]",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("_http.html", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_LabelsMissingDmstSourceExplicitly()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("[NO DMST HTML REPORT CORRELATED]", report, StringComparison.Ordinal);
+    }
 }

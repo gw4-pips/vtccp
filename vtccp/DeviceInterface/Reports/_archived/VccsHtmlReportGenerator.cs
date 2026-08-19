@@ -123,9 +123,16 @@ public static class VccsHtmlReportGenerator
 
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
 
-        string reportName = !string.IsNullOrWhiteSpace(r.WebscanSourcePath)
+        string? sourceFileName = !string.IsNullOrWhiteSpace(r.HtmlSourceFileName)
+            ? r.HtmlSourceFileName
+            : !string.IsNullOrWhiteSpace(r.WebscanSourcePath) &&
+              !r.WebscanSourcePath.Contains("_http.html", StringComparison.OrdinalIgnoreCase)
             ? Path.GetFileName(r.WebscanSourcePath)
-            : $"{r.VerificationDateTime:yyyy-MM-dd_HH-mm-ss}_vccs_rfid.pdf";
+            : null;
+        string reportName = sourceFileName
+            ?? (!string.IsNullOrWhiteSpace(r.HtmlSourceProvenance)
+                ? $"[{r.HtmlSourceProvenance}]"
+                : "[NO DMST HTML REPORT CORRELATED]");
 
         sb.Append($"""
             <!-- ① Barcode Verification Results Summary -->

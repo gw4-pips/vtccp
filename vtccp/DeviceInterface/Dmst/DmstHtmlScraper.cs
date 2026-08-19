@@ -222,7 +222,7 @@ public sealed class DmstHtmlScraper : IDisposable
                         // DMST file-system copy. The stream does not include the original
                         // filename and can be a few seconds ahead of the local file write.
                         // Its verbatim Verified: value identifies that exact report without
-                        // inventing or displaying a synthetic "_http.html" filename.
+                        // inventing or displaying a synthetic HTTP filename.
                         (!string.IsNullOrWhiteSpace(record.HtmlVerifiedString) &&
                          !string.IsNullOrWhiteSpace(p.Report.HtmlVerifiedString) &&
                          string.Equals(record.HtmlVerifiedString, p.Report.HtmlVerifiedString,
@@ -815,7 +815,9 @@ public sealed class DmstHtmlScraper : IDisposable
                 ScanDateTime          = scanDateTime,
                 SourceFilePath        = sourcePath,
                 HtmlVerifiedString    = htmlVerifiedString,
-                HtmlSourceFileName    = Path.GetFileName(sourcePath),
+                HtmlSourceFileName    = hasSyntheticSourcePath
+                                          ? null
+                                          : Path.GetFileName(sourcePath),
                 HasSyntheticSourcePath = hasSyntheticSourcePath,
                 ParseSucceeded        = scanDateTime.HasValue,
 

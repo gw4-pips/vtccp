@@ -468,9 +468,16 @@ public static class PdfReportGenerator
         };
 
         // Report name: Webscan source file name if known, else timestamped default
-        string reportName = !string.IsNullOrWhiteSpace(r.WebscanSourcePath)
+        string? sourceFileName = !string.IsNullOrWhiteSpace(r.HtmlSourceFileName)
+            ? r.HtmlSourceFileName
+            : !string.IsNullOrWhiteSpace(r.WebscanSourcePath) &&
+              !r.WebscanSourcePath.Contains("_http.html", StringComparison.OrdinalIgnoreCase)
             ? Path.GetFileName(r.WebscanSourcePath)
-            : $"{r.VerificationDateTime:yyyy-MM-dd_HH-mm-ss}_vccs_rfid.pdf";
+            : null;
+        string reportName = sourceFileName
+            ?? (!string.IsNullOrWhiteSpace(r.HtmlSourceProvenance)
+                ? $"[{r.HtmlSourceProvenance}]"
+                : "[NO DMST HTML REPORT CORRELATED]");
 
         // Grades row values
         string gradeStandard   = r.Standard ?? "\u2014";

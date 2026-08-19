@@ -580,6 +580,14 @@ public sealed record class VerificationRecord
     public string? HtmlSourceFileName { get; init; }
 
     /// <summary>
+    /// Human-readable provenance label used when no real DMST filename is
+    /// available. Examples include "HTTP stream placeholder — original DMST
+    /// filename unavailable". This is intentionally explicit so a synthetic
+    /// source can never be mistaken for a valid verifier filename.
+    /// </summary>
+    public string? HtmlSourceProvenance { get; init; }
+
+    /// <summary>
     /// Raw "Verified: …" string scraped from the DM TC HTML report header,
     /// e.g. "Tue 18-Aug-2026 05:10:32(520ms) PM". Used verbatim as
     /// {{REPORT_DATETIME}} in the VCCS PDF — preserves local Eastern time

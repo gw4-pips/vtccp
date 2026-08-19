@@ -212,9 +212,9 @@ public sealed class HttpEventSubscriber : IAsyncDisposable
         // DMST filesystem filename, so clear file provenance before the parsed
         // report is merged into the record. If DMST also writes its local HTML
         // report, DmstHtmlScraper later supplies the genuine filename.
-        string fakePath = MakeFakeHtmlPath(dateHeader);
+        string syntheticPath = MakeSyntheticCorrelationPath(dateHeader);
         _pendingHtml = DmstHtmlScraper.ParseHtml(
-            html, fakePath, hasSyntheticSourcePath: true);
+            html, syntheticPath, hasSyntheticSourcePath: true);
 
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-HTTP-SUB] pcm_report.html parsed: ok={_pendingHtml.ParseSucceeded} " +
@@ -224,17 +224,18 @@ public sealed class HttpEventSubscriber : IAsyncDisposable
     }
 
     /// <summary>
-    /// Constructs a fake local path whose filename matches the DMST timestamp format
+    /// Constructs a clearly labelled synthetic local path whose filename matches the
+    /// DMST timestamp format
     /// expected by <see cref="DmstHtmlScraper.ParseHtml"/>:
     /// <c>yyyy-MM-dd_HH-mm-ss-mmm_suffix.html</c>
     /// </summary>
-    private static string MakeFakeHtmlPath(string? dateHeader)
+    private static string MakeSyntheticCorrelationPath(string? dateHeader)
     {
         DateTime dt = DateTime.Now;
         if (dateHeader is not null)
             DateTime.TryParse(dateHeader, out dt);   // HTTP Date is always UTC
         dt = dt.ToLocalTime();
-        return Path.Combine("C:", "fake",
+        return Path.Combine("C:", "HTTP_STREAM_PLACEHOLDER",
             $"{dt:yyyy-MM-dd_HH-mm-ss}-000_http.html");
     }
 
