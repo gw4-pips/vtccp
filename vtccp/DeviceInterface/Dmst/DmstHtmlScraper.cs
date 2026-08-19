@@ -798,15 +798,17 @@ public sealed class DmstHtmlScraper : IDisposable
 
             // ── Step 5: DateTime from filename ────────────────────────────────
             //
-            // Format: "yyyy-MM-dd_HH-mm-ss-mmm_<random>.html"
-            // The first 19 chars "yyyy-MM-dd_HH-mm-ss" are always present.
-            // The filename prefix is written by the device clock, which is set to the
-            // operator's local timezone (America/New_York via DMCC DEVICE.TIMEZONE).
-            // Parse as-is — no timezone conversion needed.
+            // DMST names reports either "yyyy-MM-dd_HH-mm-ss-mmm_<random>.html"
+            // or "_F1_<encoded-data>_yyyy-MM-dd_HH-mm-ss-mmm.html". The latter is
+            // the normal GS1 DataMatrix form, so the timestamp cannot be assumed to
+            // begin at character zero. The device clock is already local
+            // (America/New_York via DMCC DEVICE.TIMEZONE); parse it as-is.
             DateTime? scanDateTime = null;
             var fn = Path.GetFileNameWithoutExtension(sourcePath);
-            if (fn.Length >= 19 && DateTime.TryParseExact(
-                    fn[..19], "yyyy-MM-dd_HH-mm-ss",
+            Match fileTimestamp = Regex.Match(
+                fn, @"(?<!\d)(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})(?!\d)");
+            if (fileTimestamp.Success && DateTime.TryParseExact(
+                    fileTimestamp.Groups[1].Value, "yyyy-MM-dd_HH-mm-ss",
                     CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
                 scanDateTime = dt;
 
@@ -817,7 +819,7 @@ public sealed class DmstHtmlScraper : IDisposable
                 HtmlVerifiedString    = htmlVerifiedString,
                 HtmlSourceFileName    = hasSyntheticSourcePath
                                           ? null
-                                          : Path.GetFileName(sourcePath),
+                                          : Path.GetFileName(sourcePath.Replace('\\', '/')),
                 HasSyntheticSourcePath = hasSyntheticSourcePath,
                 ParseSucceeded        = scanDateTime.HasValue,
 

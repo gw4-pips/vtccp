@@ -25,7 +25,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.9";
+    public const string ReportVersion = "v1.5.10";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -421,7 +421,22 @@ public static class VccsHtmlReportGenerator
     {
         bool has2D     = r.DataFormatCheck       is { Rows.Count: > 0 };
         bool hasLinear = r.LinearDataFormatCheck is { Rows.Count: > 0 };
-        if (!has2D && !hasLinear) return string.Empty;
+
+        var sb = new StringBuilder();
+        sb.Append($"    <div class=\"cf\">\n");
+
+        if (!has2D && !hasLinear)
+        {
+            string unavailableReason = !string.IsNullOrWhiteSpace(r.HtmlSourceProvenance)
+                ? $"[DATA FORMAT CHECK UNAVAILABLE — {r.HtmlSourceProvenance.ToUpperInvariant()}]"
+                : "[DATA FORMAT CHECK UNAVAILABLE — NO DMST HTML REPORT CORRELATED]";
+            sb.Append("      <div class=\"sec-sub-hdr\">Data Format Check<span class=\"sec-note\"> &#x2014; <em>Source status shown below</em></span></div>\n");
+            sb.Append("      <table class=\"dfc-table\"><thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead><tbody>\n");
+            sb.Append($"        <tr><td>Source status</td><td>{H(unavailableReason)}</td><td class=\"chk\">UNAVAILABLE</td></tr>\n");
+            sb.Append("      </tbody></table>\n");
+            sb.Append("    </div>\n");
+            return sb.ToString();
+        }
 
         bool anyFail =
             (has2D     && r.DataFormatCheck!.Overall       == OverallPassFail.Fail) ||
@@ -432,9 +447,6 @@ public static class VccsHtmlReportGenerator
         string std = r.DataFormatCheck?.Standard
                   ?? r.LinearDataFormatCheck?.Standard ?? "GS1";
         string hdrSuffix = std.Contains("GS1", StringComparison.OrdinalIgnoreCase) ? "GS1" : std;
-
-        var sb = new StringBuilder();
-        sb.Append($"    <div class=\"cf\">\n");
         sb.Append($"      <div class=\"sec-sub-hdr\">Data Format Check &#x2014; {H(hdrSuffix)}<span class=\"sec-note\"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>\n");
         sb.Append($"      <table class=\"dfc-table\">\n");
         sb.Append($"        <thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead>\n");

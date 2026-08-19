@@ -35,3 +35,11 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User:** Any HTTP or other placeholders in the system must be labelled clearly so they can never be confused with valid entries.
 
 **Assistant:** Added explicit source-provenance labels in the active and archived PDF report generators. HTTP-only input now displays `[HTTP STREAM PLACEHOLDER — ORIGINAL DMST FILENAME UNAVAILABLE]`; absent HTML correlation displays `[NO DMST HTML REPORT CORRELATED]`. The internal HTTP correlation path is now also visibly named `HTTP_STREAM_PLACEHOLDER`, and synthetic paths do not retain a filename field. Report v1.5.9, app v1.5.16; all 97 DeviceInterface tests pass.
+
+---
+
+**`2026-08-18 — evening`**
+
+**User:** The v1.5.8 PDF still omitted the real DMST filename and the Data Format Check section. Barcode verification banners must be lighter blue than the dark VCCS RFID VeriWedge banner. Manual trigger mode is in use.
+
+**Assistant:** Confirmed the Manual-mode root cause from the supplied PDF and filename pattern: real GS1 DataMatrix DMST reports begin with `_F1_<encoded data>_` and carry their local timestamp later in the name, but the watcher only accepted timestamps at character zero. It therefore rejected the actual HTML and the PDF fell back to a generated name and had no HTML DFC data. The parser now finds the timestamp anywhere in the DMST filename and retains the true filename. DFC is rendered from the correlated source; if it is genuinely unavailable it is shown with an explicit labelled status rather than omitted. Barcode summary, grades, image, and DFC banners are lighter blue; the RFID VeriWedge banner remains dark blue. Report v1.5.10, app v1.5.17; all 101 DeviceInterface tests pass.

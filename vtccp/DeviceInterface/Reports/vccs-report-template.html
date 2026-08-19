@@ -18,7 +18,7 @@
     {{REPORT_NAME}}        — DM TC HTML filename (HTML-escaped)
     {{REPORT_DATETIME}}    — raw "Verified:" string from DM TC HTML header (HTML-escaped)
     {{RFID_ADJ}}           — "EPC" or "UHF"
-    {{FOOTER_VERSION}}     — report format version, e.g. "v1.5.8"
+    {{FOOTER_VERSION}}     — report format version, e.g. "v1.5.10"
     {{FOOTER_GENERATED}}   — "yyyy-MM-dd HH:mm:ss"
 
   SLOT list (replaced with generated HTML blocks):
@@ -104,11 +104,15 @@
     background: #1a3a6b; color: white;
     font-size: 10pt; font-weight: bold; padding: 3pt 6pt;
   }
+  /* Barcode-report banners stay visibly separate from the dark RFID VeriWedge banner. */
+  .barcode-sec-hdr {
+    background: #cfeaf7; color: #173c5a;
+  }
   .sec-sub-hdr {
-    background: #2c5296; color: white;
+    background: #e0f2fa; color: #173c5a;
     font-size: 8pt; font-weight: bold; padding: 3pt 6pt;
   }
-  /* Inline annotation appended to a section sub-header — inherits white colour */
+  /* Inline annotation appended to a section sub-header — inherits banner colour */
   .sec-note { font-size: 7.5pt; font-weight: normal; }
   .sec-sub-hdr-gap { margin-top: 6pt; }
 
@@ -270,7 +274,7 @@
 
     <!-- ① Barcode Verification Results Summary -->
     <div>
-      <div class="sec-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
+      <div class="sec-hdr barcode-sec-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
       <table class="sum-table">
         <colgroup>
           <col style="width:100pt">

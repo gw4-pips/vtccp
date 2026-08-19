@@ -75,4 +75,50 @@ public sealed class VccsHtmlReportGeneratorTests
 
         Assert.Contains("[NO DMST HTML REPORT CORRELATED]", report, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Generate_RendersDataFormatCheckWhenRowsAreAvailable()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            DataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Standard = "GS1 Application Data Format",
+                Rows =
+                [
+                    new DataFormatCheckRow
+                    {
+                        Name = "AI (01) GTIN-14",
+                        Data = "0069611470428",
+                        Check = "PASS",
+                    },
+                ],
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("Data Format Check &#x2014; GS1", report, StringComparison.Ordinal);
+        Assert.Contains("AI (01) GTIN-14", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("DATA FORMAT CHECK UNAVAILABLE", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_LabelsUnavailableDataFormatCheckInsteadOfOmittingSection()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("Data Format Check", report, StringComparison.Ordinal);
+        Assert.Contains(
+            "[DATA FORMAT CHECK UNAVAILABLE — NO DMST HTML REPORT CORRELATED]",
+            report,
+            StringComparison.Ordinal);
+    }
 }

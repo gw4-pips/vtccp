@@ -22,6 +22,8 @@ public sealed class DmstHtmlParserTests
     // ── Fixture source path (valid timestamp prefix required for ParseSucceeded) ──
 
     private const string FixturePath = @"C:\fake\2026-01-15_10-30-45-000_fixture.html";
+    private const string DataPrefixedFixturePath =
+        @"C:\CodeQuality\_F1_01006961147042882172803282009_2026-08-18_20-04-21-314.html";
 
     // ── Multi-mode fixture: EAN-13 (grade A, 4.0) + DataMatrix (grade B, 3.5) ──
     //
@@ -366,6 +368,39 @@ public sealed class DmstHtmlParserTests
 
         Assert.NotNull(result);
         Assert.Equal(OverallPassFail.NotApplicable, result.Overall);
+    }
+
+    [Fact]
+    public void BuildDataFormatCheck_LiteralF1ElementString_ProducesGtinAndSerialRows()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology  = "GS1 DataMatrix",
+            DecodedData = "<F1>01006961147042882172803282009",
+        };
+
+        var result = DmstReportValidator.BuildDataFormatCheck(record);
+
+        Assert.NotNull(result);
+        Assert.Equal(OverallPassFail.Pass, result.Overall);
+        Assert.Contains(result.Rows, row =>
+            row.Name == "AI (01) GTIN-14" && row.Data == "0069611470428");
+        Assert.Contains(result.Rows, row =>
+            row.Name == "AI (21) Serial" && row.Data == "72803282009");
+    }
+
+    [Fact]
+    public void ParseHtml_DataPrefixedDmstFilename_ExtractsTimestampAndRetainsFilename()
+    {
+        var report = DmstHtmlScraper.ParseHtml(
+            "<html><body><p>Verified: Mon 18-Aug-2026 08:04:21 PM</p></body></html>",
+            DataPrefixedFixturePath);
+
+        Assert.True(report.ParseSucceeded);
+        Assert.Equal(new DateTime(2026, 8, 18, 20, 4, 21), report.ScanDateTime);
+        Assert.Equal(
+            "_F1_01006961147042882172803282009_2026-08-18_20-04-21-314.html",
+            report.HtmlSourceFileName);
     }
 
     // ══ MergeAndValidate — fractional grade × threshold boundary ════════════════
