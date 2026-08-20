@@ -577,6 +577,8 @@ public static class DmstResultParser
         string? cuRow                = Str(map.ContrastUniformityRow);
         string? cuCol                = Str(map.ContrastUniformityCol);
 
+        string? decodedData = BarcodeDataFormatter.FormatForDisplay(Str(map.DecodedData), symbId);
+
         // ── Assemble record ───────────────────────────────────────────────────
         return new VerificationRecord
         {
@@ -584,7 +586,9 @@ public static class DmstResultParser
             VerificationDateTime = verifyDt,
             Symbology            = symbology,
             SymbologyFamily      = symbFamily,
-            DecodedData          = BarcodeDataFormatter.FormatForDisplay(Str(map.DecodedData), symbId),
+            DecodedData          = decodedData,
+            VccsDigitalLinkValidation =
+                DeviceInterface.Validation.VccsDigitalLinkValidationService.Validate(decodedData),
             FormalGrade          = formalGrade,
             OverallGrade         = overall,
 

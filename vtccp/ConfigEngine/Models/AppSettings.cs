@@ -21,6 +21,18 @@ public enum HybridReportMode
 }
 
 /// <summary>
+/// Requested handling of the VCCS PDF relative to a vendor-produced PDF.
+/// Append is intentionally retained as a preference only until a correlated
+/// vendor-PDF source path is available; the current renderer produces a separate
+/// VCCS PDF in both modes.
+/// </summary>
+public enum VccsPdfOutputMode
+{
+    Separate,
+    AppendWhenVendorPdfAvailable,
+}
+
+/// <summary>
 /// Application-wide preferences persisted alongside device profiles and job templates.
 /// </summary>
 public sealed class AppSettings
@@ -148,6 +160,13 @@ public sealed class AppSettings
     /// Null or empty = session output directory (same folder as the Excel workbook).
     /// </summary>
     public string? VccsReportOutputDirectory { get; set; }
+
+    /// <summary>
+    /// Keeps the VCCS PDF separate by default. Append remains pending until the
+    /// workstation can supply a real correlated vendor-PDF source path.
+    /// </summary>
+    public VccsPdfOutputMode VccsPdfOutputMode { get; set; } =
+        VccsPdfOutputMode.Separate;
 
     // ── Schema version awareness ──────────────────────────────────────────────
 

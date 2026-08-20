@@ -8,6 +8,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />  <!-- header -->
                 <RowDefinition Height="Auto" />  <!-- hybrid report card -->
+                <RowDefinition Height="Auto" />  <!-- VCCS PDF card -->
                 <RowDefinition Height="Auto" />  <!-- data sources card -->
             </Grid.RowDefinitions>
 
@@ -99,8 +100,44 @@
                 </StackPanel>
             </Border>
 
-            <!-- ── Data Sources card ─────────────────────────────────── -->
+            <!-- ── VCCS PDF card ─────────────────────────────────────── -->
             <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="VCCS PDF OUTPUT"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,0,0,12" />
+
+                    <RadioButton IsChecked="{Binding IsVccsPdfSeparate, Mode=TwoWay}"
+                                 VerticalAlignment="Top"
+                                 Margin="0,0,0,6">
+                        <StackPanel>
+                            <TextBlock Text="Separate VCCS PDF"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="Keep the VCCS validation report as its own PDF. This is the active output behavior."
+                                       FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton IsChecked="{Binding IsVccsPdfAppendRequested, Mode=TwoWay}"
+                                 VerticalAlignment="Top">
+                        <StackPanel>
+                            <TextBlock Text="Append when a correlated vendor PDF is available"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="Stores the preference for a future correlated vendor-PDF workflow. Until that source path is proven, VCCS continues to generate a separate PDF."
+                                       FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,2,0,0" />
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </Border>
+
+            <!-- ── Data Sources card ─────────────────────────────────── -->
+            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,16,0,0">
                 <StackPanel>
 
                     <TextBlock Text="DATA SOURCES — GCP PREFIX TABLE"

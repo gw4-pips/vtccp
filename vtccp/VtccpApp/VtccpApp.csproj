@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>VtccpApp</RootNamespace>
     <AssemblyName>VtccpApp</AssemblyName>
-    <Version>1.5.35</Version>
+    <Version>1.5.36</Version>
     <Company>VCCS</Company>
     <Product>VTCCP</Product>
     <Description>VCCS DMV TruCheck Command Pilot</Description>
@@ -54,6 +54,17 @@
     </Content>
     <Content Include="..\OcrEngine\tessdata\eng.traineddata">
       <Link>tessdata\eng.traineddata</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- Official GS1 Syntax Engine native dependency and its AI dictionary.
+         The validation service reports UNAVAILABLE instead of PASS if either is
+         absent at runtime. -->
+    <Content Include="..\lib\gs1-syntax-engine\dotnet-lib-release\runtimes\win-x64\native\gs1encoders.dll">
+      <Link>gs1encoders.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\lib\gs1-syntax-engine\dotnet-lib-release\gs1-syntax-dictionary.txt">
+      <Link>gs1-syntax-dictionary.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <!-- Bundled GS1 GCP Prefix Format List (seed copy; GcpUpdateService replaces with downloads) -->

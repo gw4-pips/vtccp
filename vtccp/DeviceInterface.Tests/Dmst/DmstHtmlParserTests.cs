@@ -722,6 +722,51 @@ public sealed class DmstHtmlParserTests
         Assert.Equal("FAIL — TruCheck literal", merged.DataFormatCheck!.Rows[0].Check);
     }
 
+    [Fact]
+    public void MergeAndValidate_PreservesVendorDfcWhenVccsDigitalLinkValidationIsAdded()
+    {
+        var scraped = new DataFormatCheckResult
+        {
+            Overall = OverallPassFail.Pass,
+            Standard = "GS1 Application Data Format",
+            Rows =
+            [
+                new DataFormatCheckRow
+                {
+                    Name = "AI (01) GTIN-14",
+                    Data = "09506000134352",
+                    Check = "PASS",
+                },
+            ],
+        };
+        var html = new DmstHtmlReport
+        {
+            ParseSucceeded = true,
+            SourceFilePath = FixturePath,
+            HtmlSourceFileName = Path.GetFileName(FixturePath),
+            HtmlDecodedData = "https://id.gs1.org/01/09506000134352",
+            ScrapedDataFormatCheck = scraped,
+        };
+        var localLegacyDfc = new DataFormatCheckResult
+        {
+            Overall = OverallPassFail.Fail,
+            Rows = [new DataFormatCheckRow { Name = "Local-only", Data = "X", Check = "FAIL" }],
+        };
+
+        VerificationRecord merged = DmstReportValidator.MergeAndValidate(
+            new VerificationRecord
+            {
+                Symbology = "QR Code",
+                DataFormatCheck = localLegacyDfc,
+            },
+            html);
+
+        Assert.Same(scraped, merged.DataFormatCheck);
+        Assert.Same(scraped, merged.HtmlDataFormatCheck);
+        Assert.NotNull(merged.VccsDigitalLinkValidation);
+        Assert.NotSame(localLegacyDfc, merged.DataFormatCheck);
+    }
+
     // ══ MergeAndValidate — fractional grade × threshold boundary ════════════════
     //
     // These tests verify that pass/fail is decided from the PARSED decimal grade,

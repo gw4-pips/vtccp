@@ -15,6 +15,13 @@
     <ProjectReference Include="..\ExcelEngine\ExcelEngine.csproj" />
   </ItemGroup>
 
+  <!-- Official GS1 Syntax Engine .NET wrapper. The native Windows runtime is
+       deployed by VtccpApp because it must sit beside the executable. -->
+  <ItemGroup>
+    <Compile Include="..\lib\gs1-syntax-engine\src\GS1Encoder.cs"
+             Link="Validation\GS1Encoder.cs" />
+  </ItemGroup>
+
   <!-- System.Drawing.Common — required for Bitmap-based image loading
        in TryLoadImageViaReflection (Windows only; same constraint as SDK). -->
   <ItemGroup>

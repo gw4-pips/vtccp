@@ -57,6 +57,11 @@ public static class DmstReportValidator
     {
         var exceptions    = new List<string>();
         var discrepancies = new List<string>();
+        // Keep VCCS's Digital Link syntax result separate from the vendor DFC.
+        // When HTML is present, use its literal decoded value as the validation input.
+        var digitalLinkValidation =
+            DeviceInterface.Validation.VccsDigitalLinkValidationService.Validate(
+                html.HtmlDecodedData ?? record.DecodedData);
         bool hasCorrelatedFilesystemHtml =
             html.ParseSucceeded &&
             !html.HasSyntheticSourcePath &&
@@ -302,6 +307,7 @@ public static class DmstReportValidator
             HtmlLinearFormalGrade = html.HtmlLinearFormalGrade,
             HtmlBarcodeImageBase64 = html.HtmlBarcodeImageBase64,
             HtmlDataFormatCheck = html.ScrapedDataFormatCheck,
+            VccsDigitalLinkValidation = digitalLinkValidation,
 
             // Verbatim Verification Grades row — used directly in PDF BVG table.
             // HTML values always win over push-XML when present (push-XML often provides

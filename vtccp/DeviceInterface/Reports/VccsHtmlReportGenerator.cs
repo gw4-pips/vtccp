@@ -27,7 +27,8 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.20";
+    public const string ReportVersion = "v1.5.22";
+    internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -151,12 +152,19 @@ public static class VccsHtmlReportGenerator
             return UnavailableSymbolRow();
 
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
+        int renderedGroups = 0;
         var sb = new StringBuilder();
-        if (multiMode)
+        if (multiMode && renderedGroups < MaxRenderedSymbolGroups)
+        {
             AppendSymbolRow(sb, r.LinearSymbology!, r.LinearDecodedData,
                 AppSpecCell(r.HtmlLinearStandard));
-        AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData,
-            AppSpecCell(r.HtmlApplicationStandard));
+            renderedGroups++;
+        }
+        if (renderedGroups < MaxRenderedSymbolGroups)
+        {
+            AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData,
+                AppSpecCell(r.HtmlApplicationStandard));
+        }
         return sb.ToString();
     }
 
@@ -169,7 +177,7 @@ public static class VccsHtmlReportGenerator
 
     private static void AppendSymbolRow(StringBuilder sb, string symb, string? encoded, string appSpecCell)
     {
-        sb.Append($"          <tr>\n");
+        sb.Append($"          <tr data-vccs-symbol-group=\"true\">\n");
         sb.Append($"            <td style=\"font-size:8pt;\">{H(symb)}</td>\n");
         sb.Append($"            <td style=\"font-family:Consolas,monospace;\">{H(encoded ?? "\u2014")}</td>\n");
         sb.Append($"            {appSpecCell}\n");
@@ -187,9 +195,11 @@ public static class VccsHtmlReportGenerator
             return UnavailableGradeRow();
 
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
+        int renderedGroups = 0;
         var sb = new StringBuilder();
 
-        if (multiMode)
+        if (multiMode && renderedGroups < MaxRenderedSymbolGroups)
+        {
             AppendGradeRow(sb, r.LinearSymbology!,
                 r.HtmlLinearStandard,
                 r.HtmlLinearGradeDisplay,
@@ -197,14 +207,19 @@ public static class VccsHtmlReportGenerator
                 r.HtmlLinearWavelength,
                 r.HtmlLinearLighting,
                 r.HtmlLinearFormalGrade);
+            renderedGroups++;
+        }
 
-        AppendGradeRow(sb, r.HtmlSymbology,
-            r.HtmlStandard,
-            r.HtmlOverallGradeDisplay,
-            r.HtmlAperture,
-            r.HtmlWavelength,
-            r.HtmlLighting,
-            r.HtmlFormalGrade);
+        if (renderedGroups < MaxRenderedSymbolGroups)
+        {
+            AppendGradeRow(sb, r.HtmlSymbology,
+                r.HtmlStandard,
+                r.HtmlOverallGradeDisplay,
+                r.HtmlAperture,
+                r.HtmlWavelength,
+                r.HtmlLighting,
+                r.HtmlFormalGrade);
+        }
 
         return sb.ToString();
     }
@@ -378,12 +393,11 @@ public static class VccsHtmlReportGenerator
         string? img2D      = hasHtml ? r.HtmlBarcodeImageBase64 : null;
         bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         DataFormatCheckResult? htmlDfc = hasHtml ? r.HtmlDataFormatCheck : null;
-        bool hasDfc       = htmlDfc is { Rows.Count: > 0 };
 
         var sb = new StringBuilder();
         sb.Append("    <div class=\"barcode-detail-section\">\n");
         sb.Append(hasHtml
-            ? "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1</span><span class=\"sec-note\"> &#x2014; <em>Only values present in the correlated report are shown</em></span></div>\n"
+            ? "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1</span><span class=\"sec-note\"> &#x2014; <em>Native TruCheck data and VCCS Digital Link validation are separately labelled</em></span></div>\n"
             : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">Barcode Verification Capture Unavailable</span><span class=\"sec-note\"> &#x2014; <em>No correlated DMST HTML report</em></span></div>\n");
         sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
         sb.Append("        <td class=\"barcode-image-column\">\n");
@@ -402,45 +416,77 @@ public static class VccsHtmlReportGenerator
         sb.Append("        </td>\n");
         sb.Append("        <td class=\"barcode-dfc-column\">\n");
 
-        if (!hasDfc)
-        {
-            string unavailableReason = hasHtml
-                ? "[DATA FORMAT CHECK UNAVAILABLE — NOT PRESENT IN TRUCHECK HTML]"
-                : "[DATA FORMAT CHECK UNAVAILABLE — NO DMST HTML REPORT CORRELATED]";
-            sb.Append("          <table class=\"dfc-table\"><thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead><tbody>\n");
-            sb.Append($"            <tr><td>Source status</td><td>{H(unavailableReason)}</td><td class=\"chk\">UNAVAILABLE</td></tr>\n");
-            sb.Append("          </tbody></table>\n");
-        }
-        else
-        {
-            DataFormatCheckResult dfc = htmlDfc!;
-            (string pillCls, string pillTxt) = dfc.Overall switch
-            {
-                OverallPassFail.Fail => ("pill-fail", "OVERALL: FAIL"),
-                OverallPassFail.Pass => ("pill-pass", "OVERALL: PASS"),
-                _                    => ("pill-warn", "OVERALL: UNAVAILABLE"),
-            };
-
-            sb.Append("          <table class=\"dfc-table\">\n");
-            sb.Append("            <thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead>\n");
-            sb.Append("            <tbody>\n");
-            foreach (var row in dfc.Rows)
-            {
-                bool fail = string.Equals(row.Check, "FAIL", StringComparison.OrdinalIgnoreCase);
-                string cls = fail ? "chk fail-fg" : "chk pass-fg";
-                bool mono = row.Name.Contains("GTIN", StringComparison.OrdinalIgnoreCase);
-                string dataStyle = mono ? " style=\"font-family:Consolas,monospace;\"" : "";
-                sb.Append($"              <tr><td>{H(row.Name)}</td><td{dataStyle}>{H(row.Data)}</td><td class=\"{cls}\">{H(row.Check)}</td></tr>\n");
-            }
-            sb.Append("            </tbody>\n");
-            sb.Append("          </table>\n");
-            sb.Append($"          <div class=\"barcode-dfc-footer\"><span class=\"overall-pill {pillCls}\">{pillTxt}</span></div>\n");
-        }
+        AppendVendorDataFormatCheck(sb, htmlDfc, hasHtml);
+        AppendVccsDigitalLinkValidation(sb, r.VccsDigitalLinkValidation);
 
         sb.Append("        </td>\n");
         sb.Append("      </tr></tbody></table>\n");
         sb.Append("    </div>\n");
         return sb.ToString();
+    }
+
+    private static void AppendVendorDataFormatCheck(
+        StringBuilder sb,
+        DataFormatCheckResult? htmlDfc,
+        bool hasCorrelatedHtml)
+    {
+        sb.Append("          <div class=\"sec-note\" style=\"margin:0 0 3pt 0;\"><strong>Native TruCheck Data Format Check</strong></div>\n");
+        if (htmlDfc is not { Rows.Count: > 0 })
+        {
+            string unavailableReason = hasCorrelatedHtml
+                ? "[DATA FORMAT CHECK UNAVAILABLE — NOT PRESENT IN TRUCHECK HTML]"
+                : "[DATA FORMAT CHECK UNAVAILABLE — NO DMST HTML REPORT CORRELATED]";
+            sb.Append("          <table class=\"dfc-table\"><thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead><tbody>\n");
+            sb.Append($"            <tr><td>Source status</td><td>{H(unavailableReason)}</td><td class=\"chk\">UNAVAILABLE</td></tr>\n");
+            sb.Append("          </tbody></table>\n");
+            return;
+        }
+
+        (string pillCls, string pillTxt) = htmlDfc.Overall switch
+        {
+            OverallPassFail.Fail => ("pill-fail", "OVERALL: FAIL"),
+            OverallPassFail.Pass => ("pill-pass", "OVERALL: PASS"),
+            _                    => ("pill-warn", "OVERALL: UNAVAILABLE"),
+        };
+        sb.Append("          <table class=\"dfc-table\">\n");
+        sb.Append("            <thead><tr><th>Field</th><th>Data</th><th class=\"chk\">Check</th></tr></thead>\n");
+        sb.Append("            <tbody>\n");
+        foreach (var row in htmlDfc.Rows)
+        {
+            bool fail = string.Equals(row.Check, "FAIL", StringComparison.OrdinalIgnoreCase);
+            string cls = fail ? "chk fail-fg" : "chk pass-fg";
+            bool mono = row.Name.Contains("GTIN", StringComparison.OrdinalIgnoreCase);
+            string dataStyle = mono ? " style=\"font-family:Consolas,monospace;\"" : "";
+            sb.Append($"              <tr><td>{H(row.Name)}</td><td{dataStyle}>{H(row.Data)}</td><td class=\"{cls}\">{H(row.Check)}</td></tr>\n");
+        }
+        sb.Append("            </tbody>\n");
+        sb.Append("          </table>\n");
+        sb.Append($"          <div class=\"barcode-dfc-footer\"><span class=\"overall-pill {pillCls}\">{pillTxt}</span></div>\n");
+    }
+
+    private static void AppendVccsDigitalLinkValidation(
+        StringBuilder sb,
+        DigitalLinkValidationResult? validation)
+    {
+        DigitalLinkValidationStatus status =
+            validation?.Status ?? DigitalLinkValidationStatus.Unavailable;
+        string detail = validation?.Detail ??
+            "VCCS validation was not calculated for this record.";
+        (string cls, string label) = status switch
+        {
+            DigitalLinkValidationStatus.Valid => ("pass-fg", "PASS"),
+            DigitalLinkValidationStatus.Invalid => ("fail-fg", "FAIL"),
+            DigitalLinkValidationStatus.NotApplicable => ("", "NOT APPLICABLE"),
+            _ => ("", "UNAVAILABLE"),
+        };
+        string engine = string.IsNullOrWhiteSpace(validation?.EngineVersion)
+            ? "VCCS validation"
+            : validation.EngineVersion!;
+
+        sb.Append("          <div class=\"sec-note\" style=\"margin:7pt 0 3pt 0;\"><strong>VCCS / GS1 Digital Link syntax validation</strong></div>\n");
+        sb.Append("          <table class=\"dfc-table\"><thead><tr><th>Source</th><th>Detail</th><th class=\"chk\">Check</th></tr></thead><tbody>\n");
+        sb.Append($"            <tr><td>{H(engine)}</td><td>{H(detail)}</td><td class=\"chk {cls}\">{label}</td></tr>\n");
+        sb.Append("          </tbody></table>\n");
     }
 
     public static bool HasCorrelatedFilesystemHtml(VerificationRecord r)

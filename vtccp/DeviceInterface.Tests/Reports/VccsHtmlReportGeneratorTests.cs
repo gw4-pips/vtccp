@@ -203,7 +203,10 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("<td class=\"barcode-dfc-column\"", report, StringComparison.Ordinal);
         Assert.Contains("border-left: 2px solid #1a3a6b", report, StringComparison.Ordinal);
         Assert.Contains("object-position: left center", report, StringComparison.Ordinal);
-        Assert.Contains("Only values present in the correlated report are shown", report, StringComparison.Ordinal);
+        Assert.Contains(
+            "Native TruCheck data and VCCS Digital Link validation are separately labelled",
+            report,
+            StringComparison.Ordinal);
         Assert.DoesNotContain("display: grid", report, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("grid-template-columns", report, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(">Barcode Image</div>", report, StringComparison.Ordinal);
@@ -335,6 +338,80 @@ public sealed class VccsHtmlReportGeneratorTests
             report, StringComparison.Ordinal);
         Assert.DoesNotContain("LEGACY_LOCAL_DFC", report, StringComparison.Ordinal);
         Assert.DoesNotContain("LEGACY_LOCAL_DFC_ROW", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_LabelsVccsDigitalLinkValidationSeparatelyFromVendorDfc()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "QR Code",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verifier-output.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Rows = [new DataFormatCheckRow
+                    { Name = "Verifier GS1 row", Data = "vendor data", Check = "PASS" }],
+            },
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                EngineVersion = "GS1 Syntax Engine 1.4.0",
+                Detail = "Validated with the official GS1 Syntax Engine.",
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("Native TruCheck Data Format Check", report, StringComparison.Ordinal);
+        Assert.Contains("Verifier GS1 row", report, StringComparison.Ordinal);
+        Assert.Contains("VCCS / GS1 Digital Link syntax validation", report, StringComparison.Ordinal);
+        Assert.Contains("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Native Webscan Digital Link", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Native DataMan Digital Link", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_LabelsDigitalLinkNotApplicable()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "EAN-13",
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.NotApplicable,
+                Detail = "Decoded verifier data is not a GS1 Digital Link URI.",
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("NOT APPLICABLE", report, StringComparison.Ordinal);
+        Assert.Contains("Decoded verifier data is not a GS1 Digital Link URI.", report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_MultiModeRendersOnlyTheCurrentTwoSymbolGroups()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "QR Code",
+            LinearSymbology = "EAN-13",
+            LinearDecodedData = "09506000134352",
+            HtmlSymbology = "QR Code",
+            HtmlDecodedData = "https://id.gs1.org/01/09506000134352",
+            HtmlSourceFileName = "multimode.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Equal(2, VccsHtmlReportGenerator.MaxRenderedSymbolGroups);
+        Assert.Contains("data-vccs-symbol-group=\"true\"", report, StringComparison.Ordinal);
     }
 
     [Fact]

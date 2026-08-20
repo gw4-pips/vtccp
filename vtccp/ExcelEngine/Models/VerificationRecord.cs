@@ -635,6 +635,12 @@ public sealed record class VerificationRecord
     /// </summary>
     public DataFormatCheckResult? HtmlDataFormatCheck { get; init; }
 
+    /// <summary>
+    /// VCCS-owned GS1 Digital Link syntax validation. This is not a verifier
+    /// Data Format Check and must always be labelled separately in reports.
+    /// </summary>
+    public DigitalLinkValidationResult? VccsDigitalLinkValidation { get; init; }
+
     // ─── Linear Symbol (Multi-mode) ───────────────────────────────────────────
     // Populated when the verifier runs in multi-mode (EAN/UPC + 2D simultaneously).
     // When present, the PDF grades table shows two rows (linear first, then 2D).

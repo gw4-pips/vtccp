@@ -1753,3 +1753,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User (19-Aug-2026):** Requested final completion of the RFID permanent-lock correction, including verified return/callback behavior, safe timeout handling, release-build diagnostics, and automated regressions.
 
 **Assistant:** Preserved the verified on-device finding that CheckTagStatus returns raw 2 for the known Permalocked tag and that callback 41 was the delayed TID acknowledgment. Strengthened the correction so raw 0–3 is authoritative, callback 40 is a fallback only when the direct result is unavailable, blocked SDK calls remain physically isolated after the UI deadline, and delayed callbacks cannot leak into a later scan. Added persistent diagnostics and focused executor/report regressions; VTCCP remains v1.5.35.
+
+---
+
+**User:** Requested implementation of the FWPP report and verifier flow, including separate VCCS GS1 Digital Link syntax validation, vendor-result preservation, one-page two-symbol rendering, honest PDF output preferences, and regression coverage.
+
+**Assistant:** Added VCCS-owned GS1 Digital Link validation backed by the bundled official GS1 Syntax Engine, with explicit valid, invalid, not-applicable, and unavailable states. Kept native TruCheck Data Format Check rows unchanged and visibly separate in the report, capped the current layout at two symbol groups, added a transparent future append-PDF preference, bundled the Windows native engine and dictionary, and bumped VTCCP to v1.5.36 and the report to v1.5.22. All 142 DeviceInterface tests passed; the Linux WPF build remains blocked by a missing Windows reference pack.

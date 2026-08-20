@@ -220,6 +220,42 @@ public sealed class SettingsViewModel : ViewModelBase
         }
     }
 
+    // ── VCCS PDF output ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// True keeps the VCCS report as a separate PDF. This is the only active
+    /// behavior until a real correlated vendor-PDF source path exists.
+    /// </summary>
+    public bool IsVccsPdfSeparate
+    {
+        get => _repo.Settings.VccsPdfOutputMode == VccsPdfOutputMode.Separate;
+        set
+        {
+            if (!value || IsVccsPdfSeparate) return;
+            _repo.Settings.VccsPdfOutputMode = VccsPdfOutputMode.Separate;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsVccsPdfAppendRequested));
+            _ = SaveAsync();
+        }
+    }
+
+    /// <summary>
+    /// Stores the operator's append preference without claiming append behavior
+    /// is available before a correlated vendor-PDF path has been implemented.
+    /// </summary>
+    public bool IsVccsPdfAppendRequested
+    {
+        get => _repo.Settings.VccsPdfOutputMode == VccsPdfOutputMode.AppendWhenVendorPdfAvailable;
+        set
+        {
+            if (!value || IsVccsPdfAppendRequested) return;
+            _repo.Settings.VccsPdfOutputMode = VccsPdfOutputMode.AppendWhenVendorPdfAvailable;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsVccsPdfSeparate));
+            _ = SaveAsync();
+        }
+    }
+
     // ── Reload ─────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -233,6 +269,8 @@ public sealed class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsAlongsideMode));
         OnPropertyChanged(nameof(IsReplaceMode));
         OnPropertyChanged(nameof(HybridReportOutputDirectory));
+        OnPropertyChanged(nameof(IsVccsPdfSeparate));
+        OnPropertyChanged(nameof(IsVccsPdfAppendRequested));
         OnPropertyChanged(nameof(CurrentGcpTableDate));
         OnPropertyChanged(nameof(CurrentGcpTablePath));
         OnPropertyChanged(nameof(GcpUpdateServiceUrl));
