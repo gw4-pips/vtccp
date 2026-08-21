@@ -1911,3 +1911,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Supplied the approved parser-comparison snip and asked for a short blue banner, separate DataMan and VeriWedge parser sub-heads, centered overall boxes, and a space before the Verification Grades em dash. The same model must serve Digital Link.
 
 **Assistant:** Simplified the blue banner to `GS1 Element String` or `GS1 Digital Link`. Added parallel `DataMan TruCheck GS1 Parser` and `VeriWedge GS1 Parser (v. 1.4.0)` sub-heads directly below it, centered each overall status in its own block, and applied the spacing correction to the grades header. The Digital Link path now uses the same parallel structure. When no verifier parser was selected, its side reports that neutral fact rather than a missing-DFC error. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.34 and application v1.5.48.
+
+---
+
+**`2026-08-21`**
+
+**User:** Asked whether the GS1 parser breaks the data out in more detail than the report currently shows.
+
+**Assistant:** Explained that the official GS1 Syntax Engine validates the Digital Link or Element String, normalizes it into a canonical GS1 AI sequence, and can retain every parsed AI. The current PDF intentionally renders only the AI rows supplied by the DataMan TruCheck side; it maps matching parser values into those rows and shows the full canonical AI string in the first parser data cell. It does not currently render an independent complete AI inventory or individual parser pass/fail diagnostics for every AI.
