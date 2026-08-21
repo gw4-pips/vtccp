@@ -283,17 +283,17 @@
     break-inside: avoid; page-break-inside: avoid;
     width: 100%;
   }
-  .dfc-dual-table {
-    width: 100%; border-collapse: collapse; table-layout: fixed;
+   .dfc-dual-table {
+     width: 100%; border-collapse: collapse; table-layout: auto;
     border: none; font-size: 7.5pt;
     break-inside: avoid; page-break-inside: avoid;
   }
-   .dfc-dual-table col.dual-left-field { width: 22%; }
-   .dfc-dual-table col.dual-left-data { width: 13%; }
+   .dfc-dual-table col.dual-left-field { }
+   .dfc-dual-table col.dual-left-data { }
    .dfc-dual-table col.dual-left-check { width: 7%; }
   .dfc-dual-table col.dual-divider { width: 2%; }
-   .dfc-dual-table col.dual-right-field { width: 22%; }
-   .dfc-dual-table col.dual-right-data { width: 27%; }
+   .dfc-dual-table col.dual-right-field { }
+   .dfc-dual-table col.dual-right-data { }
    .dfc-dual-table col.dual-right-check { width: 7%; }
   .dfc-dual-table th {
     background: #e8eef5; border-bottom: 1px solid #aaa;
@@ -303,6 +303,18 @@
     border-bottom: 1px solid #aaa; padding: 1.75pt 3pt;
     vertical-align: top; line-height: 1.05;
   }
+   .dfc-dual-table th:nth-child(1),
+   .dfc-dual-table td:nth-child(1),
+   .dfc-dual-table th:nth-child(5),
+   .dfc-dual-table td:nth-child(5) {
+     white-space: nowrap;
+   }
+   .dfc-dual-table th:nth-child(2),
+   .dfc-dual-table td:nth-child(2),
+   .dfc-dual-table th:nth-child(6),
+   .dfc-dual-table td:nth-child(6) {
+     width: auto;
+   }
   .dfc-dual-table .dual-divider {
     border-left: 2px solid #1a3a6b;
     padding-left: 3pt;
@@ -439,7 +451,7 @@
         </tbody>
       </table>
 
-      <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades </span><span class="sec-note">&#x2014; <em>Only fields present in the correlated HTML report are shown</em></span></div>
+      <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades</span><span class="sec-note"> &#x2014; <em>Only fields present in the correlated HTML report are shown</em></span></div>
       <table class="grades-table">
         <colgroup>
           <!-- Proportions taken from the approved reference snip; total = 100%. -->

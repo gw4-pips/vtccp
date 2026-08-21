@@ -1927,3 +1927,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Corrected the parser-display explanation with a report snip. Requested a separate Field column for the VeriWedge GS1 parser, GS1-named parsed fields, and the full Element String as the final wrap-safe row. Added that a Digital Link URI must always be the first parser row. Confirmed the approach.
 
 **Assistant:** Reworked the dual parser table so each side has independent `Field / Data / Check` columns. The VeriWedge side now lists a Digital Link URI first when applicable, lists each parsed AI with its GS1 field name, and places the canonical GS1 Element String last. The last value has HTML wrap opportunities only between complete AI elements, allowing the row to grow naturally without splitting an AI token. Updated regression coverage for the URI-first rule, GS1 AI labels, and canonical-string wrapping. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.35 and application v1.5.49.
+
+---
+
+**`2026-08-21`**
+
+**User:** Requested removal of `GS1` from the DataMan parser heading, dynamic Field column widths with fixed Check columns and flexible Data columns, a parser result beside Serial Number, and an explicit space before the em dash in the Verification Grades header.
+
+**Assistant:** Renamed the left heading to `DataMan TruCheck Parser`. Changed the comparison table to auto layout so non-wrapping Field columns use only their required width and Data columns receive the remaining space, while both Check columns retain their fixed width. Repeated the parser validation result for each parser-owned row, including Serial Number. Put the grades-header space inside the note span so it is visibly preserved before the em dash. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.36 and application v1.5.50.
