@@ -2103,6 +2103,14 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 ---
 
+**`2026-08-21 — 20:45`**
+
+**User:** Asked whether the application can also be run from Visual Studio.
+
+**Assistant:** Confirmed that Visual Studio can build and run the synchronized solution, provided `VtccpApp` is the startup project and the selected configuration is rebuilt from the current checkout rather than launching an older installed executable.
+
+---
+
 **`2026-08-21 — 20:31`**
 
 **User:** Successfully reset the Windows checkout; `HEAD` is now at synchronized commit `0741d20`.
