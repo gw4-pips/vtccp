@@ -2079,6 +2079,14 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 ---
 
+**`2026-08-21 — 20:28`**
+
+**User:** Verified from the Windows checkout that `origin/main` contains `<Version>1.5.54</Version>`.
+
+**Assistant:** Confirmed the GitHub version check and instructed the user to run `git reset --hard origin/main`. Explained that the tracked Windows files would be aligned to the synchronized branch, the prior tracked state is preserved by `backup-windows-before-replit-sync`, and the untracked AsReader SDK folder will remain.
+
+---
+
 **`2026-08-21 — 19:58`**
 
 **User:** Ran the Windows Git commands and showed that `origin/main` is up to date locally but still contains `<Version>1.5.53</Version>`. Asked whether `1.5.54` was expected.
