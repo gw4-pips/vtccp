@@ -20,6 +20,18 @@ public sealed class VccsDigitalLinkValidationServiceTests
     }
 
     [Fact]
+    public void Validate_EngineProvidesParsedAiData_IncludesItInDetail()
+    {
+        var result = VccsDigitalLinkValidationService.Validate(
+            "https://id.gs1.org/01/09506000134352/21/1234",
+            new DetailEngine());
+
+        Assert.Equal(
+            "Parsed GS1 AI data: (01)09506000134352(21)1234 Validated with the official GS1 Syntax Engine.",
+            result.Detail);
+    }
+
+    [Fact]
     public void Validate_InvalidDigitalLink_ReportsVccsFail()
     {
         var result = VccsDigitalLinkValidationService.Validate(
@@ -90,6 +102,12 @@ public sealed class VccsDigitalLinkValidationServiceTests
 
     private sealed class AcceptingEngine : IGs1DigitalLinkSyntaxEngine
     {
+        public void Validate(string digitalLinkUri) { }
+    }
+
+    private sealed class DetailEngine : IGs1DigitalLinkSyntaxEngine
+    {
+        public string? ParsedAiData => "(01)09506000134352(21)1234";
         public void Validate(string digitalLinkUri) { }
     }
 

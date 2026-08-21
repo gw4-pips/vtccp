@@ -1887,3 +1887,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Requested the alternate no-verifier-DFC path for a GS1 Data Matrix carrying GS1 Element String data while Digital Link testing continues.
 
 **Assistant:** Added official GS1 Syntax Engine validation for GS1 Element Strings and routes the result through the same VeriWedge no-verifier-DFC report path, with a distinct `VCCS / GS1 Element String syntax validation` label. The parser recognises bracketed AI strings, raw AIM `]d2` scan data, and the DataMan `<F1>` display form; it uses the GS1 library’s appropriate AI/scan-data APIs rather than presenting local parsing as native DFC. DeviceInterface tests passed: 153/153. Updated to VCCS report v1.5.31 and application v1.5.45.
+
+---
+
+**`2026-08-21`**
+
+**User:** Clarified that the no-verifier-DFC explanation belongs in the Data Format Check header and must name the selected VeriWedge GS1 algorithm: Digital Link or Element String. Reported that the expected parser detail was not visible.
+
+**Assistant:** Moved the fallback wording into the blue header as `Data Format Check (DFC) — No verifier DFC selected; using VeriWedge GS1 <algorithm> algorithm`. The GS1 Syntax Engine’s canonical parsed AI data is now included in the VCCS validation Detail cell, instead of only a generic validation message. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.32 and application v1.5.46.

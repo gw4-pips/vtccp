@@ -478,7 +478,7 @@ public sealed class VccsHtmlReportGeneratorTests
             {
                 Status = DigitalLinkValidationStatus.Valid,
                 EngineVersion = "GS1 Syntax Engine 1.4.0",
-                Detail = "Validated with the official GS1 Syntax Engine.",
+                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Syntax Engine.",
             },
         };
 
@@ -507,20 +507,17 @@ public sealed class VccsHtmlReportGeneratorTests
             {
                 Status = DigitalLinkValidationStatus.Valid,
                 EngineVersion = "GS1 Syntax Engine 1.4.0",
-                Detail = "Validated with the official GS1 Syntax Engine.",
+                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Syntax Engine.",
             },
         };
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "No verifier Data Format Check selected; using VeriWedge GS1 algorithm",
+            "Data Format Check (DFC) &#x2014; No verifier DFC selected; using VeriWedge GS1 Digital Link algorithm",
             report,
             StringComparison.Ordinal);
-        Assert.Contains(
-            "TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1",
-            report,
-            StringComparison.Ordinal);
+        Assert.Contains("(01)09506000134352(21)72803288707", report, StringComparison.Ordinal);
         Assert.Contains("VCCS / GS1 Digital Link syntax validation", report, StringComparison.Ordinal);
         Assert.Contains("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Native TruCheck Data Format Check", report, StringComparison.Ordinal);
@@ -543,14 +540,14 @@ public sealed class VccsHtmlReportGeneratorTests
                 Status = DigitalLinkValidationStatus.Valid,
                 Source = DigitalLinkValidationResult.VccsElementStringSource,
                 EngineVersion = "GS1 Syntax Engine 1.4.0",
-                Detail = "Validated with the official GS1 Syntax Engine.",
+                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Syntax Engine.",
             },
         };
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "No verifier Data Format Check selected; using VeriWedge GS1 algorithm",
+            "Data Format Check (DFC) &#x2014; No verifier DFC selected; using VeriWedge GS1 Element String algorithm",
             report,
             StringComparison.Ordinal);
         Assert.Contains(DigitalLinkValidationResult.VccsElementStringSource,

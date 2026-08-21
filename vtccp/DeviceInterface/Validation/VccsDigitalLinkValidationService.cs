@@ -99,7 +99,7 @@ public static class VccsDigitalLinkValidationService
                 Status = DigitalLinkValidationStatus.Valid,
                 Source = source,
                 EngineVersion = EngineVersion,
-                Detail = "Validated with the official GS1 Syntax Engine.",
+                Detail = BuildValidatedDetail(engine.ParsedAiData),
             };
         }
         catch (GS1EncoderParameterException ex)
@@ -135,6 +135,11 @@ public static class VccsDigitalLinkValidationService
             return Unavailable(ex.Message, source);
         }
     }
+
+    private static string BuildValidatedDetail(string? parsedAiData)
+        => string.IsNullOrWhiteSpace(parsedAiData)
+            ? "Validated with the official GS1 Syntax Engine."
+            : $"Parsed GS1 AI data: {parsedAiData} Validated with the official GS1 Syntax Engine.";
 
     private static bool IsHttpDigitalLinkUri(string? value)
         => Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) &&
@@ -172,6 +177,12 @@ public interface IGs1DigitalLinkSyntaxEngine
     void Validate(string gs1Data);
 
     /// <summary>
+    /// Canonical GS1 AI data produced by the official engine after validation,
+    /// when that data is available.
+    /// </summary>
+    string? ParsedAiData => null;
+
+    /// <summary>
     /// Validates a GS1 Element String. Test doubles can use the same simple
     /// implementation as their Digital Link validation.
     /// </summary>
@@ -180,15 +191,22 @@ public interface IGs1DigitalLinkSyntaxEngine
 
 internal sealed class Gs1DigitalLinkSyntaxEngine : IGs1DigitalLinkSyntaxEngine
 {
+    private string? _parsedAiData;
+
+    public string? ParsedAiData => _parsedAiData;
+
     public void Validate(string gs1Data)
     {
+        _parsedAiData = null;
         using var encoder = new GS1Encoder();
         encoder.DataStr = gs1Data;
+        _parsedAiData = encoder.AIdataStr;
     }
 
     public void ValidateElementString(string elementString)
     {
         string value = elementString.Trim();
+        _parsedAiData = null;
         using var encoder = new GS1Encoder();
 
         if (value.StartsWith("<F1>", StringComparison.OrdinalIgnoreCase))
@@ -196,17 +214,18 @@ internal sealed class Gs1DigitalLinkSyntaxEngine : IGs1DigitalLinkSyntaxEngine
             string rawData = value[4..].Replace("<F1>", "\x1D",
                 StringComparison.OrdinalIgnoreCase);
             encoder.ScanData = "]d2" + rawData;
-            return;
         }
-
-        if (value.StartsWith("]d2", StringComparison.OrdinalIgnoreCase))
+        else if (value.StartsWith("]d2", StringComparison.OrdinalIgnoreCase))
         {
             string scanData = value.Replace("<F1>", "\x1D",
                 StringComparison.OrdinalIgnoreCase);
             encoder.ScanData = scanData;
-            return;
+        }
+        else
+        {
+            encoder.AIdataStr = value;
         }
 
-        encoder.AIdataStr = value;
+        _parsedAiData = encoder.AIdataStr;
     }
 }
