@@ -2087,6 +2087,14 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 ---
 
+**`2026-08-21 — 20:39`**
+
+**User:** Attached the Windows Release build output. The full `VtccpWindows.sln` build succeeded, including `VtccpApp`, with 27 warnings and no errors.
+
+**Assistant:** Confirmed the production Windows solution now builds successfully with the local AsReader SDK present. Explained that the warnings are non-blocking and instructed the user to inspect the compiled `VtccpApp.dll` metadata to verify the actual product version before launching.
+
+---
+
 **`2026-08-21 — 20:31`**
 
 **User:** Successfully reset the Windows checkout; `HEAD` is now at synchronized commit `0741d20`.
