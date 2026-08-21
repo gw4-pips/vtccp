@@ -650,33 +650,16 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            "Native GS1 Digital Link Compatibility",
+            "<div class=\"dual-native-note\">Firmware 6.1.16_sr4 does not support GS1 Digital Link parsing.</div>",
             report,
             StringComparison.Ordinal);
-        Assert.Contains(
-            "6.1.16 and earlier</td><td class=\"compat-unsupported\">Unsupported</td>",
-            report,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "Later than 6.1.16</td><td class=\"compat-not-verified\">Not verified</td>",
-            report,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "3.03.74 and earlier</td><td class=\"compat-unsupported\">Unsupported</td>",
-            report,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "references/architecture/dmcc-6116sr4-digest.md.",
-            report,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "VeriWedge GS1 Digital Link parser: PASS.",
-            report,
-            StringComparison.Ordinal);
+        Assert.DoesNotContain("Native GS1 Digital Link Compatibility", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("compat-unsupported", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("native parser compatibility limitation", report, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Generate_KnownUnsupportedDigitalLinkWebscanSoftware_ReferencesCompatibilityTable()
+    public void Generate_KnownUnsupportedDigitalLinkWebscanSoftware_ShowsConciseNativeNote()
     {
         var record = new VerificationRecord
         {
@@ -714,14 +697,26 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            "Webscan TruCheck v3.03.74 is the observed application version",
-            report,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "This is a native parser compatibility limitation, not a GS1 barcode-data failure.",
+            "<div class=\"dual-native-note\">Software 3.03.74 does not support GS1 Digital Link parsing.</div>",
             report,
             StringComparison.Ordinal);
         Assert.Contains(">FAIL*</td>", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_RfidGcpLength_ShowsEqualsPrefix()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Pass",
+            RfidEpcTagUri = "urn:epc:tag:sgtin-96:1.0612345.012345.1",
+            RfidGcpValid = true,
+            RfidGcpLength = 7,
+        });
+
+        Assert.Contains("Valid (=7)", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Valid (7)", report, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -307,7 +307,7 @@ public static class VccsHtmlReportGenerator
         }
         string schemePart = tagDetected ? (epcScheme ?? "\u2014") : "N/A";
 
-        string gcpLenPart = r.RfidGcpLength.HasValue ? $" ({r.RfidGcpLength.Value})" : string.Empty;
+        string gcpLenPart = r.RfidGcpLength.HasValue ? $" (={r.RfidGcpLength.Value})" : string.Empty;
         string gcpDisplay = r.RfidGcpValid switch
         {
             true  => $"Valid{gcpLenPart}",
@@ -462,8 +462,6 @@ public static class VccsHtmlReportGenerator
                 hasHtml,
                 string.Equals(r.DataFormatCheckSetting, "None", StringComparison.OrdinalIgnoreCase),
                 nativeDigitalLinkSupportNote);
-            if (!useElementStringLayout)
-                sb.Append(BuildNativeDigitalLinkCompatibilityTable());
         }
         else
         {
@@ -512,7 +510,7 @@ public static class VccsHtmlReportGenerator
         if (string.Equals(record.VerifierBrand, "WEBSCAN", StringComparison.OrdinalIgnoreCase) &&
             IsVersionAtOrBefore(record.SoftwareVersion, "3.3.74"))
         {
-            return $"Software {record.SoftwareVersion} does not support GS1 Digital Link parsing. See the Native GS1 Digital Link Compatibility table in this report. This is a native parser compatibility limitation, not a GS1 barcode-data failure.";
+            return $"Software {record.SoftwareVersion} does not support GS1 Digital Link parsing.";
         }
 
         // Cognex's DM475V verifier-line release record identifies 6.1.16_sr4
@@ -521,35 +519,10 @@ public static class VccsHtmlReportGenerator
         // numeric compatibility boundary until Cognex publishes a newer release.
         if (IsVersionAtOrBefore(record.FirmwareVersion, "6.1.16"))
         {
-            return $"Firmware {record.FirmwareVersion} does not support GS1 Digital Link parsing. See the Native GS1 Digital Link Compatibility table in this report. This is a native parser compatibility limitation, not a GS1 barcode-data failure.";
+            return $"Firmware {record.FirmwareVersion} does not support GS1 Digital Link parsing.";
         }
 
         return null;
-    }
-
-    private static string BuildNativeDigitalLinkCompatibilityTable()
-    {
-        var sb = new StringBuilder();
-        sb.Append("            <div class=\"digital-link-compatibility\">\n");
-        sb.Append("              <div class=\"digital-link-compatibility-title\">Native GS1 Digital Link Compatibility</div>\n");
-        sb.Append("              <div class=\"digital-link-compatibility-note\">Status describes native verifier parsing of a valid GS1 Digital Link. It does not change the independent VeriWedge barcode-data result.</div>\n");
-        sb.Append("              <table class=\"digital-link-compatibility-table\">\n");
-        sb.Append("                <thead><tr><th>Verifier</th><th>Version boundary</th><th>Status</th><th>Source / observed evidence</th></tr></thead>\n");
-        sb.Append("                <tbody>\n");
-        foreach (NativeDigitalLinkCompatibilityEntry entry in NativeDigitalLinkCompatibility)
-        {
-            string statusClass = entry.Status switch
-            {
-                "Unsupported" => "compat-unsupported",
-                "Not verified" => "compat-not-verified",
-                _ => string.Empty,
-            };
-            sb.Append($"                  <tr><td>{H(entry.Verifier)}</td><td>{H(entry.VersionBoundary)}</td><td class=\"{statusClass}\">{H(entry.Status)}</td><td>{H(entry.Evidence)}</td></tr>\n");
-        }
-        sb.Append("                </tbody>\n");
-        sb.Append("              </table>\n");
-        sb.Append("            </div>\n");
-        return sb.ToString();
     }
 
     private static bool IsVersionAtOrBefore(string? value, string supportedThrough)
@@ -715,12 +688,13 @@ public static class VccsHtmlReportGenerator
             "FAIL" => "pill-fail",
             _ => "pill-warn",
         };
+        string nativeNoteMarkup = string.Empty;
         if (nativeDigitalLinkSupportNote is not null)
         {
             leftOverallText = leftOverallText.Replace("FAIL", "FAIL*", StringComparison.Ordinal);
-            sb.Append($"                <tr class=\"dual-note\"><td colspan=\"7\">* {H(nativeDigitalLinkSupportNote)} VeriWedge GS1 Digital Link parser: {parserCheck}.</td></tr>\n");
+            nativeNoteMarkup = $"<div class=\"dual-native-note\">{H(nativeDigitalLinkSupportNote)}</div>";
         }
-        sb.Append($"                <tr class=\"dual-overall\"><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {leftOverallClass}\">{leftOverallText}</span></td><td class=\"dual-divider\"></td><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {parserOverallClass}\">OVERALL: {parserCheck}</span></td></tr>\n");
+        sb.Append($"                <tr class=\"dual-overall\"><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {leftOverallClass}\">{leftOverallText}</span>{nativeNoteMarkup}</td><td class=\"dual-divider\"></td><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {parserOverallClass}\">OVERALL: {parserCheck}</span></td></tr>\n");
         sb.Append("              </tbody>\n");
         sb.Append("            </table>\n");
         sb.Append("          </div>\n");
@@ -815,37 +789,6 @@ public static class VccsHtmlReportGenerator
         => Gs1AiNames.TryGetValue(ai, out string? name) ? name : "GS1 Application Identifier";
 
     private sealed record Gs1ParserRow(string Field, string Data, bool IsCanonicalAiString);
-
-    private sealed record NativeDigitalLinkCompatibilityEntry(
-        string Verifier,
-        string VersionBoundary,
-        string Status,
-        string Evidence);
-
-    private static readonly IReadOnlyList<NativeDigitalLinkCompatibilityEntry>
-        NativeDigitalLinkCompatibility =
-        [
-            new(
-                "DataMan / DM TC",
-                "6.1.16 and earlier",
-                "Unsupported",
-                "Cognex DM475V verifier-line evidence: 6.1.16_sr4 is the latest released artifact; a valid Digital Link scan produced native DFC FAIL while the VeriWedge parser passed. See references/architecture/dmcc-6116sr4-digest.md."),
-            new(
-                "DataMan / DM TC",
-                "Later than 6.1.16",
-                "Not verified",
-                "No later released DM470 verifier-line version or passing native Digital Link evidence is recorded."),
-            new(
-                "Webscan TruCheck",
-                "3.03.74 and earlier",
-                "Unsupported",
-                "Webscan TruCheck v3.03.74 is the observed application version (Help > About); available Webscan report/UI evidence shows no native Digital Link parser support. See references/screenshot-compendium.html#sec-w2."),
-            new(
-                "Webscan TruCheck",
-                "Later than 3.03.74",
-                "Not verified",
-                "No later Webscan TruCheck version or passing native Digital Link evidence is recorded."),
-        ];
 
     private static readonly IReadOnlyDictionary<string, string> Gs1AiNames =
         new Dictionary<string, string>(StringComparer.Ordinal)

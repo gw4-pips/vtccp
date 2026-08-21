@@ -1985,6 +1985,28 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **Assistant:** Found that the project version was 1.5.52 but the sidebar showed a hardcoded v1.0.0 and the window title contained no version. Replaced both with properties derived from the compiled VtccpApp assembly version, added formatter regression tests, and confirmed 30 focused tests pass. The Linux WPF build remains blocked by pre-existing missing-type errors outside this version-display change.
 
+---
+
+**`2026-08-21 — 19:34`**
+
+**User:** Rejected the large native GS1 Digital Link compatibility matrix in the per-scan VCCS PDF. Requested only a short device-specific native-parser note at the bottom of the native parser column, retained separately for reference, and requested GCP length display such as `Valid (=7)`. Also asked why PDFs appear only after a later trigger or app close and why a session cannot start when its Excel file is open.
+
+**Assistant:** Removed the compatibility matrix from the VCCS report, retained its evidence in a standalone reference document, and confined the concise note to the native parser side. Changed GCP display to `Valid (=7)` and verified 29 focused VCCS report tests pass. Confirmed the JSON sidecar is written and closed after every accepted scan; it is not the PDF delay. The PDF uses an independent asynchronous DMST-HTML correlation/render path, and Excel live-open writing relies on COM attachment to the exact open `.xlsx` file.
+
+---
+
+**`2026-08-21 — 19:41`**
+
+**User:** Confirmed with a file-browser screenshot that the PDF was written in this case and will watch for more details.
+
+**Assistant:** Noted that the PDF, hybrid HTML, Excel workbook, and JSON sidecar all appear in the same 7:33 PM output batch. Deferred lifecycle changes until an intermittent failure case provides timing or file-lock evidence.
+
+---
+
+**`2026-08-21 — 19:43`**
+
+**Assistant:** Completed the report cleanup as requested: removed the detailed Digital Link compatibility matrix from the PDF, filed it in `references/native-gs1-digital-link-parser-compatibility.md`, confined the concise native-parser note to the DataMan side, changed GCP length wording to `Valid (=7)`, bumped the application version to 1.5.54, and verified 29 focused report tests.
+
 ## Session: 2026-08-13 — Hybrid TruCheck + RFID Report
 
 **User:** Uploaded four Webscan TruCheck files (HTML sample report + 3 XSLT stylesheets). Asked to design a "Hybrid Webscan TruCheck™ Verification Report with VCCS FlexWedge™ RFID Validation." Selected Option C (standalone hybrid HTML). Key requirements: match Webscan structure exactly, RFID data in header, separate RFID section, PDF-printable, optional alongside or replacing original.
