@@ -1940,6 +1940,14 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **`2026-08-21`**
 
+**User:** Reported that the URI was not appearing in the first row and asked whether a Digital Link should show a top `Web URI` field with wrapping and PASS/FAIL, with failure details shown separately.
+
+**Assistant:** Observed that the supplied snip is classified as a GS1 Element String and contains `(01)…(21)…`, not a Digital Link URI, so no Web URI is expected for that record. Recommended a Digital Link-only first row named `Web URI`, followed by GS1 AI rows, with PASS/FAIL representing GS1 validation rather than network reachability, and a final `Parser Diagnostic` row when validation fails.
+
+---
+
+**`2026-08-21`**
+
 **User:** Asked how a GS1 parser failure is reported.
 
 **Assistant:** Explained the separate Invalid, Unavailable, and Not Applicable outcomes. A true GS1 syntax failure produces FAIL on the VeriWedge parser rows and overall pill, with the GS1 engine diagnostic detail retained; the native DataMan result remains separate. Runtime failures produce UNAVAILABLE rather than FAIL, and non-GS1 data produces NOT APPLICABLE.
