@@ -901,7 +901,7 @@ public sealed class SessionViewModel : ViewModelBase
         {
             using var monCts = new System.Threading.CancellationTokenSource(800);
             using var monTcp = new System.Net.Sockets.TcpClient();
-            await monTcp.ConnectAsync(cfg.Host, DmccRawPort, monCts.Token);
+            await monTcp.ConnectAsync(cfg.Host, DeviceInterface.Dmcc.DmccCommand.RawDmccPort, monCts.Token);
             var monStream = monTcp.GetStream();
             try
             {
