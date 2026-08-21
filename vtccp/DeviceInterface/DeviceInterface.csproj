@@ -57,11 +57,18 @@
   </ItemGroup>
   <!-- Exclude SDK-dependent files when the Cognex DLL is absent so the pure C#
        core (EpcParser, decoders, models, validators) builds for unit tests on
-       non-Windows / CI machines. -->
+       non-Windows / CI machines. DeviceSessionUnavailable preserves the public
+       session contract for callers and fails explicitly if used at runtime. -->
   <ItemGroup Condition="!Exists('C:\Program Files (x86)\Cognex\DataMan\DataMan Software v25.4.1\Cognex.DataMan.SDK.PC.dll')">
     <Compile Remove="Dmcc/DataManSdkClient.cs" />
     <Compile Remove="DeviceSession.cs" />
-    <Compile Remove="NetworkDiscoverer.cs" />
+  </ItemGroup>
+
+  <!-- The fallback session defines the same public types as DeviceSession.cs.
+       Remove it whenever the real Cognex SDK implementation is available so
+       production Windows builds retain their existing behavior unchanged. -->
+  <ItemGroup Condition="Exists('C:\Program Files (x86)\Cognex\DataMan\DataMan Software v25.4.1\Cognex.DataMan.SDK.PC.dll')">
+    <Compile Remove="DeviceSessionUnavailable.cs" />
   </ItemGroup>
 
   <!-- vccs-report-template.html — HTML template for the VCCS RFID Validation Report.

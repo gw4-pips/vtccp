@@ -2848,3 +2848,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Requested a versioned native GS1 Digital Link support table for DataMan/DM TC firmware and Webscan TruCheck software, including evidence behind every status and a report note that does not misclassify a native parser limitation as a barcode-data failure.
 
 **Assistant:** Added a compact Native GS1 Digital Link Compatibility table to Digital Link comparison reports. It records unsupported and not-yet-verified version boundaries for DataMan/DM TC and Webscan TruCheck, with the documented source or observed evidence for every row. Known unsupported native DFC failures now link to the table and explicitly say they are parser-compatibility limitations rather than GS1 barcode-data failures. Added DataMan and Webscan regression coverage, updated the report to v1.5.38 and the app to 1.5.53, and verified 157 passing DeviceInterface tests.
+
+---
+
+**`2026-08-21`**
+
+**User:** Requested Task 184: make Windows desktop builds verifiable from this workspace without the optional RFID and Cognex SDK binaries, while preserving SDK-backed production builds.
+
+**Assistant:** Added an SDK-free DeviceSession compile boundary, kept network discovery available without the Cognex SDK, guarded optional AsReader and Cognex UI references, and bumped the app version to 1.5.54. Added shared non-Windows targeting configuration so the normal VtccpWindows solution command succeeds on Linux with 0 errors; 160 DeviceInterface tests passed. Proposed follow-up Task 185 to verify the vendor-SDK production path on Windows.

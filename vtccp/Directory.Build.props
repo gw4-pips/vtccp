@@ -1,0 +1,8 @@
+<Project>
+  <!-- Allow the normal solution build command to compile Windows-targeting
+       projects from Linux/macOS workspaces. Windows builds already target
+       Windows and therefore retain their existing SDK-backed behavior. -->
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+</Project>

@@ -712,7 +712,11 @@ public sealed class SessionViewModel : ViewModelBase
     /// </summary>
     private void AutoFindRfidPortOnStartup()
     {
+#if ASREADER_SDK
         var found = EpcReaderFactory.FindAsReaderPort();
+#else
+        string? found = null;
+#endif
         if (found is not null && AvailableRfidPorts.Contains(found))
         {
             // Device is plugged in — pre-select it and show a clear note.
@@ -735,7 +739,11 @@ public sealed class SessionViewModel : ViewModelBase
     private void FindRfidPort()
     {
         RefreshRfidPorts();
+#if ASREADER_SDK
         var found = EpcReaderFactory.FindAsReaderPort();
+#else
+        string? found = null;
+#endif
         if (found is not null && AvailableRfidPorts.Contains(found))
         {
             SelectedRfidPort   = found;
@@ -1587,6 +1595,7 @@ public sealed class SessionViewModel : ViewModelBase
         SupplementalStatus = "Reading from device…";
         try
         {
+#if COGNEX_SDK
             var cfg = SelectedDevice.ToDeviceConfig();
             cfg.ConnectTimeoutMs  = 3_000;
             cfg.ResponseTimeoutMs = 3_000;
@@ -1608,6 +1617,11 @@ public sealed class SessionViewModel : ViewModelBase
                     $"Read failed (code {resp.StatusCode}). " +
                     "DMCC key may differ on this firmware — see DmccCommand.cs note.";
             }
+#else
+            SupplementalStatus =
+                "Cognex DataMan SDK DLL not present in this build — device settings unavailable.";
+            await Task.CompletedTask;
+#endif
         }
         catch (Exception ex)
         {
@@ -1634,6 +1648,7 @@ public sealed class SessionViewModel : ViewModelBase
         SupplementalStatus = $"Writing \"{SupplementalModeLabel(mode)}\" to firmware…";
         try
         {
+#if COGNEX_SDK
             var cfg = SelectedDevice.ToDeviceConfig();
             cfg.ConnectTimeoutMs  = 3_000;
             cfg.ResponseTimeoutMs = 3_000;
@@ -1646,6 +1661,11 @@ public sealed class SessionViewModel : ViewModelBase
                 ? $"Written — firmware now: {SupplementalModeLabel(mode)} (persistent)"
                 : $"Write failed (code {resp.StatusCode}). " +
                   "DMCC key may differ on this firmware — see DmccCommand.cs note.";
+#else
+            SupplementalStatus =
+                "Cognex DataMan SDK DLL not present in this build — device settings unavailable.";
+            await Task.CompletedTask;
+#endif
         }
         catch (Exception ex)
         {

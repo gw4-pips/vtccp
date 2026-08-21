@@ -21,6 +21,12 @@
     <DefineConstants>$(DefineConstants);ASREADER_SDK</DefineConstants>
   </PropertyGroup>
 
+  <!-- Match DeviceInterface's Cognex SDK guard so SDK-dependent WPF actions
+       compile only when their vendor DLL is available. -->
+  <PropertyGroup Condition="Exists('C:\Program Files (x86)\Cognex\DataMan\DataMan Software v25.4.1\Cognex.DataMan.SDK.PC.dll')">
+    <DefineConstants>$(DefineConstants);COGNEX_SDK</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="7.6.1" />
   </ItemGroup>
