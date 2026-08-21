@@ -1799,3 +1799,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Proceeded with Windows git reconciliation. git pull --rebase blocked by unstaged VtccpWindows.sln. Stashed, then git pull --rebase produced conflicts in SessionViewModel.cs, SessionView.xaml, VtccpApp.csproj. Aborted rebase. Switched to plain git pull (merge strategy) — merged cleanly, 42 files changed. Stash popped successfully. VtccpWindows.sln restored. Committed VtccpWindows.sln and pushed 29 commits to GitHub.
 
 **Assistant:** Walked user through each step. All three locations now fully reconciled: GitHub current, Replit current, Windows local clean and pushed.
+
+---
+
+**`2026-08-21`**
+
+**User:** Requested a report-top-section redesign. Move the vertical separator between Application Standard and Encoded Data left so it aligns with the lower separator between Standard and Grade. Replace “Application Standard” with “Application Std. / Data Format Check / Aperture:” and show the three TruCheck values inline to its right, separated by “ / ”. Application Standard should always come from TruCheck with no unavailable state; Data Format Check should show `None` when unset; Aperture should come directly from TruCheck. Asked for a restatement and for the available settings options to be logged for user documentation.
+
+**Assistant:** Restated the requested layout and semantics. Recorded the screenshot options: Application Standard = `GS1`, `HIBCC`, `UDI (GS1 or HIBCC)`, `UID (MIL-STD-130)`, `Custom`, `Auto`, `Cryptocode`; Data Format Check = `None`, `GS1`, `HIBCC`, `ISO 15434`; Aperture Setting = `Auto Aperture`, `User Set`, `Auto 50%`. No code changes made yet.
