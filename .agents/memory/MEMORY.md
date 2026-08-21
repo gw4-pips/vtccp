@@ -42,3 +42,4 @@
 - [DMST embedded barcode evidence](dmst-embedded-barcode-evidence.md) — classify images from HTML structure/metadata, never opaque Base64 text
 - [TruCheck settings provenance](trucheck-settings-provenance.md) — Application Standard is not HTML-published; snapshot live settings after every result and never infer them
 - [GS1 parser report layout](gs1-parser-report-layout.md) — parser is independent of DataMan fields; Digital Link URI leads and canonical Element String ends the parser block
+- [Native Digital Link compatibility](native-digital-link-compatibility.md) — distinguish native parser limitations from RFID mismatches; annotate proven unsupported versions without altering source data

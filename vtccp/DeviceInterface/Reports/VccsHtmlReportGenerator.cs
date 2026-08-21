@@ -385,7 +385,7 @@ public static class VccsHtmlReportGenerator
                 "Fail" => "Fail &#x2014; GTIN mismatch",
                 var s  => H(s ?? "\u2014"),
             };
-            ResultRow($"{r.LinearSymbology} Validation Result", linVal);
+            ResultRow($"{r.LinearSymbology} RFID Cross-Validation Result", linVal);
 
             string twoDSym = string.IsNullOrWhiteSpace(r.Symbology) ? "2D" : r.Symbology;
             string twoDVal = r.RfidStatus switch
@@ -394,7 +394,7 @@ public static class VccsHtmlReportGenerator
                 "Fail" => BuildMismatch2DLabel(r.RfidMismatchDetail),
                 var s  => H(s ?? "\u2014"),
             };
-            ResultRow($"{twoDSym} Validation Result", twoDVal);
+            ResultRow($"{twoDSym} RFID Cross-Validation Result", twoDVal);
         }
         else
         {
@@ -408,7 +408,7 @@ public static class VccsHtmlReportGenerator
                 "Fail"               => BuildMismatch2DLabel(r.RfidMismatchDetail),
                 var s                => H(s ?? "\u2014"),
             };
-            ResultRow($"{symName} Validation Result", singleVal);
+            ResultRow($"{symName} RFID Cross-Validation Result", singleVal);
         }
 
         return sb.ToString();
@@ -424,6 +424,9 @@ public static class VccsHtmlReportGenerator
         bool useParserComparisonLayout =
             useElementStringLayout ||
             r.VccsDigitalLinkValidation?.Status is not null and not DigitalLinkValidationStatus.NotApplicable;
+        string? nativeDigitalLinkSupportNote = useParserComparisonLayout && !useElementStringLayout
+            ? BuildNativeDigitalLinkSupportNote(r, htmlDfc, r.VccsDigitalLinkValidation)
+            : null;
 
         var sb = new StringBuilder();
         sb.Append("    <div class=\"barcode-detail-section\">\n");
@@ -457,7 +460,8 @@ public static class VccsHtmlReportGenerator
                 htmlDfc,
                 r.VccsDigitalLinkValidation,
                 hasHtml,
-                string.Equals(r.DataFormatCheckSetting, "None", StringComparison.OrdinalIgnoreCase));
+                string.Equals(r.DataFormatCheckSetting, "None", StringComparison.OrdinalIgnoreCase),
+                nativeDigitalLinkSupportNote);
         }
         else
         {
@@ -491,6 +495,48 @@ public static class VccsHtmlReportGenerator
             validation?.Source,
             DigitalLinkValidationResult.VccsElementStringSource,
             StringComparison.Ordinal);
+
+    private static string? BuildNativeDigitalLinkSupportNote(
+        VerificationRecord record,
+        DataFormatCheckResult? nativeDfc,
+        DigitalLinkValidationResult? validation)
+    {
+        if (nativeDfc?.Overall != OverallPassFail.Fail ||
+            validation?.Status != DigitalLinkValidationStatus.Valid)
+        {
+            return null;
+        }
+
+        if (string.Equals(record.VerifierBrand, "WEBSCAN", StringComparison.OrdinalIgnoreCase) &&
+            IsVersionAtOrBefore(record.SoftwareVersion, "3.3.74"))
+        {
+            return $"Software {record.SoftwareVersion} does not support GS1 Digital Link parsing.";
+        }
+
+        // Cognex's DM475V verifier-line release record identifies 6.1.16_sr4
+        // (numeric release 6.1.16) as the latest released firmware without
+        // GS1 Digital Link parsing support. Pre-release suffixes retain the same
+        // numeric compatibility boundary until Cognex publishes a newer release.
+        if (IsVersionAtOrBefore(record.FirmwareVersion, "6.1.16"))
+        {
+            return $"Firmware {record.FirmwareVersion} does not support GS1 Digital Link parsing.";
+        }
+
+        return null;
+    }
+
+    private static bool IsVersionAtOrBefore(string? value, string supportedThrough)
+    {
+        if (string.IsNullOrWhiteSpace(value) ||
+            !Version.TryParse(supportedThrough, out Version? boundary))
+        {
+            return false;
+        }
+
+        Match match = Regex.Match(value, @"\d+(?:\.\d+){1,3}");
+        return match.Success && Version.TryParse(match.Value, out Version? version) &&
+            version.CompareTo(boundary) <= 0;
+    }
 
     private static void AppendVendorDataFormatCheck(
         StringBuilder sb,
@@ -557,7 +603,8 @@ public static class VccsHtmlReportGenerator
         DataFormatCheckResult? htmlDfc,
         DigitalLinkValidationResult? validation,
         bool hasCorrelatedHtml,
-        bool noVerifierDfcSelected)
+        bool noVerifierDfcSelected,
+        string? nativeDigitalLinkSupportNote)
     {
         var verifierRows = htmlDfc?.Rows?.ToList() ?? [];
         if (verifierRows.Count == 0)
@@ -606,6 +653,12 @@ public static class VccsHtmlReportGenerator
         {
             DataFormatCheckRow? verifierRow = index < verifierRows.Count ? verifierRows[index] : null;
             Gs1ParserRow? parserRow = index < parserRows.Count ? parserRows[index] : null;
+            string? verifierCheck = verifierRow?.Check;
+            if (nativeDigitalLinkSupportNote is not null &&
+                string.Equals(verifierCheck, "FAIL", StringComparison.OrdinalIgnoreCase))
+            {
+                verifierCheck = "FAIL*";
+            }
             string leftClass = verifierRow?.Check switch
             {
                 "PASS" => "pass-fg",
@@ -618,7 +671,7 @@ public static class VccsHtmlReportGenerator
             string parserDataClass = parserRow?.IsCanonicalAiString == true
                 ? "dual-data parser-element-string-data"
                 : "dual-data";
-            sb.Append($"                <tr><td>{H(verifierRow?.Name)}</td><td class=\"dual-data\">{H(verifierRow?.Data)}</td><td class=\"dual-check {leftClass}\">{H(verifierRow?.Check)}</td><td class=\"dual-divider\"></td><td>{H(parserRow?.Field)}</td><td class=\"{parserDataClass}\">{parserData}</td><td class=\"dual-check {parserClass}\">{(parserRow is not null ? parserCheck : "")}</td></tr>\n");
+            sb.Append($"                <tr><td>{H(verifierRow?.Name)}</td><td class=\"dual-data\">{H(verifierRow?.Data)}</td><td class=\"dual-check {leftClass}\">{H(verifierCheck)}</td><td class=\"dual-divider\"></td><td>{H(parserRow?.Field)}</td><td class=\"{parserDataClass}\">{parserData}</td><td class=\"dual-check {parserClass}\">{(parserRow is not null ? parserCheck : "")}</td></tr>\n");
         }
 
         (string leftOverallClass, string leftOverallText) = htmlDfc is null
@@ -635,6 +688,11 @@ public static class VccsHtmlReportGenerator
             "FAIL" => "pill-fail",
             _ => "pill-warn",
         };
+        if (nativeDigitalLinkSupportNote is not null)
+        {
+            leftOverallText = leftOverallText.Replace("FAIL", "FAIL*", StringComparison.Ordinal);
+            sb.Append($"                <tr class=\"dual-note\"><td colspan=\"7\">* {H(nativeDigitalLinkSupportNote)} VeriWedge GS1 Digital Link parser: {parserCheck}.</td></tr>\n");
+        }
         sb.Append($"                <tr class=\"dual-overall\"><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {leftOverallClass}\">{leftOverallText}</span></td><td class=\"dual-divider\"></td><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {parserOverallClass}\">OVERALL: {parserCheck}</span></td></tr>\n");
         sb.Append("              </tbody>\n");
         sb.Append("            </table>\n");

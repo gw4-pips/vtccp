@@ -1967,3 +1967,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked how a GS1 parser failure is reported.
 
 **Assistant:** Explained the separate Invalid, Unavailable, and Not Applicable outcomes. A true GS1 syntax failure produces FAIL on the VeriWedge parser rows and overall pill, with the GS1 engine diagnostic detail retained; the native DataMan result remains separate. Runtime failures produce UNAVAILABLE rather than FAIL, and non-GS1 data produces NOT APPLICABLE.
+
+---
+
+**`2026-08-21 — 19:10`**
+
+**User:** Provided a project-state handoff summary for the firmware-support and RFID-reporting work, including the need to distinguish native Digital Link parser limitations from RFID validation in the report.
+
+**Assistant:** Verified that the latest documented released DM475V verifier-line firmware is 6.1.16_sr4, while 6.1.16_tc9 is pre-release. Updated the report so RFID failures are labeled as RFID cross-validation, while native DFC failures on known unsupported Digital Link versions appear as FAIL* with an explanatory compatibility note when the independent VeriWedge GS1 parser passes. Added report regression tests, bumped the application version to 1.5.52, and proposed a future verifier-version support table. The focused report tests passed; the Linux WPF build remains blocked by existing unrelated missing-type errors in the desktop project.

@@ -10,8 +10,6 @@ Every commit that changes VtccpApp runtime behaviour must increment `<Version>` 
 
 **How to apply:** After any edit to VtccpApp source (ViewModels, Views, DeviceInterface wiring, etc.), open `vtccp/VtccpApp/VtccpApp.csproj` and increment the patch component (e.g. 1.2.2 → 1.2.3). Do this in the same commit as the code change.
 
-**Current version as of last change:** 1.2.3 (Live View TRIGGER.TYPE 5 / SetTriggerTypeAsync / WriteAndDrainAsync / OnResultReceived guard)
-
 ## Extension: HTML preview files (`dist/vccs-pdf-preview-vN.html`)
 Every round of edits to a PDF preview HTML file must save under the next version number — never edit in place and leave the filename unchanged.
 

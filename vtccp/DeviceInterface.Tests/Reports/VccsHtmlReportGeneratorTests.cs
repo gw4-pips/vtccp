@@ -610,6 +610,52 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_KnownUnsupportedDigitalLinkFirmware_StarsNativeFailure()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "QR Code",
+            FirmwareVersion = "6.1.16_sr4",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verifier-output.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlDecodedData = "https://id.gs1.org/01/09506000134352/21/72803288707",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Fail,
+                Rows =
+                [
+                    new DataFormatCheckRow
+                    {
+                        Name = "GS1 Format",
+                        Data = "<F1> Required at beginning of data",
+                        Check = "FAIL",
+                    },
+                ],
+            },
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                EngineVersion = "GS1 Syntax Engine 1.4.0",
+                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Syntax Engine.",
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(">FAIL*</td>", report, StringComparison.Ordinal);
+        Assert.Contains("OVERALL: FAIL*</span>", report, StringComparison.Ordinal);
+        Assert.Contains(
+            "Firmware 6.1.16_sr4 does not support GS1 Digital Link parsing.",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "VeriWedge GS1 Digital Link parser: PASS.",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_LabelsDigitalLinkNotApplicable()
     {
         var record = new VerificationRecord
@@ -691,6 +737,22 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.DoesNotContain("mismatch mismatch", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_RfidFailure_UsesExplicitCrossValidationLabel()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "QR Code",
+            RfidStatus = "Fail",
+            RfidMismatchDetail = "GTIN14:RFID=09506000134351,BC=09506000134352",
+        });
+
+        Assert.Contains(
+            "QR Code RFID Cross-Validation Result",
+            report,
+            StringComparison.Ordinal);
     }
 
     [Fact]
