@@ -1839,3 +1839,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Confirmed that the full top-summary redesign should be implemented. Noted that waiting for direct approval rather than assuming the broader scope was preferable.
 
 **Assistant:** Implemented the VCCS summary layout: the header now reads `Application Std. / Data Format Check / Aperture:`, renders the three settings inline, and aligns its 1.5px divider with the Verification Grades table’s Standard/Grade divider. Application Standard and DFC remain sourced from correlated TruCheck HTML; no DFC renders as `None`; the Aperture setting is captured once from `TRUCHECK.APERTURE` at session connection and carried into every report record without replacing the numeric grade aperture. Updated the Application Settings reference with the exact UI options and corrected Custom/Auto mapping. Bumped report version to v1.5.23 and application version to 1.5.37. DeviceInterface tests passed: 144/144. Committed and pushed as `64f45e7`.
+
+---
+
+**`2026-08-21`**
+
+**User:** Clarified that TruCheck settings can change during a live DMST verification session and questioned the earlier connection-time capture. Noted that Application Standard has not been published in known TruCheck report embodiments.
+
+**Assistant:** Corrected the report provenance model. Application Standard is no longer inferred from the HTML Data Format Check heading. After every completed result, VCCS now reads Application Standard, Data Format Check selection, and Aperture Setting through DMCC before building the report; unsupported or unknown Application Standard/Aperture display as `—`. The published HTML DFC result remains a DFC-only fallback and is never treated as Application Standard. Added a parser-to-report regression for `Custom / GS1 / Auto Aperture`, serialized the SDK setting reads, updated the reference document and durable provenance rule, and bumped the VCCS report to v1.5.24 and application to 1.5.38. DeviceInterface tests passed: 145/145. Committed and pushed as `eaf6b0b`.
