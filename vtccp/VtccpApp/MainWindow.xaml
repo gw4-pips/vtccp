@@ -87,7 +87,7 @@
                 <Rectangle Height="1" Margin="20,24,20,16" Fill="#2C3E50" />
 
                 <!-- Version info -->
-                <TextBlock Text="v1.0.0  |  VCCS"
+                <TextBlock Text="{Binding SidebarVersion}"
                            FontSize="10" Foreground="#566573"
                            Margin="20,4" />
             </StackPanel>

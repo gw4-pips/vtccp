@@ -1975,3 +1975,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Provided a project-state handoff summary for the firmware-support and RFID-reporting work, including the need to distinguish native Digital Link parser limitations from RFID validation in the report.
 
 **Assistant:** Verified that the latest documented released DM475V verifier-line firmware is 6.1.16_sr4, while 6.1.16_tc9 is pre-release. Updated the report so RFID failures are labeled as RFID cross-validation, while native DFC failures on known unsupported Digital Link versions appear as FAIL* with an explanatory compatibility note when the independent VeriWedge GS1 parser passes. Added report regression tests, bumped the application version to 1.5.52, and proposed a future verifier-version support table. The focused report tests passed; the Linux WPF build remains blocked by existing unrelated missing-type errors in the desktop project.
+
+---
+
+**`2026-08-21 — 19:18`**
+
+**User:** Reported that build 1.5.52 was not appearing in the Windows UI, then assigned the task to show the actual app build version.
+
+**Assistant:** Found that the project version was 1.5.52 but the sidebar showed a hardcoded v1.0.0 and the window title contained no version. Replaced both with properties derived from the compiled VtccpApp assembly version, added formatter regression tests, and confirmed 30 focused tests pass. The Linux WPF build remains blocked by pre-existing missing-type errors outside this version-display change.

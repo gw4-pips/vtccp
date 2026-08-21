@@ -22,4 +22,12 @@
     <ProjectReference Include="..\DeviceInterface\DeviceInterface.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Compile the UI's dependency-free version formatter into the test
+         assembly so its formatting contract is covered without requiring WPF
+         on the Linux test runner. -->
+    <Compile Include="..\VtccpApp\Services\AppVersionDisplay.cs"
+             Link="VtccpApp\AppVersionDisplay.cs" />
+  </ItemGroup>
+
 </Project>

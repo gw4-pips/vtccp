@@ -2,6 +2,7 @@ namespace VtccpApp.ViewModels;
 
 using ConfigEngine;
 using VtccpApp.Commands;
+using VtccpApp.Services;
 
 /// <summary>
 /// Root view-model for the application shell (MainWindow).
@@ -44,7 +45,9 @@ public sealed class MainViewModel : ViewModelBase
 
     // ── Title bar ─────────────────────────────────────────────────────────────
 
-    public string AppTitle { get; } = "VTCCP — VCCS DMV TruCheck Command Pilot";
+    public string AppVersion { get; } = AppVersionDisplay.Current;
+    public string AppTitle => $"VTCCP — VCCS DMV TruCheck Command Pilot {AppVersion}";
+    public string SidebarVersion => $"{AppVersion}  |  VCCS";
 
     // ── Init ──────────────────────────────────────────────────────────────────
 
