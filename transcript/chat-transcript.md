@@ -2087,6 +2087,14 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 ---
 
+**`2026-08-21 — 20:31`**
+
+**User:** Successfully reset the Windows checkout; `HEAD` is now at synchronized commit `0741d20`.
+
+**Assistant:** Confirmed the reset succeeded and instructed the user to verify that `main` matches `origin/main`, that the expected untracked AsReader SDK directory remains, and that the checked-out project version is 1.5.54 before rebuilding.
+
+---
+
 **`2026-08-21 — 19:58`**
 
 **User:** Ran the Windows Git commands and showed that `origin/main` is up to date locally but still contains `<Version>1.5.53</Version>`. Asked whether `1.5.54` was expected.
