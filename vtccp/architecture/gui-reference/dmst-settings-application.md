@@ -1,6 +1,6 @@
 # DMST TruCheck Verification Settings — Application Settings
 
-**Document version**: v1.2
+**Document version**: v1.3
 **Revised**: 2026-08-21
 **Panel**: TruCheck Verification Settings → Application Settings (left nav, first item)  
 **Firmware observed**: 6.1.16_sr4 (DM475-63530E-PIPS-Verif-Lab)  
@@ -232,6 +232,10 @@ not infer the setting from the DMST screen, a prior scan, or a TruCheck HTML DFC
 The correlated HTML's published DFC result is an allowed fallback for the **Data Format Check**
 display only. It is never an Application Standard fallback, and the absence of a DFC HTML table
 must not be guessed as `None`.
+
+In the default Push workflow, VCCS takes this per-result snapshot through a short-lived raw DMCC
+connection on port 23 after the HTTP result arrives. It does not open a persistent SDK connection,
+so DMST can remain active for live view and operator-driven verification.
 
 ---
 

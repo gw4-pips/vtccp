@@ -6,6 +6,7 @@ using System.Windows;
 using ConfigEngine;
 using ConfigEngine.Models;
 using DeviceInterface;
+using DeviceInterface.Dmcc;
 using DeviceInterface.Dmst;
 using DeviceInterface.Reports;
 using DeviceInterface.Rfid;
@@ -49,6 +50,7 @@ public sealed class SessionViewModel : ViewModelBase
 
     private DeviceSession?                              _deviceSession;
     private DeviceInterface.Dmst.HttpEventSubscriber?  _pushHttpSubscriber;
+    private readonly System.Threading.SemaphoreSlim    _pushTruCheckSettingsGate = new(1, 1);
     private SessionManager?                             _sessionMgr;
     private System.Threading.CancellationTokenSource? _pollCts;
     private bool                                _isRunning;
@@ -1069,6 +1071,116 @@ public sealed class SessionViewModel : ViewModelBase
         }
     }
 
+    // ── Push-mode per-result TruCheck settings ─────────────────────────────────
+
+    private async Task<VerificationRecord> AttachPushTruCheckSettingsAsync(
+        VerificationRecord record,
+        System.Threading.CancellationToken ct)
+    {
+        if (SelectedDevice is null)
+            return record;
+
+        // Push mode intentionally has no persistent SDK connection so DMST can
+        // remain open. Take a short raw-DMCC snapshot after each pushed result
+        // instead. The gate prevents overlapping HTTP callbacks from issuing
+        // concurrent commands through the reader's raw port.
+        await _pushTruCheckSettingsGate.WaitAsync(ct);
+        try
+        {
+            var cfg = SelectedDevice.ToDeviceConfig();
+            using var tcp = new System.Net.Sockets.TcpClient();
+            using var connectCts =
+                System.Threading.CancellationTokenSource.CreateLinkedTokenSource(ct);
+            connectCts.CancelAfter(cfg.ConnectTimeoutMs);
+            await tcp.ConnectAsync(cfg.Host, DmccCommand.RawDmccPort, connectCts.Token);
+
+            var stream = tcp.GetStream();
+
+            // A raw port-23 session starts silent. Enable extended replies before
+            // the GET commands; the SET itself has no reply in silent mode.
+            await WriteRawDmccCommandAsync(
+                stream, DmccCommand.SetDmccResponseExtended, ct);
+
+            DmccResponse applicationStandard = await SendRawDmccCommandAsync(
+                stream, cfg, DmccCommand.GetApplicationStandard, ct);
+            DmccResponse dataFormatCheck = await SendRawDmccCommandAsync(
+                stream, cfg, DmccCommand.GetCustomDataParsingStandard, ct);
+            DmccResponse apertureSetting = await SendRawDmccCommandAsync(
+                stream, cfg, DmccCommand.GetAperture, ct);
+
+            var enriched = TruCheckSettingsSnapshot.Apply(
+                record, applicationStandard, dataFormatCheck, apertureSetting);
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] Push post-result settings: " +
+                $"AppStd='{enriched.ApplicationStandardSetting ?? "unavailable"}' " +
+                $"DFC='{enriched.DataFormatCheckSetting ?? "unavailable"}' " +
+                $"Aperture='{enriched.ApertureSettingMode ?? "unavailable"}'");
+            return enriched;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] Push post-result settings non-fatal: " +
+                $"{ex.GetType().Name}: {ex.Message}");
+            return record;
+        }
+        finally
+        {
+            _pushTruCheckSettingsGate.Release();
+        }
+    }
+
+    private static async Task WriteRawDmccCommandAsync(
+        System.Net.Sockets.NetworkStream stream,
+        string command,
+        System.Threading.CancellationToken ct)
+    {
+        byte[] bytes = System.Text.Encoding.ASCII.GetBytes(
+            $"{DmccCommand.WireHeader}{command}\r\n");
+        await stream.WriteAsync(bytes, ct);
+        await stream.FlushAsync(ct);
+    }
+
+    private static async Task<DmccResponse> SendRawDmccCommandAsync(
+        System.Net.Sockets.NetworkStream stream,
+        DeviceConfig cfg,
+        string command,
+        System.Threading.CancellationToken ct)
+    {
+        await WriteRawDmccCommandAsync(stream, command, ct);
+
+        var response = new System.Text.StringBuilder();
+        byte[] buffer = new byte[512];
+        using var overallCts =
+            System.Threading.CancellationTokenSource.CreateLinkedTokenSource(ct);
+        overallCts.CancelAfter(cfg.ResponseTimeoutMs);
+
+        while (true)
+        {
+            using var idleCts =
+                System.Threading.CancellationTokenSource.CreateLinkedTokenSource(overallCts.Token);
+            idleCts.CancelAfter(cfg.IdleGapMs);
+            try
+            {
+                int count = await stream.ReadAsync(buffer, idleCts.Token);
+                if (count == 0) break;
+                response.Append(System.Text.Encoding.ASCII.GetString(buffer, 0, count));
+            }
+            catch (OperationCanceledException) when (!overallCts.IsCancellationRequested)
+            {
+                // The device has been idle long enough for the complete extended
+                // response, including an optional GET body, to have arrived.
+                break;
+            }
+        }
+
+        string raw = response.ToString();
+        System.Diagnostics.Debug.WriteLine(
+            $"[VTCCP-DMCC] Push {command}: " +
+            $"'{raw.Replace("\r", "\\r").Replace("\n", "\\n")}'");
+        return DmccResponse.Parse(raw);
+    }
+
     // ── Push (DMST) mode callback ─────────────────────────────────────────────
 
     // Called on thread-pool by DmstListener after each parsed push result.
@@ -1082,6 +1194,9 @@ public sealed class SessionViewModel : ViewModelBase
             try
             {
                 VerificationRecord record = pushRecord;
+                if (_scanMode == ScanMode.Push)
+                    record = await AttachPushTruCheckSettingsAsync(
+                        record, _pollCts?.Token ?? default);
                 var watcher = _htmlWatcher;
                 if (watcher is not null)
                 {

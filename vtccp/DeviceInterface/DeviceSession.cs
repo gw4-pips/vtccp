@@ -696,19 +696,15 @@ public sealed class DeviceSession : IAsyncDisposable
         await _truCheckSettingsGate.WaitAsync(ct);
         try
         {
-            string? applicationStandard = await TryReadTruCheckSettingAsync(
-                DmccCommand.GetApplicationStandard, MapApplicationStandard, ct);
-            string? dataFormatCheck = await TryReadTruCheckSettingAsync(
-                DmccCommand.GetCustomDataParsingStandard, MapDataFormatCheckSetting, ct);
-            string? apertureSetting = await TryReadTruCheckSettingAsync(
-                DmccCommand.GetAperture, MapApertureSettingMode, ct);
+            var applicationStandard = await TryReadTruCheckSettingAsync(
+                DmccCommand.GetApplicationStandard, ct);
+            var dataFormatCheck = await TryReadTruCheckSettingAsync(
+                DmccCommand.GetCustomDataParsingStandard, ct);
+            var apertureSetting = await TryReadTruCheckSettingAsync(
+                DmccCommand.GetAperture, ct);
 
-            return record with
-            {
-                ApplicationStandardSetting = applicationStandard,
-                DataFormatCheckSetting     = dataFormatCheck,
-                ApertureSettingMode        = apertureSetting,
-            };
+            return TruCheckSettingsSnapshot.Apply(
+                record, applicationStandard, dataFormatCheck, apertureSetting);
         }
         finally
         {
@@ -716,62 +712,26 @@ public sealed class DeviceSession : IAsyncDisposable
         }
     }
 
-    private async Task<string?> TryReadTruCheckSettingAsync(
+    private async Task<DmccResponse> TryReadTruCheckSettingAsync(
         string command,
-        Func<string?, string?> displayMapper,
         CancellationToken ct)
     {
         try
         {
             var response = await _client.SendAsync(command, ct);
-            string? display = response.StatusCode == DmccStatus.Ok
-                ? displayMapper(response.Body)
-                : null;
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-DMCC] post-result {command}: code={response.StatusCode} " +
-                $"value='{response.Body}' display='{display ?? "unavailable"}'");
-            return display;
+                $"value='{response.Body}'");
+            return response;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-DMCC] post-result {command} non-fatal: " +
                 $"{ex.GetType().Name}: {ex.Message}");
-            return null;
+            return DmccResponse.Parse(string.Empty);
         }
     }
-
-    private static string? MapApplicationStandard(string? rawValue)
-        => rawValue?.Trim() switch
-        {
-            "0" => "GS1",
-            "1" => "HIBCC",
-            "2" => "UDI (GS1 or HIBCC)",
-            "3" => "UID (MIL-STD-130)",
-            "4" => "Custom",
-            "5" => "Auto",
-            "6" => "Cryptocode",
-            _   => null,
-        };
-
-    private static string? MapDataFormatCheckSetting(string? rawValue)
-        => rawValue?.Trim() switch
-        {
-            "0" => "None",
-            "1" => "GS1",
-            "2" => "HIBCC",
-            "3" => "ISO 15434",
-            _   => null,
-        };
-
-    private static string? MapApertureSettingMode(string? rawValue)
-        => rawValue?.Trim() switch
-        {
-            "0" => "User Set",
-            "1" => "Auto 50%",
-            "2" => "Auto Aperture",
-            _   => null,
-        };
 
     private static DateTime? ParseCalibrationDate(string? raw)
     {
