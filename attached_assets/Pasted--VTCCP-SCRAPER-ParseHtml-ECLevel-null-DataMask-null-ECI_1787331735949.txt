@@ -1,0 +1,186 @@
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=Black on white DataCW=18 ECBudget=14 EncodedChars=30 MultiMode=false
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=Black on white DataCW=18 ECBudget=14 EncodedChars=30 MultiMode=false
+[VTCCP-SCRAPER] Parsed '_F1_01006961147042882172803282009_2026-08-18_22-54-34-098.html': ok=True, dt=22:54:34
+[VTCCP-SCRAPER] Parsed '_F1_01006961147042882172803282009_2026-08-18_22-38-48-260.html': ok=True, dt=22:38:48
+[VTCCP-SCRAPER] Parsed '_F1_01006961147042882172803282010_2026-08-18_23-22-13-467.html': ok=True, dt=23:22:13
+[VTCCP-SCRAPER] Parsed '_F1_01006961147042882172803282010_2026-08-18_23-32-01-740.html': ok=True, dt=23:32:01
+[VTCCP-SCRAPER] Parsed '_F1_01006961147042882172803282010_2026-08-21_11-49-21-986.html': ok=True, dt=11:49:21
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=Black on white DataCW=18 ECBudget=14 EncodedChars=30 MultiMode=false
+[VTCCP-SCRAPER] Parsed '_F1_01006961147042882172803282010_2026-08-18_23-28-23-429.html': ok=True, dt=23:28:23
+[VTCCP-SCRAPER] DFC: 6 rows, Pass
+[VTCCP-SCRAPER] Grade row: std=ISO 15415:2024 grade=4.0 (A) ap=16 wl=660 light=45Q formal=4.0/16/660/45Q
+[VTCCP-SCRAPER] DFC: not found
+[VTCCP-SCRAPER] Grade row: std=ISO 15415:2024 grade=4.0 (A) ap=16 wl=660 light=45Q formal=4.0/16/660/45Q
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=Black on white DataCW=18 ECBudget=14 EncodedChars=30 MultiMode=false
+[VTCCP-SCRAPER] Parsed '_F1_01006961147042882172803282010_2026-08-18_23-12-15-245.html': ok=True, dt=23:12:15
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=Black on white DataCW=18 ECBudget=14 EncodedChars=30 MultiMode=false
+[VTCCP-SCRAPER] Parsed '_F1_01006961147042882172803282010_2026-08-21_11-41-28-242.html': ok=True, dt=11:41:28
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-SCRAPER] DFC: 1 rows, Fail
+[VTCCP-SCRAPER] Grade row: std=ISO 15415:2024 grade=4.0 (A) ap=08 wl=660 light=45Q formal=4.0/08/660/45Q
+[VTCCP-SCRAPER] ParseHtml: ECLevel=M DataMask=2 ECI=000003 Polarity=Black on white DataCW=64 ECBudget=18 EncodedChars=55 MultiMode=false
+[VTCCP-SCRAPER] Parsed 'https___srk.my2dir.com_01_00696114704318_21_72803288707_2026-08-18_23-45-29-189.html': ok=True, dt=23:45:29
+[VTCCP-HTTP-SUB] Subscribed to 10.10.10.4:44444/events. Receive loop starting.
+[VTCCP-SCRAPER] DFC: not found
+[VTCCP-SCRAPER] Grade row: std=ISO 15415:2024 grade=4.0 (A) ap=08 wl=660 light=45Q formal=4.0/08/660/45Q
+[VTCCP-SCRAPER] DFC: not found
+[VTCCP-SCRAPER] Grade row: std=ISO 15415:2024 grade=4.0 (A) ap=08 wl=660 light=45Q formal=4.0/08/660/45Q
+[VTCCP-SESSION] HTTP subscriber started on 10.10.10.4:44444.
+[VTCCP-SCRAPER] ParseHtml: ECLevel=M DataMask=2 ECI=000003 Polarity=Black on white DataCW=64 ECBudget=18 EncodedChars=55 MultiMode=false
+[VTCCP-SCRAPER] Parsed 'https___srk.my2dir.com_01_00696114704318_21_72803288707_2026-08-19_00-11-53-194.html': ok=True, dt=00:11:53
+[VTCCP-SCRAPER] ParseHtml: ECLevel=M DataMask=2 ECI=000003 Polarity=Black on white DataCW=64 ECBudget=18 EncodedChars=55 MultiMode=false
+[VTCCP-SCRAPER] Parsed 'https___srk.my2dir.com_01_00696114704318_21_72803288707_2026-08-18_23-54-30-095.html': ok=True, dt=23:54:30
+[VTCCP-SCRAPER] DFC: not found
+[VTCCP-SCRAPER] Grade row: std=ISO 15415:2024 grade=4.0 (A) ap=08 wl=660 light=45Q formal=4.0/08/660/45Q
+[VTCCP-SCRAPER] ParseHtml: ECLevel=M DataMask=2 ECI=000003 Polarity=Black on white DataCW=64 ECBudget=18 EncodedChars=55 MultiMode=false
+[VTCCP-SCRAPER] Parsed 'https___srk.my2dir.com_01_00696114704318_21_72803288707_2026-08-18_23-59-46-775.html': ok=True, dt=23:59:46
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7373 B)
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Linq.Expressions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Xml.XDocument.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\Microsoft.CSharp.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Private.Xml.Linq.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-SCRAPER] DFC: 1 rows, Fail
+[VTCCP-SCRAPER] Grade row: std=ISO 15415:2024 grade=4.0 (A) ap=08 wl=660 light=45Q formal=4.0/08/660/45Q
+[VTCCP-SCRAPER] DFC: not found
+[VTCCP-SCRAPER] Grade row: std=ISO 15415:2024 grade=4.0 (A) ap=08 wl=660 light=45Q formal=4.0/08/660/45Q
+[VTCCP-SCRAPER] ParseHtml: ECLevel=M DataMask=2 ECI=000003 Polarity=Black on white DataCW=64 ECBudget=18 EncodedChars=55 MultiMode=false
+[VTCCP-SCRAPER] Parsed 'https___srk.my2dir.com_01_00696114704318_21_72803288707_2026-08-21_12-37-51-179.html': ok=True, dt=12:37:51
+[VTCCP-SCRAPER] ParseHtml: ECLevel=M DataMask=2 ECI=000003 Polarity=Black on white DataCW=64 ECBudget=18 EncodedChars=55 MultiMode=false
+[VTCCP-SCRAPER] Parsed 'https___srk.my2dir.com_01_00696114704318_21_72803288707_2026-08-18_23-49-20-158.html': ok=True, dt=23:49:20
+[VTCCP-SCRAPER] DFC: 6 rows, Pass
+[VTCCP-SCRAPER] DFC: 6 rows, Pass
+[VTCCP-SCRAPER] Grade row: std=ISO 15415:2024 grade=4.0 (A) ap=16 wl=660 light=45Q formal=4.0/16/660/45Q
+[VTCCP-SCRAPER] Grade row: std=ISO 15415:2024 grade=4.0 (A) ap=16 wl=660 light=45Q formal=4.0/16/660/45Q
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=Black on white DataCW=18 ECBudget=14 EncodedChars=30 MultiMode=false
+[VTCCP-SCRAPER] ParseHtml: ECLevel=null DataMask=null ECI=null Polarity=Black on white DataCW=18 ECBudget=14 EncodedChars=30 MultiMode=false
+[VTCCP-SCRAPER] Parsed '_F1_01006961147042882172803282010_2026-08-21_11-51-19-801.html': ok=True, dt=11:51:19
+[VTCCP-SCRAPER] Parsed '_F1_01006961147042882172803282010_2026-08-21_12-35-23-681.html': ok=True, dt=12:35:23
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'Anonymously Hosted DynamicMethods Assembly'. 
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7373 B)
+[VTCCP-COM] Excel is running but 'CP_with_RFID_2026-08-17_2026-08-21.xlsx' is not open.
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-EXCEL] Adapter: EPPlus (file-based)
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Text.Encoding.CodePages.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.FileExtensions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Configuration.Json.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Physical.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.FileProviders.Abstractions.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.Extensions.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\Microsoft.IO.RecyclableMemoryStream.dll'. 
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Drawing.Primitives.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\EPPlus.Interfaces.dll'. Symbol loading disabled by Include/Exclude setting.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Security.Cryptography.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\AsReaderP3xU.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[AsReaderP35U] DLL success callback: 7
+[AsReaderP35U] DLL success callback: 210
+[AsReaderP35U] DLL success callback: 20
+[RFID-LOCK] 2026-08-21T13:00:40.7818170-04:00 request=0 event=sdk-success-callback code=210 consumedByLockCheck=False
+[RFID-LOCK] 2026-08-21T13:00:40.7818318-04:00 request=0 event=sdk-success-callback code=20 consumedByLockCheck=False
+[RFID-LOCK] 2026-08-21T13:00:40.7818156-04:00 request=0 event=sdk-success-callback code=7 consumedByLockCheck=False
+[AsReaderP35U] DLL success callback: 6
+[RFID-LOCK] 2026-08-21T13:00:40.8055323-04:00 request=0 event=sdk-success-callback code=6 consumedByLockCheck=False
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[AsReaderP35U] DLL success callback: 21
+[RFID-LOCK] 2026-08-21T13:00:40.9733827-04:00 request=0 event=sdk-success-callback code=21 consumedByLockCheck=False
+[AsReaderP35U] DLL success callback: 22
+[RFID-LOCK] 2026-08-21T13:00:41.0890384-04:00 request=0 event=sdk-success-callback code=22 consumedByLockCheck=False
+[AsReaderP35U] DLL success callback: 210
+[RFID-LOCK] 2026-08-21T13:00:41.1515528-04:00 request=0 event=sdk-success-callback code=210 consumedByLockCheck=False
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7373 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[GCP] Loaded 200085 entries from 'C:\dev\vtccp\vtccp\VtccpApp\bin\Debug\net8.0-windows10.0.18362.0\data\gcp-prefix-format-list.xml'; date=2026-05-03.
+[RFID] Coordinator started on COM3.
+'VtccpApp.exe' (CoreCLR: clrhost): Loaded 'C:\Program Files\dotnet\shared\Microsoft.NETCore.App\8.0.11\System.Diagnostics.StackTrace.dll'. Symbol loading disabled by Include/Exclude setting.
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7373 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-SDK] TRIGGER ON sent OK via SDK.
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7373 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7373 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7373 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7373 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-SDK] TRIGGER ON sent OK via SDK.
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7377 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7373 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+[VTCCP-HTTP-SUB] PUT /codes.xml HTTP/1.1 (7373 B)
+[VTCCP-HTTP-SUB] codes.xml origin='monitor' — skipping.
+[VTCCP-HTTP-SUB] PUT /status.xml HTTP/1.1 (4666 B)
+Exception thrown: 'System.OperationCanceledException' in System.Private.CoreLib.dll
+[VTCCP-HTTP-SUB] Receive loop ended.
+[VTCCP-HTTP-SUB] Stopped.
+[VTCCP-SCRAPER] Stopped.
+Exception thrown: 'System.Net.Sockets.SocketException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Writer Thread' (26444) has exited with code 0 (0x0).
+The thread 'DataMan SDK CallbackDispatcher Thread' (27364) has exited with code 0 (0x0).
+Exception thrown: 'System.IO.IOException' in System.Net.Sockets.dll
+The thread 'DataMan SDK Reader Thread' (19512) has exited with code 0 (0x0).
+[VTCCP-SDK] Disconnected.
+[VTCCP-SDK] Disconnected.
+[AsReaderP35U] DLL success callback: 55
+[RFID-LOCK] 2026-08-21T13:00:51.1269014-04:00 request=0 event=sdk-success-callback code=55 consumedByLockCheck=False
+The program '[17060] VtccpApp.exe' has exited with code 0 (0x0).
