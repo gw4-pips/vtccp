@@ -357,6 +357,14 @@ public sealed class VccsHtmlReportGeneratorTests
             ".sum-table th:last-child { border-bottom: 1.5px solid #999; }",
             report,
             StringComparison.Ordinal);
+        Assert.Contains(
+            ".sum-table th.app-settings-hdr {\n    border-left: 1.5px solid #999;\n    border-bottom: 1.5px solid #999;",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".sum-table td.app-settings {\n    border-left: 1.5px solid #aaa;",
+            report,
+            StringComparison.Ordinal);
     }
 
     [Fact]

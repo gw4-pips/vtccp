@@ -145,7 +145,10 @@
   /* Application Standard column divider: intentionally heavier than the
      1px rules between Symbology and Encoded Data. */
   .sum-table th:nth-child(2) { border-right: 1.5px solid #999; }
-  .sum-table th:last-child { border-bottom: 1.5px solid #999; }
+  .sum-table th.app-settings-hdr {
+    border-left: 1.5px solid #999;
+    border-bottom: 1.5px solid #999;
+  }
   .sum-table th:last-child { border-right: none; }
   .sum-table td {
     border-bottom: 1px solid #aaa;
@@ -170,6 +173,9 @@
   .sum-table td.app-settings {
     white-space: nowrap;
     overflow: hidden;
+  }
+  .sum-table td.app-settings {
+    border-left: 1.5px solid #aaa;
   }
   .sum-table th.app-settings-hdr {
     font-size: 7.5pt;
