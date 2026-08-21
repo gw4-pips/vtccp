@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.28";
+    public const string ReportVersion = "v1.5.29";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -193,8 +193,9 @@ public static class VccsHtmlReportGenerator
                                      : "\u2014");
         string apertureSetting = r.ApertureSettingMode ?? "\u2014";
 
-        return $"Application Std. / Data Format Check / Aperture: {H(applicationStandard)}" +
-               $" / {H(dataFormatCheck)} / {H(apertureSetting)}";
+        return "<span class=\"app-settings-label\">Application Std. / Data Format Check / Aperture:</span> " +
+               $"<span class=\"app-settings-values\">{H(applicationStandard)}" +
+               $" / {H(dataFormatCheck)} / {H(apertureSetting)}</span>";
     }
 
     private static string DisplayDataFormatCheckSetting(DataFormatCheckResult? dfc)

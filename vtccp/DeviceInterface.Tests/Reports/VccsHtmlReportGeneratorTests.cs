@@ -335,7 +335,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "Application Std. / Data Format Check / Aperture: Custom / GS1 / User Set",
+            "<span class=\"app-settings-label\">Application Std. / Data Format Check / Aperture:</span> <span class=\"app-settings-values\">Custom / GS1 / User Set</span>",
             report,
             StringComparison.Ordinal);
         Assert.DoesNotContain(
@@ -346,7 +346,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("<col style=\"width:18.7%\">", report, StringComparison.Ordinal);
         Assert.Contains("<col style=\"width:13.6%\">", report, StringComparison.Ordinal);
         Assert.Contains(
-            "<th class=\"app-settings-hdr\">Application Std. / Data Format Check / Aperture: Custom / GS1 / User Set</th>",
+            "<th class=\"app-settings-hdr\"><span class=\"app-settings-label\">Application Std. / Data Format Check / Aperture:</span> <span class=\"app-settings-values\">Custom / GS1 / User Set</span></th>",
             report,
             StringComparison.Ordinal);
         Assert.Contains(
@@ -404,7 +404,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Null(parsed.HtmlApplicationStandard);
         Assert.Equal("GS1 Application Data Format", parsed.ScrapedDataFormatCheck!.Standard);
         Assert.Contains(
-            "<th class=\"app-settings-hdr\">Application Std. / Data Format Check / Aperture: Custom / GS1 / User Set</th>",
+            "<th class=\"app-settings-hdr\"><span class=\"app-settings-label\">Application Std. / Data Format Check / Aperture:</span> <span class=\"app-settings-values\">Custom / GS1 / User Set</span></th>",
             report,
             StringComparison.Ordinal);
     }
@@ -428,7 +428,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "<th class=\"app-settings-hdr\">Application Std. / Data Format Check / Aperture: Custom / None / User Set</th>",
+            "<th class=\"app-settings-hdr\"><span class=\"app-settings-label\">Application Std. / Data Format Check / Aperture:</span> <span class=\"app-settings-values\">Custom / None / User Set</span></th>",
             report,
             StringComparison.Ordinal);
     }
