@@ -2053,6 +2053,16 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 ---
 
+**`2026-08-21 — 20:18`**
+
+**User:** Ran `git status --short` on Windows and found the untracked directory `lib/asreader-p3xu-sdk-1.3.0/`.
+
+**Assistant:** Explained that the directory is a local, untracked AsReader vendor SDK and should be preserved for hardware builds. Confirmed that `git reset --hard` does not remove untracked files, while `git clean -fd` must not be run. Continued guidance will use the backup branch, fetch, version check, and reset sequence.
+
+**Assistant:** Confirmed the SDK folder should remain unstaged and undeleted, and instructed the user to create `backup-windows-before-replit-sync` as the next safe step before fetching or aligning the Windows branch.
+
+---
+
 **`2026-08-21 — 19:58`**
 
 **User:** Ran the Windows Git commands and showed that `origin/main` is up to date locally but still contains `<Version>1.5.53</Version>`. Asked whether `1.5.54` was expected.
