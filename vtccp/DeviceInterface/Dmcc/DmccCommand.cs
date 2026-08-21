@@ -62,6 +62,24 @@ public static class DmccCommand
     /// </summary>
     public const string GetFeatureKeys    = "GET DEVICE.FEATURE-KEYS";
 
+    // ── Monitor mode (TC Live) ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Enables or disables monitor mode — the "Go Live" / TC Live feed in DMST.
+    /// SET/GET bool [ON|OFF]. ALL platforms. Version: 6.0.1.
+    ///
+    /// DMST internally uses an HTTP REST call (GET /monitormode?enable=true/false
+    /// on port 44444) rather than this raw DMCC command, but the DMCC form on
+    /// port 23 is the reliable path for VTCCP since port 44444 requires the SDK
+    /// handshake first.
+    ///
+    /// Send SetMonitorModeOff before TRIGGER ON to ensure TC Live does not block
+    /// the software trigger.  Fire-and-forget — non-fatal if rejected.
+    /// </summary>
+    public const string GetMonitorModeEnable  = "GET MONITOR-MODE.ENABLE";
+    public const string SetMonitorModeOn      = "SET MONITOR-MODE.ENABLE ON";
+    public const string SetMonitorModeOff     = "SET MONITOR-MODE.ENABLE OFF";
+
     // ── Camera / image ────────────────────────────────────────────────────────
 
     /// <summary>

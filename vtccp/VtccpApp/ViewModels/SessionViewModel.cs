@@ -893,17 +893,27 @@ public sealed class SessionViewModel : ViewModelBase
 
         // ── TC Live cancel ────────────────────────────────────────────────────────
         // DMST's TC panel "Go Live" mode (monitor mode) blocks software triggers.
-        // Wireshark-confirmed (2026-06-24): DMST uses HTTP REST, not DMCC, to control
-        // it: GET /monitormode?enable=false on port 44444 → 204 No Content.
-        // Fire-and-forget with a 500 ms deadline — non-fatal if the device is not in
-        // live mode or if the request fails for any reason.
+        // Send SET MONITOR-MODE.ENABLE OFF via raw DMCC port 23 — same port as
+        // TRIGGER ON, no SDK handshake required.
+        // Fire-and-forget, 800 ms total deadline — non-fatal if rejected or timed out.
         // To disable this step: comment out the try block below.
         try
         {
-            using var liveCts = new System.Threading.CancellationTokenSource(500);
-            using var http    = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromMilliseconds(500) };
-            await http.GetAsync($"http://{cfg.Host}:44444/monitormode?enable=false", liveCts.Token);
-            System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] TC Live cancel sent (monitormode?enable=false).");
+            using var monCts = new System.Threading.CancellationTokenSource(800);
+            using var monTcp = new System.Net.Sockets.TcpClient();
+            await monTcp.ConnectAsync(cfg.Host, DmccRawPort, monCts.Token);
+            var monStream = monTcp.GetStream();
+            try
+            {
+                using var bannerCts = new System.Threading.CancellationTokenSource(200);
+                await monStream.ReadAsync(new byte[512], bannerCts.Token);
+            }
+            catch { }
+            await monStream.WriteAsync(
+                System.Text.Encoding.ASCII.GetBytes(
+                    $"{DeviceInterface.Dmcc.DmccCommand.WireHeader}{DeviceInterface.Dmcc.DmccCommand.SetMonitorModeOff}\r\n"),
+                monCts.Token);
+            System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] SET MONITOR-MODE.ENABLE OFF sent.");
         }
         catch (Exception ex)
         {
