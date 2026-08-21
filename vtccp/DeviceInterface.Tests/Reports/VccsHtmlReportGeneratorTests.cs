@@ -516,10 +516,12 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "Data Format Check (DFC) &#x2014; No verifier DFC selected; using VeriWedge GS1 Digital Link algorithm (v 1.4.0)",
+            "Data Format Check (DFC) &#x2014; GS1 Digital Link",
             report,
             StringComparison.Ordinal);
         Assert.Contains("(01)09506000134352(21)72803288707", report, StringComparison.Ordinal);
+        Assert.Contains("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
+        Assert.Contains("VeriWedge GS1 Parser (v. 1.4.0)", report, StringComparison.Ordinal);
         Assert.DoesNotContain("<th>Source</th>", report, StringComparison.Ordinal);
         Assert.DoesNotContain("VCCS / GS1 Digital Link syntax validation", report,
             StringComparison.Ordinal);
@@ -563,15 +565,21 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "Data Format Check (DFC) &#x2014; GS1 Element String from verifier &amp; using VeriWedge GS1 Element String algorithm (v 1.4.0)",
+            "Data Format Check (DFC) &#x2014; GS1 Element String",
             report,
             StringComparison.Ordinal);
         Assert.Contains("<table class=\"dfc-dual-table\">", report, StringComparison.Ordinal);
+        Assert.Contains("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
+        Assert.Contains("VeriWedge GS1 Parser (v. 1.4.0)", report, StringComparison.Ordinal);
         Assert.Contains("AI (10) LOT", report, StringComparison.Ordinal);
         Assert.Contains("AI (17) EXP", report, StringComparison.Ordinal);
         Assert.Contains("AI (21) SN", report, StringComparison.Ordinal);
         Assert.Contains("AI (20) VARIANT", report, StringComparison.Ordinal);
         Assert.Contains("OVERALL: PASS", report, StringComparison.Ordinal);
+        Assert.Contains("<td colspan=\"3\" class=\"dual-overall-cell\">", report,
+            StringComparison.Ordinal);
+        Assert.Contains("<td colspan=\"2\" class=\"dual-overall-cell\">", report,
+            StringComparison.Ordinal);
         Assert.Contains("break-inside: avoid", report, StringComparison.Ordinal);
         Assert.Contains("page-break-inside: avoid", report, StringComparison.Ordinal);
         Assert.DoesNotContain("<th>Source</th>", report, StringComparison.Ordinal);
@@ -687,7 +695,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            "<span class=\"trucheck-header-title\">TruCheck Barcode Verification Grades</span>",
+            "<span class=\"trucheck-header-title\">TruCheck Barcode Verification Grades </span><span class=\"sec-note\">&#x2014;",
             report,
             StringComparison.Ordinal);
         Assert.Contains(
