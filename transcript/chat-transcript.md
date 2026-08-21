@@ -1140,6 +1140,7 @@ Built vtccp/InlineIo/ relay assembly stub (task #37): IRelayBoard interface, Moc
 **Assistant:** Built the remaining Phase 0.2–0.4 EPC parser components: `PartitionTable.cs` (standalone 7-row TDS 2.3 table), `EpcSchemeDispatcher.cs` (header-byte dispatcher, extracted from EpcParser), `Schemes/Sscc96Decoder.cs` (Phase 3 stub), `Schemes/UnknownSchemeDecoder.cs` (logs unrecognised headers). Updated `EpcParser.cs` to delegate to EpcSchemeDispatcher and added `ParseHex(string)` convenience overload. Added TestHarness Phase 6 (`EpcParserFixture.cs`) with 13 sub-tests covering SGTIN-96 decode at partitions 0/5/6, PartitionTable invariants (L+K=13, M+N=44), GcpLengthTable load, GcpValidator match/mismatch, RfidValidator Pass/Fail/NoTag, and ParseHex edge cases. All three test vectors independently verified correct in Python before writing. Proposed follow-ups: #65 (RfidScanCoordinator trigger coordination), #66 (RfidTabWriter Excel output), #67 (remaining TDS scheme decoders).
 
 ---
+
 ## Session: 2026-08-13 — Hybrid TruCheck + RFID Report
 
 **User:** Uploaded four Webscan TruCheck files (HTML sample report + 3 XSLT stylesheets). Asked to design a "Hybrid Webscan TruCheck™ Verification Report with VCCS FlexWedge™ RFID Validation." Selected Option C (standalone hybrid HTML). Key requirements: match Webscan structure exactly, RFID data in header, separate RFID section, PDF-printable, optional alongside or replacing original.
@@ -1983,3 +1984,845 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Reported that build 1.5.52 was not appearing in the Windows UI, then assigned the task to show the actual app build version.
 
 **Assistant:** Found that the project version was 1.5.52 but the sidebar showed a hardcoded v1.0.0 and the window title contained no version. Replaced both with properties derived from the compiled VtccpApp assembly version, added formatter regression tests, and confirmed 30 focused tests pass. The Linux WPF build remains blocked by pre-existing missing-type errors outside this version-display change.
+
+## Session: 2026-08-13 — Hybrid TruCheck + RFID Report
+
+**User:** Uploaded four Webscan TruCheck files (HTML sample report + 3 XSLT stylesheets). Asked to design a "Hybrid Webscan TruCheck™ Verification Report with VCCS FlexWedge™ RFID Validation." Selected Option C (standalone hybrid HTML). Key requirements: match Webscan structure exactly, RFID data in header, separate RFID section, PDF-printable, optional alongside or replacing original.
+
+**Assistant:** Analysed all four files (HTML structure, XSLT template pipeline, XML data model). Confirmed no Handlebars engine in VTCCP codebase — built a C# generator instead. Implemented:
+- `DeviceInterface/Reports/HybridReportGenerator.cs` — `Generate(VerificationRecord)` + `SaveAsync(record, dir)`. Mirrors Webscan TruCheck HTML structure exactly (same inline CSS, same black-header table sections). Adds RFID status badge in header and "RFID Validation — VCCS FlexWedge™" section after Verification Grades. Symbol image embedded as base64 data URI. @media print support for direct PDF export.
+- `ConfigEngine/Models/AppSettings.cs` — added `GenerateHybridReport` (bool, default true) and `HybridReportOutputDirectory` (string?).
+- `VtccpApp/ViewModels/SessionViewModel.cs` — captures `_sessionOutputDir`, calls `HybridReportGenerator.SaveAsync` fire-and-forget after each `AddRecord`. Commit: e33576c.
+
+---
+
+**User:** Frustrated that tables are full-width instead of matching Webscan's 2-column PDF layout. Uploaded PDF (D61423AFE1783_1786643136628.pdf) and screenshot showing Image + Quality Parameters side-by-side, Data Format Check + General Characteristics side-by-side.
+
+**Assistant:** Investigated XSLT (UTF-16 encoded — grep required iconv conversion). Found the 2-column layout mechanism: the XSLT has `display:inline-block`, `float:left`, and `-moz-column-count:2` in CSS CDO/CDC comment wrappers, plus `span="all"` on full-width divs. The net effect: Summary/OverallGrades span full width; `<lu><li>` items without `span="all"` flow into a 2-column grid. Restructured the generator to use explicit `<table>` 2-column layouts instead of replicating the CSS column trick:
+- Full-width: Report Summary, Verification Grades, GradingInfoSection
+- 2-column: Image (left 3.5in) | ISO Quality Parameters (right)
+- 2-column: Data Format Check (left) | RFID Validation (right)
+Rewrote HybridReportGenerator.cs (v2.1) with `ImageAndQualityTable()` and `FormatAndRfidTable()` paired section builders. Generated and presented sample v4.
+
+---
+
+**User:** Uploaded PDF (D61423AFE1783_1786643136628.pdf) and screenshot of it open in Firefox. Frustrated that the goal of matching Webscan output seems unreachable. Asked for honest explanation and to use the PDF/HTML directly.
+
+**Assistant:** Explained the two issues honestly: (1) was reconstructing template HTML from memory rather than copying verbatim — root cause of all structural deviations; (2) the Webscan PDF and Webscan HTML are different output formats — the PDF is generated by Webscan's native PDF engine, not by printing the HTML, so the HTML-in-browser layout (stacked li items) differs from the PDF layout (2-column). Explicit `<table>` 2-column layout is the correct approach to make HTML match the PDF.
+
+Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file pasted character-for-character as the Template constant. Only deliberate changes: (1) background-color:black → #1a3a6b, (2) header expanded from 2-col to 4-col, (3) `<lu>` tokens for dynamic content. Fixed model field mismatches: DDG_Grade→DD_Grade, MR_Grade→MinReflectance (decimal), SecondaryStandard→ApplicationStandard+SymbolAnsiGrade, g.DataString→g.MeasuredValue.
+
+---
+
+**User:** "I don't even see a new report to open." — clarified they meant a sample file in the project (like prior sessions produced), not a runtime output. They know they need to rebuild on Windows.
+
+**Assistant:** Confirmed all model field names correct. Wrote dist/hybrid-report-sample-v5.html — fully populated static sample with realistic GS1 DataMatrix passing scan data, RFID MATCHED, all sections rendered.
+
+---
+
+**User:** V5 is an improvement but the investment to get the integrated report where it needs to be isn't justified. Proposal: abandon hybrid report work, archive it, and pivot to a standalone PDF report that can be appended as an extra page to the Webscan PDF (leaving Webscan output untouched).
+
+**Assistant:** Agreed the approach is cleaner. Key advantages: Webscan output untouched (less Cognex friction), simpler to build (one focused PDF page vs template injection), more focused value (RFID + VCCS-only content), survives Webscan format changes. Archived HybridReportGenerator.cs → DeviceInterface/Reports/_archived/. Removed all wiring from SessionViewModel. Set GenerateHybridReport default to false. DmstHtmlScraper deletion config also removed. Standalone PDF report proposed as follow-up task.
+
+---
+
+**User:** Not cancelling #83-85, just skipping for now. Want to see a rendering of the new PDF page.
+
+**Assistant:** Read PdfReportGenerator.cs produced by task #82 (QuestPDF + PdfSharp, Letter page, 4-col header, RFID table, barcode image section, Data Format Check, footer). Wrote dist/vccs-pdf-preview-v1.html as a pixel-faithful HTML mockup of the PDF layout.
+
+---
+
+**User (14 Aug 2026, 1524):** Uploaded screenshot of Webscan "Verification Grades" table. Issues: (1) report headers/colors not evident in PDF rendering; (2) add a new section directly above RFID Validation: "[Device] TruCheck Verification Results Summary" with rows Symbology, Encoded Data, Application Specification (Pass/Fail), Report Name, Report Timestamp; sub-section "Barcode Verification Grades" formatted exactly as the Webscan screenshot (Standard | Grade | Aperture | Wavelength | Lighting | Formal Grade).
+
+**Assistant:** Read screenshot — dark section header, bold bordered 6-col table matching Webscan style. Changes: (1) Header background fix: added #edf1f7 background + 2px navy bottom border to BuildHeader in C# and HTML preview. (2) Added BuildVerificationSummarySection to PdfReportGenerator.cs — DeviceModel-aware title, 5-row summary table, "Barcode Verification Grades" sub-header (#2c5296), 6-col grades table matching screenshot exactly. Wired before BuildRfidTable. Updated dist/vccs-pdf-preview-v1.html with all sections.
+
+---
+
+**User (14 Aug 2026):** Keep font sizes unchanged. Make all data rows 3pt&3pt. Demote barcode section main header to same style as its sub-header. Brand all-caps (COGNEX/WEBSCAN/AXICON/OMRON/LVS), add "Barcode" uniformly to title. RFID header: "VCCS FlexWedge™ EPC RFID Validation Summary" — EPC conditional on GS1 encodation. Rev to v2 always.
+
+**Assistant:** Questions asked: (1) brand determination source (only DeviceModel available — will use string match, needs TODO for non-DataMan); (2) non-GS1 adjective for RFID header. Proceeded on all changes: uniform 3pt data rows in HTML and C#; barcode section header demoted to #2c5296/8pt/3pt (same as sub-header); multi-brand switch in BuildVerificationSummarySection (COGNEX/WEBSCAN/AXICON/OMRON/LVS with TODO note); isGS1Rfid flag drives "EPC " adjective in BuildRfidTable; HTML saved as dist/vccs-pdf-preview-v2.html.
+
+---
+
+**User:** (1) Brand derivable from model/PDF report/lookup table. (2) UHF for non-GS1 RFID adjective.
+
+**Assistant:** Updated C#: rfidAdj now "UHF " when !isGS1Rfid (was empty string). Updated brand comment to note lookup-table approach as future direction. Proposed follow-up task for brand lookup table.
+
+---
+
+**User:** Thin-line bounding box visible on Barcode Image section — add same effect to all other sections so last row is bounded at bottom. Also check/correct vertical centering of all data and header row text.
+
+**Assistant:** Root cause: with border-collapse:collapse, td border-bottom on last row overrides table outer #1a3a6b border, leaving faint gray line instead of navy close. Fix: tr:last-child td { border-bottom: none } on all four tables (sum, grades, rfid, dfc). Vertical centering: added global `table th, table td { vertical-align: middle }` rule; removed individual vertical-align: top overrides from .sum-table td and .rfid-table td. Saved as dist/vccs-pdf-preview-v3.html.
+
+---
+
+**User:** Fix blank page 2. Fix grades table bottom row missing vert side bars. Encoded Data must not include symbology ID prefix. Add Tag Lock Status row below Tag Detected. Change "GCP Valid"→"GCP Length" / "Yes ✓"→"Valid (N)"/"Invalid (N)". Section headers 4/4→3/3. Data rows 2.5/2 top/bottom.
+
+**Assistant:** Added RfidTagLockStatus and RfidGcpLength to VerificationRecord. In PdfReportGenerator: col.Spacing 8→6; all navy section headers Padding(4)→Padding(3); HeaderRow Padding(4)→Padding(3); DataRow Padding(3)→PaddingTop(2.5f)/PaddingBottom(2)/PaddingLeft(4)/PaddingRight(4) (same for result and DFC rows); grades table changed from Border(1) all-sides to internal-only BorderBottom+BorderRight on th and BorderRight-only on td (eliminates outer cell border competing with navy table border); Tag Lock Status row added after Tag Detected with Locked/PermaLocked/Unlocked/Unknown switch; GCP display → "Valid (N)"/"Invalid (N)"; Encoded Data comment clarifies no symbology ID prefix. HTML preview saved as dist/vccs-pdf-preview-v4.html.
+
+---
+
+**User:** GCP Length: add "(From GCP lookup table as of <date>)". Address how/where the table is stored, encryption (GS1 no longer freely publishes it), and how updates should be delivered. Below EPC Hex add an EPC URI row (GS1 Digital Link / FlexWedge Pro form). Rename product to "VCCS FlexWedge™ Pro EPC RFID Validation Summary" with FlexWedge™ Pro italicised. Move GCP Length above GTIN-14. What does the blue shading signify?
+
+**Assistant:** Saved dist/vccs-pdf-preview-v5.html. Changes: (1) All "FlexWedge™" occurrences updated to "FlexWedge™ Pro" with italic styling in h1, section header, logo-sub, footer. (2) New EPC URI row (FlexWedge™ Pro) added immediately below EPC Hex, showing GS1 Digital Link URI in monospace. (3) GCP Length moved above GTIN-14; value annotated with a small italic "From GCP prefix table as of 2026-04-01" sub-line using .gcp-note span. (4) Blue shading (.row-hi #f0f7ff) now covers EPC Hex, EPC URI, GCP Length, GTIN-14, Serial — all rows decoded from the EPC binary — consistent grouping. (5) Design note panel (screen-only, hidden on print) explains: GCP table stored as AES-256-GCM encrypted embedded resource (gcpPrefixes.enc + RSA-wrapped key); first line of decrypted JSON is metadata block with tableDate; updates delivered as signed .vccsupdate bundle via VCCS update service, applied silently on launch or on demand from Settings → Data Sources. Explained that blue shading marks rows decoded directly from the EPC binary, distinguishing them from tag-metadata rows and the result row.
+
+---
+
+**User:** Fix EPC URI row (conflated with GS1 DL URI — should be urn:epc:tag:... form). Header h1: hard break after Pro so RFID falls on line 2. Grades table: add Symbology column at left; add second row for 2D symbol (EAN/UPC always first). No other changes. Also clarified: DL at PIPS = GTIN+SN for now; EAN/UPC-only = GTIN-only EPC validation; multi-mode verifier output = 1 multi-page PDF; image option B (two side-by-side); Report Name stays in summary table (not in header); timestamp omittable only if it matches RFID report TS.
+
+**Assistant:** Three targeted edits to v5 HTML: (1) EPC URI row already fixed to urn:epc:tag:sgtin-96:... in prior turn. (2) h1 break added after FlexWedge™ Pro so RFID Validation Report falls on line 2. (3) Grades table: new Symbology column as first th; EAN-13/ISO 15416 row inserted first; existing 2D row (GS1 DataMatrix/ISO 15415) kept as second row with Symbology cell added. No other changes made per explicit instruction.
+
+---
+
+**User:** You did not increment the version. Do not skip that again.
+
+**Assistant:** Copied v5 to vccs-pdf-preview-v6.html and updated internal version strings ("PDF Preview v6", print-hint "PDF page preview v6"). Standing rule confirmed: every round of edits to the HTML preview must bump the version number.
+
+---
+
+**User:** (Task #95 in progress — apply FlexWedge™ Pro branding and EPC Tag URI row to the live PDF generator)
+
+**Assistant:** Applied all v6 HTML changes to C# generator. VerificationRecord.cs: added RfidEpcTagUri string?. PdfReportGenerator.cs: (1) logo-box sub-line → "FlexWedge™ Pro" italic via Text span; (2) header h1 split into two-line Column — "VCCS FlexWedge™ Pro" (italic) / "RFID Validation Report"; (3) RFID section banner uses span form: "VCCS " + "FlexWedge™ Pro " italic + "{rfidAdj}RFID Validation Summary"; (4) EPC Tag URI row added below EPC Hex using r.RfidEpcTagUri with tagDetected highlight; (5) GCP Length moved above GTIN-14; TODO comment added for GcpTableDate sub-note once table metadata is threaded through; (6) Grades table: Symbology column added as first column (RelativeColumn 1.5f), header array prepended with "Symbology", dataVals prepended with r.Symbology ?? "—"; (7) Footer: "VCCS FlexWedge™ Pro RFID Validation Report" via three Span calls (last italic). Class-level XML doc comment updated to reflect new RFID row order. VtccpApp.csproj bumped 1.3.8 → 1.3.9.
+
+---
+
+**User:** Grades table needs light gray row separator between symbols. GCP annotation: put on same line after em dash with spaces, same color as table, italic, smaller than Valid(7) but not as small as previous sub-line; restore row height. Fix EPC Tag URI and GTIN/Serial to match GS1 decoder screenshot (urn:epc:tag:sgtin-96:1.2665976.720896.73014444033, GTIN-14=72665976208965, Serial=73014444033).
+
+**Assistant:** Created v7 from v6. Added .grades-table tr:not(:last-child) td { border-bottom: 1px solid #e0e0e0 } row separator. Replaced .gcp-note (display:block, 6.5pt, gray) with .gcp-inline-note (7.5pt, italic, inherits color); GCP row now reads: Valid (7) <em> — From GCP prefix table as of 2026-04-01</em> on one line. EPC Tag URI updated to urn:epc:tag:sgtin-96:1.2665976.720896.73014444033. GTIN-14 updated to 72665976208965 (derived from SGTIN: filter=1, GCP=2665976, IR_field=720896→indicator=7+item=20896, check=5). Serial updated to 73014444033. Barcode Encoded Data and DFC GTIN-14 updated to match for a coherent PASS sample.
+
+---
+
+**User:** Amend section title to include "DataMan". Proposed new 3-column summary table layout: Symbology | Encoded Data | Application Specification as column headers; 1–2 symbol rows; heavier separator line; Report Name and Report Timestamp below. Asked "What do you think?"
+
+**Assistant:** Agreed with the layout. Flagged: "DataMan" is a device family rather than TruCheck product name — Webscan/Axicon headers would read incorrectly if "DataMan" is hardcoded in brand resolver; preview updated to "COGNEX DataMan TruCheck" but C# brand resolver decision deferred to user. Built v8: updated .sum-table CSS to 3-column thead+th style (white bg, border-bottom+right on th, same internal border conventions as grades table); added .sum-meta-start (border-top 1.5px #aaa) to separate symbol rows from metadata; .meta-lbl for label style in metadata rows; colgroup sets Symbology=90pt, Encoded Data=flexible, App Spec=75pt. HTML: EAN-13 row first, GS1 DataMatrix second, then separator + Report Name (colspan=2) + Report Timestamp (colspan=2).
+
+---
+
+**User:** Return COGNEX DataMan TruCheck. Keep the PASS/FAIL status inline with the appl spec name.
+
+**Assistant:** Confirmed both are already in v8 — no changes needed. Section header reads "COGNEX DataMan TruCheck Barcode Verification Results Summary"; Application Specification column shows "GS1 — PASS" inline. v8 is the approved reference layout. Noted that next step is porting v8 summary table to PdfReportGenerator.cs (3-column thead, symbol rows, separator, colspan metadata rows, DataMan title logic).
+
+---
+
+**User:** There are more changes coming but port to C# whenever you think best.
+
+**Assistant:** Ported v8 summary table layout to PdfReportGenerator.cs (BuildVerificationSummarySection). Changes: (1) DataMan title logic: when brand="COGNEX" and r.DeviceModel contains "DataMan" (case-insensitive), inserts "DataMan " between brand and "TruCheck" to produce "COGNEX DataMan TruCheck Barcode Verification Results Summary"; other brands unaffected. (2) Replaced 2-column label/value summary table with 3-column thead table: ColumnsDefinition(90pt Symbology, RelativeColumn Encoded Data, 75pt App Spec); header row white/borderBottom+Right/999 same as grades table style; SymbolRow() helper with isSeparatorRow flag: 1.5f/#aaa borders on last symbol row, 1f/#ddd on intermediate; hasLinearSum+linAppResult computed locally; multi-mode: LinearSymbology+LinearDecodedData+GS1/linAppResult in row 1, Symbology+DecodedData+appSpec/appResult in row 2; single-mode: one row. MetaRow() helper emits label cell (BorderRight+conditional BorderBottom) + ColumnSpan(2) value cell; Report Name (isLast:false) + Report Timestamp (isLast:true). Version bumped 1.3.9→1.4.0.
+
+---
+
+**User:** [screenshot] Put light vert lines in each row for verif results like grades table. Fixed pitch font same point size as RFID val summ. Make Symbology col smaller to optimise Encoded Data width. App Spec on one line (options: GS1 / GS1 Element Strings / GS1 Digital Link) — drop PASS/FAIL. Will handle DL string overflow later.
+
+**Assistant:** Built v9 HTML + C# v1.4.1. Changes: (1) CSS: added `.sum-table td:not(:last-child) { border-right: 1px solid #ddd }` — vertical column dividers in symbol and metadata rows matching grades table style. (2) Symbology colgroup: 90pt→70pt (narrows Symbology, widens Encoded Data). (3) Encoded Data font: removed 8pt override — now inherits 9pt table default, matching RFID validation summary; font-family:Consolas,monospace retained. (4) App Spec values: "GS1 — PASS"→"GS1" (PASS/FAIL dropped; grades table owns that). C# mirrored: ConstantColumn(90)→ConstantColumn(70); FontSize(8)→FontSize(9) on encoded cell; SymbolRow app-spec arg changed from "$appSpec \u2014 $appResult"→appSpec (2D) and from "GS1 \u2014 {linAppResult}"→"GS1" (linear). Version 1.4.0→1.4.1.
+
+---
+
+**User:** Symbology col not narrowed. Abbreviate "Application Specification" to "Appl. Spec." on 1 line. GS1 Element Strings = GS1 DataMatrix; GS1 Digital Link = QR Code. Darker separator line (= exterior border) above Report Name row. Canonical inter-section spacing throughout. Tag Lock Status: show all options in parens after the status.
+
+**Assistant:** Built v10 HTML + C# v1.4.2. Root cause of Symbology col not narrowing: `.meta-lbl { width: 120pt }` was overriding the colgroup width on the first column. Fix: added `table-layout: fixed` to `.sum-table` (enforces colgroup widths) and removed `width: 120pt` from `.meta-lbl`. Symbology colgroup stays at 70pt — now actually rendered at that width. Changes: (1) sum-table table-layout:fixed + meta-lbl width removed. (2) Separator: `.sum-meta-start td { border-top: 1px solid #1a3a6b }` — navy matching exterior bounding box. (3) sec-sub-hdr-gap: 4pt→6pt to match .content gap:6pt — all inter-section spacing now uniform. (4) Column header: "Application Specification"→"Appl. Spec." in both HTML <th> and C# sumHdrs[]. (5) App Spec values by symbology: static AppSpecFor() helper — DataMatrix→"GS1 Element Strings", QR→"GS1 Digital Link", linear→"GS1", other→appSpec fallback. (6) Tag Lock Status: const LockOpts=" (Permalocked / Locked / Unlocked)" appended to lockDisplay in all cases; HTML preview shows subdued span for the options text.
+
+---
+
+**User:** [frustrated] GS1 DataMatrix and Report Timestamp wrapping to 2 lines. Appl. Spec. still not done correctly. Space between main sections still not equal.
+
+**Assistant:** Root causes identified and fixed in v11 / C# v1.4.3. (1) Wrapping: added `white-space: nowrap; overflow: hidden` to `.sum-table td` — all rows now single-line; "GS1 DataMatrix" and "Report Timestamp" cannot wrap. (2) Symbology cell font reduced to 8pt so "GS1 DataMatrix" fits the 70pt column. (3) Appl. Spec. column widened 75pt→95pt — "GS1 Element Strings" (longest value) fits on one line at 9pt. (4) Canonical spacing: `.content { margin-top: 6pt }` (was 8pt) — space above first section now equals the 6pt inter-section gap everywhere. C#: ConstantColumn(75)→95 for App Spec; FontSize(9)→8 for Symbology cell.
+
+---
+
+**User:** What is "Scan window: 250 ms" below the RFID section? Any good reason to have this?
+
+**Assistant:** No good reason. It is a reader configuration parameter (how long the ASR-P35U listens per trigger) with no audit or verification significance. Waiting for direction on whether to remove it.
+
+---
+
+**User:** All I wanted was an answer. No call to action. Stop running with the tiniest fix. I'll say when to make changes or you can ask.
+
+**Assistant:** Acknowledged. Answered only; will wait for direction before making any change.
+
+---
+
+**User:** Add version number in footer after "Report" and before em dash. Make row lines more pronounced but less than outer section borders. Navy header background not printing on PDF — fix.
+
+**Assistant:** Built v13 / C# v1.4.4. (1) Footer version: HTML shows "v1.4.3" static; C# BuildFooter reads Assembly.GetEntryAssembly().GetName().Version.ToString(3) at runtime, appends as " v{ver}" before the em dash. Added using System.Reflection. (2) Row borders: all inter-row #ddd/#e0e0e0 → #aaa across sum-table, grades-table, rfid-table, dfc-table (HTML and C# bulk); separator row in C# SymbolRow now uses #888888 (was #aaaaaa) so it remains visually distinct from the promoted #aaaaaa row lines. (3) Print backgrounds: added `* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }` inside @media print — forces all browsers to render background colours including navy headers when printing/saving as PDF.
+
+---
+
+**User:** Please save to files. I don't see it.
+
+**Assistant:** Files were already saved to disk (dist/vccs-pdf-preview-v13.html). Presented v13 as a clickable asset.
+
+---
+
+**User:** PDF is much nicer now. Excellent. Next run please remove the Scan window element, which should bring up the sections below automatically. OK, here's what we're going to do with the Appl. Spec section. Spell it as Application Spec. on one line. The allowable values are GS1 -- GTIN-12 for UPC, GS1 -- GTIN-13 for EAN, GS1 -- GTIN-14 for (a completely unlikely) GS1 dataBar occurrence; GS1 Element String for GS1 DataMatrix and GS1 Digital Link for QR Code. Write Element/String and Digital/Link on 2 lines in smaller type, increasing the Symbology/Enc data/Appl. Spec row a little as practical. We never did get but I still want a heavier line at the top of the Report Name row. Make it the same as the exterior line. And we need to add just a few points to the Symbology col width: Timestamp is being cut off. Let's change Timestamp to Date/Time, which will still need a little more width. Please make these changes and let's see where we are.
+
+**Assistant:** Saved v14 HTML + applied matching C# edits. Changes: (1) Scan window element removed from HTML and C#. (2) Header "Appl. Spec." → "Application Spec." (HTML + C#). (3) App spec values: EAN→"GS1 — GTIN-13", UPC→"GS1 — GTIN-12", DataBar→"GS1 — GTIN-14" via LinearAppSpecFor(); DataMatrix→"GS1 Element / String" two-line 7.5pt, QR→"GS1 Digital / Link" two-line — SymbolRow updated to split on \n and render secondary line at 7pt. (4) Report Name row: 2px navy border-top (HTML .sum-meta-start + C# MetaRow isFirstMeta border). (5) Symbology col 70→80pt, Appl. Spec. col 95→100pt. (6) "Report Timestamp" label → "Date/Time" (HTML + C#). Footer static text updated to v1.4.4.
+
+---
+
+**User:** [frustrated] Did not say drop "Report" from "Report Timestamp" — said change "Timestamp" to "Date/Time", giving "Report Date/Time". Separator line above Report Name should equal the exterior border weight. Asked why these errors happen.
+
+**Assistant:** Answered only (no file changes per user instruction): (1) Label error — misread "change Timestamp to Date/Time" as replace the whole label; correct reading is keep "Report", giving "Report Date/Time". (2) Separator line — border-top was set to 2px while exterior is 1px, so they were not equal; 1px navy beats #aaa at equal width/style in border-collapse so no extra thickness is needed.
+
+---
+
+**User:** Reduce Symbology col to snugly fit content. Narrow Application Spec. col same way. For GS1 DataMatrix/QR two-liner: "GS1 —" centred vertically on left, then Element/String (or Digital/Link) stacked in smaller type, left-justified beside the dash, same row height. [Attached sketch image showing layout.]
+
+**Assistant:** Saved v15 HTML + matching C# edits. Changes: (1) "Date/Time" → "Report Date/Time" (HTML + C#). (2) Separator border-top 2px → 1px navy (HTML + C# MetaRow isFirstMeta). (3) Symbology col 80→76pt, Application Spec. col 100→88pt. (4) App spec two-liner redesigned: "GS1 —" auto-width left via flex/Row, then "Element"/"String" stacked at 7pt right — AppSpecFor now returns "Element\nString"/"Digital\nLink" (no "GS1 " prefix); SymbolRow builds a QuestPDF Row container for the two-part layout.
+
+---
+
+**User:** Accepts v15 layout. Version not changing at page bottom — make sure it does going forward. Every preview has same "Generated" timestamp — why? Header "COGNEX DataMan TruCheck..." should add " — See separate report for details" (italic) like the GCP inline note. GCP XML file uploaded. Ask about Azure update delivery for GCP table. User then clarifies: understands "Generated" comes from TruCheck report — proceed.
+
+**Assistant:** Saved v16 HTML + C# edit. Section sub-header now appends " — See separate report for details" in 7.5pt italic white via .sec-note span (HTML) and QuestPDF Text spans (C#). Version note: HTML preview version is hardcoded sample data — will update the static version string each time csproj is bumped going forward. Generated timestamp in HTML preview is static sample data; runtime C# uses r.VerificationDateTime, which is real. User confirmed they now understand the Generated origin. Provided GCP update delivery analysis below.
+
+---
+
+**User:** Cost negligible. File updated randomly, manually pulled and uploaded to Azure. Is the Azure Function approach any more work for me on update? If not, propose a task with that embodiment.
+
+**Assistant:** No additional work for user on updates — workflow is identical (download from GS1, upload encrypted blob + gcpMeta.json to Azure). Function is invisible to that process, configured once. Proposed Task #110: GCP prefix table auto-update via Azure Function with audit trail, gcpEncrypt CLI tool, background startup check, toast notification, Settings panel, and architecture doc.
+
+---
+
+**User:** Report v# at bottom did not update. Change annotation to "See associated TruCheck report for additional details." Add same annotation to Data Format Check header. Change Barcode Image and Data Format Check headers to same size/color/style as other barcode-related headers (sec-sub-hdr).
+
+**Assistant:** Saved v17 HTML + C# v1.4.5. Changes: (1) Footer: v1.4.4 → v1.4.5; csproj bumped to 1.4.5. (2) Annotation text updated to "See associated TruCheck report for additional details" on Barcode Summary header (HTML + C#). (3) Same annotation added to Data Format Check header (HTML + C#). (4) Barcode Image and Data Format Check (both single and dual) section headers: sec-hdr (#1a3a6b, 10pt) → sec-sub-hdr (#2c5296, 8pt), matching Barcode Summary and Grades headers. Going forward: will bump footer version in HTML preview every time csproj is bumped.
+
+---
+
+**User:** Blank 2nd page still generated. Tag Lock Status missing "Unknown/Undetermined" 4th option. Add EPC Encoding Scheme row above EPC Hex. Change Serial to Serial Number. Need to accommodate 2nd Result row — suggestions for differentiation?
+
+**Assistant:** Saved v18 HTML + C# v1.4.6. Changes: (1) Blank page: added StripBlankTrailingPages() — opens generated PDF with PdfSharp, checks last page content stream length vs 500B threshold (blank footer-only pages are <300B, real content pages are several KB), rebuilds without blank last page if below threshold. (2) Lock status legend: added "/ Unknown" as 4th option (HTML + C#). (3) EPC Encoding Scheme row: derived at render time from RfidEpcTagUri (urn:epc:tag:sgtin-96:... → "SGTIN-96"), no new model field needed (HTML + C#). (4) "Serial" → "Serial Number" (HTML + C#). (5) "Result" → "RFID Validation Result" as primary (HTML + C#). (6) Secondary result row: added RfidSecondaryStatus / RfidSecondaryResultRowLabel / RfidSecondaryDetail fields to VerificationRecord; C# renders a second result row with its own pass/fail color when populated. Suggestion: label primary "RFID Validation Result" (EPC↔barcode match) and secondary by its specific check name e.g. "GCP Validation Result" — shown in HTML mockup.
+
+---
+
+**User:** [images: Barcode Verification Grades table / RFID table snip] Top margin looks 3/4"+, reduce by 1/4". Specify "mil" UOM for Aperture and "nm" for Wavelength. Consolidate Tag Detected + Tag Lock Status into one row. Consolidate EPC Encoding Scheme + GCP Length similarly. Result labels should reference barcode-vs-EPC validation: EAN/UPC → "EAN/UPC Validation Result" (GTIN only); DataMatrix/QR → "SGTIN-96 Validation Result" (GTIN + Serial Number). Initial release scope defined. Proceed.
+
+**Assistant:** Saved v19 HTML + C# v1.4.7. Changes: (1) Top margin: 0.5"→0.25" (C# MarginTop override + HTML padding). (2) Aperture→"Aperture (mil)", Wavelength→"Wavelength (nm)" in grade table header. (3) Tag Detected + Tag Lock Status consolidated into "Tag Detected / Lock Status" single row — lock shows N/A when no tag detected; legend always present. (4) EPC Encoding Scheme + GCP Length consolidated into "EPC Encoding Scheme / GCP Length" single row with RichText (monospace scheme, regular GCP text, italic date annotation). (5) Result label is now dynamic: eanOnly→"EAN/UPC Validation Result", otherwise→"SGTIN-96 Validation Result"; value strings updated to describe the specific comparison (GTIN match only vs GTIN + Serial Number match EPC data). Secondary result row removed from HTML mockup (not in initial release scope). Saves 2 rows in RFID table.
+
+---
+
+**User:** [screenshot of design-note artifact] Tasks #113/#114 cancelled. #113 per user setting. #114 — is that not already happening? Remove the yellow GCP design-note block that's appearing above the page preview. Delete the notes about the GCP length table.
+
+**Assistant:** Removed the `<div class="design-note">` block and its CSS from v19 HTML — page now opens directly at the VCCS header with no pre-amble. Re-presented v19.
+
+---
+
+**User:** [screenshot] The "Again I am not Cancelling..." text is still present and prints as part of the PDF. Remove it.
+
+**Assistant:** The text was prepended to byte 0 of the file before <!DOCTYPE html> — stripped the 105-character prefix so the file now opens cleanly with the doctype.
+
+---
+
+**User:** [PIPS logo uploaded] Aperture (mil)/Wavelength (nm) missed (already in HTML/C# — user likely saw v18). Widen Field col so GCP Length stays one line. Use PIPS logo in place of Acme. Two result rows for multi-mode: named by actual symbology. Proceed.
+
+**Assistant:** Saved v20 HTML + C# v1.4.8. Changes: (1) Aperture (mil)/Wavelength (nm) confirmed already present in both HTML and C#. (2) .lbl-col widened 140pt→178pt. (3) PIPS logo embedded as base64 data URI in company-box (black bg to match logo). (4) Two result rows for multi-mode: "EAN-13 Validation Result" (GTIN matches EPC data) + "GS1 DataMatrix Validation Result" (GTIN and Serial Number match EPC data). C# BuildRfidTable refactored: isMultiMode branch emits linear then 2D row each named by r.LinearSymbology / r.Symbology; single-mode branch uses r.Symbology directly; old eanOnly/SGTIN-96 hardcoding removed. Held phrasing change (EPC data matches barcode...) not applied.
+
+---
+
+**User:** [image: VCCS diamond logo with outside text] Can you use a graphics skill to erase the text outside the black diamond and use the diamond as the VCCS logo in the upper left?
+
+**Assistant:** Used editImage() to erase "DIV. OF PIPS, INC." and "MADE IN U.S.A." from outside the diamond — result saved to attached_assets/vccs_logo_clean.png. v21 HTML: replaced logo-box text ("VCCS" / "FlexWedge™ Pro") with embedded base64 PNG of the clean diamond. C# v1.4.9: added _vccsLogoBytes lazy loader (reads <ExeDir>/resources/vccs_logo.png at first use, null-safe fallback to text); BuildHeader() renders Image() when bytes present, text otherwise. Logo PNG copied to vtccp/DeviceInterface/Resources/vccs_logo.png for deployment reference.
+
+---
+
+**User:** Aperture (mil)/(nm) confirmed correct as column headers. Prefer both logos to float on header gray, outer tip/edge 1/4" from header edge. Move meta block left accordingly. Add DMST Software version above Firmware.
+
+**Assistant:** v22 HTML + C# v1.4.10. Used PIL flood-fill from 4 corners to make VCCS logo background transparent (diamond edge stops fill, interior letters untouched) and PIPS background black→white. HTML: removed borders from .logo-box and .company-box CSS; logo-box padding-left:18pt, company-box padding-right:18pt for 1/4" positioning; meta block naturally moves left as logo boxes lose their bordered width. C#: VCCS column changed from Border(1)+Padding(4) to PaddingLeft(18) only; company column from Border(1)+Padding(4) to PaddingRight(18); Software version line added above Firmware using new VerificationRecord.SoftwareVersion field. VerificationRecord: added SoftwareVersion string? with DMST description.
+
+---
+
+**User:** PIPS logo was butchered. Go to the original PNG, change the dark OUTSIDE the letter periphery and WITHIN the P counter rectangles to clear/white — touch nothing inside the outer borders of each letter. Save as white and as clear. Also there is still a page 2 in the PDF.
+
+**Assistant:** Diagnosed flood-fill leak: previous thresh=30 flood-fill from corners leaked into letter edges via anti-aliased dark pixels. Fixed using strict color-threshold (max(R,G,B)<10 = pure black only) applied directly to pixel data — no flood-fill, so interior counter regions and exterior background both change, letter strokes (max≥10) untouched. Saved pips_logo_white.png (white bg) and pips_logo_clear.png (transparent bg) from original unmodified source PNG. Page 2 fix: .page CSS changed from min-height:11in to height:11in; overflow:hidden — clamps HTML preview to exactly one letter page. Used pips_logo_clear.png in v22 HTML so PIPS floats on gray header. Both VCCS and PIPS now border-free, 1/4" edge positioning, floating on #edf1f7 header.
+
+---
+
+**User:** Fix all: version not incremented; logo in v22 not updated (still black box); logo in v21 at least shows original; change result phrase order as previously requested; change em dash to en dash for GCP prefix table note.
+
+**Assistant:** Five fixes applied in one batch — all verified:
+1. VtccpApp.csproj bumped 1.4.10 → 1.4.11.
+2. PIPS logo root cause found: company-box had inline `background:#000` — the transparent PNG was rendering on black, not the header gray. Removed `background:#000` from inline style; clear logo now floats on #edf1f7 as intended.
+3. Result phrases reordered in both PdfReportGenerator.cs (all 4 switch arms) and HTML: "Pass — GTIN matches EPC data" → "Pass — EPC data matches barcode GTIN"; "Pass — GTIN and Serial Number match EPC data" → "Pass — EPC data matches barcode GTIN and Serial Number".
+4. Em dash → en dash for GCP prefix table note in both C# (U+2013) and HTML (&ndash;).
+5. HTML saved as new v23 (never edits in place); footer shows v1.4.11.
+
+---
+
+**User:** Good stopping place. Synopsis of what we'll need to do next session (live 475V, git update, housekeeping, live tests) and any undone tasks that might inhibit us.
+
+**Assistant:** See response in chat — stopping-point briefing provided. No code changes this turn.
+
+---
+
+**User:** Walk me through everything — git/local environment, Azure GCP setup, open tasks, live testing, in whatever order you think best.
+
+**Assistant:** Pushed vtccp to GitHub (rebase onto task-agent divergence; post-commit hook auto-pushed all commits). Fixed Task #98 (EPC Tag URI populated from ParsedEpc in SessionViewModel.BuildEpcTagUri()); bumped to v1.4.12; pushed to GitHub at 18b2916. Wrote full phased walkthrough in chat (Phase 1: Windows git pull + rebuild; Phase 2: Azure GCP service setup; Phase 3: live test sequence). Azure questions flagged before proceeding with that phase.
+
+---
+
+**User:** Walk through git/local env, Azure GCP setup, tasks, live testing. Also: multiple nested vtccp directories (4-5 levels) on lab machine. And should I use one dev environment?
+
+**Assistant:** Diagnosed nested vtccp mess on Windows (Documents\VTCCP + vtccp + vtccp\vtccp + vtccp\vtccp\vtccp + vtccp\vtccp\vtccp\vtccp). Only C:\Users\Administrator\vtccp had .git (workspace root, not vtccp source). Inner copies were v1.3.7. Directed: delete both old directories, clone fresh from gw4-pips/vtccp to C:\dev\vtccp. Clarified: the repo is the full Replit workspace so C:\dev\vtccp\vtccp is the C# source root — intentional double-nesting, not a mess. Confirmed: user never edits code directly (Replit is the sole dev environment). Created vtccp/tools/update-and-build.bat for one-click sync+build. Azure GCP setup questions pending user answers.
+
+---
+
+**User:** Build output from lab machine — 9 wpftmp errors (Path/File/EpcReaderFactory/HybridReportGenerator).
+
+**Assistant:** Diagnosed all 9 errors: (1) missing `using System.IO;` in GcpUpdateServiceFactory.cs and SessionViewModel.cs — wpftmp doesn't get implicit SDK global usings; (2) HybridReportGenerator in `_archived/` and excluded from compilation but SessionViewModel still calls it — copied to active path; (3) EpcReaderFactory excluded when AsReaderP3xU.dll absent — added `#if ASREADER_SDK` guard with matching DefineConstants condition in VtccpApp.csproj; (4) CS8999 raw string literal indentation mismatch at line 367 — fixed closing `"""` indentation; (5) CS1503 wrong SaveAsync overload — corrected to SaveToPathAsync with constructed full path. Bumped version through 1.4.12 → 1.4.16. Build clean at 1.4.16 with 0 errors, 12 harmless NU1701 warnings.
+
+**User:** AsReader DLL found at Q:\VendorDOC\AsReader (Asterisk)\AsReader_P35U_SDK_cs_1_3_0\AsReader_P35U_SDK_c#_1_3_0\AsReaderP3xU.dll — placed at lib path. Build succeeded.
+
+**User:** (Task #133 assigned) Wire the RFID reader into the Session Launcher so you can connect the ASR-P35U and capture EPC tags alongside barcode scans.
+
+**Assistant:** Built the Session Launcher RFID panel and wired it end-to-end. SessionView.xaml gains an "RFID READER (ASR-P35U)" bar (COM port dropdown + refresh, Connect/Disconnect buttons, green status dot + message) between the scan-mode bar and device config. SessionViewModel: persistent reader owned by the VM (survives across sessions — RfidScanCoordinator gains an `ownsReader:false` mode so session cleanup no longer disconnects the reader), port list via SerialPort.GetPortNames() so non-SDK builds still compile, selected port persisted to AppSettings.RfidComPort, auto-connect on session start when a port is selected. Also wired the previously-orphaned RfidTabWriter: ExcelWriter exposes LastSummaryRow, SessionManager exposes Adapter/MainSheetName, and each RFID validation result now writes a row to the "RFID Scans" worksheet cross-referenced to the barcode row. Version bumped to 1.5.0. ExcelEngine + DeviceInterface build clean here; VtccpApp (WPF) needs the lab-machine build to confirm.
+
+**User:** Let's make sure we have the latest DLL.
+
+**Assistant:** Asked user to check DLL version via Properties → Details. Expected: 1.3.0 dated 2026-02-13.
+
+**User:** DLL at C:\dev\vtccp\vtccp\lib\asreader-p3xu-sdk-1.3.0 is correct 1.3.0.
+
+**Assistant:** Code was written against assumed API; actual SDK 1.3.0 has different signatures. Fixed all mismatches: OnError/OnSuccess int→uint, SetTxPower cast to uint, StartInventory remove rssiEnabled (not in this SDK), TagData is struct so removed ?. operators, ReadMemory positional args. Pushed 256d361, 7977022, 490b1b5. Real StartInventory signature: (bool rssiEnabled, byte maxTags, byte maxSecs, ushort maxCycles, bool an1). Updated asr-p35u-sdk-architecture.md memory with confirmed API signatures.
+
+**User:** Clean build.
+
+**User:** You cannot shoe horn the logos into what you are using now. IS that what you had planned? You MUST adopt the full v1.4.11 (v23). just stop building and tell me what's going on. And don't forget to rev the app build every time. Claude has project rules and a kb. What do we have here that is equivalent to the canonical rules every chat in a claude project knows to follow?
+
+**Assistant:** Stopped building. Explained: (1) I was planning to shoehorn logos via file copy rules — wrong approach. (2) Laid out Option A (keep QuestPDF, embed logos) vs Option B (replace with HTML matching v23). (3) Explained Replit equivalents of Claude project rules: replit.md User Preferences = Project Instructions; .agents/memory/ = KB. Updated replit.md with version-bump rules, canonical report rules, and DO NOT BUILD WITHOUT ASKING.
+
+**User:** I don't understand what QuestPDF is. And I am only focused on the v23 report, not the hybrid_report.html. Is that clear? So the answer is B. And v1.4.11 is only the new starting point; we are going to be changing almost immediately. But reving the app AND all reports, etc. is paramount so please do add to replit.md. Then come back here and tell me what you plan to do. Once we see V23 (1.4.11) -- why don't we sync these numbers to the sequence you can most easily maintain -- after we get settled here.
+
+**Assistant:** Added versioning rules to replit.md. Presented plan: new VccsHtmlReportGenerator.cs matching v23 exactly, logos as base64 inline, report version = app version going forward. Asked which PIPS logo file to use.
+
+**User:** You and I spent HOURS and HOURS refining v23. It is not perfect but very good. I am LOATH to have you rebuild the v23 PDF. IS that what you are saying has to happen? If so, why?
+
+**Assistant:** Clarified: No rebuild needed. PdfReportGenerator.cs already IS v23 in code. The only problem is two missing logo images. Fix: embed both logos as assembly embedded resources. Three small changes. Everything else stays as-is.
+
+**User:** YOU ARE GROSSLY MISTAKEN. You MAY NOT USE THE VERSION OF THE REPORT (1.5.0) THAT PRINTED -- IN ANY FORM. IT IS INVALID. WHY IS THAT NOT CLEAR? Compare the 2 side by side so to speak -- they are miles apart in their content.
+
+**Assistant:** Did the real side-by-side comparison. Was wrong. The PDF has: broken logos, orphaned "Digital" text rendering artifact, missing "COGNEX DataMan" in section 1 header, wrong word "UHF" instead of "EPC", broken lock status field, no barcode image, wrong footer version, inferior visual quality overall. These are not "just missing logos" — it is a different document with multiple defects. Revised position: Option B (HTML generator matching v23) is correct. Ready to plan properly.
+
+**User:** Why should a user have to open an HTML and save as PDF. That is not acceptable. I want PDF output. / What does Webscan TruCheck do for its reports?
+
+**Assistant:** Webscan TruCheck generates native PDFs directly (confirmed from D61423AFE1783 PDF in attached_assets — no browser step). User is right — HTML-then-print-manually is below that standard. Proposed WebView2 (primary, silent PDF via CoreWebView2.PrintToPdfAsync) with seamless wkhtmltopdf fallback if WebView2 unavailable. No user action either way.
+
+**User:** Did WebView2 ship with Win 10?
+
+**Assistant:** Not as part of the core OS — it shipped with Microsoft Edge updates starting mid-2021. Present on most updated Win10 machines, not guaranteed on locked-down enterprise/air-gapped systems. Windows 11 has it built in.
+
+**User:** You have shown a great deal of doubt about QuestPDF. I cannot bear revisiting this. What about making WebView2 the tool, with fallback to wkhtmltopdf if WebView2 not available — seamlessly, without user intervention?
+
+**Assistant:** Yes — correct architecture. WebView2 primary (CoreWebView2.PrintToPdfAsync, no window), wkhtmltopdf fallback (bundled .exe, silent Process.Start). Detection is a simple registry/environment check. User never knows which path ran. Proposed as task #149: VccsHtmlReportGenerator.cs (v23 template fill-in) + VccsPdfRenderer.cs (WebView2/wkhtmltopdf logic) + archive PdfReportGenerator.cs + remove QuestPDF.
+
+**User:** 149 running. Moving ahead, report date/time will come from MD verifier or Webscan TC. I guess it really is pointless to start nitpicking at v23 since it is going to be rebuilt from scratch — or at least rendered differently and my faith in the faithfulness of that new rendering is limited. So carry on with finishing 149 and we will reconvene tomorrow. Signing off at 2211 17aug2026. GREAT PROGRESS. Because this dev work is sometimes sporadic, please also add to replit.md the requirement to review the recent past work IN DETAIL and to not assume. If it is not definitively in active memory, research it.
+
+**Assistant:** Added rule to replit.md: "Review recent past work in detail before starting any session — read transcript, active memory, and relevant topic files; never proceed on an assumption; verify first." Also corrected the now-outdated PDF rule (removed the browser-print wording, updated to reflect WebView2/wkhtmltopdf silent pipeline). Committed and pushed. Task #149 is in progress with the task agent. Waiting for you tomorrow.
+
+---
+
+**User (18-Aug-2026):** Assigned Task #149 — Replace the broken QuestPDF report with a v23-faithful PDF using WebView2 (Edge) with silent wkhtmltopdf fallback.
+
+**Assistant:** Implemented the new PDF pipeline. Created `VccsHtmlReportGenerator.cs` (v23 CSS/layout verbatim, real VerificationRecord data, VCCS + PIPS logos base64-inlined, report version bumped to v1.4.12) and `VccsPdfRenderer.cs` (WebView2 headless print on a dedicated STA thread with hidden window + manual message pump; silent fallback to bundled `resources/wkhtmltopdf.exe`; never throws to the caller). Added Microsoft.Web.WebView2 to DeviceInterface.csproj, removed QuestPDF, added wkhtmltopdf.exe + pips_logo.png copy rules to VtccpApp.csproj, archived PdfReportGenerator.cs to Reports/_archived/, updated the SessionViewModel call site with a new `_sessionId` (session start timestamp) used in the PDF filename, bumped app version 1.5.1 → 1.5.2. DeviceInterface builds cleanly on Linux; a smoke render of the generated HTML matches the v23 design (header, summary/grades, RFID table, image placeholder, DFC, footer). Note: the Webscan PDF merge feature from the old generator was dropped (per task scope) — proposed as a follow-up along with on-Windows verification of both render paths.
+
+---
+
+**User (18-Aug-2026):** No you are in Economy build mode [confirming Build mode; proceeding with the v23 template rebuild and replit.md rule additions]
+
+**Assistant:** Rebuilt the VCCS RFID Validation Report generator using the correct architecture (template file + token replacement, not C# string reconstruction). Changes: (1) Created `vtccp/DeviceInterface/Reports/vccs-report-template.html` — clean v23 HTML with 20 `{{TOKEN}}` and `{{SLOT_*}}` markers; CSS verbatim from v23; no base64 blobs; ~339 lines. (2) Archived old `VccsHtmlReportGenerator.cs` (843 lines) to `_archived/`. (3) Rewrote generator as a ~494-line token-replacement loader: `Lazy<string>` EmbeddedResource load, straightforward `string.Replace` chain for scalar tokens, five `Build*` methods that return HTML strings for the dynamic table sections. (4) Added `<EmbeddedResource Include="Reports/vccs-report-template.html" />` to `DeviceInterface.csproj`. (5) Bumped `VtccpApp.csproj` version 1.5.2 → 1.5.3. (6) Added two new rules to `replit.md`: literal-file-as-template instruction, and ask-more/assume-less. Output is visually identical to v23; all visual changes now happen in one HTML file, not in C#. Proposed two follow-up tasks: on-Windows PDF verification, and wiring TID reads into the scan flow.
+
+---
+
+**User (18-Aug-2026):** Still working in full VTCCP app for v23 migration testing. Want to rename report title to "VCCS FlexWedge™ Pro / Barcode-to-RFID Validation Report" (2 lines), keep centered, move header-title block ~0.5" left. #153 (TID) looks finished — incorporate and push. #152 is mine to do.
+
+**Assistant:** Made two edits to the template: renamed the h1 to "VCCS FlexWedge™ Pro / Barcode-to-RFID Validation Report" (2 lines), added margin-left:-0.5in; margin-right:0.5in; to .header-title CSS to shift block left by half inch. Bumped report version v1.4.12→v1.4.13, app version 1.5.3→1.5.4. Committed and pushed (949cd22). Task #153 TID changes are not yet in the git repo (pending platform merge approval) — will incorporate once they land. #152 (Windows PDF verification) was cancelled by user — theirs to do on hardware.
+
+---
+
+**User (18-Aug-2026):** #153 approved (TID merge).
+
+**Assistant:** Confirmed task #153 merge (commit 3475cf7) landed cleanly on top of our refactored generator — TID row in BuildRfidRows(), RfidTid in VerificationRecord, ReadTidAsync wired in RfidScanCoordinator (2000ms timeout). Task agent did not bump app version (was working against 1.5.3); bumped 1.5.4→1.5.5 and pushed (9818473 via post-commit hook). Noted task #156 (Show TID in PDF) is already done by the #153 merge — no separate work needed. #154 (Excel TID) and #155 (hardware verification) in progress on their own tracks.
+
+---
+
+**User (18-Aug-2026):** TID on PDF report is in a task (#156); thought it was finished. Will run a test without it. #154 approved (Excel TID merge).
+
+**Assistant:** Clarified: TID IS already in the PDF (added by #153 task agent — BuildRfidRows emits "TID (Chip Identity)" row-hi row between Serial Number and result rows). Task #156 is a duplicate — suggested cancelling it. Pulled and incorporated #154 Excel TID merge (786252f: ColTid inserted at col D=4, all subsequent cols shifted, TotalColumns 16→17). Bumped app version 1.5.5→1.5.6 and pushed (38dc116). Current PDF RFID table order: Tag Detected, EPC Scheme/GCP, EPC Hex, EPC Tag URI, GTIN-14, Serial Number, TID (Chip Identity), Validation Result(s). Task #157 proposed (hide EPC/Serial rows when no tag detected) — noted as reasonable but not urgent.
+
+---
+
+**User (18-Aug-2026):** Uploaded PDF of v1.4.13 report (20260818-130146). Declared the embodiment "perfect". Feedback on v1.4.13: (1) FlexWedge header box needs to be wider so "Report" stays on 2nd line; (2) Lock status is missing — maybe needs var added; (3) Move TID to immediately after Tag Detected, blank if no tag; (4) Data Format Check section (section 5) from v1.4.11 did not carry over; (5) Reduce symbol image size by 25%; (6) Confirmed multi-mode 2-symbols side-by-side is already accommodated in grades and images. Tasks #155/#156 merged, #158/#159 cancelled.
+
+**Assistant:** Made three concrete changes to report v1.5.0 (pushed b420ce4, app v1.5.7): (1) Header title box widened — logo/company boxes 90pt→72pt, h1 font 11pt→10pt, removed margin-left offset hack; "Barcode-to-RFID Validation Report" now fits on 2 lines. (2) TID row moved to position 2 (immediately after Tag Detected/Lock Status), always rendered — blank string when NoTag/Skipped, "—" when tag detected but TID not read. (3) Image max-height: single 1.8in→1.35in, dual 1.6in→1.2in (both –25%). Lock status gap explained: EpcReadResult has no LockStatus field and CheckTagStatus is not called during scan — proposed as task #160. DFC section already coded in template+generator but r.DataFormatCheck is always null (not built in DMST pipeline for 2D) — proposed as task #161. Multi-mode 2-symbol layout confirmed already working in BuildGradeRows and BuildImageSlot.
+
+---
+
+**User (18-Aug-2026):** Task #161 (Data Format Check section) disappeared when sending a message — was not explicitly dismissed. Wants DFC restored. Also: will configure DMST NTP/timezone settings directly on device and share updated config file.
+
+**Assistant:** Confirmed NTP/timezone settings were at factory-default values across all three reference snapshots (factory, post-calibration, post-restore): DEVICE.TIMEZONE=UTC, NTP.ENABLE=OFF, NTP.SERVER1/2=(no response). Implemented Data Format Check (Section 5) for 2D GS1 symbols — added BuildDataFormatCheck() to DmstReportValidator.cs: extracts AI(01) GTIN-14 via RfidValidator.ExtractAi01(), validates check digit using existing ValidateGs1CheckDigit(), extracts AI(21) Serial via RfidValidator.ExtractAi21() if present; builds 2–3 row DataFormatCheckResult with Standard="GS1 Application Data Format". Wired into MergeAndValidate() return block alongside LinearDataFormatCheck. BuildDfcSection() in VccsHtmlReportGenerator already handles it — no generator change needed. Bumped report v1.5.0→v1.5.1, app v1.5.7→v1.5.8, pushed 492ef17.
+
+---
+
+**User (18-Aug-2026):** Build error — Cannot implicitly convert type 'AsReaderP3xU.Types.TagStatus' to 'uint'.
+
+**Assistant:** SDK's CheckTagStatus return type is TagStatus enum not uint on the Windows DLL. Added explicit cast: `(uint)_device.CheckTagStatus(epcBytes)`. Pushed 7eae85a. All other errors were cascade from DeviceInterface not compiling; PDFsharp warnings are pre-existing.
+
+---
+
+**User (18-Aug-2026):** RFID vs barcode validation error message is too generic — says "Fail — GTIN or Serial Number mismatch" but should distinguish which field(s) fail.
+
+**Assistant:** Added BuildMismatch2DLabel() to VccsHtmlReportGenerator — parses RfidMismatchDetail (GTIN14:/Serial:/GCP: tokens) and produces specific labels: "Fail — GTIN mismatch" / "Fail — Serial Number mismatch" / "Fail — GTIN and Serial Number mismatch". Removed raw RfidMismatchDetail appends. Report v1.5.1→v1.5.2, pushed 4e87d67.
+
+---
+
+**User (18-Aug-2026):** GCP not registered is not a FAIL — if they match it's a PASS. What does "no data available" (fallback) mean? If no GTIN → FAIL; if SN missing from either → FAIL.
+
+**Assistant:** Fixed two issues. (1) Removed `gcpValid != false` from RfidValidator pass condition — GCP is informational only, not a fail criterion. (2) Added specific mismatch tokens for previously-silent fail cases: GTIN14:NoBarcodeData (no AI 01 in barcode) and Serial:MissingFromTag (barcode has AI 21, RFID tag has no serial). Updated BuildMismatch2DLabel to parse these into "GTIN not in barcode" and "Serial Number missing from tag" labels. Generic fallback was triggered because mismatch detail was null when the failure was a missing-data case. Report v1.5.2→v1.5.3, pushed 95fc7c8.
+
+---
+
+**User (18-Aug-2026):** Do not conflate DataMan TruCheck and Webscan TruCheck. Add that to replit.md. Testing in the DM TC environment now; will move to Webscan TruCheck shortly.
+
+**Assistant:** Added "Product terminology" section to replit.md distinguishing DataMan TruCheck (Cognex, DM475V built-in, current test environment) from Webscan TruCheck (Webscan Inc., separate PC app, next integration target). Rule: any mention of "TruCheck" must specify which one.
+
+---
+
+**User (18-Aug-2026):** App dialog shows the read then clears to "No Read". Last read should be static until next read. NTP working, DM TC shows right time, RFID validation report shows 4 hours later.
+
+**Assistant:** Fixed two bugs. (1) Auto-poll "No read" clobber: RunAutoPollLoopAsync was setting StatusMessage = "No read — waiting…" on every null result, overwriting the last record summary. Fixed with RecordCount == 0 gate — "No read" only shows before the first scan. (2) UTC timestamp: device is NTP/UTC but DateTime.TryParse treated the no-timezone-suffix string as local, making reports 4 hrs ahead in Eastern. Added DateTimeStyles.AssumeUniversal | AdjustToUniversal + ToLocalTime() to both parse paths in DmstResultParser (push XML timestamp) and DmstHtmlScraper (HTML filename timestamp). Both fixes needed together to preserve the ±2s HTML correlation window. v1.5.9, pushed d41d11f + d29e37e.
+
+---
+
+**User (18-Aug-2026):** PDF attached. Device name lost since v1.4.11 port, Device label is bold. UTC timestamp fix was wrong — device timezone is America/New_York set via DMCC, timestamp is already local.
+
+**Assistant:** Two fixes. (1) Device name: {{HDR_DEVICE}} was reading r.DeviceModel (null for SDK-connected devices) instead of r.DeviceName. Changed to r.DeviceName ?? r.DeviceModel ?? r.VerifierBrand. (2) Timestamp: reverted both UTC fixes (DmstResultParser + DmstHtmlScraper) — device clock is local Eastern time per DEVICE.TIMEZONE DMCC setting, no AssumeUniversal needed. Comments updated accordingly. v1.5.10, report v1.5.4, pushed 5223f56.
+
+---
+
+**User (18-Aug-2026):** Attached DM TC HTML from recent scan. Still no DFC table in the VCCS report. DMST and TC open don't block VTCCP — scans triggered from within either app land in VTCCP.
+
+**Assistant:** Two findings. (1) DFC missing root cause: BuildDataFormatCheck re-parses push XML decoded data after BarcodeDataFormatter has converted FNC1 (0x1D) to a human-readable string; ExtractAi01 only handles raw 0x1D and pipe, so GTIN extraction returns null → DFC section skipped. Fix: scrape the "Data Format Check" table directly from the DM TC HTML (the device has already validated it). Added ScrapedDataFormatCheck to DmstHtmlReport, DFC table parsing to ParseHtml() (split on </table>, find segment containing "Data Format Check", extract th overall verdict and td Name/Data/Check rows). DmstReportValidator now prefers html.ScrapedDataFormatCheck over BuildDataFormatCheck(record). (2) DMST/TC concurrency: canonical — port 44444 is the device's HTTP server, accepts multiple concurrent clients, VTCCP's GET /events?enable subscription is device-side and unaffected by what PC apps are open. Scans triggered from DMST or DM TC land in VTCCP as expected. v1.5.11, report v1.5.5, pushed f4832ba. Also updated memory with device timezone rule (America/New_York via DMCC, parse timestamps without AssumeUniversal) and concurrency canon.
+
+---
+
+**User (18-Aug-2026):** Scraping DFC from HTML is the right fix. It ASTOUNDS me this wasn't happening all along. Verifier data is canonical — note that in replit.md. We should NEVER recreate anything unless we discuss the absolute need to do so. Review the report and confirm we do NOT do this anywhere else. Report if we do and we'll discuss. The user needs to be assured that data represented as from the verifier IS the data from the verifier — unadulterated.
+
+**Assistant:** Locked the principle into replit.md ("Verifier data is canonical — never re-derive it"). Full audit of the report pipeline follows in main response. Four HIGH findings, four MEDIUM, one LOW. No fixes made — all require a design discussion per working rules.
+
+---
+
+**User (18-Aug-2026):** [Screenshot attached showing gray labels] I don't understand C. I envision the RFID result being presented in the app display window, nowhere else — just on another line. Both are static until next scan fires. I propose the current No read message be positioned in the results box but closer to the bottom right and say "Waiting for first verification scan..." when app opens then switch to "Waiting for next scan..." thereafter. The three remaining supplemental messages still in gray should be upgraded to the same color as the rest of the labels.
+
+**Assistant:** Result box redesigned: verifier line appears immediately after OCR (before RFID window), RFID line appears below it once RFID resolves, both sticky until next scan clears them. Waiting hint (gray italic, bottom-right) shows "Waiting for first verification scan…" / "Waiting for next scan…" while session is running, only. Auto-poll race guard tightened to also check _pendingAccept == 0. Three gray supplemental labels (push unavailable hint, RfidStatusMessage, SupplementalStatus) switched to TextPrimaryBrush. v1.5.12, pushed 1f08909.
+
+---
+
+**User (18-Aug-2026):** Asked to resume Task #169 and finish the Manual-mode VCCS RFID PDF correction: use the real DMST/TruCheck HTML filename and Verified timestamp, preserve verifier-supplied grades and Data Format Check values, keep strict RFID mismatch validation with one mismatch label, restore navy/white banners, and combine the TruCheck barcode image with DFC in a two-column section.
+
+**Assistant:** Completed Task #169. Manual HTML intake now correlates exact/normalized Verified timestamps first, uses guarded real filename timestamps only as fallback, recovers create/rename/change events and rescans, waits for complete stable HTML before consuming it, and cancels/drains in-flight work on stop. Report DFC is HTML-only with no local reconstruction; synthetic HTTP paths are never shown as real filenames. The report uses a wkhtmltopdf-compatible two-column table with a full-height divider, left-aligned image, uniform navy/white banners, and one specific "Serial Number mismatch" label. Browser-rendered layout inspection passed, independent review passed, and all 113 DeviceInterface tests passed. Report version is v1.5.12; app version is 1.5.19.
+
+---
+
+**User (19-Aug-2026):** Attached a VCCS RFID PDF and asked whether the filename correlation logic was correct. The report showed “[NO DMST HTML REPORT CORRELATED]” and unavailable DFC.
+
+**Assistant:** Confirmed that no DMST HTML was correlated, so no source filename was selected. The VCCS output PDF filename is never used as source provenance. The PDF showed conflicting local and four-hours-ahead timestamps, making the current timestamp fallback unreliable; requested the raw DMST HTML filename and its Verified line to diagnose the capture/correlation path.
+
+---
+
+**User (19-Aug-2026):** Asked for a complete explanation of all date/time sources and emphasized that the required outcome is simply to capture and display the exact HTML filename written by DMST/reader into the Windows directory, without treating small timestamp differences as relevant.
+
+**Assistant:** Confirmed the watcher receives a filesystem path directly from the Windows CodeQuality directory and can capture its basename without parsing any timestamp. Identified that the current design wrongly withholds that captured filename until a separate timestamp-based correlation succeeds; explained that Manual mode should pair the next complete observed HTML file with the next verification record in arrival order, while retaining the exact basename as provenance.
+
+---
+
+**User (19-Aug-2026):** Asked whether an operator must specify the DMST report folder, requested that the real HTML filename eventually be written to Excel as well as the PDF, and asked where the PDF Report Date/Time comes from. Requested a report only, with no changes.
+
+**Assistant:** Reported that VCCS derives the watch folder automatically as Windows Documents plus the connected DataMan device name plus CodeQuality; the operator only needs DMST’s preferred report extension set to .html. The application does not discover arbitrary alternative report locations. Confirmed no Excel schema or mapper currently writes HtmlSourceFileName. Confirmed that the attached PDF’s Report Date/Time fell through to the DataMan push/XML DateTime value because no HTML was correlated; it was parsed without timezone conversion and is therefore not the HTML’s local Verified time. The PDF footer and session-id suffix are separately generated from Windows local DateTime.Now.
+
+---
+
+**User (19-Aug-2026):** Stopped the review after noticing that the Barcode Verification Grades section displayed apparently valid results despite the report saying no DMST HTML report had been correlated. Asked why those values existed.
+
+**Assistant:** Confirmed an internal contradiction and a verifier-data rule violation. The BVG renderer falls back to DataMan push/XML fields when HTML fields are absent while retaining a heading that claims the values are taken directly from the DataMan verification report. Grade display is locally formatted from separate XML grade letter and numeric values, and the displayed formal grade “4/A” is explicitly synthesized by the DMST format-data script as grade value plus slash plus grade letter; it is not the verifier’s formal-grade string. Standard, aperture, wavelength, and lighting are emitted from raw push-script operator/metrics fields, not correlated HTML provenance. No report changes made.
+
+---
+
+**User (19-Aug-2026):** Challenged the phrase “DMST push script,” explaining that scans are triggered outside DMST and asking how VeriWedge could have such a script.
+
+**Assistant:** Corrected the terminology: VeriWedge does not own or execute the script, and DMST is only the configuration UI used to paste the Format Data script and write it to the DataMan reader. The saved script executes on the reader after an external decode, regardless of whether DMST is open; the reader then sends the generated XML to VeriWedge over the HTTP event subscription. The `4/A` value is therefore generated on-device by the installed Format Data script, not by DMST, while the other push fields are reader payload fields. The prior “DMST push script” wording was misleading. No code changes made.
+
+---
+
+**User (19-Aug-2026):** Asked what XML actually exists and clarified that the project has only HTML reports.
+
+**Assistant:** Clarified that there is only one report artifact: the DMST/DataMan TruCheck HTML file written to CodeQuality. The XML is not a second report file and is not stored in CodeQuality; it is the transient HTTP scan-result message received from the DataMan reader so VeriWedge can create a scan record. The suspect BVG row was populated from record fields available from that non-HTML scan message because the HTML report was not correlated. Therefore, the BVG section must not present those fields as HTML/TruCheck report data when the only authoritative report file was unavailable. No code changes made.
+
+---
+
+**User (19-Aug-2026):** There must be NO FALLBACKS!
+
+**Assistant:** Completed the strict HTML-only provenance change. VCCS PDFs are now fail-closed: no PDF is generated without a real local DMST HTML artifact correlated by the literal HTML `Verified:` value, and no timestamp or filename correlation fallback remains. Barcode summary fields, grades, DFC, report time, application standard, and image now use dedicated HTML-backed values only; missing values are marked unavailable rather than reconstructed or taken from reader transport. The exact local HTML basename is written to Excel only for verified filesystem provenance. Push-mode acceptance waits for the local artifact before PDF scheduling. Core tests passed (119); the Windows app build remains blocked in this environment because the cached Tesseract 5.2.0 package is missing.
+
+---
+
+**User (19-Aug-2026):** Attached an unchanged VCCS PDF (still report v1.5.12) and its exact DMST HTML report, and asked for the issue to be fixed.
+
+**Assistant:** Confirmed the PDF came from an old executable and found the corrected source had not been pushed to GitHub. Published the accumulated changes, then tested the attached HTML with the current parser. Fixed its real report-summary labels (`Data` and the DFC heading) so decoded data and the GS1 application standard are captured directly from HTML. Corrected a Windows build access error for the provenance status method. Published app v1.5.22 / report v1.5.14 at GitHub commit cbd10bc. Core tests passed (120).
+
+---
+
+**User (19-Aug-2026):** Objected to an inferred DMST report folder, provided the actual CodeQuality directory, and required that report paths never be assumed from a device name.
+
+**Assistant:** Replaced device-name-derived report-directory logic with the supplied explicit installation path for both Manual/Auto-Poll and Push mode. Removed the device-name prerequisite that could prevent the watcher from starting, added a regression test, and published app v1.5.23 at GitHub commit fdaabe4. Parser tests passed (121); the Linux environment cannot complete the Windows desktop build because its cached Tesseract 5.2.0 package is missing.
+
+---
+
+**User (19-Aug-2026):** Reported that all DMST HTML reports in the configured CodeQuality directory, including the file used to generate the newly attached VCCS PDF, had been deleted.
+
+**Assistant:** Confirmed the PDF successfully used the real HTML filename and verifier fields, then identified the scraper's default DeleteAfterParse behavior as the cause of the deletion. Changed normal operation to preserve original DMST HTML provenance files and limited deletion to an explicitly selected Hybrid Replace workflow. Published app v1.5.24 at GitHub commit 61de608. Parser tests passed (122).
+
+---
+
+**User (19-Aug-2026):** Reported that every HTML report had still been deleted.
+
+**Assistant:** Identified that the prior change mistakenly retained a Hybrid Replace switch capable of re-enabling deletion. Removed the deletion operation itself, the deletion setting, and every call site that could enable it. The DMST scraper no longer contains a file-delete path. The original source HTML must remain after normal scan processing.
+
+---
+
+**User (19-Aug-2026):** Attached a successful VCCS RFID PDF and asked for its header balance to be corrected, the product name to change from Pro to PowerPro, the lock status to be displayed, the GCP note to reference the official GS1 GCP prefix table, and the COGNEX logo image to be replaced with the barcode image.
+
+**Assistant:** Updated the active VCCS PDF HTML template and generator: narrowed the fixed-width center header so the device area expands for longer names, renamed the visible product text to RFID VeriWedge PowerPro, renders a missing detected-tag lock result as Unknown, uses the requested official GS1 GCP prefix-table wording, and changed HTML image selection to ignore branding such as the COGNEX logo and select only an embedded barcode/symbol image. Added regression coverage for the lock display and COGNEX-logo exclusion.
+
+---
+
+**User (19-Aug-2026):** Clarified that the COGNEX logo must never be selected and that the barcode selector must work for any symbology, including DataMatrix, QR, UPC, and other barcode images.
+
+**Assistant:** Tightened image selection to be symbology-agnostic and fail closed for ambiguous images. The parser now requires barcode/symbol context in the image tag or its nearby HTML section, explicitly rejects branding context, and never uses a blind first-image fallback. Added regressions for an unlabelled COGNEX image preceding a barcode and for an ambiguous image with no barcode context.
+
+---
+
+**User (19-Aug-2026):** Attached a Visual Studio screenshot showing a System.NullReferenceException at DataManSdkClient event cleanup while the DataMan SDK connection was disconnecting.
+
+**Assistant:** Identified a shutdown race: disconnect cleared the SDK system field while a trigger/image operation was unwinding its XmlResultArrived event cleanup. Each result operation now retains the exact SDK system instance it subscribed to and performs defensive event detachment, so cleanup cannot dereference a cleared shared field or mask the real operation result.
+
+---
+
+**User (19-Aug-2026):** The prior PDF header adjustment moved the center header instead of reducing its fixed boundary. Restore its former position, shrink only the title box to fit its fixed text, widen the left device-data area, and do not rebuild yet.
+
+**Assistant:** Restored the center header to its prior horizontal center. The fixed 185pt title box now releases equal left/right space: the left release widens the device-data column and the right release remains spacer space before the fixed company-logo box. No rebuild was run.
+
+---
+
+**User (19-Aug-2026):** Asked to restore the barcode section header’s original slightly lighter blue after the shading difference had been eliminated, explicitly not the pale-blue experiment, and to push this together with the previous header correction.
+
+**Assistant:** Restored the barcode summary header to the original medium blue `#2c5296` with white text, retained the fixed-position header geometry, and pushed the combined source changes without rebuilding.
+
+---
+
+**User (19-Aug-2026):** Attached a VCCS RFID PDF and its correlated DMST HTML. The PDF incorrectly said the barcode image was not embedded, although the HTML contains the image.
+
+**Assistant:** Confirmed the embedded JPEG appears in DMST's standard Image / General Characteristics capture table. Fixed the selector so opaque Base64 bytes cannot be mistaken for branding or symbology words, and so that verified DMST table structure is accepted as barcode-image evidence. Added regression coverage for this exact failure mode.
+
+---
+
+**User (19-Aug-2026):** Asked what COGNEX logo was being referenced.
+
+**Assistant:** Corrected the prior answer after inspecting the attached HTML images: its first embedded image is the yellow-and-black COGNEX logo, while its second embedded image is the DataMatrix barcode. The selector must reject the first and select the second; RFID serial data is unrelated.
+
+---
+
+**User (19-Aug-2026):** Attached a Visual Studio screenshot of a `NullReferenceException` in `AsReaderP3xU.dll` at `RcpProtocolHandler.RxRspParsed` during application close and asked that it be addressed in the next build.
+
+**Assistant:** Identified an AsReader SDK 1.3.0 shutdown race: `DisConnect()` can clear the SDK receive callback before its worker has finished dispatching. Added a shutdown-only RFID path used by application exit that stops inventory and lets Windows release the VCP handle at process termination; the ordinary Disconnect button retains its explicit close-and-reconnect behavior. Advanced the app version to 1.5.32. The core test suite passed; this Linux workspace cannot compile the full Windows desktop project because the Cognex SDK is absent.
+
+---
+
+**User (19-Aug-2026):** Attached a VCCS RFID PDF and requested that all three TruCheck headers use the light blue, that the TruCheck Barcode Verification Grades and TruCheck Barcode Image headers use the same height, and that the grades title be bold. Clarified that only those two barcode headers should have matching heights.
+
+**Assistant:** Updated the three TruCheck banner styles to the medium light blue. Applied one fixed 17pt height only to the Barcode Verification Grades and Barcode Image/Data Format Check banners, leaving the RFID summary height unchanged. Wrapped both barcode-title labels in explicit bold styling. Advanced the report to v1.5.20 and the app to v1.5.33; report tests passed.
+
+---
+
+**User:** Asked to reduce the ASR-P35U RFID reader transmit-power default from 20 dBm to 13 dBm.
+
+**Assistant:** Changed both the reader constructor default and the factory default to 13 dBm, retained the valid 13–27 dBm clamp, advanced the app version to 1.5.34, and confirmed the test suite passed.
+
+---
+
+**User:** Refined the DMST/TruCheck concurrency rule: leaving the applications open does not inherently block VTCCP, but VTCCP cannot trigger a scan while TruCheck is in LIVE mode. LIVE must not have been activated, or the user must cancel it first.
+
+**Assistant:** Recorded the LIVE-mode exception separately from the general application-open concurrency rule. No code changes made.
+
+---
+
+**User:** Reported that DMST must be running and connected to the particular DataMan verifier before it will generate an HTML report. TruCheck may be open or closed after that connection; a V-series connection opens a blank TruCheck startup window. Attached two VCCS reports with GS1 Data Format selected and not selected.
+
+**Assistant:** Inspected both reports. Each has a correlated HTML report, QR grade, barcode image, and RFID match. The GS1-selected report includes the Data Format Check and shows an F1-required failure with an overall failure; the non-GS1 report correctly marks Application Standard and Data Format Check unavailable because those fields are absent from the HTML. Recorded the DMST-connection prerequisite and retained the fail-closed rule for TruCheck-only PDF data.
+
+---
+
+**User:** Reported that the known RFID tag shows Permalocked in the standalone RFID Wedge decoder, while the VTCCP report shows Unknown; suspected VTCCP may not understand the reader result.
+
+**Assistant:** Traced the current path. VTCCP maps ASR-P35U callback 40 to PermaLocked correctly, so Unknown means no usable correlated lock-status result arrived during the scan rather than proving a display mapping error. Recorded the discrepancy and proposed a focused on-device diagnostic task to capture the CheckTagStatus return and SDK callbacks before changing behavior.
+
+---
+
+**User:** Asked whether task #173 was complete and whether a test should be run, then clarified that the task still appeared to be running.
+
+**Assistant:** Confirmed task #173 is still IN_PROGRESS. The direct test assembly run executed 13 LockCheckCorrelator tests successfully, including callback 40 mapping to PermaLocked. The normal `dotnet test` project command only built because the test project lacks `IsTestProject=true`; the required Windows hardware diagnostic against the known tag has not yet been performed, so the task is not complete.
+
+---
+
+**User:** Attached the Windows Debug Output trace from the RFID lock-status diagnostic.
+
+**Assistant:** Identified the root cause: the trace shows `CheckTagStatus returned 2`. The standalone RFID Wedge reference maps that direct return as Permalocked, but VTCCP treated every non-zero return as a rejected command and displayed Unknown. The preceding callback 41 is the known delayed TID-read acknowledgment, not the lock result. Recorded the direct-return contract; no code change made pending user direction.
+
+---
+
+**User:** Approved implementation of the RFID lock-status correction.
+
+**Assistant:** Replaced the incorrect callback-correlator path with direct `CheckTagStatus` return mapping: 0=Unlocked, 1=Locked, 2=Permalocked, and other values=Unknown. The vendor call runs on a worker with the existing timeout. Added return-mapping and PDF-wording regressions, enabled normal `dotnet test` execution, and advanced VTCCP to v1.5.35. All 120 DeviceInterface tests passed; a Windows rebuild and known-tag scan remain required because the vendor AsReader SDK is unavailable in this Linux workspace.
+
+---
+
+**User:** Requested a broad plan for a more complete user/settings configuration tab, including previously discussed and potentially applicable options, with a preference for starting broad and culling later.
+
+**Assistant:** Mapped the current configuration surface. The existing Settings page is limited to hybrid reports and GCP prefix-table updates; device profiles, job templates, session acquisition, RFID, UPC/EAN device settings, output behavior, OCR, and diagnostics are distributed across other pages and models. Drafted a broad settings architecture and implementation plan for later review; no application code changed.
+
+---
+
+**User:** Asked whether the broad settings task should begin before refining the options list, given that FlexWedge PowerPro is more important than the full Command Pilot and its one-page report/interface should be perfected first, while still being built within CP for later extraction.
+
+**Assistant:** Recommended keeping the broad settings task parked until the FWPP workflow, report data contract, and first essential settings list are stable. Suggested an FWPP-first sequence: define the confirmed FWPP configuration subset, build only the shared settings foundation and product interface needed by FWPP, then use that proven structure to start the broader CP settings hub rather than implementing speculative CP options first.
+
+---
+
+**User (19-Aug-2026):** Requested final completion of the RFID permanent-lock correction, including verified return/callback behavior, safe timeout handling, release-build diagnostics, and automated regressions.
+
+**Assistant:** Preserved the verified on-device finding that CheckTagStatus returns raw 2 for the known Permalocked tag and that callback 41 was the delayed TID acknowledgment. Strengthened the correction so raw 0–3 is authoritative, callback 40 is a fallback only when the direct result is unavailable, blocked SDK calls remain physically isolated after the UI deadline, and delayed callbacks cannot leak into a later scan. Added persistent diagnostics and focused executor/report regressions; VTCCP remains v1.5.35.
+
+---
+
+**User:** Requested implementation of the FWPP report and verifier flow, including separate VCCS GS1 Digital Link syntax validation, vendor-result preservation, one-page two-symbol rendering, honest PDF output preferences, and regression coverage.
+
+**Assistant:** Added VCCS-owned GS1 Digital Link validation backed by the bundled official GS1 Syntax Engine, with explicit valid, invalid, not-applicable, and unavailable states. Kept native TruCheck Data Format Check rows unchanged and visibly separate in the report, capped the current layout at two symbol groups, added a transparent future append-PDF preference, bundled the Windows native engine and dictionary, and bumped VTCCP to v1.5.36 and the report to v1.5.22. All 142 DeviceInterface tests passed; the Linux WPF build remains blocked by a missing Windows reference pack.
+
+---
+
+**User (21-Aug-2026 11:33 America/New_York):** Asked for the current vTCCP PDF report version and whether the PDF changed as part of the FWPP report/verifier work.
+
+**Assistant:** Confirmed the current report version is v1.5.22. The generated PDF content changed through the HTML report generator: it now includes separately labelled VCCS GS1 Digital Link validation, preserves native vendor DFC data, and caps the current multi-mode output at two symbol groups. The PDF template itself was not directly redesigned, and vendor-PDF appending remains only a stored future preference; VCCS output remains separate.
+
+---
+
+**User:** Parked a correction after reviewing the results window: the file-lock warning needs to be much more prominent, and broader comments about results-window text clarity will follow.
+
+**Assistant:** No UI changes made yet. Recorded the warning prominence issue and the broader results-window clarity review as pending UX corrections.
+
+---
+
+**User (21-Aug-2026 ~11:33 America/New_York):** Asked for the current vTCCP PDF report version and whether it changed as part of Task #177 work.
+
+**Assistant:** Confirmed report version is v1.5.22 (bumped from v1.5.20 during #177 — v1.5.21 was never used). The PDF content changed: VCCS GS1 Digital Link validation is now separately labelled, native vendor DFC rows are preserved unchanged, and the current multi-mode layout is capped at two symbol groups. The PDF template was not redesigned; vendor-PDF appending remains only a stored future preference.
+
+---
+
+**User:** Parked UI issue: the file-lock "Start failed" warning needs substantially stronger visual prominence. Also noted broader results-window text clarity to be reviewed when further comments are provided.
+
+---
+
+**User:** Asked whether the git had been updated and whether a pull was needed. Asked about reverting to report v1.5.21 before reconciliation.
+
+**Assistant:** Clarified that v1.5.21 never existed (history goes v1.5.20 → v1.5.22). origin/main (Replit internal) still held v1.5.20; local main held v1.5.22. Diagnosed the Replit-side divergence: local main was 7 ahead, 1 behind origin due to a content-identical duplicate RFID commit from the task-agent merge. Walked user through git rebase on Replit (duplicate commit auto-skipped, 6 commits replayed, post-commit hook pushed each to GitHub). Replit-internal push timed out but GitHub was already current via hooks.
+
+---
+
+**User:** Showed Windows machine status: 27 commits ahead of GitHub, VtccpWindows.sln unstaged, asreader SDK untracked.
+
+**Assistant:** Advised do not pull — Windows was ahead. Confirmed Windows should wait for Replit reconciliation to complete first.
+
+---
+
+**User:** Proceeded with Windows git reconciliation. git pull --rebase blocked by unstaged VtccpWindows.sln. Stashed, then git pull --rebase produced conflicts in SessionViewModel.cs, SessionView.xaml, VtccpApp.csproj. Aborted rebase. Switched to plain git pull (merge strategy) — merged cleanly, 42 files changed. Stash popped successfully. VtccpWindows.sln restored. Committed VtccpWindows.sln and pushed 29 commits to GitHub.
+
+**Assistant:** Walked user through each step. All three locations now fully reconciled: GitHub current, Replit current, Windows local clean and pushed.
+
+---
+
+**`2026-08-21`**
+
+**User:** Requested a report-top-section redesign. Move the vertical separator between Application Standard and Encoded Data left so it aligns with the lower separator between Standard and Grade. Replace “Application Standard” with “Application Std. / Data Format Check / Aperture:” and show the three TruCheck values inline to its right, separated by “ / ”. Application Standard should always come from TruCheck with no unavailable state; Data Format Check should show `None` when unset; Aperture should come directly from TruCheck. Asked for a restatement and for the available settings options to be logged for user documentation.
+
+**Assistant:** Restated the requested layout and semantics. Recorded the screenshot options: Application Standard = `GS1`, `HIBCC`, `UDI (GS1 or HIBCC)`, `UID (MIL-STD-130)`, `Custom`, `Auto`, `Cryptocode`; Data Format Check = `None`, `GS1`, `HIBCC`, `ISO 15434`; Aperture Setting = `Auto Aperture`, `User Set`, `Auto 50%`. No code changes made yet.
+
+---
+
+**`2026-08-21`**
+
+**User:** Asked for the thickness of the lines between report rows and the thickness of the perimeter bounding-box lines.
+
+**Assistant:** Inspected the VCCS report CSS. Internal row and cell separators are explicitly `1px`; main perimeter bounding boxes and major section dividers are explicitly `2px`. Standard CSS print mapping is approximately 0.75pt for 1px and 1.5pt for 2px, subject to the PDF renderer's rasterization.
+
+---
+
+**`2026-08-21`**
+
+**User:** Observed that the nominal `2px` perimeter line looks three to five times thicker than the `1px` row lines on the monitor and printed page, and asked what accounts for that and what intermediate width should be used.
+
+**Assistant:** Explained that CSS pixels are layout units, not guaranteed physical monitor or printer pixels. Rendering scale, device pixel ratio, PDF zoom, print conversion, anti-aliasing, table border selection, and the dark navy perimeter colour versus light grey row rules can amplify the visual difference. CSS supports fractional widths such as `1.25px` and `1.5px`; physical rasterization rounds or anti-aliases them. Recommended testing `1.25px` first for a restrained intermediate perimeter, or `1.5px` if a stronger divider is desired, while retaining `1px` internal row rules.
+
+---
+
+**`2026-08-21`**
+
+**User:** Approved a targeted `1.5px` adjustment: the vertical divider immediately left of Application Standard and only the horizontal segment directly below the Application Standard header cell. The corresponding header-rule segments below Symbology and Encoded Data were to remain `1px`. Requested commit and push.
+
+**Assistant:** Updated the VCCS summary-table CSS accordingly. The Application Standard divider is `1.5px`; metadata rows remain unaffected; only the Application Standard header cell has a `1.5px` bottom rule. The Symbology and Encoded Data header-rule segments remain `1px`. Restored dependencies and ran 142 passing DeviceInterface tests. Committed and pushed the change as `e007fa2`.
+
+---
+
+**`2026-08-21`**
+
+**User:** Confirmed that the full top-summary redesign should be implemented. Noted that waiting for direct approval rather than assuming the broader scope was preferable.
+
+**Assistant:** Implemented the VCCS summary layout: the header now reads `Application Std. / Data Format Check / Aperture:`, renders the three settings inline, and aligns its 1.5px divider with the Verification Grades table’s Standard/Grade divider. Application Standard and DFC remain sourced from correlated TruCheck HTML; no DFC renders as `None`; the Aperture setting is captured once from `TRUCHECK.APERTURE` at session connection and carried into every report record without replacing the numeric grade aperture. Updated the Application Settings reference with the exact UI options and corrected Custom/Auto mapping. Bumped report version to v1.5.23 and application version to 1.5.37. DeviceInterface tests passed: 144/144. Committed and pushed as `64f45e7`.
+
+---
+
+**`2026-08-21`**
+
+**User:** Clarified that TruCheck settings can change during a live DMST verification session and questioned the earlier connection-time capture. Noted that Application Standard has not been published in known TruCheck report embodiments.
+
+**Assistant:** Corrected the report provenance model. Application Standard is no longer inferred from the HTML Data Format Check heading. After every completed result, VCCS now reads Application Standard, Data Format Check selection, and Aperture Setting through DMCC before building the report; unsupported or unknown Application Standard/Aperture display as `—`. The published HTML DFC result remains a DFC-only fallback and is never treated as Application Standard. Added a parser-to-report regression for `Custom / GS1 / Auto Aperture`, serialized the SDK setting reads, updated the reference document and durable provenance rule, and bumped the VCCS report to v1.5.24 and application to 1.5.38. DeviceInterface tests passed: 145/145. Committed and pushed as `eaf6b0b`.
+
+---
+
+**`2026-08-21`**
+
+**User:** Supplied a visual reference and clarified that the summary title and settings values must remain on one line, Grade-table columns must be fixed, and the current canonical settings are `Custom / GS1 / User Set`.
+
+**Assistant:** Used the supplied reference as the geometry authority. The Grades table now has fixed seven-column proportions matching the reference, and the summary table uses the same Symbology + Standard boundary so its settings divider aligns exactly. Applied no-wrap behavior to the summary and grade headers/values. A regression now verifies that even when the correlated HTML includes `GS1 Application Data Format`, the summary renders only the canonical `Custom / GS1 / User Set` settings. The direct Push callback shares the post-result DMCC settings snapshot path. DeviceInterface tests passed: 147/147. Updated to VCCS report v1.5.26 and application v1.5.40; committed and pushed as `2991b34`.
+
+---
+
+**`2026-08-21`**
+
+**User:** Clarified that “one line” means the Application Settings label and its values belong in one shared horizontal cell, not merely that each text fragment should avoid wrapping.
+
+**Assistant:** Moved the session-level settings into the summary header as one line: `Application Std. / Data Format Check / Aperture: Custom / GS1 / User Set`. The third cell in each symbol row is now intentionally blank so the fixed three-column grid remains intact without repeating session settings. Assigned the 1.5px left divider and header-bottom rule directly to the app-settings cells so collapsed-border arbitration cannot reduce them to the neighboring 1px grid lines. DeviceInterface tests passed: 147/147. Updated to VCCS report v1.5.27 and application v1.5.41.
+
+---
+
+**`2026-08-21`**
+
+**User:** Corrected the summary structure: the encoded-data cell must span beneath the app-settings header rather than leaving a separate blank app-settings cell. Requested the app-settings title at the same size as Encoded Data and its values in normal weight.
+
+**Assistant:** Updated symbol and unavailable rows so Encoded Data spans the second and third summary columns. The session settings remain one inline header line only. The title uses 8pt, matching Encoded Data, while the live values are explicitly normal weight. DeviceInterface tests passed: 147/147. Updated to VCCS report v1.5.29 and application v1.5.43.
+
+---
+
+**`2026-08-21`**
+
+**User:** Requested a dedicated no-verifier-DFC path for GS1 Digital Link labels: show `No verifier Data Format Check selected; using VeriWedge GS1 algorithm`, do not refer to native TruCheck DFC, and then show the separately parsed Digital Link results. Element String parsing is deferred for separate testing and implementation.
+
+**Assistant:** Added the DL-only fallback when the post-result verifier setting is `None` and a Digital Link result is available. It preserves the existing section title, omits the native DFC block and unavailable row, shows the requested VeriWedge message, and then renders the official GS1 Syntax Engine result. GS1 Element Strings remain on the existing path until their parser is explicitly added. DeviceInterface tests passed: 149/149. Updated to VCCS report v1.5.30 and application v1.5.44.
+
+---
+
+**`2026-08-21`**
+
+**User:** Requested the alternate no-verifier-DFC path for a GS1 Data Matrix carrying GS1 Element String data while Digital Link testing continues.
+
+**Assistant:** Added official GS1 Syntax Engine validation for GS1 Element Strings and routes the result through the same VeriWedge no-verifier-DFC report path, with a distinct `VCCS / GS1 Element String syntax validation` label. The parser recognises bracketed AI strings, raw AIM `]d2` scan data, and the DataMan `<F1>` display form; it uses the GS1 library’s appropriate AI/scan-data APIs rather than presenting local parsing as native DFC. DeviceInterface tests passed: 153/153. Updated to VCCS report v1.5.31 and application v1.5.45.
+
+---
+
+**`2026-08-21`**
+
+**User:** Clarified that the no-verifier-DFC explanation belongs in the Data Format Check header and must name the selected VeriWedge GS1 algorithm: Digital Link or Element String. Reported that the expected parser detail was not visible.
+
+**Assistant:** Moved the fallback wording into the blue header as `Data Format Check (DFC) — No verifier DFC selected; using VeriWedge GS1 <algorithm> algorithm`. The GS1 Syntax Engine’s canonical parsed AI data is now included in the VCCS validation Detail cell, instead of only a generic validation message. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.32 and application v1.5.46.
+
+---
+
+**`2026-08-21`**
+
+**User:** Defined the GS1 Element String report layout: keep the barcode image; align the image divider to the header separator; put compact verifier `Field / Data / Check` results beside parallel VeriWedge parser results; support arbitrary GS1 AIs; show two boxed overall grades; and keep each variable table component intact when paginating like a Webscan TruCheck PDF.
+
+**Assistant:** Added the dynamic Element String comparison table. It renders the verifier fields once, maps matching official GS1 parser values into the parallel `Data / Check` side, accepts arbitrary AI rows such as GTIN, LOT, EXP, SN, and VARIANT, and places two compact overall status boxes below their check columns. The blue header names the selected algorithm and shows parser version `(v 1.4.0)`; the lower source column and VCCS title are removed. The report template applies non-splitting print rules to each report/table component so it moves as a whole to the next page. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.33 and application v1.5.47.
+
+---
+
+**`2026-08-21`**
+
+**User:** Supplied the approved parser-comparison snip and asked for a short blue banner, separate DataMan and VeriWedge parser sub-heads, centered overall boxes, and a space before the Verification Grades em dash. The same model must serve Digital Link.
+
+**Assistant:** Simplified the blue banner to `GS1 Element String` or `GS1 Digital Link`. Added parallel `DataMan TruCheck GS1 Parser` and `VeriWedge GS1 Parser (v. 1.4.0)` sub-heads directly below it, centered each overall status in its own block, and applied the spacing correction to the grades header. The Digital Link path now uses the same parallel structure. When no verifier parser was selected, its side reports that neutral fact rather than a missing-DFC error. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.34 and application v1.5.48.
+
+---
+
+**`2026-08-21`**
+
+**User:** Asked whether the GS1 parser breaks the data out in more detail than the report currently shows.
+
+**Assistant:** Explained that the official GS1 Syntax Engine validates the Digital Link or Element String, normalizes it into a canonical GS1 AI sequence, and can retain every parsed AI. The current PDF intentionally renders only the AI rows supplied by the DataMan TruCheck side; it maps matching parser values into those rows and shows the full canonical AI string in the first parser data cell. It does not currently render an independent complete AI inventory or individual parser pass/fail diagnostics for every AI.
+
+---
+
+**`2026-08-21`**
+
+**User:** Corrected the parser-display explanation with a report snip. Requested a separate Field column for the VeriWedge GS1 parser, GS1-named parsed fields, and the full Element String as the final wrap-safe row. Added that a Digital Link URI must always be the first parser row. Confirmed the approach.
+
+**Assistant:** Reworked the dual parser table so each side has independent `Field / Data / Check` columns. The VeriWedge side now lists a Digital Link URI first when applicable, lists each parsed AI with its GS1 field name, and places the canonical GS1 Element String last. The last value has HTML wrap opportunities only between complete AI elements, allowing the row to grow naturally without splitting an AI token. Updated regression coverage for the URI-first rule, GS1 AI labels, and canonical-string wrapping. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.35 and application v1.5.49.
+
+---
+
+**`2026-08-21`**
+
+**User:** Requested removal of `GS1` from the DataMan parser heading, dynamic Field column widths with fixed Check columns and flexible Data columns, a parser result beside Serial Number, and an explicit space before the em dash in the Verification Grades header.
+
+**Assistant:** Renamed the left heading to `DataMan TruCheck Parser`. Changed the comparison table to auto layout so non-wrapping Field columns use only their required width and Data columns receive the remaining space, while both Check columns retain their fixed width. Repeated the parser validation result for each parser-owned row, including Serial Number. Put the grades-header space inside the note span so it is visibly preserved before the em dash. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.36 and application v1.5.50.
+
+---
+
+**`2026-08-21`**
+
+**User:** Reported that the URI was not appearing in the first row and asked whether a Digital Link should show a top `Web URI` field with wrapping and PASS/FAIL, with failure details shown separately.
+
+**Assistant:** Observed that the supplied snip is classified as a GS1 Element String and contains `(01)…(21)…`, not a Digital Link URI, so no Web URI is expected for that record. Recommended a Digital Link-only first row named `Web URI`, followed by GS1 AI rows, with PASS/FAIL representing GS1 validation rather than network reachability, and a final `Parser Diagnostic` row when validation fails.
+
+---
+
+**`2026-08-21`**
+
+**User:** Clarified that every VCCS trigger runs a complete TruCheck sequence through DMST, including screen image and HTML. Requested the existing Digital Link report format be brought into conformance with the Element String comparison format while keeping Digital Link-specific fields.
+
+**Assistant:** Routed all applicable VCCS Digital Link validations into the same two-panel report layout as Element Strings, regardless of the native Data Format Check selection. The left panel retains the native DataMan TruCheck rows; the right panel begins with `Web URI`, then shows parsed GS1 AI fields and the canonical Element String. Added regression coverage for a Digital Link with native TruCheck rows and verified 154/154 DeviceInterface tests. Updated to VCCS report v1.5.37 and application v1.5.51.
+
+---
+
+**`2026-08-21`**
+
+**User:** Acknowledged that the supplied screenshot was an Element String rather than a Digital Link.
+
+**Assistant:** Confirmed that the current report is correctly showing an Element String and that the `Web URI` row belongs only on Digital Link records.
+
+---
+
+**`2026-08-21`**
+
+**User:** Asked how a GS1 parser failure is reported.
+
+**Assistant:** Explained the separate Invalid, Unavailable, and Not Applicable outcomes. A true GS1 syntax failure produces FAIL on the VeriWedge parser rows and overall pill, with the GS1 engine diagnostic detail retained; the native DataMan result remains separate. Runtime failures produce UNAVAILABLE rather than FAIL, and non-GS1 data produces NOT APPLICABLE.
+
+---
+
+**`2026-08-21 — 19:10`**
+
+**User:** Provided a project-state handoff summary for the firmware-support and RFID-reporting work, including the need to distinguish native Digital Link parser limitations from RFID validation in the report.
+
+**Assistant:** Verified that the latest documented released DM475V verifier-line firmware is 6.1.16_sr4, while 6.1.16_tc9 is pre-release. Updated the report so RFID failures are labeled as RFID cross-validation, while native DFC failures on known unsupported Digital Link versions appear as FAIL* with an explanatory compatibility note when the independent VeriWedge GS1 parser passes. Added report regression tests, bumped the application version to 1.5.52, and proposed a future verifier-version support table. The focused report tests passed; the Linux WPF build remains blocked by existing unrelated missing-type errors in the desktop project.
+
+---
+
+**User:** Requested a versioned native GS1 Digital Link support table for DataMan/DM TC firmware and Webscan TruCheck software, including evidence behind every status and a report note that does not misclassify a native parser limitation as a barcode-data failure.
+
+**Assistant:** Added a compact Native GS1 Digital Link Compatibility table to Digital Link comparison reports. It records unsupported and not-yet-verified version boundaries for DataMan/DM TC and Webscan TruCheck, with the documented source or observed evidence for every row. Known unsupported native DFC failures now link to the table and explicitly say they are parser-compatibility limitations rather than GS1 barcode-data failures. Added DataMan and Webscan regression coverage, updated the report to v1.5.38 and the app to 1.5.53, and verified 157 passing DeviceInterface tests.

@@ -650,9 +650,78 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
+            "Native GS1 Digital Link Compatibility",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "6.1.16 and earlier</td><td class=\"compat-unsupported\">Unsupported</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "Later than 6.1.16</td><td class=\"compat-not-verified\">Not verified</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "3.03.74 and earlier</td><td class=\"compat-unsupported\">Unsupported</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "references/architecture/dmcc-6116sr4-digest.md.",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
             "VeriWedge GS1 Digital Link parser: PASS.",
             report,
             StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_KnownUnsupportedDigitalLinkWebscanSoftware_ReferencesCompatibilityTable()
+    {
+        var record = new VerificationRecord
+        {
+            VerifierBrand = "WEBSCAN",
+            SoftwareVersion = "3.03.74",
+            Symbology = "QR Code",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "webscan-report.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlDecodedData = "https://id.gs1.org/01/09506000134352/21/72803288707",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Fail,
+                Rows =
+                [
+                    new DataFormatCheckRow
+                    {
+                        Name = "GS1 Format",
+                        Data = "Digital Link not recognized",
+                        Check = "FAIL",
+                    },
+                ],
+            },
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Syntax Engine.",
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "Software 3.03.74 does not support GS1 Digital Link parsing.",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "Webscan TruCheck v3.03.74 is the observed application version",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "This is a native parser compatibility limitation, not a GS1 barcode-data failure.",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(">FAIL*</td>", report, StringComparison.Ordinal);
     }
 
     [Fact]
