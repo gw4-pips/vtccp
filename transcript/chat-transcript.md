@@ -1935,3 +1935,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Requested removal of `GS1` from the DataMan parser heading, dynamic Field column widths with fixed Check columns and flexible Data columns, a parser result beside Serial Number, and an explicit space before the em dash in the Verification Grades header.
 
 **Assistant:** Renamed the left heading to `DataMan TruCheck Parser`. Changed the comparison table to auto layout so non-wrapping Field columns use only their required width and Data columns receive the remaining space, while both Check columns retain their fixed width. Repeated the parser validation result for each parser-owned row, including Serial Number. Put the grades-header space inside the note span so it is visibly preserved before the em dash. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.36 and application v1.5.50.
+
+---
+
+**`2026-08-21`**
+
+**User:** Asked how a GS1 parser failure is reported.
+
+**Assistant:** Explained the separate Invalid, Unavailable, and Not Applicable outcomes. A true GS1 syntax failure produces FAIL on the VeriWedge parser rows and overall pill, with the GS1 engine diagnostic detail retained; the native DataMan result remains separate. Runtime failures produce UNAVAILABLE rather than FAIL, and non-GS1 data produces NOT APPLICABLE.
