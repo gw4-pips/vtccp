@@ -2015,6 +2015,14 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **Assistant:** Explained that Task #185 was an optional real-Windows/vendor-SDK validation of the production hardware paths after Task #184 made the SDK-free desktop build verifiable. It was cancelled, so no action is currently required; the check is only useful if a Windows workstation, Cognex DataMan SDK, AsReader SDK, and the corresponding hardware are available.
 
+---
+
+**`2026-08-21 — 19:52`**
+
+**User:** Asked where the application build number can be seen in Git because they were unsure that version 1.5.4 was being pulled.
+
+**Assistant:** Verified that the current checkout contains `<Version>1.5.54</Version>` in `vtccp/VtccpApp/VtccpApp.csproj`. The version entered the branch in commit `1c29ff1`; the current checkout is at `c45fb9a`, which is a later transcript-only commit. Explained that the UI reads the compiled assembly version, so an old Windows UI means an old executable or checkout rather than a missing source version, and provided Git/source/binary verification commands.
+
 ## Session: 2026-08-13 — Hybrid TruCheck + RFID Report
 
 **User:** Uploaded four Webscan TruCheck files (HTML sample report + 3 XSLT stylesheets). Asked to design a "Hybrid Webscan TruCheck™ Verification Report with VCCS FlexWedge™ RFID Validation." Selected Option C (standalone hybrid HTML). Key requirements: match Webscan structure exactly, RFID data in header, separate RFID section, PDF-printable, optional alongside or replacing original.
