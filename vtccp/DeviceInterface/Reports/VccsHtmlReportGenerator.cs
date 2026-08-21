@@ -106,6 +106,7 @@ public static class VccsHtmlReportGenerator
             .Replace("{{HDR_BADGE_CLASS}}",     badgeCls)
             .Replace("{{HDR_BADGE_TEXT}}",      badgeTxt)
             .Replace("{{SECTION1_TITLE}}",      section1Title)
+            .Replace("{{APP_SETTINGS_INLINE}}", BuildApplicationSettingsInline(r))
             .Replace("{{SLOT_SYMBOL_ROWS}}",    BuildSymbolRows(r))
             .Replace("{{REPORT_NAME}}",         reportName)
             .Replace("{{REPORT_DATETIME}}",     reportDateTime)
@@ -157,13 +158,13 @@ public static class VccsHtmlReportGenerator
         if (multiMode && renderedGroups < MaxRenderedSymbolGroups)
         {
             AppendSymbolRow(sb, r.LinearSymbology!, r.LinearDecodedData,
-                ApplicationSettingsCell(r, hasCorrelatedHtml: true));
+                ApplicationSettingsCell());
             renderedGroups++;
         }
         if (renderedGroups < MaxRenderedSymbolGroups)
         {
             AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData,
-                ApplicationSettingsCell(r, hasCorrelatedHtml: true));
+                ApplicationSettingsCell());
         }
         return sb.ToString();
     }
@@ -172,7 +173,7 @@ public static class VccsHtmlReportGenerator
         => "          <tr>\n" +
            "            <td>[UNAVAILABLE]</td>\n" +
            "            <td>[UNAVAILABLE — NOT PRESENT IN CORRELATED TRUCHECK HTML]</td>\n" +
-           $"            {ApplicationSettingsCell(r, hasCorrelatedHtml: false)}\n" +
+           $"            {ApplicationSettingsCell()}\n" +
            "          </tr>\n";
 
     private static void AppendSymbolRow(
@@ -185,21 +186,28 @@ public static class VccsHtmlReportGenerator
         sb.Append($"          </tr>\n");
     }
 
-    private static string ApplicationSettingsCell(VerificationRecord r, bool hasCorrelatedHtml)
+    private static string ApplicationSettingsCell()
+    {
+        // These are session-level values. The row retains an empty third cell so
+        // the fixed summary grid remains intact, while the header renders the
+        // label and values together on one line.
+        return "<td class=\"app-settings\"></td>";
+    }
+
+    private static string BuildApplicationSettingsInline(VerificationRecord r)
     {
         // These are live TruCheck configuration values queried after each
         // completed result. Do not substitute values inferred from the correlated
         // HTML's Data Format Check results or from the numeric grade aperture.
         string applicationStandard = r.ApplicationStandardSetting ?? "\u2014";
         string dataFormatCheck = r.DataFormatCheckSetting ??
-                                 (hasCorrelatedHtml
+                                 (HasCorrelatedFilesystemHtml(r)
                                      ? DisplayDataFormatCheckSetting(r.HtmlDataFormatCheck)
                                      : "\u2014");
         string apertureSetting = r.ApertureSettingMode ?? "\u2014";
 
-        return $"<td class=\"app-settings\">{H(applicationStandard)}" +
-               $"<span class=\"app-settings-separator\"> / </span>{H(dataFormatCheck)}" +
-               $"<span class=\"app-settings-separator\"> / </span>{H(apertureSetting)}</td>";
+        return $"Application Std. / Data Format Check / Aperture: {H(applicationStandard)}" +
+               $" / {H(dataFormatCheck)} / {H(apertureSetting)}";
     }
 
     private static string DisplayDataFormatCheckSetting(DataFormatCheckResult? dfc)

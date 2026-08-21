@@ -335,7 +335,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "Application Std. / Data Format Check / Aperture:",
+            "Application Std. / Data Format Check / Aperture: Custom / GS1 / User Set",
             report,
             StringComparison.Ordinal);
         Assert.DoesNotContain(
@@ -346,7 +346,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("<col style=\"width:18.7%\">", report, StringComparison.Ordinal);
         Assert.Contains("<col style=\"width:13.6%\">", report, StringComparison.Ordinal);
         Assert.Contains(
-            "<td class=\"app-settings\">Custom<span class=\"app-settings-separator\"> / </span>GS1<span class=\"app-settings-separator\"> / </span>User Set</td>",
+            "<th class=\"app-settings-hdr\">Application Std. / Data Format Check / Aperture: Custom / GS1 / User Set</th>",
             report,
             StringComparison.Ordinal);
         Assert.Contains(
@@ -404,7 +404,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Null(parsed.HtmlApplicationStandard);
         Assert.Equal("GS1 Application Data Format", parsed.ScrapedDataFormatCheck!.Standard);
         Assert.Contains(
-            "<td class=\"app-settings\">Custom<span class=\"app-settings-separator\"> / </span>GS1<span class=\"app-settings-separator\"> / </span>User Set</td>",
+            "<th class=\"app-settings-hdr\">Application Std. / Data Format Check / Aperture: Custom / GS1 / User Set</th>",
             report,
             StringComparison.Ordinal);
     }
@@ -428,7 +428,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "<td class=\"app-settings\">Custom<span class=\"app-settings-separator\"> / </span>None<span class=\"app-settings-separator\"> / </span>User Set</td>",
+            "<th class=\"app-settings-hdr\">Application Std. / Data Format Check / Aperture: Custom / None / User Set</th>",
             report,
             StringComparison.Ordinal);
     }
