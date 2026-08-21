@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.36";
+    public const string ReportVersion = "v1.5.37";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -420,10 +420,10 @@ public static class VccsHtmlReportGenerator
         string? img2D      = hasHtml ? r.HtmlBarcodeImageBase64 : null;
         bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         DataFormatCheckResult? htmlDfc = hasHtml ? r.HtmlDataFormatCheck : null;
-        bool useVeriWedgeDigitalLinkFallback = UsesVeriWedgeDigitalLinkFallback(r);
         bool useElementStringLayout = IsElementStringValidation(r.VccsDigitalLinkValidation);
         bool useParserComparisonLayout =
-            useVeriWedgeDigitalLinkFallback || useElementStringLayout;
+            useElementStringLayout ||
+            r.VccsDigitalLinkValidation?.Status is not null and not DigitalLinkValidationStatus.NotApplicable;
 
         var sb = new StringBuilder();
         sb.Append("    <div class=\"barcode-detail-section\">\n");
@@ -485,10 +485,6 @@ public static class VccsHtmlReportGenerator
                "<span class=\"barcode-header-dfc-title\"><span class=\"detail-separator\">|</span> " +
                $"Data Format Check (DFC) &#x2014; GS1 {algorithm}</span>";
     }
-
-    private static bool UsesVeriWedgeDigitalLinkFallback(VerificationRecord r)
-        => string.Equals(r.DataFormatCheckSetting, "None", StringComparison.OrdinalIgnoreCase) &&
-           r.VccsDigitalLinkValidation?.Status is not DigitalLinkValidationStatus.NotApplicable and not null;
 
     private static bool IsElementStringValidation(DigitalLinkValidationResult? validation)
         => string.Equals(
@@ -667,7 +663,7 @@ public static class VccsHtmlReportGenerator
         if (!isElementString)
         {
             rows.Add(new Gs1ParserRow(
-                "URI",
+                "Web URI",
                 FindDigitalLinkUri(record) ?? "[DIGITAL LINK URI NOT AVAILABLE]",
                 false));
         }

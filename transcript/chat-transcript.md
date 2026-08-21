@@ -1948,6 +1948,14 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **`2026-08-21`**
 
+**User:** Clarified that every VCCS trigger runs a complete TruCheck sequence through DMST, including screen image and HTML. Requested the existing Digital Link report format be brought into conformance with the Element String comparison format while keeping Digital Link-specific fields.
+
+**Assistant:** Routed all applicable VCCS Digital Link validations into the same two-panel report layout as Element Strings, regardless of the native Data Format Check selection. The left panel retains the native DataMan TruCheck rows; the right panel begins with `Web URI`, then shows parsed GS1 AI fields and the canonical Element String. Added regression coverage for a Digital Link with native TruCheck rows and verified 154/154 DeviceInterface tests. Updated to VCCS report v1.5.37 and application v1.5.51.
+
+---
+
+**`2026-08-21`**
+
 **User:** Acknowledged that the supplied screenshot was an Element String rather than a Digital Link.
 
 **Assistant:** Confirmed that the current report is correctly showing an Element String and that the `Web URI` row belongs only on Digital Link records.

@@ -466,6 +466,7 @@ public sealed class VccsHtmlReportGeneratorTests
             HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
             HtmlSourceFileName = "verifier-output.html",
             HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlDecodedData = "https://id.gs1.org/01/09506000134352/21/72803288707",
             HtmlDataFormatCheck = new DataFormatCheckResult
             {
                 Overall = OverallPassFail.Pass,
@@ -482,14 +483,15 @@ public sealed class VccsHtmlReportGeneratorTests
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.Contains("Native TruCheck Data Format Check", report, StringComparison.Ordinal);
+        Assert.Contains("DataMan TruCheck Parser", report, StringComparison.Ordinal);
+        Assert.Contains("Web URI", report, StringComparison.Ordinal);
+        Assert.Contains("AI (01) GTIN", report, StringComparison.Ordinal);
         Assert.Contains("Verifier GS1 row", report, StringComparison.Ordinal);
-        Assert.Contains("<th>Data</th><th class=\"chk\">Check</th>", report,
-            StringComparison.Ordinal);
         Assert.DoesNotContain("<th>Source</th>", report, StringComparison.Ordinal);
         Assert.DoesNotContain("VCCS / GS1 Digital Link syntax validation", report,
             StringComparison.Ordinal);
         Assert.DoesNotContain("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Native TruCheck Data Format Check", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Native Webscan Digital Link", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Native DataMan Digital Link", report, StringComparison.Ordinal);
     }
@@ -531,7 +533,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("(01)09506000134352<wbr>(21)72803288707<wbr>", report,
             StringComparison.Ordinal);
         Assert.True(
-            report.IndexOf(">URI<", StringComparison.Ordinal) <
+            report.IndexOf(">Web URI<", StringComparison.Ordinal) <
             report.IndexOf("AI (01) GTIN", StringComparison.Ordinal));
         Assert.Contains("DataMan TruCheck Parser", report, StringComparison.Ordinal);
         Assert.Contains("VeriWedge GS1 Parser (v. 1.4.0)", report, StringComparison.Ordinal);
