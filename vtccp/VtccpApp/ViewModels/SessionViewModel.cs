@@ -891,6 +891,26 @@ public sealed class SessionViewModel : ViewModelBase
         cfg.ConnectTimeoutMs  = 3_000;
         cfg.ResponseTimeoutMs = 5_000;
 
+        // ── TC Live cancel ────────────────────────────────────────────────────────
+        // DMST's TC panel "Go Live" mode (monitor mode) blocks software triggers.
+        // Wireshark-confirmed (2026-06-24): DMST uses HTTP REST, not DMCC, to control
+        // it: GET /monitormode?enable=false on port 44444 → 204 No Content.
+        // Fire-and-forget with a 500 ms deadline — non-fatal if the device is not in
+        // live mode or if the request fails for any reason.
+        // To disable this step: comment out the try block below.
+        try
+        {
+            using var liveCts = new System.Threading.CancellationTokenSource(500);
+            using var http    = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromMilliseconds(500) };
+            await http.GetAsync($"http://{cfg.Host}:44444/monitormode?enable=false", liveCts.Token);
+            System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] TC Live cancel sent (monitormode?enable=false).");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] TC Live cancel non-fatal: {ex.GetType().Name}: {ex.Message}");
+        }
+
         // CRITICAL: raw DMCC text commands use port 23 (Telnet/DMCC), NOT port 44444.
         // Port 44444 is the DataMan SDK / HTTP-events port and uses the SDK's own binary
         // framing.  A bare TCP connection sending ||>TRIGGER ON\r\n to port 44444 is not
