@@ -1815,3 +1815,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked for the thickness of the lines between report rows and the thickness of the perimeter bounding-box lines.
 
 **Assistant:** Inspected the VCCS report CSS. Internal row and cell separators are explicitly `1px`; main perimeter bounding boxes and major section dividers are explicitly `2px`. Standard CSS print mapping is approximately 0.75pt for 1px and 1.5pt for 2px, subject to the PDF renderer's rasterization.
+
+---
+
+**`2026-08-21`**
+
+**User:** Observed that the nominal `2px` perimeter line looks three to five times thicker than the `1px` row lines on the monitor and printed page, and asked what accounts for that and what intermediate width should be used.
+
+**Assistant:** Explained that CSS pixels are layout units, not guaranteed physical monitor or printer pixels. Rendering scale, device pixel ratio, PDF zoom, print conversion, anti-aliasing, table border selection, and the dark navy perimeter colour versus light grey row rules can amplify the visual difference. CSS supports fractional widths such as `1.25px` and `1.5px`; physical rasterization rounds or anti-aliases them. Recommended testing `1.25px` first for a restrained intermediate perimeter, or `1.5px` if a stronger divider is desired, while retaining `1px` internal row rules.
