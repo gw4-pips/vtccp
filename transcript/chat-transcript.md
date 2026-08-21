@@ -1863,3 +1863,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Clarified that “one line” means the Application Settings label and its values belong in one shared horizontal cell, not merely that each text fragment should avoid wrapping.
 
 **Assistant:** Moved the session-level settings into the summary header as one line: `Application Std. / Data Format Check / Aperture: Custom / GS1 / User Set`. The third cell in each symbol row is now intentionally blank so the fixed three-column grid remains intact without repeating session settings. Assigned the 1.5px left divider and header-bottom rule directly to the app-settings cells so collapsed-border arbitration cannot reduce them to the neighboring 1px grid lines. DeviceInterface tests passed: 147/147. Updated to VCCS report v1.5.27 and application v1.5.41.
+
+---
+
+**`2026-08-21`**
+
+**User:** Corrected the summary structure: the encoded-data cell must span beneath the app-settings header rather than leaving a separate blank app-settings cell. Requested the app-settings title at the same size as Encoded Data and its values in normal weight.
+
+**Assistant:** Updated symbol and unavailable rows so Encoded Data spans the second and third summary columns. The session settings remain one inline header line only. The title uses 8pt, matching Encoded Data, while the live values are explicitly normal weight. DeviceInterface tests passed: 147/147. Updated to VCCS report v1.5.29 and application v1.5.43.
