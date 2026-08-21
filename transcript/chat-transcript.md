@@ -1831,3 +1831,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Approved a targeted `1.5px` adjustment: the vertical divider immediately left of Application Standard and only the horizontal segment directly below the Application Standard header cell. The corresponding header-rule segments below Symbology and Encoded Data were to remain `1px`. Requested commit and push.
 
 **Assistant:** Updated the VCCS summary-table CSS accordingly. The Application Standard divider is `1.5px`; metadata rows remain unaffected; only the Application Standard header cell has a `1.5px` bottom rule. The Symbology and Encoded Data header-rule segments remain `1px`. Restored dependencies and ran 142 passing DeviceInterface tests. Committed and pushed the change as `e007fa2`.
+
+---
+
+**`2026-08-21`**
+
+**User:** Confirmed that the full top-summary redesign should be implemented. Noted that waiting for direct approval rather than assuming the broader scope was preferable.
+
+**Assistant:** Implemented the VCCS summary layout: the header now reads `Application Std. / Data Format Check / Aperture:`, renders the three settings inline, and aligns its 1.5px divider with the Verification Grades table’s Standard/Grade divider. Application Standard and DFC remain sourced from correlated TruCheck HTML; no DFC renders as `None`; the Aperture setting is captured once from `TRUCHECK.APERTURE` at session connection and carried into every report record without replacing the numeric grade aperture. Updated the Application Settings reference with the exact UI options and corrected Custom/Auto mapping. Bumped report version to v1.5.23 and application version to 1.5.37. DeviceInterface tests passed: 144/144. Committed and pushed as `64f45e7`.
