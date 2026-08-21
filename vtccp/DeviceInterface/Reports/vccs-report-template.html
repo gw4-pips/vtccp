@@ -140,6 +140,10 @@
     background: white; border-bottom: 1px solid #999; border-right: 1px solid #999;
     padding: 3pt 4pt; text-align: left; font-size: 8pt; font-weight: bold;
   }
+  /* Application Standard column divider: intentionally heavier than the
+     1px rules between Symbology and Encoded Data. */
+  .sum-table th:nth-child(2) { border-right: 1.5px solid #999; }
+  .sum-table th:last-child { border-bottom: 1.5px solid #999; }
   .sum-table th:last-child { border-right: none; }
   .sum-table td {
     border-bottom: 1px solid #aaa;
@@ -147,6 +151,11 @@
     white-space: nowrap; overflow: hidden;
   }
   .sum-table td:not(:last-child) { border-right: 1px solid #aaa; }
+  /* Applies only to symbol rows; metadata rows use colspan="2" and must not
+     acquire a divider at the right edge of their merged cell. */
+  .sum-table tbody td:nth-child(2):not([colspan]) {
+    border-right: 1.5px solid #aaa;
+  }
   .sum-table tr:last-child td { border-bottom: none; }
   /* Navy separator above Report Name row — 1px matches the exterior border weight;
      navy colour beats #aaa in border-collapse with equal width + style. */
