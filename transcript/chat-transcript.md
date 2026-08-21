@@ -2023,6 +2023,16 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **Assistant:** Verified that the current checkout contains `<Version>1.5.54</Version>` in `vtccp/VtccpApp/VtccpApp.csproj`. The version entered the branch in commit `1c29ff1`; the current checkout is at `c45fb9a`, which is a later transcript-only commit. Explained that the UI reads the compiled assembly version, so an old Windows UI means an old executable or checkout rather than a missing source version, and provided Git/source/binary verification commands.
 
+---
+
+**`2026-08-21 — 19:55`**
+
+**User:** Asked whether the Git and executable version checks could be performed from a terminal.
+
+**Assistant:** Confirmed that the checks can be run from Windows PowerShell or Command Prompt and prepared copy-and-paste commands for pulling `main`, checking `<Version>1.5.54</Version>`, and inspecting the compiled executable’s product version.
+
+**Assistant:** Provided the terminal commands: fetch and fast-forward `main`, verify the version directly from `HEAD` with `git show`, and inspect any rebuilt `VtccpApp.exe` product version using PowerShell.
+
 ## Session: 2026-08-13 — Hybrid TruCheck + RFID Report
 
 **User:** Uploaded four Webscan TruCheck files (HTML sample report + 3 XSLT stylesheets). Asked to design a "Hybrid Webscan TruCheck™ Verification Report with VCCS FlexWedge™ RFID Validation." Selected Option C (standalone hybrid HTML). Key requirements: match Webscan structure exactly, RFID data in header, separate RFID section, PDF-printable, optional alongside or replacing original.
