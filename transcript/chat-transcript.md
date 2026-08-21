@@ -1759,3 +1759,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Requested implementation of the FWPP report and verifier flow, including separate VCCS GS1 Digital Link syntax validation, vendor-result preservation, one-page two-symbol rendering, honest PDF output preferences, and regression coverage.
 
 **Assistant:** Added VCCS-owned GS1 Digital Link validation backed by the bundled official GS1 Syntax Engine, with explicit valid, invalid, not-applicable, and unavailable states. Kept native TruCheck Data Format Check rows unchanged and visibly separate in the report, capped the current layout at two symbol groups, added a transparent future append-PDF preference, bundled the Windows native engine and dictionary, and bumped VTCCP to v1.5.36 and the report to v1.5.22. All 142 DeviceInterface tests passed; the Linux WPF build remains blocked by a missing Windows reference pack.
+
+---
+
+**User:** Asked for the current vTCCP PDF report version and whether the PDF changed as part of the FWPP report/verifier work.
+
+**Assistant:** Confirmed the current report version is v1.5.22. The generated PDF content changed through the HTML report generator: it now includes separately labelled VCCS GS1 Digital Link validation, preserves native vendor DFC data, and caps the current multi-mode output at two symbol groups. The PDF template itself was not directly redesigned, and vendor-PDF appending remains only a stored future preference; VCCS output remains separate.
