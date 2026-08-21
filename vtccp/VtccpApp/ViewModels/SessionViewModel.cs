@@ -891,35 +891,22 @@ public sealed class SessionViewModel : ViewModelBase
         cfg.ConnectTimeoutMs  = 3_000;
         cfg.ResponseTimeoutMs = 5_000;
 
-        // ── TC Live cancel ────────────────────────────────────────────────────────
-        // DMST's TC panel "Go Live" mode (monitor mode) blocks software triggers.
-        // Send SET MONITOR-MODE.ENABLE OFF via raw DMCC port 23 — same port as
-        // TRIGGER ON, no SDK handshake required.
-        // Fire-and-forget, 800 ms total deadline — non-fatal if rejected or timed out.
-        // To disable this step: comment out the try block below.
-        try
-        {
-            using var monCts = new System.Threading.CancellationTokenSource(800);
-            using var monTcp = new System.Net.Sockets.TcpClient();
-            await monTcp.ConnectAsync(cfg.Host, DeviceInterface.Dmcc.DmccCommand.RawDmccPort, monCts.Token);
-            var monStream = monTcp.GetStream();
-            try
-            {
-                using var bannerCts = new System.Threading.CancellationTokenSource(200);
-                await monStream.ReadAsync(new byte[512], bannerCts.Token);
-            }
-            catch { }
-            await monStream.WriteAsync(
-                System.Text.Encoding.ASCII.GetBytes(
-                    $"{DeviceInterface.Dmcc.DmccCommand.WireHeader}{DeviceInterface.Dmcc.DmccCommand.SetMonitorModeOff}\r\n"),
-                monCts.Token);
-            System.Diagnostics.Debug.WriteLine("[VTCCP-DMCC] SET MONITOR-MODE.ENABLE OFF sent.");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-DMCC] TC Live cancel non-fatal: {ex.GetType().Name}: {ex.Message}");
-        }
+        // ── TC Live cancel (DISABLED — no effect found) ───────────────────────────
+        // Problem: DMST TC panel "Go Live" (monitor mode) blocks software triggers.
+        //
+        // Attempted: SET MONITOR-MODE.ENABLE OFF on port 23 — sent successfully but
+        // produced no discernible effect on live mode.
+        //
+        // Attempted earlier: HTTP GET /monitormode?enable=false on port 44444 — port
+        // 44444 requires the DataMan SDK handshake and rejects bare HTTP connections.
+        //
+        // Possible next approach: Wireshark the SDK connection during a Go Live →
+        // trigger sequence to determine whether DMST sends a proprietary SDK command
+        // (not raw DMCC text) that VTCCP would need to replicate, or whether the
+        // device simply needs operator action to exit live mode before triggering.
+        //
+        // DmccCommand.SetMonitorModeOff / SetMonitorModeOn constants are available
+        // if a working invocation path is found later.
 
         // CRITICAL: raw DMCC text commands use port 23 (Telnet/DMCC), NOT port 44444.
         // Port 44444 is the DataMan SDK / HTTP-events port and uses the SDK's own binary
