@@ -1948,6 +1948,14 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **`2026-08-21`**
 
+**User:** Acknowledged that the supplied screenshot was an Element String rather than a Digital Link.
+
+**Assistant:** Confirmed that the current report is correctly showing an Element String and that the `Web URI` row belongs only on Digital Link records.
+
+---
+
+**`2026-08-21`**
+
 **User:** Asked how a GS1 parser failure is reported.
 
 **Assistant:** Explained the separate Invalid, Unavailable, and Not Applicable outcomes. A true GS1 syntax failure produces FAIL on the VeriWedge parser rows and overall pill, with the GS1 engine diagnostic detail retained; the native DataMan result remains separate. Runtime failures produce UNAVAILABLE rather than FAIL, and non-GS1 data produces NOT APPLICABLE.
