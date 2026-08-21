@@ -163,21 +163,19 @@
   .sum-table tr.sum-meta-start td { border-top: 1px solid #1a3a6b; }
   .sum-table .meta-lbl { color: #000; font-size: 8pt; font-weight: bold; }
 
-  /* App-spec cell: flex row — "GS1 —" left, stacked two-liner right */
-  .sum-table td.app-spec {
+  /* Session-level TruCheck settings: App Std. / DFC / Aperture. */
+  .sum-table th.app-settings-hdr,
+  .sum-table td.app-settings {
     white-space: normal;
     overflow: visible;
-    padding: 0 4pt;    /* horizontal only; inner div handles vertical */
   }
-  .app-spec-inner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3pt;
-    padding: 2.5pt 0 2pt;
+  .sum-table th.app-settings-hdr {
+    font-size: 7.5pt;
   }
-  .app-spec-prefix { font-size: 8pt; white-space: nowrap; }
-  .app-spec-stack  { font-size: 7pt; line-height: 1.2; white-space: nowrap; }
+  .sum-table td.app-settings {
+    font-size: 8pt;
+  }
+  .app-settings-separator { color: #555; }
 
   /* ── BARCODE GRADES TABLE ────────────────────────────── */
   .grades-table {
@@ -327,14 +325,14 @@
       <table class="sum-table">
         <colgroup>
           <col style="width:100pt">
+          <col style="width:110pt">
           <col>
-          <col style="width:90pt">
         </colgroup>
         <thead>
           <tr>
             <th>Symbology</th>
             <th>Encoded Data</th>
-            <th>Application Standard</th>
+            <th class="app-settings-hdr">Application Std. / Data Format Check / Aperture:</th>
           </tr>
         </thead>
         <tbody>
@@ -352,6 +350,15 @@
 
       <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades</span><span class="sec-note"> &#x2014; <em>Only fields present in the correlated HTML report are shown</em></span></div>
       <table class="grades-table">
+        <colgroup>
+          <col style="width:100pt">
+          <col style="width:110pt">
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+        </colgroup>
         <thead>
           <tr>
             <th>Symbology</th>

@@ -1,5 +1,7 @@
 # DMST TruCheck Verification Settings — Application Settings
 
+**Document version**: v1.1
+**Revised**: 2026-08-21
 **Panel**: TruCheck Verification Settings → Application Settings (left nav, first item)  
 **Firmware observed**: 6.1.16_sr4 (DM475-63530E-PIPS-Verif-Lab)  
 **Logged**: 2026-05-25  
@@ -38,8 +40,17 @@ appear throughout the UI and report. VTCCP must track which standard is active p
 
 ### Select Standard dropdown
 
-Observed value: **Custom**. Other options exist in the dropdown (not yet fully enumerated —
-likely includes GS1, HIBCC, and standards-body presets that pre-populate fields below).
+Observed value: **Custom**. The complete user-facing option list is:
+
+| Option | Notes |
+|---|---|
+| GS1 | GS1 application standard |
+| HIBCC | Health Industry Bar Code Council application standard |
+| UDI (GS1 or HIBCC) | UDI application standard |
+| UID (MIL-STD-130) | Unique Identification marking standard |
+| Custom | Operator-configurable standard; current workstation selection |
+| Auto | TruCheck automatically selects the applicable standard |
+| Cryptocode | Cryptocode application standard |
 
 ### Main parameters
 
@@ -70,7 +81,7 @@ Three options, confirmed from open-dropdown screenshot:
 | Option | Notes |
 |---|---|
 | **User Set** | Operator manually specifies aperture size |
-| **Auto 50%/80%** | Firmware selects aperture automatically, bounded at 50%/80% of X-dim |
+| **Auto 50%** | Firmware selects the 50% aperture mode automatically |
 | **Auto Aperture** (observed, highlighted) | Firmware fully auto-selects aperture |
 
 The aperture (also called "aperture diameter" in ISO context) determines the sampling area
@@ -181,20 +192,24 @@ Keys confirmed from `DmccCommand.cs` (A1 digest sourced, fw 6.1.10+):
 | Field | DMCC key | Values | Status |
 |---|---|---|---|
 | Grading Standard (top-level) | `TRUCHECK.GRADING-STANDARD` | 0=ISO 15415/6, 1=ISO 29158:2020 | ✓ Confirmed |
-| Select Standard (Application Standard) | `TRUCHECK.APPLICATION-STANDARD` | 0=GS1, 1=HIBCC, 2=UDI(HIBCC+GS1), 3=UID, 4=Auto, 5=Custom, 6=Cryptocode | ✓ Confirmed |
+| Select Standard (Application Standard) | `TRUCHECK.APPLICATION-STANDARD` | 0=GS1, 1=HIBCC, 2=UDI (GS1 or HIBCC), 3=UID (MIL-STD-130), 4=Custom, 5=Auto, 6=Cryptocode | ✓ Confirmed |
 | Dot Peen | `TRUCHECK.DOT-PEEN` | ON / OFF | ✓ Confirmed |
 | Min X Dimension | `TRUCHECK.APPLICATION-CUSTOM-MINIMUM-X-DIM` | [1–1000] thousandths of an inch | ✓ Confirmed |
 | Max X Dimension | `TRUCHECK.APPLICATION-CUSTOM-MAXIMUM-X-DIM` | [1–1000] thousandths of an inch | ✓ Confirmed |
 | Overall Pass Grade | `TRUCHECK.APPLICATION-CUSTOM-PASS-GRADE` | [0–40], no decimal | ✓ Confirmed |
-| Data Format Check | `TRUCHECK.APPLICATION-CUSTOM-DATA-PARSING-STANDARD` | 0=None, 1=GS1, 2=HIBCC, 3=UID | ✓ Confirmed |
-| Aperture Setting (mode) | `TRUCHECK.APERTURE` | 0=User Set, 1=Auto 80%/50%, 2=Auto Aperture | ✓ Confirmed |
+| Data Format Check | `TRUCHECK.APPLICATION-CUSTOM-DATA-PARSING-STANDARD` | 0=None, 1=GS1, 2=HIBCC, 3=ISO 15434 (UI label) | ✓ Confirmed |
+| Aperture Setting (mode) | `TRUCHECK.APERTURE` | 0=User Set, 1=Auto 50%, 2=Auto Aperture | ✓ Confirmed |
 | Aperture Size (User Set only) | `TRUCHECK.APERTURE-SIZE` | [1–300] ten-thousandths of an inch | ✓ Confirmed |
 | Grading Standard Versions (1D/2D/DPM) | Unknown — NOT yet in DmccCommand.cs | Separate per-family version keys required | **Pending** — search A1 digest |
 | ACAS individual threshold fields | Unknown | One key per threshold, likely | **Pending** — search A1 digest |
 | QR Quiet Zone | Unknown | | **Pending** — search A1 digest |
 
-**Aperture Setting UI vs DMCC enum mismatch note**: DMST UI shows "Auto 50%/80%" but DMCC
-enum is `1=Auto 80%/50%` — same mode, different label order. Use DMCC enum order internally.
+**Application Standard mapping correction**: the DMCC reference reverses the firmware values
+for Custom and Auto. The active DM475V firmware returns `4` for the UI’s **Custom** selection
+and `5` for **Auto**; use the verified device behaviour, not the reference’s reversed labels.
+
+**Aperture Setting label**: the currently captured TruCheck UI uses **Auto 50%** for raw
+`TRUCHECK.APERTURE = 1`; use that user-facing label in VCCS reports.
 
 ---
 

@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.22";
+    public const string ReportVersion = "v1.5.23";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -149,7 +149,7 @@ public static class VccsHtmlReportGenerator
     private static string BuildSymbolRows(VerificationRecord r)
     {
         if (!HasCorrelatedFilesystemHtml(r))
-            return UnavailableSymbolRow();
+            return UnavailableSymbolRow(r);
 
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         int renderedGroups = 0;
@@ -157,37 +157,69 @@ public static class VccsHtmlReportGenerator
         if (multiMode && renderedGroups < MaxRenderedSymbolGroups)
         {
             AppendSymbolRow(sb, r.LinearSymbology!, r.LinearDecodedData,
-                AppSpecCell(r.HtmlLinearStandard));
+                ApplicationSettingsCell(r, hasCorrelatedHtml: true));
             renderedGroups++;
         }
         if (renderedGroups < MaxRenderedSymbolGroups)
         {
             AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData,
-                AppSpecCell(r.HtmlApplicationStandard));
+                ApplicationSettingsCell(r, hasCorrelatedHtml: true));
         }
         return sb.ToString();
     }
 
-    private static string UnavailableSymbolRow()
+    private static string UnavailableSymbolRow(VerificationRecord r)
         => "          <tr>\n" +
            "            <td>[UNAVAILABLE]</td>\n" +
            "            <td>[UNAVAILABLE — NOT PRESENT IN CORRELATED TRUCHECK HTML]</td>\n" +
-           "            <td>[UNAVAILABLE]</td>\n" +
+           $"            {ApplicationSettingsCell(r, hasCorrelatedHtml: false)}\n" +
            "          </tr>\n";
 
-    private static void AppendSymbolRow(StringBuilder sb, string symb, string? encoded, string appSpecCell)
+    private static void AppendSymbolRow(
+        StringBuilder sb, string symb, string? encoded, string applicationSettingsCell)
     {
         sb.Append($"          <tr data-vccs-symbol-group=\"true\">\n");
         sb.Append($"            <td style=\"font-size:8pt;\">{H(symb)}</td>\n");
         sb.Append($"            <td style=\"font-family:Consolas,monospace;\">{H(encoded ?? "\u2014")}</td>\n");
-        sb.Append($"            {appSpecCell}\n");
+        sb.Append($"            {applicationSettingsCell}\n");
         sb.Append($"          </tr>\n");
     }
 
-    // 2D symbols use the flex two-liner app-spec cell ("GS1 —" | stacked pair);
-    // linear symbols use the single-line form — both verbatim v23 structures.
-    private static string AppSpecCell(string? htmlValue)
-        => $"<td style=\"font-size:8pt;\">{H(htmlValue ?? "[UNAVAILABLE — NOT PRESENT IN CORRELATED TRUCHECK HTML]")}</td>";
+    private static string ApplicationSettingsCell(VerificationRecord r, bool hasCorrelatedHtml)
+    {
+        // App Standard and DFC are sourced only from the correlated TruCheck HTML.
+        // The aperture mode is the TC setting captured via GET TRUCHECK.APERTURE.
+        // Do not substitute local validation or a numeric grade aperture here.
+        string applicationStandard = hasCorrelatedHtml
+            ? r.HtmlApplicationStandard ?? "\u2014"
+            : "\u2014";
+        string dataFormatCheck = hasCorrelatedHtml
+            ? DisplayDataFormatCheckSetting(r.HtmlDataFormatCheck)
+            : "\u2014";
+        string apertureSetting = r.ApertureSettingMode ?? "\u2014";
+
+        return $"<td class=\"app-settings\">{H(applicationStandard)}" +
+               $"<span class=\"app-settings-separator\"> / </span>{H(dataFormatCheck)}" +
+               $"<span class=\"app-settings-separator\"> / </span>{H(apertureSetting)}</td>";
+    }
+
+    private static string DisplayDataFormatCheckSetting(DataFormatCheckResult? dfc)
+    {
+        string? standard = dfc?.Standard?.Trim();
+        if (string.IsNullOrWhiteSpace(standard))
+            return "None";
+
+        // These are display aliases for the exact TruCheck HTML standard labels,
+        // matching the values exposed in the TruCheck Application Settings UI.
+        if (standard.Contains("GS1", StringComparison.OrdinalIgnoreCase))
+            return "GS1";
+        if (standard.Contains("HIBCC", StringComparison.OrdinalIgnoreCase))
+            return "HIBCC";
+        if (standard.Contains("15434", StringComparison.OrdinalIgnoreCase))
+            return "ISO 15434";
+
+        return standard;
+    }
 
     private static string BuildGradeRows(VerificationRecord r)
     {

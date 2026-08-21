@@ -202,6 +202,13 @@ public sealed record class VerificationRecord
 
     // Verification settings
     public int? Aperture { get; init; }
+    /// <summary>
+    /// TruCheck Aperture Setting captured from <c>TRUCHECK.APERTURE</c> when the
+    /// device session connects (for example: User Set, Auto 50%, Auto Aperture).
+    /// This is the verifier configuration mode, not the numeric aperture used in
+    /// the per-scan Verification Grades row.
+    /// </summary>
+    public string? ApertureSettingMode { get; init; }
     public int? Wavelength { get; init; }
     public string? Lighting { get; init; }
     public string? Standard { get; init; }

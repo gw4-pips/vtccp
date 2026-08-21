@@ -315,6 +315,68 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_SummaryRendersTruCheckApplicationSettingsInline()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verifier-output.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlSymbology = "GS1 DataMatrix",
+            HtmlDecodedData = "(01)00696114704283",
+            HtmlApplicationStandard = "Custom",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Standard = "GS1 Application Data Format",
+            },
+            ApertureSettingMode = "Auto Aperture",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "Application Std. / Data Format Check / Aperture:",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "<td class=\"app-settings\">Custom<span class=\"app-settings-separator\"> / </span>GS1<span class=\"app-settings-separator\"> / </span>Auto Aperture</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".sum-table th:nth-child(2) { border-right: 1.5px solid #999; }",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".sum-table th:last-child { border-bottom: 1.5px solid #999; }",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_SummaryShowsNoneWhenTruCheckHasNoDataFormatCheck()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verifier-output.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlSymbology = "GS1 DataMatrix",
+            HtmlDecodedData = "(01)00696114704283",
+            HtmlApplicationStandard = "Custom",
+            ApertureSettingMode = "User Set",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "<td class=\"app-settings\">Custom<span class=\"app-settings-separator\"> / </span>None<span class=\"app-settings-separator\"> / </span>User Set</td>",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_CorrelatedHtml_DoesNotUseLegacyCalculatedDfc()
     {
         var record = new VerificationRecord
