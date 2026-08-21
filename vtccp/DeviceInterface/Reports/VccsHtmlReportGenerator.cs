@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.29";
+    public const string ReportVersion = "v1.5.30";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -420,11 +420,14 @@ public static class VccsHtmlReportGenerator
         string? img2D      = hasHtml ? r.HtmlBarcodeImageBase64 : null;
         bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         DataFormatCheckResult? htmlDfc = hasHtml ? r.HtmlDataFormatCheck : null;
+        bool useVeriWedgeDigitalLinkFallback = UsesVeriWedgeDigitalLinkFallback(r);
 
         var sb = new StringBuilder();
         sb.Append("    <div class=\"barcode-detail-section\">\n");
         sb.Append(hasHtml
-            ? "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1</span><span class=\"sec-note\"> &#x2014; <em>Native TruCheck data and VCCS Digital Link validation are separately labelled</em></span></div>\n"
+            ? useVeriWedgeDigitalLinkFallback
+                ? "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1</span></div>\n"
+                : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1</span><span class=\"sec-note\"> &#x2014; <em>Native TruCheck data and VCCS Digital Link validation are separately labelled</em></span></div>\n"
             : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">Barcode Verification Capture Unavailable</span><span class=\"sec-note\"> &#x2014; <em>No correlated DMST HTML report</em></span></div>\n");
         sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
         sb.Append("        <td class=\"barcode-image-column\">\n");
@@ -443,13 +446,32 @@ public static class VccsHtmlReportGenerator
         sb.Append("        </td>\n");
         sb.Append("        <td class=\"barcode-dfc-column\">\n");
 
-        AppendVendorDataFormatCheck(sb, htmlDfc, hasHtml);
-        AppendVccsDigitalLinkValidation(sb, r.VccsDigitalLinkValidation);
+        if (useVeriWedgeDigitalLinkFallback)
+        {
+            AppendVeriWedgeDigitalLinkFallback(sb, r.VccsDigitalLinkValidation);
+        }
+        else
+        {
+            AppendVendorDataFormatCheck(sb, htmlDfc, hasHtml);
+            AppendVccsDigitalLinkValidation(sb, r.VccsDigitalLinkValidation);
+        }
 
         sb.Append("        </td>\n");
         sb.Append("      </tr></tbody></table>\n");
         sb.Append("    </div>\n");
         return sb.ToString();
+    }
+
+    private static bool UsesVeriWedgeDigitalLinkFallback(VerificationRecord r)
+        => string.Equals(r.DataFormatCheckSetting, "None", StringComparison.OrdinalIgnoreCase) &&
+           r.VccsDigitalLinkValidation?.Status is not DigitalLinkValidationStatus.NotApplicable and not null;
+
+    private static void AppendVeriWedgeDigitalLinkFallback(
+        StringBuilder sb,
+        DigitalLinkValidationResult? validation)
+    {
+        sb.Append("          <div class=\"sec-note\" style=\"margin:0 0 3pt 0;\"><strong>No verifier Data Format Check selected; using VeriWedge GS1 algorithm</strong></div>\n");
+        AppendVccsDigitalLinkValidation(sb, validation);
     }
 
     private static void AppendVendorDataFormatCheck(

@@ -1871,3 +1871,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Corrected the summary structure: the encoded-data cell must span beneath the app-settings header rather than leaving a separate blank app-settings cell. Requested the app-settings title at the same size as Encoded Data and its values in normal weight.
 
 **Assistant:** Updated symbol and unavailable rows so Encoded Data spans the second and third summary columns. The session settings remain one inline header line only. The title uses 8pt, matching Encoded Data, while the live values are explicitly normal weight. DeviceInterface tests passed: 147/147. Updated to VCCS report v1.5.29 and application v1.5.43.
+
+---
+
+**`2026-08-21`**
+
+**User:** Requested a dedicated no-verifier-DFC path for GS1 Digital Link labels: show `No verifier Data Format Check selected; using VeriWedge GS1 algorithm`, do not refer to native TruCheck DFC, and then show the separately parsed Digital Link results. Element String parsing is deferred for separate testing and implementation.
+
+**Assistant:** Added the DL-only fallback when the post-result verifier setting is `None` and a Digital Link result is available. It preserves the existing section title, omits the native DFC block and unavailable row, shows the requested VeriWedge message, and then renders the official GS1 Syntax Engine result. GS1 Element Strings remain on the existing path until their parser is explicitly added. DeviceInterface tests passed: 149/149. Updated to VCCS report v1.5.30 and application v1.5.44.

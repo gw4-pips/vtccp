@@ -493,6 +493,70 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_NoVerifierDfcForDigitalLink_UsesVeriWedgeAlgorithmOnly()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "QR Code",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verifier-output.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlDecodedData = "https://id.gs1.org/01/09506000134352/21/72803288707",
+            DataFormatCheckSetting = "None",
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                EngineVersion = "GS1 Syntax Engine 1.4.0",
+                Detail = "Validated with the official GS1 Syntax Engine.",
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "No verifier Data Format Check selected; using VeriWedge GS1 algorithm",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("VCCS / GS1 Digital Link syntax validation", report, StringComparison.Ordinal);
+        Assert.Contains("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Native TruCheck Data Format Check", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("DATA FORMAT CHECK UNAVAILABLE", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_NoVerifierDfcForElementString_KeepsNativeUnavailablePath()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verifier-output.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlDecodedData = "(01)09506000134352(21)72803288707",
+            DataFormatCheckSetting = "None",
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.NotApplicable,
+                Detail = "Decoded verifier data is not a GS1 Digital Link URI.",
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("Native TruCheck Data Format Check", report, StringComparison.Ordinal);
+        Assert.Contains("[DATA FORMAT CHECK UNAVAILABLE — NOT PRESENT IN TRUCHECK HTML]",
+            report, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "No verifier Data Format Check selected; using VeriWedge GS1 algorithm",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_LabelsDigitalLinkNotApplicable()
     {
         var record = new VerificationRecord
