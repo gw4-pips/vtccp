@@ -288,12 +288,13 @@
     border: none; font-size: 7.5pt;
     break-inside: avoid; page-break-inside: avoid;
   }
-  .dfc-dual-table col.dual-field { width: 27%; }
-  .dfc-dual-table col.dual-left-data { width: 15%; }
-  .dfc-dual-table col.dual-left-check { width: 8%; }
+   .dfc-dual-table col.dual-left-field { width: 22%; }
+   .dfc-dual-table col.dual-left-data { width: 13%; }
+   .dfc-dual-table col.dual-left-check { width: 7%; }
   .dfc-dual-table col.dual-divider { width: 2%; }
-  .dfc-dual-table col.dual-right-data { width: 36%; }
-  .dfc-dual-table col.dual-right-check { width: 12%; }
+   .dfc-dual-table col.dual-right-field { width: 22%; }
+   .dfc-dual-table col.dual-right-data { width: 27%; }
+   .dfc-dual-table col.dual-right-check { width: 7%; }
   .dfc-dual-table th {
     background: #e8eef5; border-bottom: 1px solid #aaa;
     padding: 2pt 3pt; text-align: left; font-size: 7.5pt;
@@ -329,6 +330,9 @@
   .dfc-dual-table .dual-data {
     overflow-wrap: anywhere;
   }
+   .dfc-dual-table .parser-element-string-data {
+     line-height: 1.35; overflow-wrap: normal; word-break: normal;
+   }
   .dfc-accordion-section {
     break-inside: avoid; page-break-inside: avoid;
     margin: 0;

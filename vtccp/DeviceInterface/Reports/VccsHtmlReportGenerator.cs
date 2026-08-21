@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.34";
+    public const string ReportVersion = "v1.5.35";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -453,6 +453,7 @@ public static class VccsHtmlReportGenerator
         {
             AppendElementStringDualValidation(
                 sb,
+                r,
                 htmlDfc,
                 r.VccsDigitalLinkValidation,
                 hasHtml,
@@ -556,6 +557,7 @@ public static class VccsHtmlReportGenerator
 
     private static void AppendElementStringDualValidation(
         StringBuilder sb,
+        VerificationRecord record,
         DataFormatCheckResult? htmlDfc,
         DigitalLinkValidationResult? validation,
         bool hasCorrelatedHtml,
@@ -594,31 +596,33 @@ public static class VccsHtmlReportGenerator
             _ => "",
         };
         string? parsedAiData = ExtractParsedAiData(detail);
-        Dictionary<string, string> parsedFields = ParseAiFields(parsedAiData);
+        List<Gs1ParserRow> parserRows = BuildGs1ParserRows(record, validation, parsedAiData, detail);
 
         sb.Append("          <div class=\"dfc-accordion-section dfc-dual-block\">\n");
         sb.Append("            <table class=\"dfc-dual-table\">\n");
-        sb.Append("              <colgroup><col class=\"dual-field\"><col class=\"dual-left-data\"><col class=\"dual-left-check\"><col class=\"dual-divider\"><col class=\"dual-right-data\"><col class=\"dual-right-check\"></colgroup>\n");
-        sb.Append($"              <thead><tr class=\"dual-subhead\"><th colspan=\"3\">DataMan TruCheck GS1 Parser</th><th class=\"dual-divider\"></th><th colspan=\"2\">VeriWedge GS1 Parser (v. {H(GetParserVersion(validation))})</th></tr>\n");
-        sb.Append("              <tr><th>Field</th><th>Data</th><th>Check</th><th class=\"dual-divider\"></th><th>Data</th><th>Check</th></tr></thead>\n");
+        sb.Append("              <colgroup><col class=\"dual-left-field\"><col class=\"dual-left-data\"><col class=\"dual-left-check\"><col class=\"dual-divider\"><col class=\"dual-right-field\"><col class=\"dual-right-data\"><col class=\"dual-right-check\"></colgroup>\n");
+        sb.Append($"              <thead><tr class=\"dual-subhead\"><th colspan=\"3\">DataMan TruCheck GS1 Parser</th><th class=\"dual-divider\"></th><th colspan=\"3\">VeriWedge GS1 Parser (v. {H(GetParserVersion(validation))})</th></tr>\n");
+        sb.Append("              <tr><th>Field</th><th>Data</th><th>Check</th><th class=\"dual-divider\"></th><th>Field</th><th>Data</th><th>Check</th></tr></thead>\n");
         sb.Append("              <tbody>\n");
 
-        for (int index = 0; index < verifierRows.Count; index++)
+        int rowCount = Math.Max(verifierRows.Count, parserRows.Count);
+        for (int index = 0; index < rowCount; index++)
         {
-            DataFormatCheckRow row = verifierRows[index];
-            string leftClass = row.Check switch
+            DataFormatCheckRow? verifierRow = index < verifierRows.Count ? verifierRows[index] : null;
+            Gs1ParserRow? parserRow = index < parserRows.Count ? parserRows[index] : null;
+            string leftClass = verifierRow?.Check switch
             {
                 "PASS" => "pass-fg",
                 "FAIL" => "fail-fg",
                 _ => "",
             };
-            string parserData = ResolveParserData(
-                row.Name,
-                index == 0,
-                parsedAiData,
-                parsedFields,
-                detail);
-            sb.Append($"                <tr><td>{H(row.Name)}</td><td class=\"dual-data\">{H(row.Data)}</td><td class=\"dual-check {leftClass}\">{H(row.Check)}</td><td class=\"dual-divider\"></td><td class=\"dual-data\">{H(parserData)}</td><td class=\"dual-check {parserClass}\">{(index == 0 ? parserCheck : "")}</td></tr>\n");
+            string parserData = parserRow?.IsCanonicalAiString == true
+                ? FormatCanonicalAiForHtml(parserRow.Data)
+                : H(parserRow?.Data);
+            string parserDataClass = parserRow?.IsCanonicalAiString == true
+                ? "dual-data parser-element-string-data"
+                : "dual-data";
+            sb.Append($"                <tr><td>{H(verifierRow?.Name)}</td><td class=\"dual-data\">{H(verifierRow?.Data)}</td><td class=\"dual-check {leftClass}\">{H(verifierRow?.Check)}</td><td class=\"dual-divider\"></td><td>{H(parserRow?.Field)}</td><td class=\"{parserDataClass}\">{parserData}</td><td class=\"dual-check {parserClass}\">{(index == 0 ? parserCheck : "")}</td></tr>\n");
         }
 
         (string leftOverallClass, string leftOverallText) = htmlDfc is null
@@ -635,7 +639,7 @@ public static class VccsHtmlReportGenerator
             "FAIL" => "pill-fail",
             _ => "pill-warn",
         };
-        sb.Append($"                <tr class=\"dual-overall\"><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {leftOverallClass}\">{leftOverallText}</span></td><td class=\"dual-divider\"></td><td colspan=\"2\" class=\"dual-overall-cell\"><span class=\"overall-pill {parserOverallClass}\">OVERALL: {parserCheck}</span></td></tr>\n");
+        sb.Append($"                <tr class=\"dual-overall\"><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {leftOverallClass}\">{leftOverallText}</span></td><td class=\"dual-divider\"></td><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {parserOverallClass}\">OVERALL: {parserCheck}</span></td></tr>\n");
         sb.Append("              </tbody>\n");
         sb.Append("            </table>\n");
         sb.Append("          </div>\n");
@@ -651,9 +655,55 @@ public static class VccsHtmlReportGenerator
         return (end >= 0 ? detail[start..end] : detail[start..]).Trim();
     }
 
-    private static Dictionary<string, string> ParseAiFields(string? parsedAiData)
+    private static List<Gs1ParserRow> BuildGs1ParserRows(
+        VerificationRecord record,
+        DigitalLinkValidationResult? validation,
+        string? parsedAiData,
+        string detail)
     {
-        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        var rows = new List<Gs1ParserRow>();
+        bool isElementString = IsElementStringValidation(validation);
+
+        if (!isElementString)
+        {
+            rows.Add(new Gs1ParserRow(
+                "URI",
+                FindDigitalLinkUri(record) ?? "[DIGITAL LINK URI NOT AVAILABLE]",
+                false));
+        }
+
+        foreach ((string ai, string value) in ParseAiElements(parsedAiData))
+            rows.Add(new Gs1ParserRow($"AI ({ai}) {GetGs1AiName(ai)}", value, false));
+
+        if (!string.IsNullOrWhiteSpace(parsedAiData))
+        {
+            rows.Add(new Gs1ParserRow("GS1 Element String", parsedAiData, true));
+        }
+        else if (rows.Count == 0)
+        {
+            rows.Add(new Gs1ParserRow("Parser Detail", detail, false));
+        }
+
+        return rows;
+    }
+
+    private static string? FindDigitalLinkUri(VerificationRecord record)
+    {
+        foreach (string? candidate in new[] { record.DecodedData, record.HtmlDecodedData })
+        {
+            if (Uri.TryCreate(candidate, UriKind.Absolute, out Uri? uri) &&
+                (uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
+                 uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
+            {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private static List<(string Ai, string Value)> ParseAiElements(string? parsedAiData)
+    {
+        var fields = new List<(string Ai, string Value)>();
         if (string.IsNullOrWhiteSpace(parsedAiData)) return fields;
 
         foreach (Match match in Regex.Matches(
@@ -661,30 +711,82 @@ public static class VccsHtmlReportGenerator
                      @"\((\d{2,4})\)(.*?)(?=\(\d{2,4}\)|$)",
                      RegexOptions.Singleline))
         {
-            fields[match.Groups[1].Value] = match.Groups[2].Value;
+            fields.Add((match.Groups[1].Value, match.Groups[2].Value));
         }
         return fields;
     }
 
-    private static string ResolveParserData(
-        string fieldName,
-        bool firstRow,
-        string? parsedAiData,
-        IReadOnlyDictionary<string, string> parsedFields,
-        string fallbackDetail)
+    private static string FormatCanonicalAiForHtml(string value)
     {
-        Match? aiMatch = Regex.Match(fieldName, @"\((\d{2,4})\)");
-        if (aiMatch.Success && parsedFields.TryGetValue(aiMatch.Groups[1].Value, out string? value))
-            return value;
+        MatchCollection elements = Regex.Matches(
+            value,
+            @"\(\d{2,4}\).*?(?=\(\d{2,4}\)|$)",
+            RegexOptions.Singleline);
+        if (elements.Count == 0) return H(value);
 
-        if (fieldName.Contains("Check Digit", StringComparison.OrdinalIgnoreCase) &&
-            parsedFields.TryGetValue("01", out string? gtin))
-            return gtin.Length > 0 ? gtin[^1].ToString() : "";
-
-        return firstRow
-            ? parsedAiData ?? fallbackDetail
-            : "";
+        var formatted = new StringBuilder();
+        foreach (Match element in elements)
+            formatted.Append(H(element.Value)).Append("<wbr>");
+        return formatted.ToString();
     }
+
+    private static string GetGs1AiName(string ai)
+        => Gs1AiNames.TryGetValue(ai, out string? name) ? name : "GS1 Application Identifier";
+
+    private sealed record Gs1ParserRow(string Field, string Data, bool IsCanonicalAiString);
+
+    private static readonly IReadOnlyDictionary<string, string> Gs1AiNames =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["00"] = "SSCC",
+            ["01"] = "GTIN",
+            ["02"] = "GTIN of Contained Trade Item",
+            ["10"] = "Batch or Lot Number",
+            ["11"] = "Production Date",
+            ["12"] = "Due Date",
+            ["13"] = "Packaging Date",
+            ["15"] = "Best Before Date",
+            ["17"] = "Expiration Date",
+            ["20"] = "Variant",
+            ["21"] = "Serial Number",
+            ["22"] = "Consumer Product Variant",
+            ["30"] = "Count",
+            ["37"] = "Count of Trade Items",
+            ["240"] = "Additional Product Identification",
+            ["241"] = "Customer Part Number",
+            ["250"] = "Secondary Serial Number",
+            ["251"] = "Reference to Source Entity",
+            ["253"] = "Global Document Type Identifier",
+            ["400"] = "Customer Purchase Order Number",
+            ["401"] = "Global Identification Number for Consignment",
+            ["402"] = "Global Shipment Identification Number",
+            ["403"] = "Routing Code",
+            ["410"] = "Ship To Global Location Number",
+            ["411"] = "Bill To Global Location Number",
+            ["412"] = "Purchased From Global Location Number",
+            ["413"] = "Ship For Global Location Number",
+            ["414"] = "Physical Location Global Location Number",
+            ["415"] = "Pay To Global Location Number",
+            ["416"] = "Production or Service Location",
+            ["417"] = "Party Global Location Number",
+            ["420"] = "Ship To Postal Code",
+            ["421"] = "Ship To Postal Code with Country Code",
+            ["422"] = "Country of Origin",
+            ["423"] = "Country of Initial Processing",
+            ["424"] = "Country of Processing",
+            ["425"] = "Country of Disassembly",
+            ["426"] = "Country of Full Processing",
+            ["7001"] = "NATO Stock Number",
+            ["7003"] = "Expiration Date and Time",
+            ["7004"] = "Active Potency",
+            ["7006"] = "First Freeze Date",
+            ["7007"] = "Harvest Date",
+            ["7009"] = "Fishing Gear Type",
+            ["7010"] = "Production Method",
+            ["7020"] = "Refurbishment Lot Identifier",
+            ["7021"] = "Functional Status",
+            ["7022"] = "Revision Status",
+        };
 
     private static string GetParserVersion(DigitalLinkValidationResult? validation)
     {

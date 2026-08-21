@@ -1919,3 +1919,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked whether the GS1 parser breaks the data out in more detail than the report currently shows.
 
 **Assistant:** Explained that the official GS1 Syntax Engine validates the Digital Link or Element String, normalizes it into a canonical GS1 AI sequence, and can retain every parsed AI. The current PDF intentionally renders only the AI rows supplied by the DataMan TruCheck side; it maps matching parser values into those rows and shows the full canonical AI string in the first parser data cell. It does not currently render an independent complete AI inventory or individual parser pass/fail diagnostics for every AI.
+
+---
+
+**`2026-08-21`**
+
+**User:** Corrected the parser-display explanation with a report snip. Requested a separate Field column for the VeriWedge GS1 parser, GS1-named parsed fields, and the full Element String as the final wrap-safe row. Added that a Digital Link URI must always be the first parser row. Confirmed the approach.
+
+**Assistant:** Reworked the dual parser table so each side has independent `Field / Data / Check` columns. The VeriWedge side now lists a Digital Link URI first when applicable, lists each parsed AI with its GS1 field name, and places the canonical GS1 Element String last. The last value has HTML wrap opportunities only between complete AI elements, allowing the row to grow naturally without splitting an AI token. Updated regression coverage for the URI-first rule, GS1 AI labels, and canonical-string wrapping. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.35 and application v1.5.49.
