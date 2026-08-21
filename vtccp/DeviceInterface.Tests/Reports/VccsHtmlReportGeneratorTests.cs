@@ -528,7 +528,7 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_NoVerifierDfcForElementString_KeepsNativeUnavailablePath()
+    public void Generate_NoVerifierDfcForGs1DataMatrix_UsesVeriWedgeAlgorithmOnly()
     {
         var record = new VerificationRecord
         {
@@ -540,19 +540,25 @@ public sealed class VccsHtmlReportGeneratorTests
             DataFormatCheckSetting = "None",
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
-                Status = DigitalLinkValidationStatus.NotApplicable,
-                Detail = "Decoded verifier data is not a GS1 Digital Link URI.",
+                Status = DigitalLinkValidationStatus.Valid,
+                Source = DigitalLinkValidationResult.VccsElementStringSource,
+                EngineVersion = "GS1 Syntax Engine 1.4.0",
+                Detail = "Validated with the official GS1 Syntax Engine.",
             },
         };
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.Contains("Native TruCheck Data Format Check", report, StringComparison.Ordinal);
-        Assert.Contains("[DATA FORMAT CHECK UNAVAILABLE — NOT PRESENT IN TRUCHECK HTML]",
-            report, StringComparison.Ordinal);
-        Assert.DoesNotContain(
+        Assert.Contains(
             "No verifier Data Format Check selected; using VeriWedge GS1 algorithm",
             report,
+            StringComparison.Ordinal);
+        Assert.Contains(DigitalLinkValidationResult.VccsElementStringSource,
+            report, StringComparison.Ordinal);
+        Assert.Contains("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Native TruCheck Data Format Check", report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("DATA FORMAT CHECK UNAVAILABLE", report,
             StringComparison.Ordinal);
     }
 

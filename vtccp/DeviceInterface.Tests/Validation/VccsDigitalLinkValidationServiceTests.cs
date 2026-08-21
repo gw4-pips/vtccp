@@ -42,6 +42,42 @@ public sealed class VccsDigitalLinkValidationServiceTests
     }
 
     [Fact]
+    public void ValidateElementString_ValidGs1DataMatrix_ReportsVccsPass()
+    {
+        var result = VccsDigitalLinkValidationService.ValidateElementString(
+            "(01)09506000134352(21)72803288707",
+            new AcceptingEngine());
+
+        Assert.Equal(DigitalLinkValidationStatus.Valid, result.Status);
+        Assert.Equal(DigitalLinkValidationResult.VccsElementStringSource, result.Source);
+        Assert.Equal("GS1 Syntax Engine 1.4.0", result.EngineVersion);
+    }
+
+    [Theory]
+    [InlineData("<F1>01095060001343522172803288707")]
+    [InlineData("]d201095060001343522172803288707")]
+    public void ValidateElementString_DataManGs1DataMatrixForm_ReportsVccsPass(string data)
+    {
+        var result = VccsDigitalLinkValidationService.ValidateElementString(
+            data,
+            new AcceptingEngine());
+
+        Assert.Equal(DigitalLinkValidationStatus.Valid, result.Status);
+        Assert.Equal(DigitalLinkValidationResult.VccsElementStringSource, result.Source);
+    }
+
+    [Fact]
+    public void ValidateElementString_NonGs1Data_IsExplicitlyNotApplicable()
+    {
+        var result = VccsDigitalLinkValidationService.ValidateElementString(
+            "plain decoded data",
+            new ThrowingEngine());
+
+        Assert.Equal(DigitalLinkValidationStatus.NotApplicable, result.Status);
+        Assert.Null(result.EngineVersion);
+    }
+
+    [Fact]
     public void Validate_MissingNativeRuntime_IsExplicitlyUnavailable()
     {
         var result = VccsDigitalLinkValidationService.Validate(

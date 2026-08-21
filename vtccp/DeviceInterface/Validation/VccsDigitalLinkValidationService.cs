@@ -37,43 +37,102 @@ public static class VccsDigitalLinkValidationService
             };
         }
 
+        return ValidateWithEngine(decodedData!, engine, DigitalLinkValidationResult.VccsSource,
+            "The GS1 Syntax Engine rejected the Digital Link URI.",
+            engine.Validate);
+    }
+
+    /// <summary>
+    /// Validates a bracketed GS1 Element String (or an AIM-prefixed GS1 Element
+    /// String) with the official GS1 engine. It never treats arbitrary decoded
+    /// data as GS1 syntax.
+    /// </summary>
+    public static DigitalLinkValidationResult ValidateElementString(string? decodedData)
+        => ValidateElementString(decodedData, new Gs1DigitalLinkSyntaxEngine());
+
+    /// <summary>Injectable Element String overload used by regression tests.</summary>
+    public static DigitalLinkValidationResult ValidateElementString(
+        string? decodedData,
+        IGs1DigitalLinkSyntaxEngine engine)
+    {
+        if (!LooksLikeGs1ElementString(decodedData))
+        {
+            return new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.NotApplicable,
+                Detail = "Decoded verifier data is not a GS1 Element String.",
+            };
+        }
+
+        return ValidateWithEngine(
+            decodedData!,
+            engine,
+            DigitalLinkValidationResult.VccsElementStringSource,
+            "The GS1 Syntax Engine rejected the GS1 Element String.",
+            engine.ValidateElementString);
+    }
+
+    /// <summary>
+    /// Recognises the bracketed representation emitted by the report parser and
+    /// the raw AIM ]d2 representation emitted by some Data Matrix readers.
+    /// </summary>
+    public static bool LooksLikeGs1ElementString(string? decodedData)
+    {
+        string value = decodedData?.Trim() ?? string.Empty;
+        return value.StartsWith("(01)", StringComparison.Ordinal) ||
+               value.StartsWith("<F1>", StringComparison.OrdinalIgnoreCase) ||
+               value.StartsWith("]d2", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static DigitalLinkValidationResult ValidateWithEngine(
+        string gs1Data,
+        IGs1DigitalLinkSyntaxEngine engine,
+        string source,
+        string defaultInvalidDetail,
+        Action<string> validate)
+    {
         try
         {
-            engine.Validate(decodedData!);
+            validate(gs1Data);
             return new DigitalLinkValidationResult
             {
                 Status = DigitalLinkValidationStatus.Valid,
+                Source = source,
                 EngineVersion = EngineVersion,
                 Detail = "Validated with the official GS1 Syntax Engine.",
             };
         }
         catch (GS1EncoderParameterException ex)
         {
-            return Invalid(ex.Message);
+            return Invalid(ex.Message, source, defaultInvalidDetail);
         }
         catch (GS1EncoderDigitalLinkException ex)
         {
-            return Invalid(ex.Message);
+            return Invalid(ex.Message, source, defaultInvalidDetail);
+        }
+        catch (GS1EncoderScanDataException ex)
+        {
+            return Invalid(ex.Message, source, defaultInvalidDetail);
         }
         catch (GS1EncoderGeneralException ex)
         {
-            return Unavailable(ex.Message);
+            return Unavailable(ex.Message, source);
         }
         catch (DllNotFoundException ex)
         {
-            return Unavailable(ex.Message);
+            return Unavailable(ex.Message, source);
         }
         catch (BadImageFormatException ex)
         {
-            return Unavailable(ex.Message);
+            return Unavailable(ex.Message, source);
         }
         catch (EntryPointNotFoundException ex)
         {
-            return Unavailable(ex.Message);
+            return Unavailable(ex.Message, source);
         }
         catch (FileNotFoundException ex)
         {
-            return Unavailable(ex.Message);
+            return Unavailable(ex.Message, source);
         }
     }
 
@@ -82,20 +141,25 @@ public static class VccsDigitalLinkValidationService
            (uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
             uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase));
 
-    private static DigitalLinkValidationResult Invalid(string? reason)
+    private static DigitalLinkValidationResult Invalid(
+        string? reason,
+        string source,
+        string defaultDetail)
         => new()
         {
             Status = DigitalLinkValidationStatus.Invalid,
+            Source = source,
             EngineVersion = EngineVersion,
             Detail = string.IsNullOrWhiteSpace(reason)
-                ? "The GS1 Syntax Engine rejected the Digital Link URI."
+                ? defaultDetail
                 : reason,
         };
 
-    private static DigitalLinkValidationResult Unavailable(string? reason)
+    private static DigitalLinkValidationResult Unavailable(string? reason, string source)
         => new()
         {
             Status = DigitalLinkValidationStatus.Unavailable,
+            Source = source,
             Detail = string.IsNullOrWhiteSpace(reason)
                 ? "The GS1 Syntax Engine runtime is unavailable."
                 : $"The GS1 Syntax Engine runtime is unavailable: {reason}",
@@ -105,14 +169,44 @@ public static class VccsDigitalLinkValidationService
 /// <summary>Small seam so validation outcome tests do not depend on a native DLL.</summary>
 public interface IGs1DigitalLinkSyntaxEngine
 {
-    void Validate(string digitalLinkUri);
+    void Validate(string gs1Data);
+
+    /// <summary>
+    /// Validates a GS1 Element String. Test doubles can use the same simple
+    /// implementation as their Digital Link validation.
+    /// </summary>
+    void ValidateElementString(string elementString) => Validate(elementString);
 }
 
 internal sealed class Gs1DigitalLinkSyntaxEngine : IGs1DigitalLinkSyntaxEngine
 {
-    public void Validate(string digitalLinkUri)
+    public void Validate(string gs1Data)
     {
         using var encoder = new GS1Encoder();
-        encoder.DataStr = digitalLinkUri;
+        encoder.DataStr = gs1Data;
+    }
+
+    public void ValidateElementString(string elementString)
+    {
+        string value = elementString.Trim();
+        using var encoder = new GS1Encoder();
+
+        if (value.StartsWith("<F1>", StringComparison.OrdinalIgnoreCase))
+        {
+            string rawData = value[4..].Replace("<F1>", "\x1D",
+                StringComparison.OrdinalIgnoreCase);
+            encoder.ScanData = "]d2" + rawData;
+            return;
+        }
+
+        if (value.StartsWith("]d2", StringComparison.OrdinalIgnoreCase))
+        {
+            string scanData = value.Replace("<F1>", "\x1D",
+                StringComparison.OrdinalIgnoreCase);
+            encoder.ScanData = scanData;
+            return;
+        }
+
+        encoder.AIdataStr = value;
     }
 }

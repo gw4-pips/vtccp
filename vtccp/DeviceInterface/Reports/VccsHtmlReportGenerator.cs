@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.30";
+    public const string ReportVersion = "v1.5.31";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -532,7 +532,10 @@ public static class VccsHtmlReportGenerator
             ? "VCCS validation"
             : validation.EngineVersion!;
 
-        sb.Append("          <div class=\"sec-note\" style=\"margin:7pt 0 3pt 0;\"><strong>VCCS / GS1 Digital Link syntax validation</strong></div>\n");
+        string source = string.IsNullOrWhiteSpace(validation?.Source)
+            ? DigitalLinkValidationResult.VccsSource
+            : validation.Source!;
+        sb.Append($"          <div class=\"sec-note\" style=\"margin:7pt 0 3pt 0;\"><strong>{H(source)}</strong></div>\n");
         sb.Append("          <table class=\"dfc-table\"><thead><tr><th>Source</th><th>Detail</th><th class=\"chk\">Check</th></tr></thead><tbody>\n");
         sb.Append($"            <tr><td>{H(engine)}</td><td>{H(detail)}</td><td class=\"chk {cls}\">{label}</td></tr>\n");
         sb.Append("          </tbody></table>\n");

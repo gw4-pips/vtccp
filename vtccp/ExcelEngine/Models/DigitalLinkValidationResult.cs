@@ -1,7 +1,7 @@
 namespace ExcelEngine.Models;
 
 /// <summary>
-/// The outcome of VCCS's independent GS1 Digital Link syntax check.
+/// The outcome of VCCS's independent GS1 syntax check.
 /// This is intentionally distinct from a verifier's native Data Format Check.
 /// </summary>
 public enum DigitalLinkValidationStatus
@@ -13,13 +13,15 @@ public enum DigitalLinkValidationStatus
 }
 
 /// <summary>
-/// VCCS-owned validation metadata for a decoded GS1 Digital Link URI.
+/// VCCS-owned validation metadata for a decoded GS1 Digital Link URI or
+/// GS1 Element String.
 /// It must never be presented as a native verifier result or used to replace
 /// verifier-provided grades or Data Format Check rows.
 /// </summary>
 public sealed record class DigitalLinkValidationResult
 {
     public const string VccsSource = "VCCS / GS1 Digital Link syntax validation";
+    public const string VccsElementStringSource = "VCCS / GS1 Element String syntax validation";
 
     public DigitalLinkValidationStatus Status { get; init; } =
         DigitalLinkValidationStatus.NotApplicable;
