@@ -1823,3 +1823,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Observed that the nominal `2px` perimeter line looks three to five times thicker than the `1px` row lines on the monitor and printed page, and asked what accounts for that and what intermediate width should be used.
 
 **Assistant:** Explained that CSS pixels are layout units, not guaranteed physical monitor or printer pixels. Rendering scale, device pixel ratio, PDF zoom, print conversion, anti-aliasing, table border selection, and the dark navy perimeter colour versus light grey row rules can amplify the visual difference. CSS supports fractional widths such as `1.25px` and `1.5px`; physical rasterization rounds or anti-aliases them. Recommended testing `1.25px` first for a restrained intermediate perimeter, or `1.5px` if a stronger divider is desired, while retaining `1px` internal row rules.
+
+---
+
+**`2026-08-21`**
+
+**User:** Approved a targeted `1.5px` adjustment: the vertical divider immediately left of Application Standard and only the horizontal segment directly below the Application Standard header cell. The corresponding header-rule segments below Symbology and Encoded Data were to remain `1px`. Requested commit and push.
+
+**Assistant:** Updated the VCCS summary-table CSS accordingly. The Application Standard divider is `1.5px`; metadata rows remain unaffected; only the Application Standard header cell has a `1.5px` bottom rule. The Symbology and Encoded Data header-rule segments remain `1px`. Restored dependencies and ran 142 passing DeviceInterface tests. Committed and pushed the change as `e007fa2`.
