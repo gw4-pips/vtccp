@@ -208,8 +208,6 @@ public sealed class VccsHtmlReportGeneratorTests
             "Native TruCheck data and VCCS Digital Link validation are separately labelled",
             report,
             StringComparison.Ordinal);
-        Assert.DoesNotContain("display: grid", report, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("grid-template-columns", report, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(">Barcode Image</div>", report, StringComparison.Ordinal);
     }
 
@@ -460,7 +458,7 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_LabelsVccsDigitalLinkValidationSeparatelyFromVendorDfc()
+    public void Generate_RendersVccsDigitalLinkWithoutSourceColumnOrHeading()
     {
         var record = new VerificationRecord
         {
@@ -486,8 +484,12 @@ public sealed class VccsHtmlReportGeneratorTests
 
         Assert.Contains("Native TruCheck Data Format Check", report, StringComparison.Ordinal);
         Assert.Contains("Verifier GS1 row", report, StringComparison.Ordinal);
-        Assert.Contains("VCCS / GS1 Digital Link syntax validation", report, StringComparison.Ordinal);
-        Assert.Contains("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
+        Assert.Contains("<th>Data</th><th class=\"chk\">Check</th>", report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("<th>Source</th>", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("VCCS / GS1 Digital Link syntax validation", report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Native Webscan Digital Link", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Native DataMan Digital Link", report, StringComparison.Ordinal);
     }
@@ -514,18 +516,20 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "Data Format Check (DFC) &#x2014; No verifier DFC selected; using VeriWedge GS1 Digital Link algorithm",
+            "Data Format Check (DFC) &#x2014; No verifier DFC selected; using VeriWedge GS1 Digital Link algorithm (v 1.4.0)",
             report,
             StringComparison.Ordinal);
         Assert.Contains("(01)09506000134352(21)72803288707", report, StringComparison.Ordinal);
-        Assert.Contains("VCCS / GS1 Digital Link syntax validation", report, StringComparison.Ordinal);
-        Assert.Contains("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("<th>Source</th>", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("VCCS / GS1 Digital Link syntax validation", report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Native TruCheck Data Format Check", report, StringComparison.Ordinal);
         Assert.DoesNotContain("DATA FORMAT CHECK UNAVAILABLE", report, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Generate_NoVerifierDfcForGs1DataMatrix_UsesVeriWedgeAlgorithmOnly()
+    public void Generate_Gs1ElementString_RendersDynamicPageSafeDualComparison()
     {
         var record = new VerificationRecord
         {
@@ -534,28 +538,47 @@ public sealed class VccsHtmlReportGeneratorTests
             HtmlSourceFileName = "verifier-output.html",
             HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
             HtmlDecodedData = "(01)09506000134352(21)72803288707",
-            DataFormatCheckSetting = "None",
+            DataFormatCheckSetting = "GS1",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Rows =
+                [
+                    new DataFormatCheckRow { Name = "AI (01) GTIN-14", Data = "09506000134352", Check = "PASS" },
+                    new DataFormatCheckRow { Name = "AI (10) LOT", Data = "LOT-12", Check = "PASS" },
+                    new DataFormatCheckRow { Name = "AI (17) EXP", Data = "250101", Check = "PASS" },
+                    new DataFormatCheckRow { Name = "AI (21) SN", Data = "72803288707", Check = "PASS" },
+                    new DataFormatCheckRow { Name = "AI (20) VARIANT", Data = "3", Check = "PASS" },
+                ],
+            },
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
                 Status = DigitalLinkValidationStatus.Valid,
                 Source = DigitalLinkValidationResult.VccsElementStringSource,
                 EngineVersion = "GS1 Syntax Engine 1.4.0",
-                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Syntax Engine.",
+                Detail = "Parsed GS1 AI data: (01)09506000134352(10)LOT-12(17)250101(21)72803288707(20)3 Validated with the official GS1 Syntax Engine.",
             },
         };
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "Data Format Check (DFC) &#x2014; No verifier DFC selected; using VeriWedge GS1 Element String algorithm",
+            "Data Format Check (DFC) &#x2014; GS1 Element String from verifier &amp; using VeriWedge GS1 Element String algorithm (v 1.4.0)",
             report,
             StringComparison.Ordinal);
-        Assert.Contains(DigitalLinkValidationResult.VccsElementStringSource,
-            report, StringComparison.Ordinal);
-        Assert.Contains("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
-        Assert.DoesNotContain("Native TruCheck Data Format Check", report,
+        Assert.Contains("<table class=\"dfc-dual-table\">", report, StringComparison.Ordinal);
+        Assert.Contains("AI (10) LOT", report, StringComparison.Ordinal);
+        Assert.Contains("AI (17) EXP", report, StringComparison.Ordinal);
+        Assert.Contains("AI (21) SN", report, StringComparison.Ordinal);
+        Assert.Contains("AI (20) VARIANT", report, StringComparison.Ordinal);
+        Assert.Contains("OVERALL: PASS", report, StringComparison.Ordinal);
+        Assert.Contains("break-inside: avoid", report, StringComparison.Ordinal);
+        Assert.Contains("page-break-inside: avoid", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("<th>Source</th>", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("VCCS / GS1 Element String syntax validation", report,
             StringComparison.Ordinal);
-        Assert.DoesNotContain("DATA FORMAT CHECK UNAVAILABLE", report,
+        Assert.DoesNotContain("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Native TruCheck Data Format Check", report,
             StringComparison.Ordinal);
     }
 

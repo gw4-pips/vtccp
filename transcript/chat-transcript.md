@@ -1895,3 +1895,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Clarified that the no-verifier-DFC explanation belongs in the Data Format Check header and must name the selected VeriWedge GS1 algorithm: Digital Link or Element String. Reported that the expected parser detail was not visible.
 
 **Assistant:** Moved the fallback wording into the blue header as `Data Format Check (DFC) — No verifier DFC selected; using VeriWedge GS1 <algorithm> algorithm`. The GS1 Syntax Engine’s canonical parsed AI data is now included in the VCCS validation Detail cell, instead of only a generic validation message. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.32 and application v1.5.46.
+
+---
+
+**`2026-08-21`**
+
+**User:** Defined the GS1 Element String report layout: keep the barcode image; align the image divider to the header separator; put compact verifier `Field / Data / Check` results beside parallel VeriWedge parser results; support arbitrary GS1 AIs; show two boxed overall grades; and keep each variable table component intact when paginating like a Webscan TruCheck PDF.
+
+**Assistant:** Added the dynamic Element String comparison table. It renders the verifier fields once, maps matching official GS1 parser values into the parallel `Data / Check` side, accepts arbitrary AI rows such as GTIN, LOT, EXP, SN, and VARIANT, and places two compact overall status boxes below their check columns. The blue header names the selected algorithm and shows parser version `(v 1.4.0)`; the lower source column and VCCS title are removed. The report template applies non-splitting print rules to each report/table component so it moves as a whole to the next page. DeviceInterface tests passed: 154/154. Updated to VCCS report v1.5.33 and application v1.5.47.

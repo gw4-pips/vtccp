@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.32";
+    public const string ReportVersion = "v1.5.33";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -421,12 +421,13 @@ public static class VccsHtmlReportGenerator
         bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         DataFormatCheckResult? htmlDfc = hasHtml ? r.HtmlDataFormatCheck : null;
         bool useVeriWedgeDigitalLinkFallback = UsesVeriWedgeDigitalLinkFallback(r);
+        bool useElementStringLayout = IsElementStringValidation(r.VccsDigitalLinkValidation);
 
         var sb = new StringBuilder();
         sb.Append("    <div class=\"barcode-detail-section\">\n");
         sb.Append(hasHtml
-            ? useVeriWedgeDigitalLinkFallback
-                ? $"      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">{BuildVeriWedgeDfcHeader(r.VccsDigitalLinkValidation)}</span></div>\n"
+            ? useVeriWedgeDigitalLinkFallback || useElementStringLayout
+                ? $"      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header barcode-dual-header\">{BuildVeriWedgeDfcHeader(r)}</div>\n"
                 : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1</span><span class=\"sec-note\"> &#x2014; <em>Native TruCheck data and VCCS Digital Link validation are separately labelled</em></span></div>\n"
             : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">Barcode Verification Capture Unavailable</span><span class=\"sec-note\"> &#x2014; <em>No correlated DMST HTML report</em></span></div>\n");
         sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
@@ -446,7 +447,11 @@ public static class VccsHtmlReportGenerator
         sb.Append("        </td>\n");
         sb.Append("        <td class=\"barcode-dfc-column\">\n");
 
-        if (useVeriWedgeDigitalLinkFallback)
+        if (useElementStringLayout)
+        {
+            AppendElementStringDualValidation(sb, htmlDfc, r.VccsDigitalLinkValidation, hasHtml);
+        }
+        else if (useVeriWedgeDigitalLinkFallback)
         {
             AppendVeriWedgeDigitalLinkFallback(sb, r.VccsDigitalLinkValidation);
         }
@@ -462,8 +467,10 @@ public static class VccsHtmlReportGenerator
         return sb.ToString();
     }
 
-    private static string BuildVeriWedgeDfcHeader(DigitalLinkValidationResult? validation)
+    private static string BuildVeriWedgeDfcHeader(VerificationRecord r)
     {
+        DigitalLinkValidationResult? validation = r.VccsDigitalLinkValidation;
+        bool isElementString = IsElementStringValidation(validation);
         string algorithm = string.Equals(
             validation?.Source,
             DigitalLinkValidationResult.VccsElementStringSource,
@@ -471,14 +478,28 @@ public static class VccsHtmlReportGenerator
             ? "Element String"
             : "Digital Link";
 
-        return "TruCheck Barcode Image <span class=\"detail-separator\">|</span> " +
-               "Data Format Check (DFC) &#x2014; No verifier DFC selected; using VeriWedge GS1 " +
-               algorithm + " algorithm";
+        bool verifierSelectedGs1 = isElementString &&
+            !string.IsNullOrWhiteSpace(r.DataFormatCheckSetting) &&
+            !string.Equals(r.DataFormatCheckSetting, "None", StringComparison.OrdinalIgnoreCase) &&
+            r.DataFormatCheckSetting.Contains("GS1", StringComparison.OrdinalIgnoreCase);
+        string description = verifierSelectedGs1
+            ? "GS1 Element String from verifier &amp; using VeriWedge GS1 Element String algorithm"
+            : $"No verifier DFC selected; using VeriWedge GS1 {algorithm} algorithm";
+
+        return "<span class=\"barcode-header-image-title\">TruCheck Barcode Image</span>" +
+               "<span class=\"barcode-header-dfc-title\"><span class=\"detail-separator\">|</span> " +
+               $"Data Format Check (DFC) &#x2014; {description} (v 1.4.0)</span>";
     }
 
     private static bool UsesVeriWedgeDigitalLinkFallback(VerificationRecord r)
         => string.Equals(r.DataFormatCheckSetting, "None", StringComparison.OrdinalIgnoreCase) &&
            r.VccsDigitalLinkValidation?.Status is not DigitalLinkValidationStatus.NotApplicable and not null;
+
+    private static bool IsElementStringValidation(DigitalLinkValidationResult? validation)
+        => string.Equals(
+            validation?.Source,
+            DigitalLinkValidationResult.VccsElementStringSource,
+            StringComparison.Ordinal);
 
     private static void AppendVeriWedgeDigitalLinkFallback(
         StringBuilder sb,
@@ -541,17 +562,133 @@ public static class VccsHtmlReportGenerator
             DigitalLinkValidationStatus.NotApplicable => ("", "NOT APPLICABLE"),
             _ => ("", "UNAVAILABLE"),
         };
-        string engine = string.IsNullOrWhiteSpace(validation?.EngineVersion)
-            ? "VCCS validation"
-            : validation.EngineVersion!;
-
-        string source = string.IsNullOrWhiteSpace(validation?.Source)
-            ? DigitalLinkValidationResult.VccsSource
-            : validation.Source!;
-        sb.Append($"          <div class=\"sec-note\" style=\"margin:7pt 0 3pt 0;\"><strong>{H(source)}</strong></div>\n");
-        sb.Append("          <table class=\"dfc-table\"><thead><tr><th>Source</th><th>Detail</th><th class=\"chk\">Check</th></tr></thead><tbody>\n");
-        sb.Append($"            <tr><td>{H(engine)}</td><td>{H(detail)}</td><td class=\"chk {cls}\">{label}</td></tr>\n");
+        sb.Append("          <table class=\"dfc-table\"><thead><tr><th>Data</th><th class=\"chk\">Check</th></tr></thead><tbody>\n");
+        sb.Append($"            <tr><td>{H(detail)}</td><td class=\"chk {cls}\">{label}</td></tr>\n");
         sb.Append("          </tbody></table>\n");
+    }
+
+    private static void AppendElementStringDualValidation(
+        StringBuilder sb,
+        DataFormatCheckResult? htmlDfc,
+        DigitalLinkValidationResult? validation,
+        bool hasCorrelatedHtml)
+    {
+        var verifierRows = htmlDfc?.Rows?.ToList() ?? [];
+        if (verifierRows.Count == 0)
+        {
+            verifierRows.Add(new DataFormatCheckRow
+            {
+                Name = "Verifier DFC",
+                Data = hasCorrelatedHtml
+                    ? "[DATA FORMAT CHECK UNAVAILABLE — NOT PRESENT IN TRUCHECK HTML]"
+                    : "[DATA FORMAT CHECK UNAVAILABLE — NO DMST HTML REPORT CORRELATED]",
+                Check = "UNAVAILABLE",
+            });
+        }
+
+        string detail = validation?.Detail ??
+            "VCCS parsing was not calculated for this record.";
+        DigitalLinkValidationStatus status =
+            validation?.Status ?? DigitalLinkValidationStatus.Unavailable;
+        string parserCheck = status switch
+        {
+            DigitalLinkValidationStatus.Valid => "PASS",
+            DigitalLinkValidationStatus.Invalid => "FAIL",
+            DigitalLinkValidationStatus.NotApplicable => "NOT APPLICABLE",
+            _ => "UNAVAILABLE",
+        };
+        string parserClass = parserCheck switch
+        {
+            "PASS" => "pass-fg",
+            "FAIL" => "fail-fg",
+            _ => "",
+        };
+        string? parsedAiData = ExtractParsedAiData(detail);
+        Dictionary<string, string> parsedFields = ParseAiFields(parsedAiData);
+
+        sb.Append("          <div class=\"dfc-accordion-section dfc-dual-block\">\n");
+        sb.Append("            <table class=\"dfc-dual-table\">\n");
+        sb.Append("              <colgroup><col class=\"dual-field\"><col class=\"dual-left-data\"><col class=\"dual-left-check\"><col class=\"dual-divider\"><col class=\"dual-right-data\"><col class=\"dual-right-check\"></colgroup>\n");
+        sb.Append("              <thead><tr><th>Field</th><th>Data</th><th>Check</th><th class=\"dual-divider\"></th><th>Data</th><th>Check</th></tr></thead>\n");
+        sb.Append("              <tbody>\n");
+
+        for (int index = 0; index < verifierRows.Count; index++)
+        {
+            DataFormatCheckRow row = verifierRows[index];
+            bool leftFail = string.Equals(row.Check, "FAIL", StringComparison.OrdinalIgnoreCase);
+            string leftClass = leftFail ? "fail-fg" : "pass-fg";
+            string parserData = ResolveParserData(
+                row.Name,
+                index == 0,
+                parsedAiData,
+                parsedFields,
+                detail);
+            sb.Append($"                <tr><td>{H(row.Name)}</td><td class=\"dual-data\">{H(row.Data)}</td><td class=\"dual-check {leftClass}\">{H(row.Check)}</td><td class=\"dual-divider\"></td><td class=\"dual-data\">{H(parserData)}</td><td class=\"dual-check {parserClass}\">{(index == 0 ? parserCheck : "")}</td></tr>\n");
+        }
+
+        (string leftOverallClass, string leftOverallText) = htmlDfc is null
+            ? ("pill-warn", "OVERALL: UNAVAILABLE")
+            : htmlDfc.Overall switch
+            {
+                OverallPassFail.Pass => ("pill-pass", "OVERALL: PASS"),
+                OverallPassFail.Fail => ("pill-fail", "OVERALL: FAIL"),
+                _ => ("pill-warn", "OVERALL: UNAVAILABLE"),
+            };
+        string parserOverallClass = parserCheck switch
+        {
+            "PASS" => "pill-pass",
+            "FAIL" => "pill-fail",
+            _ => "pill-warn",
+        };
+        sb.Append($"                <tr class=\"dual-overall\"><td></td><td></td><td class=\"dual-check\"><span class=\"overall-pill {leftOverallClass}\">{leftOverallText}</span></td><td class=\"dual-divider\"></td><td></td><td class=\"dual-check\"><span class=\"overall-pill {parserOverallClass}\">OVERALL: {parserCheck}</span></td></tr>\n");
+        sb.Append("              </tbody>\n");
+        sb.Append("            </table>\n");
+        sb.Append("          </div>\n");
+    }
+
+    private static string? ExtractParsedAiData(string detail)
+    {
+        const string prefix = "Parsed GS1 AI data: ";
+        int start = detail.IndexOf(prefix, StringComparison.OrdinalIgnoreCase);
+        if (start < 0) return null;
+        start += prefix.Length;
+        int end = detail.IndexOf(" Validated with", start, StringComparison.OrdinalIgnoreCase);
+        return (end >= 0 ? detail[start..end] : detail[start..]).Trim();
+    }
+
+    private static Dictionary<string, string> ParseAiFields(string? parsedAiData)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (string.IsNullOrWhiteSpace(parsedAiData)) return fields;
+
+        foreach (Match match in Regex.Matches(
+                     parsedAiData,
+                     @"\((\d{2,4})\)(.*?)(?=\(\d{2,4}\)|$)",
+                     RegexOptions.Singleline))
+        {
+            fields[match.Groups[1].Value] = match.Groups[2].Value;
+        }
+        return fields;
+    }
+
+    private static string ResolveParserData(
+        string fieldName,
+        bool firstRow,
+        string? parsedAiData,
+        IReadOnlyDictionary<string, string> parsedFields,
+        string fallbackDetail)
+    {
+        Match? aiMatch = Regex.Match(fieldName, @"\((\d{2,4})\)");
+        if (aiMatch.Success && parsedFields.TryGetValue(aiMatch.Groups[1].Value, out string? value))
+            return value;
+
+        if (fieldName.Contains("Check Digit", StringComparison.OrdinalIgnoreCase) &&
+            parsedFields.TryGetValue("01", out string? gtin))
+            return gtin.Length > 0 ? gtin[^1].ToString() : "";
+
+        return firstRow
+            ? parsedAiData ?? fallbackDetail
+            : "";
     }
 
     public static bool HasCorrelatedFilesystemHtml(VerificationRecord r)

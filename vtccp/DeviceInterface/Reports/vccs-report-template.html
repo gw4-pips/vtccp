@@ -129,6 +129,18 @@
     overflow: hidden;
   }
   .trucheck-barcode-hdr .trucheck-header-title { font-weight: bold; }
+  .trucheck-barcode-hdr.barcode-dual-header {
+    display: grid; grid-template-columns: 20% 80%; padding: 0;
+  }
+  .barcode-dual-header .barcode-header-image-title {
+    padding-left: 6pt; font-weight: bold;
+  }
+  .barcode-dual-header .barcode-header-dfc-title {
+    min-width: 0; overflow: hidden; white-space: nowrap; font-weight: bold;
+  }
+  .barcode-dual-header .detail-separator {
+    padding: 0 4pt 0 0;
+  }
   /* Inline annotation appended to a section sub-header — inherits banner colour */
   .sec-note { font-size: 7.5pt; font-weight: normal; }
   .sec-sub-hdr-gap { margin-top: 6pt; }
@@ -228,10 +240,10 @@
     min-height: 86pt;
   }
   .barcode-image-column {
-    width: 44%; padding: 8pt; vertical-align: middle; text-align: left;
+    width: 20%; padding: 8pt; vertical-align: middle; text-align: left;
   }
   .barcode-dfc-column {
-    width: 56%; border-left: 2px solid #1a3a6b; vertical-align: top;
+    width: 80%; border-left: 2px solid #1a3a6b; vertical-align: top;
   }
   .barcode-image {
     display: block; max-width: 100%; max-height: 1.35in;
@@ -265,6 +277,59 @@
   .pass-fg { color: #155724; }
   .fail-fg { color: #721c24; }
 
+  /* Element String verifier/parser comparison. Field is intentionally shared
+     by both result columns; the vertical rule is the midpoint divider. */
+  .dfc-dual-block {
+    break-inside: avoid; page-break-inside: avoid;
+    width: 100%;
+  }
+  .dfc-dual-table {
+    width: 100%; border-collapse: collapse; table-layout: fixed;
+    border: none; font-size: 7.5pt;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  .dfc-dual-table col.dual-field { width: 27%; }
+  .dfc-dual-table col.dual-left-data { width: 15%; }
+  .dfc-dual-table col.dual-left-check { width: 8%; }
+  .dfc-dual-table col.dual-divider { width: 2%; }
+  .dfc-dual-table col.dual-right-data { width: 36%; }
+  .dfc-dual-table col.dual-right-check { width: 12%; }
+  .dfc-dual-table th {
+    background: #e8eef5; border-bottom: 1px solid #aaa;
+    padding: 2pt 3pt; text-align: left; font-size: 7.5pt;
+  }
+  .dfc-dual-table td {
+    border-bottom: 1px solid #aaa; padding: 1.75pt 3pt;
+    vertical-align: top; line-height: 1.05;
+  }
+  .dfc-dual-table .dual-divider {
+    border-left: 2px solid #1a3a6b;
+    padding-left: 3pt;
+  }
+  .dfc-dual-table .dual-check {
+    font-weight: bold; white-space: nowrap;
+  }
+  .dfc-dual-table .dual-overall td {
+    border-bottom: none; padding-top: 3pt; padding-bottom: 3pt;
+    font-weight: bold; white-space: nowrap;
+  }
+  .dfc-dual-table .dual-overall .dual-divider {
+    border-left: 2px solid #1a3a6b;
+  }
+  .dfc-dual-table .overall-pill {
+    font-size: 7.5pt; padding: 1.5pt 3pt;
+  }
+  .dfc-dual-table .dual-data {
+    overflow-wrap: anywhere;
+  }
+  .dfc-accordion-section {
+    break-inside: avoid; page-break-inside: avoid;
+    margin: 0;
+  }
+  .dfc-accordion-section + .dfc-accordion-section {
+    margin-top: 5pt;
+  }
+
   .overall-pill {
     display: inline-block; font-size: 8pt; font-weight: bold;
     padding: 3pt 8pt; border: 1px solid;
@@ -274,6 +339,16 @@
   .pill-fail { background:#f8d7da; color:#721c24; border-color:#721c24; }
   .pill-warn { background:#fff3cd; color:#856404; border-color:#856404; }
   .cf::after { content:""; display:table; clear:both; }
+
+  /* Keep Webscan-style report components together when rendered to PDF. */
+  .barcode-detail-section,
+  .barcode-detail-header,
+  .barcode-detail-grid,
+  .dfc-table,
+  .barcode-dfc-footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
   /* ── FOOTER ──────────────────────────────────────────── */
   .footer {
