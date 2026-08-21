@@ -1807,3 +1807,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Requested a report-top-section redesign. Move the vertical separator between Application Standard and Encoded Data left so it aligns with the lower separator between Standard and Grade. Replace “Application Standard” with “Application Std. / Data Format Check / Aperture:” and show the three TruCheck values inline to its right, separated by “ / ”. Application Standard should always come from TruCheck with no unavailable state; Data Format Check should show `None` when unset; Aperture should come directly from TruCheck. Asked for a restatement and for the available settings options to be logged for user documentation.
 
 **Assistant:** Restated the requested layout and semantics. Recorded the screenshot options: Application Standard = `GS1`, `HIBCC`, `UDI (GS1 or HIBCC)`, `UID (MIL-STD-130)`, `Custom`, `Auto`, `Cryptocode`; Data Format Check = `None`, `GS1`, `HIBCC`, `ISO 15434`; Aperture Setting = `Auto Aperture`, `User Set`, `Auto 50%`. No code changes made yet.
+
+---
+
+**`2026-08-21`**
+
+**User:** Asked for the thickness of the lines between report rows and the thickness of the perimeter bounding-box lines.
+
+**Assistant:** Inspected the VCCS report CSS. Internal row and cell separators are explicitly `1px`; main perimeter bounding boxes and major section dividers are explicitly `2px`. Standard CSS print mapping is approximately 0.75pt for 1px and 1.5pt for 2px, subject to the PDF renderer's rasterization.
