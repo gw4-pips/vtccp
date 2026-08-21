@@ -1855,3 +1855,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Supplied a visual reference and clarified that the summary title and settings values must remain on one line, Grade-table columns must be fixed, and the current canonical settings are `Custom / GS1 / User Set`.
 
 **Assistant:** Used the supplied reference as the geometry authority. The Grades table now has fixed seven-column proportions matching the reference, and the summary table uses the same Symbology + Standard boundary so its settings divider aligns exactly. Applied no-wrap behavior to the summary and grade headers/values. A regression now verifies that even when the correlated HTML includes `GS1 Application Data Format`, the summary renders only the canonical `Custom / GS1 / User Set` settings. The direct Push callback shares the post-result DMCC settings snapshot path. DeviceInterface tests passed: 147/147. Updated to VCCS report v1.5.26 and application v1.5.40; committed and pushed as `2991b34`.
+
+---
+
+**`2026-08-21`**
+
+**User:** Clarified that “one line” means the Application Settings label and its values belong in one shared horizontal cell, not merely that each text fragment should avoid wrapping.
+
+**Assistant:** Moved the session-level settings into the summary header as one line: `Application Std. / Data Format Check / Aperture: Custom / GS1 / User Set`. The third cell in each symbol row is now intentionally blank so the fixed three-column grid remains intact without repeating session settings. Assigned the 1.5px left divider and header-bottom rule directly to the app-settings cells so collapsed-border arbitration cannot reduce them to the neighboring 1px grid lines. DeviceInterface tests passed: 147/147. Updated to VCCS report v1.5.27 and application v1.5.41.
