@@ -325,9 +325,11 @@ public sealed class VccsHtmlReportGeneratorTests
             HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
             HtmlSymbology = "GS1 DataMatrix",
             HtmlDecodedData = "(01)00696114704283",
+            // A DFC label must never replace the canonical DMCC Application Standard.
+            HtmlApplicationStandard = "GS1 Application Data Format",
             ApplicationStandardSetting = "Custom",
             DataFormatCheckSetting = "GS1",
-            ApertureSettingMode = "Auto Aperture",
+            ApertureSettingMode = "User Set",
         };
 
         string report = VccsHtmlReportGenerator.Generate(record);
@@ -336,8 +338,15 @@ public sealed class VccsHtmlReportGeneratorTests
             "Application Std. / Data Format Check / Aperture:",
             report,
             StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "GS1 Application Data Format<span class=\"app-settings-separator\"> / </span>GS1",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("table-layout: fixed;", report, StringComparison.Ordinal);
+        Assert.Contains("<col style=\"width:18.7%\">", report, StringComparison.Ordinal);
+        Assert.Contains("<col style=\"width:13.6%\">", report, StringComparison.Ordinal);
         Assert.Contains(
-            "<td class=\"app-settings\">Custom<span class=\"app-settings-separator\"> / </span>GS1<span class=\"app-settings-separator\"> / </span>Auto Aperture</td>",
+            "<td class=\"app-settings\">Custom<span class=\"app-settings-separator\"> / </span>GS1<span class=\"app-settings-separator\"> / </span>User Set</td>",
             report,
             StringComparison.Ordinal);
         Assert.Contains(
@@ -383,7 +392,7 @@ public sealed class VccsHtmlReportGeneratorTests
             HtmlDataFormatCheck = parsed.ScrapedDataFormatCheck,
             ApplicationStandardSetting = "Custom",
             DataFormatCheckSetting = "GS1",
-            ApertureSettingMode = "Auto Aperture",
+            ApertureSettingMode = "User Set",
         };
 
         string report = VccsHtmlReportGenerator.Generate(record);
@@ -391,7 +400,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Null(parsed.HtmlApplicationStandard);
         Assert.Equal("GS1 Application Data Format", parsed.ScrapedDataFormatCheck!.Standard);
         Assert.Contains(
-            "<td class=\"app-settings\">Custom<span class=\"app-settings-separator\"> / </span>GS1<span class=\"app-settings-separator\"> / </span>Auto Aperture</td>",
+            "<td class=\"app-settings\">Custom<span class=\"app-settings-separator\"> / </span>GS1<span class=\"app-settings-separator\"> / </span>User Set</td>",
             report,
             StringComparison.Ordinal);
     }

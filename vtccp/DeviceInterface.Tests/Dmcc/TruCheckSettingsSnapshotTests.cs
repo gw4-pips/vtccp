@@ -15,11 +15,11 @@ public sealed class TruCheckSettingsSnapshotTests
             record,
             Ok("4"),
             Ok("1"),
-            Ok("2"));
+            Ok("0"));
 
         Assert.Equal("Custom", enriched.ApplicationStandardSetting);
         Assert.Equal("GS1", enriched.DataFormatCheckSetting);
-        Assert.Equal("Auto Aperture", enriched.ApertureSettingMode);
+        Assert.Equal("User Set", enriched.ApertureSettingMode);
     }
 
     [Fact]

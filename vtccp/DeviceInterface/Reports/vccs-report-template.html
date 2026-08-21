@@ -125,6 +125,8 @@
     height: 17pt; box-sizing: border-box;
     display: flex; align-items: center;
     padding: 0 6pt;
+    white-space: nowrap;
+    overflow: hidden;
   }
   .trucheck-barcode-hdr .trucheck-header-title { font-weight: bold; }
   /* Inline annotation appended to a section sub-header — inherits banner colour */
@@ -166,8 +168,8 @@
   /* Session-level TruCheck settings: App Std. / DFC / Aperture. */
   .sum-table th.app-settings-hdr,
   .sum-table td.app-settings {
-    white-space: normal;
-    overflow: visible;
+    white-space: nowrap;
+    overflow: hidden;
   }
   .sum-table th.app-settings-hdr {
     font-size: 7.5pt;
@@ -179,7 +181,7 @@
 
   /* ── BARCODE GRADES TABLE ────────────────────────────── */
   .grades-table {
-    width: 100%; border-collapse: collapse;
+    width: 100%; border-collapse: collapse; table-layout: fixed;
     border: 2px solid #1a3a6b; font-size: 8pt;
   }
   .grades-table th {
@@ -190,6 +192,7 @@
   .grades-table td {
     border-right: 1px solid #aaa;
     padding: 2.5pt 4pt 2pt; text-align: center;
+    white-space: nowrap; overflow: hidden;
   }
   .grades-table td:last-child { border-right: none; }
   .grades-table tr:not(:last-child) td { border-bottom: 1px solid #aaa; }
@@ -324,9 +327,10 @@
       <div class="sec-hdr barcode-sec-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
       <table class="sum-table">
         <colgroup>
-          <col style="width:100pt">
-          <col style="width:110pt">
-          <col>
+          <!-- Matches the Grade table's fixed Symbology + Standard boundary. -->
+          <col style="width:18.7%">
+          <col style="width:13.6%">
+          <col style="width:67.7%">
         </colgroup>
         <thead>
           <tr>
@@ -351,13 +355,14 @@
       <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades</span><span class="sec-note"> &#x2014; <em>Only fields present in the correlated HTML report are shown</em></span></div>
       <table class="grades-table">
         <colgroup>
-          <col style="width:100pt">
-          <col style="width:110pt">
-          <col>
-          <col>
-          <col>
-          <col>
-          <col>
+          <!-- Proportions taken from the approved reference snip; total = 100%. -->
+          <col style="width:18.7%">
+          <col style="width:13.6%">
+          <col style="width:10.3%">
+          <col style="width:11.2%">
+          <col style="width:19.5%">
+          <col style="width:11.8%">
+          <col style="width:14.9%">
         </colgroup>
         <thead>
           <tr>
