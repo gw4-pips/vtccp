@@ -1847,3 +1847,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Clarified that TruCheck settings can change during a live DMST verification session and questioned the earlier connection-time capture. Noted that Application Standard has not been published in known TruCheck report embodiments.
 
 **Assistant:** Corrected the report provenance model. Application Standard is no longer inferred from the HTML Data Format Check heading. After every completed result, VCCS now reads Application Standard, Data Format Check selection, and Aperture Setting through DMCC before building the report; unsupported or unknown Application Standard/Aperture display as `—`. The published HTML DFC result remains a DFC-only fallback and is never treated as Application Standard. Added a parser-to-report regression for `Custom / GS1 / Auto Aperture`, serialized the SDK setting reads, updated the reference document and durable provenance rule, and bumped the VCCS report to v1.5.24 and application to 1.5.38. DeviceInterface tests passed: 145/145. Committed and pushed as `eaf6b0b`.
+
+---
+
+**`2026-08-21`**
+
+**User:** Supplied a visual reference and clarified that the summary title and settings values must remain on one line, Grade-table columns must be fixed, and the current canonical settings are `Custom / GS1 / User Set`.
+
+**Assistant:** Used the supplied reference as the geometry authority. The Grades table now has fixed seven-column proportions matching the reference, and the summary table uses the same Symbology + Standard boundary so its settings divider aligns exactly. Applied no-wrap behavior to the summary and grade headers/values. A regression now verifies that even when the correlated HTML includes `GS1 Application Data Format`, the summary renders only the canonical `Custom / GS1 / User Set` settings. The direct Push callback shares the post-result DMCC settings snapshot path. DeviceInterface tests passed: 147/147. Updated to VCCS report v1.5.26 and application v1.5.40; committed and pushed as `2991b34`.
