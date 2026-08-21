@@ -203,8 +203,18 @@ public sealed record class VerificationRecord
     // Verification settings
     public int? Aperture { get; init; }
     /// <summary>
-    /// TruCheck Aperture Setting captured from <c>TRUCHECK.APERTURE</c> when the
-    /// device session connects (for example: User Set, Auto 50%, Auto Aperture).
+    /// TruCheck Application Standard read from the verifier after this result
+    /// arrives (for example: Custom, Auto, GS1).
+    /// </summary>
+    public string? ApplicationStandardSetting { get; init; }
+    /// <summary>
+    /// TruCheck Data Format Check selection read from the verifier after this
+    /// result arrives (for example: None, GS1, HIBCC, ISO 15434).
+    /// </summary>
+    public string? DataFormatCheckSetting { get; init; }
+    /// <summary>
+    /// TruCheck Aperture Setting read from <c>TRUCHECK.APERTURE</c> after this
+    /// result arrives (for example: User Set, Auto 50%, Auto Aperture).
     /// This is the verifier configuration mode, not the numeric aperture used in
     /// the per-scan Verification Grades row.
     /// </summary>

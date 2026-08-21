@@ -427,7 +427,7 @@ public static class DmccCommand
 
     /// <summary>
     /// Gets/sets the verification aperture type when Application Standard = Custom.
-    /// 0=User Set, 1=Auto 80%/50%, 2=Auto aperture.
+    /// 0=User Set, 1=Auto 50%, 2=Auto Aperture.
     /// </summary>
     public const string GetAperture  = "GET TRUCHECK.APERTURE";
     public static string SetAperture(int mode) => $"SET TRUCHECK.APERTURE {mode}";
@@ -441,7 +441,7 @@ public static class DmccCommand
 
     /// <summary>
     /// Gets/sets the data parsing standard when Application Standard = Custom.
-    /// 0=None, 1=GS1, 2=HIBCC, 3=UID.
+    /// 0=None, 1=GS1, 2=HIBCC, 3=ISO 15434.
     /// </summary>
     public const string GetCustomDataParsingStandard = "GET TRUCHECK.APPLICATION-CUSTOM-DATA-PARSING-STANDARD";
     public static string SetCustomDataParsingStandard(int std) =>

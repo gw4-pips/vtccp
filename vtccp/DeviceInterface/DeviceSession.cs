@@ -26,8 +26,8 @@ public sealed class DeviceSession : IAsyncDisposable
     private DmstListener?               _listener;
     private DmstHtmlScraper?            _scraper;
     private HttpEventSubscriber?        _httpSubscriber;
+    private readonly SemaphoreSlim      _truCheckSettingsGate = new(1, 1);
     private bool                        _disposed;
-    private string?                     _apertureSettingMode;
 
     /// <summary>
     /// Original trigger type read from the device in ConnectAsync.
@@ -165,24 +165,6 @@ public sealed class DeviceSession : IAsyncDisposable
             : trigResp.Body.Trim();
         System.Diagnostics.Debug.WriteLine(
             $"[VTCCP-DMCC] GET TRIGGER.TYPE: code={trigResp.StatusCode}  value='{_originalTriggerType}'");
-
-        // Capture the current TruCheck Aperture Setting once for report provenance.
-        // This is a session-static verifier setting, distinct from the numeric
-        // aperture value present in each scan's Verification Grades row.
-        try
-        {
-            var apertureResp = await _client.SendAsync(DmccCommand.GetAperture, ct);
-            _apertureSettingMode = MapApertureSettingMode(apertureResp.Body);
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-DMCC] GET TRUCHECK.APERTURE: code={apertureResp.StatusCode} " +
-                $"value='{apertureResp.Body}' display='{_apertureSettingMode ?? "unavailable"}'");
-        }
-        catch (Exception ex)
-        {
-            _apertureSettingMode = null;
-            System.Diagnostics.Debug.WriteLine(
-                $"[VTCCP-DMCC] GET TRUCHECK.APERTURE non-fatal: {ex.GetType().Name}: {ex.Message}");
-        }
 
         // SET TRIGGER.TYPE 1 — COMMENTED OUT (probe: was this causing post-scan looping?)
         // var setResp = await _client.SendAsync(DmccCommand.SetTriggerTypeSingle, ct);
@@ -354,8 +336,8 @@ public sealed class DeviceSession : IAsyncDisposable
         string? xml = await _client.TriggerAndWaitForXmlAsync(ct: ct);
         if (string.IsNullOrWhiteSpace(xml)) return null;
 
-        var record = ApplyCapturedVerifierSettings(
-            DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo()));
+        var record = await AttachCurrentTruCheckSettingsAsync(
+            DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo()), ct);
         record = await AttachRoiImageAsync(record, ct);
         if (_scraper is null) return record;
         var (merged, sourcePath) = await _scraper.TryMergeAsync(record, ct);
@@ -386,8 +368,8 @@ public sealed class DeviceSession : IAsyncDisposable
         string? xml = await _client.ReplayAndWaitForXmlAsync(timeoutMs, ct);
         if (string.IsNullOrWhiteSpace(xml)) return null;
 
-        var record = ApplyCapturedVerifierSettings(
-            DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo()));
+        var record = await AttachCurrentTruCheckSettingsAsync(
+            DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo()), ct);
         record = await AttachRoiImageAsync(record, ct);
         if (_scraper is null) return record;
         var (merged, sourcePath) = await _scraper.TryMergeAsync(record, ct);
@@ -422,7 +404,8 @@ public sealed class DeviceSession : IAsyncDisposable
         if (string.IsNullOrWhiteSpace(xml)) return null;
 
         var ctx    = ContextFromDeviceInfo();
-        var record = ApplyCapturedVerifierSettings(DmstResultParser.Parse(xml, _map, ctx));
+        var record = await AttachCurrentTruCheckSettingsAsync(
+            DmstResultParser.Parse(xml, _map, ctx), ct);
 
         record = record with { OpticsSource = "StitchedImage" };
         record = await AttachRoiImageAsync(record, ct);
@@ -449,24 +432,22 @@ public sealed class DeviceSession : IAsyncDisposable
             sessionContext ?? ContextFromDeviceInfo(),
             rec =>
             {
-                rec = ApplyCapturedVerifierSettings(rec);
                 // In push mode, TryMergeAsync waits up to 4 s for the DMST HTML
                 // file.  The DmstListener callback is synchronous, so we fire the
                 // async merge on the thread-pool and raise ResultReceived only after
                 // the merge (or timeout) completes.  Scans are never rapid-fire in
                 // TruCheck mode, so ordering is preserved in practice.
-                var scraper = _scraper;
-                if (scraper is null)
-                {
-                    ResultReceived?.Invoke(this, rec);
-                    return;
-                }
                 _ = Task.Run(async () =>
                 {
-                    var (enriched, sourcePath) = await scraper.TryMergeAsync(rec);
-                    var result = sourcePath is not null
-                        ? enriched with { WebscanSourcePath = sourcePath }
-                        : enriched;
+                    var result = await AttachCurrentTruCheckSettingsAsync(rec);
+                    var scraper = _scraper;
+                    if (scraper is not null)
+                    {
+                        var (enriched, sourcePath) = await scraper.TryMergeAsync(result);
+                        result = sourcePath is not null
+                            ? enriched with { WebscanSourcePath = sourcePath }
+                            : enriched;
+                    }
                     ResultReceived?.Invoke(this, result);
                 });
             });
@@ -520,7 +501,6 @@ public sealed class DeviceSession : IAsyncDisposable
             sessionContext ?? ContextFromDeviceInfo(),
             rec =>
             {
-                rec = ApplyCapturedVerifierSettings(rec);
                 // Mirror StartPushListenerAsync: when the file-system scraper is running
                 // (Manual/AutoPoll mode with DMST open), call TryMergeAsync so the pending
                 // HTML report is drained from the scraper's queue and its source path is
@@ -531,18 +511,17 @@ public sealed class DeviceSession : IAsyncDisposable
                 // TryMergeAsync here simply adds the filesystem source path, with a short
                 // effective wait because the HTML is already in _pending by the time
                 // PUT /codes.xml fires the callback.
-                var scraper = _scraper;
-                if (scraper is null)
-                {
-                    ResultReceived?.Invoke(this, rec);
-                    return;
-                }
                 _ = Task.Run(async () =>
                 {
-                    var (enriched, sourcePath) = await scraper.TryMergeAsync(rec);
-                    var result = sourcePath is not null
-                        ? enriched with { WebscanSourcePath = sourcePath }
-                        : enriched;
+                    var result = await AttachCurrentTruCheckSettingsAsync(rec);
+                    var scraper = _scraper;
+                    if (scraper is not null)
+                    {
+                        var (enriched, sourcePath) = await scraper.TryMergeAsync(result);
+                        result = sourcePath is not null
+                            ? enriched with { WebscanSourcePath = sourcePath }
+                            : enriched;
+                    }
                     ResultReceived?.Invoke(this, result);
                 });
             });
@@ -638,8 +617,8 @@ public sealed class DeviceSession : IAsyncDisposable
         string? xml = await _client.LoadAndReplayImageAsync(imagePath, ct: ct);
         if (string.IsNullOrWhiteSpace(xml)) return null;
 
-        var record = ApplyCapturedVerifierSettings(
-            DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo()));
+        var record = await AttachCurrentTruCheckSettingsAsync(
+            DmstResultParser.Parse(xml, _map, sessionContext ?? ContextFromDeviceInfo()), ct);
 
         // Force OpticsSource to "LoadedImage" — the parser derives this from
         // CU=-1/MRD=-1, which is correct on fw 6.1.16_sr4, but make it explicit
@@ -685,7 +664,8 @@ public sealed class DeviceSession : IAsyncDisposable
     /// Builds a thin context record from device info and connection config for
     /// pre-seeding result records.  All fields here are static for the lifetime
     /// of the session — they are captured once at ConnectAsync and stamped on
-    /// every scan record at zero marginal cost.
+    /// every scan record at zero marginal cost. Live TruCheck settings are read
+    /// separately after each completed scan.
     /// </summary>
     private VerificationRecord ContextFromDeviceInfo() => new()
     {
@@ -702,13 +682,87 @@ public sealed class DeviceSession : IAsyncDisposable
         SensorHeightPx     = DeviceInfo.SensorHeightPx,
         SensorPixelPitchUm = DeviceInfo.SensorPixelPitchUm,
         ImageSizeSetting   = DeviceInfo.ImageSizeSetting,
-        ApertureSettingMode = _apertureSettingMode,
     };
 
-    private VerificationRecord ApplyCapturedVerifierSettings(VerificationRecord record)
-        => _apertureSettingMode is null
-            ? record
-            : record with { ApertureSettingMode = _apertureSettingMode };
+    private async Task<VerificationRecord> AttachCurrentTruCheckSettingsAsync(
+        VerificationRecord record,
+        CancellationToken ct = default)
+    {
+        // DMST allows these settings to change during a live session. Read them
+        // after every completed result so the report uses a per-scan verifier
+        // snapshot rather than a stale connection-time value. The SDK command
+        // channel is not safe for concurrent SendCommand calls, so these run in
+        // a fixed sequential order.
+        await _truCheckSettingsGate.WaitAsync(ct);
+        try
+        {
+            string? applicationStandard = await TryReadTruCheckSettingAsync(
+                DmccCommand.GetApplicationStandard, MapApplicationStandard, ct);
+            string? dataFormatCheck = await TryReadTruCheckSettingAsync(
+                DmccCommand.GetCustomDataParsingStandard, MapDataFormatCheckSetting, ct);
+            string? apertureSetting = await TryReadTruCheckSettingAsync(
+                DmccCommand.GetAperture, MapApertureSettingMode, ct);
+
+            return record with
+            {
+                ApplicationStandardSetting = applicationStandard,
+                DataFormatCheckSetting     = dataFormatCheck,
+                ApertureSettingMode        = apertureSetting,
+            };
+        }
+        finally
+        {
+            _truCheckSettingsGate.Release();
+        }
+    }
+
+    private async Task<string?> TryReadTruCheckSettingAsync(
+        string command,
+        Func<string?, string?> displayMapper,
+        CancellationToken ct)
+    {
+        try
+        {
+            var response = await _client.SendAsync(command, ct);
+            string? display = response.StatusCode == DmccStatus.Ok
+                ? displayMapper(response.Body)
+                : null;
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] post-result {command}: code={response.StatusCode} " +
+                $"value='{response.Body}' display='{display ?? "unavailable"}'");
+            return display;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-DMCC] post-result {command} non-fatal: " +
+                $"{ex.GetType().Name}: {ex.Message}");
+            return null;
+        }
+    }
+
+    private static string? MapApplicationStandard(string? rawValue)
+        => rawValue?.Trim() switch
+        {
+            "0" => "GS1",
+            "1" => "HIBCC",
+            "2" => "UDI (GS1 or HIBCC)",
+            "3" => "UID (MIL-STD-130)",
+            "4" => "Custom",
+            "5" => "Auto",
+            "6" => "Cryptocode",
+            _   => null,
+        };
+
+    private static string? MapDataFormatCheckSetting(string? rawValue)
+        => rawValue?.Trim() switch
+        {
+            "0" => "None",
+            "1" => "GS1",
+            "2" => "HIBCC",
+            "3" => "ISO 15434",
+            _   => null,
+        };
 
     private static string? MapApertureSettingMode(string? rawValue)
         => rawValue?.Trim() switch
@@ -762,6 +816,7 @@ public sealed class DeviceSession : IAsyncDisposable
         _disposed = true;
         await DisconnectAsync();
         await _client.DisposeAsync();
+        _truCheckSettingsGate.Dispose();
     }
 
     private void ThrowIfDisposed()

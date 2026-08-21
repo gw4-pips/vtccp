@@ -893,7 +893,6 @@ public sealed class DmstHtmlScraper : IDisposable
             //   <tr><td>GS1 Header</td><td>&lt;F1&gt;</td><td>PASS</td></tr>
             //   …
             DataFormatCheckResult? scrapedDfc = null;
-            string? htmlApplicationStandard = null;
             {
                 // Split on </table> to isolate the DFC table without nested-table risk.
                 string[] tableParts = htmlContent.Split("</table>", StringSplitOptions.None);
@@ -916,7 +915,6 @@ public sealed class DmstHtmlScraper : IDisposable
                         if (colon > 0)
                         {
                             dfcStandard = th[..colon].Trim();
-                            htmlApplicationStandard = dfcStandard;
                             if (th[(colon + 1)..].Trim()
                                     .Equals("FAIL", StringComparison.OrdinalIgnoreCase))
                                 dfcOverall = OverallPassFail.Fail;
@@ -1087,7 +1085,7 @@ public sealed class DmstHtmlScraper : IDisposable
                 HtmlFormalGrade         = htmlFormalGrade,
                 HtmlSymbology           = GetAny("Symbology", "Symbol Type"),
                 HtmlDecodedData          = GetAny("Data", "Encoded Data", "Decoded Data"),
-                HtmlApplicationStandard = htmlApplicationStandard ?? Get("Application Standard"),
+                HtmlApplicationStandard = Get("Application Standard"),
                 HtmlLinearStandard      = htmlLinearStandard,
                 HtmlLinearGradeDisplay  = htmlLinearGradeDisplay,
                 HtmlLinearAperture      = htmlLinearAperture,

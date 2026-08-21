@@ -1,3 +1,4 @@
+using DeviceInterface.Dmst;
 using DeviceInterface.Reports;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
@@ -294,7 +295,6 @@ public sealed class VccsHtmlReportGeneratorTests
             HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
             HtmlSymbology = "GS1 DataMatrix",
             HtmlDecodedData = "(01)00696114704283(21)72803282009",
-            HtmlApplicationStandard = "GS1 Application Data Format",
             HtmlStandard = "ISO 15415:2024",
             HtmlOverallGradeDisplay = "4.0 (A)",
             HtmlAperture = "16",
@@ -307,7 +307,7 @@ public sealed class VccsHtmlReportGeneratorTests
 
         Assert.Contains("verifier-output.html", report, StringComparison.Ordinal);
         Assert.Contains("Mon 18-Aug-2026 08:04:21 PM", report, StringComparison.Ordinal);
-        Assert.Contains("GS1 Application Data Format", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("GS1 Application Data Format", report, StringComparison.Ordinal);
         Assert.Contains("4.0/16/660/45Q", report, StringComparison.Ordinal);
         Assert.DoesNotContain("TRANSPORT_DATA", report, StringComparison.Ordinal);
         Assert.DoesNotContain("TRANSPORT_STANDARD", report, StringComparison.Ordinal);
@@ -325,11 +325,8 @@ public sealed class VccsHtmlReportGeneratorTests
             HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
             HtmlSymbology = "GS1 DataMatrix",
             HtmlDecodedData = "(01)00696114704283",
-            HtmlApplicationStandard = "Custom",
-            HtmlDataFormatCheck = new DataFormatCheckResult
-            {
-                Standard = "GS1 Application Data Format",
-            },
+            ApplicationStandardSetting = "Custom",
+            DataFormatCheckSetting = "GS1",
             ApertureSettingMode = "Auto Aperture",
         };
 
@@ -354,6 +351,52 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_ParsedDfcHeadingDoesNotOverridePerScanApplicationStandard()
+    {
+        const string html = """
+            <html><body>
+              <p>Verified: Tue 18-Aug-2026 09:51:39(375ms) PM</p>
+              <table>
+                <tr><td><strong>Data</strong></td><td>(01)00696114704283</td></tr>
+                <tr><td><strong>Symbology</strong></td><td>GS1 DataMatrix</td></tr>
+              </table>
+              <table>
+                <tr><th colspan="3">Data Format Check</th></tr>
+                <tr><th colspan="3">GS1 Application Data Format: PASS</th></tr>
+                <tr><td>GS1 Header</td><td>(01)</td><td>PASS</td></tr>
+              </table>
+            </body></html>
+            """;
+
+        var parsed = DmstHtmlScraper.ParseHtml(
+            html,
+            @"C:\fake\2026-08-18_21-51-39-000_fixture.html");
+        var record = new VerificationRecord
+        {
+            Symbology = parsed.HtmlSymbology ?? "Unknown",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verifier-output.html",
+            HtmlVerifiedString = parsed.HtmlVerifiedString,
+            HtmlSymbology = parsed.HtmlSymbology,
+            HtmlDecodedData = parsed.HtmlDecodedData,
+            HtmlApplicationStandard = parsed.HtmlApplicationStandard,
+            HtmlDataFormatCheck = parsed.ScrapedDataFormatCheck,
+            ApplicationStandardSetting = "Custom",
+            DataFormatCheckSetting = "GS1",
+            ApertureSettingMode = "Auto Aperture",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Null(parsed.HtmlApplicationStandard);
+        Assert.Equal("GS1 Application Data Format", parsed.ScrapedDataFormatCheck!.Standard);
+        Assert.Contains(
+            "<td class=\"app-settings\">Custom<span class=\"app-settings-separator\"> / </span>GS1<span class=\"app-settings-separator\"> / </span>Auto Aperture</td>",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_SummaryShowsNoneWhenTruCheckHasNoDataFormatCheck()
     {
         var record = new VerificationRecord
@@ -364,7 +407,8 @@ public sealed class VccsHtmlReportGeneratorTests
             HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
             HtmlSymbology = "GS1 DataMatrix",
             HtmlDecodedData = "(01)00696114704283",
-            HtmlApplicationStandard = "Custom",
+            ApplicationStandardSetting = "Custom",
+            DataFormatCheckSetting = "None",
             ApertureSettingMode = "User Set",
         };
 

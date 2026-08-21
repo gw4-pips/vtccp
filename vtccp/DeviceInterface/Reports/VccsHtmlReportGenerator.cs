@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.23";
+    public const string ReportVersion = "v1.5.24";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -187,15 +187,14 @@ public static class VccsHtmlReportGenerator
 
     private static string ApplicationSettingsCell(VerificationRecord r, bool hasCorrelatedHtml)
     {
-        // App Standard and DFC are sourced only from the correlated TruCheck HTML.
-        // The aperture mode is the TC setting captured via GET TRUCHECK.APERTURE.
-        // Do not substitute local validation or a numeric grade aperture here.
-        string applicationStandard = hasCorrelatedHtml
-            ? r.HtmlApplicationStandard ?? "\u2014"
-            : "\u2014";
-        string dataFormatCheck = hasCorrelatedHtml
-            ? DisplayDataFormatCheckSetting(r.HtmlDataFormatCheck)
-            : "\u2014";
+        // These are live TruCheck configuration values queried after each
+        // completed result. Do not substitute values inferred from the correlated
+        // HTML's Data Format Check results or from the numeric grade aperture.
+        string applicationStandard = r.ApplicationStandardSetting ?? "\u2014";
+        string dataFormatCheck = r.DataFormatCheckSetting ??
+                                 (hasCorrelatedHtml
+                                     ? DisplayDataFormatCheckSetting(r.HtmlDataFormatCheck)
+                                     : "\u2014");
         string apertureSetting = r.ApertureSettingMode ?? "\u2014";
 
         return $"<td class=\"app-settings\">{H(applicationStandard)}" +

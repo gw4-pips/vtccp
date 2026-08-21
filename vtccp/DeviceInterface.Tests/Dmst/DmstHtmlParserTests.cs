@@ -424,7 +424,7 @@ public sealed class DmstHtmlParserTests
     }
 
     [Fact]
-    public void ParseHtml_RealDmstReportSummary_UsesDataAndDfcHeadingVerbatim()
+    public void ParseHtml_RealDmstReportSummary_DoesNotTreatDfcHeadingAsApplicationStandard()
     {
         const string html = """
             <html><body>
@@ -446,8 +446,9 @@ public sealed class DmstHtmlParserTests
 
         Assert.Equal("<F1>01006961147042882172803282009", report.HtmlDecodedData);
         Assert.Equal("GS1 DataMatrix", report.HtmlSymbology);
-        Assert.Equal("GS1 Application Data Format", report.HtmlApplicationStandard);
+        Assert.Null(report.HtmlApplicationStandard);
         Assert.NotNull(report.ScrapedDataFormatCheck);
+        Assert.Equal("GS1 Application Data Format", report.ScrapedDataFormatCheck!.Standard);
         Assert.Single(report.ScrapedDataFormatCheck!.Rows);
     }
 

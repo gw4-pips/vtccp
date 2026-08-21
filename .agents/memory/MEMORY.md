@@ -40,3 +40,4 @@
 - [RFID UI wiring](rfid-ui-status.md) — Session Launcher RFID panel built; VM owns reader lifetime (coordinator ownsReader:false); port picker uses SerialPort directly so non-SDK builds compile
 - [DMST report directory configuration](dmst-report-directory-configuration.md) — report path is installation-specific; never infer it from a device name
 - [DMST embedded barcode evidence](dmst-embedded-barcode-evidence.md) — classify images from HTML structure/metadata, never opaque Base64 text
+- [TruCheck settings provenance](trucheck-settings-provenance.md) — Application Standard is not HTML-published; snapshot live settings after every result and never infer them

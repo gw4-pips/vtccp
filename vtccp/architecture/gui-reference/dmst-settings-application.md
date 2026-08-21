@@ -1,6 +1,6 @@
 # DMST TruCheck Verification Settings — Application Settings
 
-**Document version**: v1.1
+**Document version**: v1.2
 **Revised**: 2026-08-21
 **Panel**: TruCheck Verification Settings → Application Settings (left nav, first item)  
 **Firmware observed**: 6.1.16_sr4 (DM475-63530E-PIPS-Verif-Lab)  
@@ -210,6 +210,28 @@ and `5` for **Auto**; use the verified device behaviour, not the reference’s r
 
 **Aperture Setting label**: the currently captured TruCheck UI uses **Auto 50%** for raw
 `TRUCHECK.APERTURE = 1`; use that user-facing label in VCCS reports.
+
+### VCCS report capture rule
+
+The TruCheck HTML report does **not** publish the active Application Standard setting. Its
+Data Format Check table heading (for example, `GS1 Application Data Format`) is the DFC result
+label and must never be treated as Application Standard.
+
+For every completed verification result, VCCS reads these live settings through DMCC before
+creating the report summary:
+
+- `TRUCHECK.APPLICATION-STANDARD`
+- `TRUCHECK.APPLICATION-CUSTOM-DATA-PARSING-STANDARD`
+- `TRUCHECK.APERTURE`
+
+They are deliberately read **after each result**, not at session connection, because an operator
+can change them in DMST while a verification session is open. If Application Standard or Aperture
+is unsupported, unavailable, or returns an unknown value, the report must display `—`; it must
+not infer the setting from the DMST screen, a prior scan, or a TruCheck HTML DFC heading.
+
+The correlated HTML's published DFC result is an allowed fallback for the **Data Format Check**
+display only. It is never an Application Standard fallback, and the absence of a DFC HTML table
+must not be guessed as `None`.
 
 ---
 
