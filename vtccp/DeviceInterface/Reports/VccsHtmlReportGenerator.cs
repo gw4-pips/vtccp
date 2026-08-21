@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.27";
+    public const string ReportVersion = "v1.5.28";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -157,14 +157,12 @@ public static class VccsHtmlReportGenerator
         var sb = new StringBuilder();
         if (multiMode && renderedGroups < MaxRenderedSymbolGroups)
         {
-            AppendSymbolRow(sb, r.LinearSymbology!, r.LinearDecodedData,
-                ApplicationSettingsCell());
+            AppendSymbolRow(sb, r.LinearSymbology!, r.LinearDecodedData);
             renderedGroups++;
         }
         if (renderedGroups < MaxRenderedSymbolGroups)
         {
-            AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData,
-                ApplicationSettingsCell());
+            AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData);
         }
         return sb.ToString();
     }
@@ -172,26 +170,15 @@ public static class VccsHtmlReportGenerator
     private static string UnavailableSymbolRow(VerificationRecord r)
         => "          <tr>\n" +
            "            <td>[UNAVAILABLE]</td>\n" +
-           "            <td>[UNAVAILABLE — NOT PRESENT IN CORRELATED TRUCHECK HTML]</td>\n" +
-           $"            {ApplicationSettingsCell()}\n" +
+           "            <td colspan=\"2\">[UNAVAILABLE — NOT PRESENT IN CORRELATED TRUCHECK HTML]</td>\n" +
            "          </tr>\n";
 
-    private static void AppendSymbolRow(
-        StringBuilder sb, string symb, string? encoded, string applicationSettingsCell)
+    private static void AppendSymbolRow(StringBuilder sb, string symb, string? encoded)
     {
         sb.Append($"          <tr data-vccs-symbol-group=\"true\">\n");
         sb.Append($"            <td style=\"font-size:8pt;\">{H(symb)}</td>\n");
-        sb.Append($"            <td style=\"font-family:Consolas,monospace;\">{H(encoded ?? "\u2014")}</td>\n");
-        sb.Append($"            {applicationSettingsCell}\n");
+        sb.Append($"            <td colspan=\"2\" style=\"font-family:Consolas,monospace;\">{H(encoded ?? "\u2014")}</td>\n");
         sb.Append($"          </tr>\n");
-    }
-
-    private static string ApplicationSettingsCell()
-    {
-        // These are session-level values. The row retains an empty third cell so
-        // the fixed summary grid remains intact, while the header renders the
-        // label and values together on one line.
-        return "<td class=\"app-settings\"></td>";
     }
 
     private static string BuildApplicationSettingsInline(VerificationRecord r)

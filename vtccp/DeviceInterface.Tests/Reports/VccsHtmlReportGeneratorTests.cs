@@ -358,7 +358,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            ".sum-table td.app-settings {\n    border-left: 1.5px solid #aaa;",
+            "<td colspan=\"2\" style=\"font-family:Consolas,monospace;\">(01)00696114704283</td>",
             report,
             StringComparison.Ordinal);
     }
