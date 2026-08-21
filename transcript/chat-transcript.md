@@ -2007,6 +2007,14 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **Assistant:** Completed the report cleanup as requested: removed the detailed Digital Link compatibility matrix from the PDF, filed it in `references/native-gs1-digital-link-parser-compatibility.md`, confined the concise native-parser note to the DataMan side, changed GCP length wording to `Valid (=7)`, bumped the application version to 1.5.54, and verified 29 focused report tests.
 
+---
+
+**`2026-08-21 — 19:46`**
+
+**User:** Asked what Task #185 was and what action was required.
+
+**Assistant:** Explained that Task #185 was an optional real-Windows/vendor-SDK validation of the production hardware paths after Task #184 made the SDK-free desktop build verifiable. It was cancelled, so no action is currently required; the check is only useful if a Windows workstation, Cognex DataMan SDK, AsReader SDK, and the corresponding hardware are available.
+
 ## Session: 2026-08-13 — Hybrid TruCheck + RFID Report
 
 **User:** Uploaded four Webscan TruCheck files (HTML sample report + 3 XSLT stylesheets). Asked to design a "Hybrid Webscan TruCheck™ Verification Report with VCCS FlexWedge™ RFID Validation." Selected Option C (standalone hybrid HTML). Key requirements: match Webscan structure exactly, RFID data in header, separate RFID section, PDF-printable, optional alongside or replacing original.
