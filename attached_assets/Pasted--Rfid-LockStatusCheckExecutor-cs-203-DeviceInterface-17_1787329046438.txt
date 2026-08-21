@@ -1,0 +1,33 @@
+ .../Rfid/LockStatusCheckExecutor.cs                | 203 +++++++++++++++++++++
+ .../DeviceInterface/Rfid/RfidLockDiagnosticLog.cs  |  71 +++++++
+ vtccp/DeviceInterface/Rfid/RfidScanCoordinator.cs  |   3 +-
+ .../Validation/VccsDigitalLinkValidationService.cs | 118 ++++++++++++
+ .../Models/DigitalLinkValidationResult.cs          |  35 ++++
+ vtccp/ExcelEngine/Models/VerificationRecord.cs     |   6 +
+ vtccp/VtccpApp/ViewModels/SettingsViewModel.cs     |  38 ++++
+ vtccp/VtccpApp/Views/SettingsView.xaml             |  39 +++-
+ vtccp/VtccpApp/VtccpApp.csproj                     |  13 +-
+ 42 files changed, 1385 insertions(+), 274 deletions(-)
+ create mode 100644 .agents/outputs/attached_vccs_pdf_inspection/2026-08-18_23-45-27_vccs_rfid_20260818-234308_1787111210909-xref12.png
+ create mode 100644 .agents/outputs/attached_vccs_pdf_inspection/2026-08-18_23-45-27_vccs_rfid_20260818-234308_1787111210909-xref16.jpeg
+ create mode 100644 .agents/outputs/attached_vccs_pdf_inspection/2026-08-18_23-45-27_vccs_rfid_20260818-234308_1787111210909-xref4.png
+ create mode 100644 .agents/outputs/attached_vccs_pdf_inspection/2026-08-18_23-45-27_vccs_rfid_20260818-234308_1787111210909.png
+ create mode 100644 .agents/outputs/attached_vccs_pdf_inspection/2026-08-18_23-54-28_vccs_rfid_20260818-235422_1787111861258-xref12.png
+ create mode 100644 .agents/outputs/attached_vccs_pdf_inspection/2026-08-18_23-54-28_vccs_rfid_20260818-235422_1787111861258-xref16.jpeg
+ create mode 100644 .agents/outputs/attached_vccs_pdf_inspection/2026-08-18_23-54-28_vccs_rfid_20260818-235422_1787111861258-xref4.png
+ create mode 100644 .agents/outputs/attached_vccs_pdf_inspection/2026-08-18_23-54-28_vccs_rfid_20260818-235422_1787111861258.png
+ create mode 100644 attached_assets/2026-08-18_23-45-27_vccs_rfid_20260818-234308_1787111210909.pdf
+ create mode 100644 attached_assets/2026-08-18_23-54-28_vccs_rfid_20260818-235422_1787111861258.pdf
+ create mode 100644 attached_assets/Pasted--VtccpApp-exe-CoreCLR-clrhost-Loaded-InteropRuntimeImpl_1787112773772.txt
+ create mode 100644 attached_assets/image_1787326820138.png
+ create mode 100644 attached_assets/image_1787328028562.png
+ create mode 100644 vtccp/DeviceInterface.Tests/Rfid/AsReaderLockStatusTests.cs
+ delete mode 100644 vtccp/DeviceInterface.Tests/Rfid/LockCheckCorrelatorTests.cs
+ create mode 100644 vtccp/DeviceInterface.Tests/Rfid/LockStatusCheckExecutorTests.cs
+ create mode 100644 vtccp/DeviceInterface.Tests/Validation/VccsDigitalLinkValidationServiceTests.cs
+ create mode 100644 vtccp/DeviceInterface/Rfid/AsReaderLockStatus.cs
+ create mode 100644 vtccp/DeviceInterface/Rfid/LockStatusCheckExecutor.cs
+ create mode 100644 vtccp/DeviceInterface/Rfid/RfidLockDiagnosticLog.cs
+ create mode 100644 vtccp/DeviceInterface/Validation/VccsDigitalLinkValidationService.cs
+ create mode 100644 vtccp/ExcelEngine/Models/DigitalLinkValidationResult.cs
+PS C:\dev\vtccp\vtccp>
