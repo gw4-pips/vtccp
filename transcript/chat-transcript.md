@@ -1762,6 +1762,6 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 ---
 
-**User:** Asked for the current vTCCP PDF report version and whether the PDF changed as part of the FWPP report/verifier work.
+**User (21-Aug-2026 11:33 America/New_York):** Asked for the current vTCCP PDF report version and whether the PDF changed as part of the FWPP report/verifier work.
 
 **Assistant:** Confirmed the current report version is v1.5.22. The generated PDF content changed through the HTML report generator: it now includes separately labelled VCCS GS1 Digital Link validation, preserves native vendor DFC data, and caps the current multi-mode output at two symbol groups. The PDF template itself was not directly redesigned, and vendor-PDF appending remains only a stored future preference; VCCS output remains separate.
