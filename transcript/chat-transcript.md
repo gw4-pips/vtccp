@@ -1771,3 +1771,31 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Parked a correction after reviewing the results window: the file-lock warning needs to be much more prominent, and broader comments about results-window text clarity will follow.
 
 **Assistant:** No UI changes made yet. Recorded the warning prominence issue and the broader results-window clarity review as pending UX corrections.
+
+---
+
+**User (21-Aug-2026 ~11:33 America/New_York):** Asked for the current vTCCP PDF report version and whether it changed as part of Task #177 work.
+
+**Assistant:** Confirmed report version is v1.5.22 (bumped from v1.5.20 during #177 — v1.5.21 was never used). The PDF content changed: VCCS GS1 Digital Link validation is now separately labelled, native vendor DFC rows are preserved unchanged, and the current multi-mode layout is capped at two symbol groups. The PDF template was not redesigned; vendor-PDF appending remains only a stored future preference.
+
+---
+
+**User:** Parked UI issue: the file-lock "Start failed" warning needs substantially stronger visual prominence. Also noted broader results-window text clarity to be reviewed when further comments are provided.
+
+---
+
+**User:** Asked whether the git had been updated and whether a pull was needed. Asked about reverting to report v1.5.21 before reconciliation.
+
+**Assistant:** Clarified that v1.5.21 never existed (history goes v1.5.20 → v1.5.22). origin/main (Replit internal) still held v1.5.20; local main held v1.5.22. Diagnosed the Replit-side divergence: local main was 7 ahead, 1 behind origin due to a content-identical duplicate RFID commit from the task-agent merge. Walked user through git rebase on Replit (duplicate commit auto-skipped, 6 commits replayed, post-commit hook pushed each to GitHub). Replit-internal push timed out but GitHub was already current via hooks.
+
+---
+
+**User:** Showed Windows machine status: 27 commits ahead of GitHub, VtccpWindows.sln unstaged, asreader SDK untracked.
+
+**Assistant:** Advised do not pull — Windows was ahead. Confirmed Windows should wait for Replit reconciliation to complete first.
+
+---
+
+**User:** Proceeded with Windows git reconciliation. git pull --rebase blocked by unstaged VtccpWindows.sln. Stashed, then git pull --rebase produced conflicts in SessionViewModel.cs, SessionView.xaml, VtccpApp.csproj. Aborted rebase. Switched to plain git pull (merge strategy) — merged cleanly, 42 files changed. Stash popped successfully. VtccpWindows.sln restored. Committed VtccpWindows.sln and pushed 29 commits to GitHub.
+
+**Assistant:** Walked user through each step. All three locations now fully reconciled: GitHub current, Replit current, Windows local clean and pushed.
