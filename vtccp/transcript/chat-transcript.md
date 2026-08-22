@@ -726,3 +726,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Confirmed the no-wrap report behavior worked and supplied two generated PDFs to preserve as the record.
 
 **Assistant [2026-08-22]:** Visually inspected both supplied PDFs with PyMuPDF, confirmed each is a one-page Letter report with the shared parser layout and the distinct RFID states `No Tag Detected` and `No RFID Data`, archived both originals, and updated the durable parser-layout note and transcript.
+
+---
+
+**User [2026-08-22]:** Requested that the header badge text change from `NO RFID TAG` to `NO RFID TAG DETECTED` and asked for the change to be pushed.
+
+**Assistant [2026-08-22]:** Updated the active VCCS report badge mapping and regression coverage, bumped the report format to v1.5.53 and the application build to 1.5.77, and pushed the change to GitHub. The separate connected-reader/no-data collapse issue was preserved as follow-up task #206.
