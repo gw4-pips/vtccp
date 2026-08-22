@@ -696,3 +696,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Asked for the current commit because the Windows workstation still showed build 1.5.72.
 
 **Assistant [2026-08-22]:** Confirmed that merged commit `65bce58` contains application version 1.5.73, found two local commits absent from GitHub, pushed them normally, refreshed both primary tracking refs, and confirmed local `main`, `origin/main`, and `github/main` all match at `65bce58`.
+
+---
+
+**User [2026-08-22]:** Asked why task changes were not automatically reaching GitHub and why the Windows build appeared perpetually behind.
+
+**Assistant [2026-08-22]:** Confirmed that ordinary commits were auto-pushed successfully, but Replit task merges bypassed Git's local `post-commit` hook. Updated the configured post-merge script to invoke the same authenticated, status-logging hook after every task merge, then syntax-checked it and verified the hook publishes successfully with both primary GitHub tracking refs aligned.
