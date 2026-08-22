@@ -837,6 +837,10 @@ public sealed class VccsHtmlReportGeneratorTests
             "<td>No Tag Detected</td>",
             report,
             StringComparison.Ordinal);
+        Assert.Contains(
+            "&#x26a0; NO RFID TAG DETECTED",
+            report,
+            StringComparison.Ordinal);
         Assert.Contains("<table class=\"rfid-table\">", report, StringComparison.Ordinal);
         Assert.Contains("<tr><th class=\"lbl-col\">Field</th><th>Value</th></tr>", report,
             StringComparison.Ordinal);

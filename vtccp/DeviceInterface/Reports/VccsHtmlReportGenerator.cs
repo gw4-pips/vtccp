@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.52";
+    public const string ReportVersion = "v1.5.53";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ public static class VccsHtmlReportGenerator
         {
             "Pass"                 => ("badge-pass", "&#x2713; RFID MATCHED"),
             "Fail"                 => ("badge-fail", "&#x2717; RFID MISMATCH"),
-            "NoTag"                => ("badge-warn", "&#x26a0; NO RFID TAG"),
+            "NoTag"                => ("badge-warn", "&#x26a0; NO RFID TAG DETECTED"),
             "MultipleTagsDetected" => ("badge-warn", "&#x26a0; MULTIPLE TAGS"),
             "Skipped"              => ("badge-warn", "&#x2014; RFID SKIPPED"),
             null or ""             => ("badge-warn", "&#x2014; NO RFID DATA"),
