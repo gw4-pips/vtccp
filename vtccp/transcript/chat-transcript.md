@@ -489,6 +489,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Reported the Windows checkout at `C:\dev\vtccp` is on `main`, ahead of `origin/main` by two commits, still has `VtccpApp` version 1.5.65, and contains modified solution files plus untracked local SDK/report folders.
+
+**Assistant [2026-08-22]:** Confirmed the repository root and branch are correct. Explained that the GitHub remote is still at the older setup-verification commit, so the Task #200 Webscan merge has not reached that Windows clone. Classified the solution edits and SDK/report folders as local setup artifacts and advised not to reset, clean, or delete them.
+
+---
+
 **User [2026-08-22]:** Reported that after pulling, the running Windows app still shows v1.5.65 and expressed concern that the earlier wrong-solution window may have caused a problem.
 
 **Assistant [2026-08-22]:** Explained that v1.5.65 most likely indicates an older compiled app or a pull from a different branch/repository path, not corruption. Recommended verifying the checkout and then rebuilding the correct `VtccpWindows.sln` / `VtccpApp` path before considering any destructive Git operation.
