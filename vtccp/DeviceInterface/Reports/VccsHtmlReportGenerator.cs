@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.39";
+    public const string ReportVersion = "v1.5.40";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -644,7 +644,7 @@ public static class VccsHtmlReportGenerator
         sb.Append("          <div class=\"dfc-accordion-section dfc-dual-block\">\n");
         sb.Append("            <table class=\"dfc-dual-table\">\n");
         sb.Append("              <colgroup><col class=\"dual-left-field\"><col class=\"dual-left-data\"><col class=\"dual-left-check\"><col class=\"dual-divider\"><col class=\"dual-right-field\"><col class=\"dual-right-data\"><col class=\"dual-right-check\"></colgroup>\n");
-        sb.Append($"              <thead><tr class=\"dual-subhead\"><th colspan=\"3\">DataMan TruCheck Parser</th><th class=\"dual-divider\"></th><th colspan=\"3\">GS1 Barcode Syntax Engine (v. {H(GetParserVersion(validation))})</th></tr>\n");
+        sb.Append($"              <thead><tr class=\"dual-subhead\"><th colspan=\"3\">DataMan TruCheck GS1 Parser</th><th class=\"dual-divider\"></th><th colspan=\"3\">VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. {H(GetParserVersion(validation))})</th></tr>\n");
         sb.Append("              <tr><th>Field</th><th>Data</th><th>Check</th><th class=\"dual-divider\"></th><th>Field</th><th>Data</th><th>Check</th></tr></thead>\n");
         sb.Append("              <tbody>\n");
 

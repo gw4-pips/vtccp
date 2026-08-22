@@ -3004,3 +3004,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Reported that version 1.5.55 was not pulling.
 
 **Assistant:** Confirmed the report changes were committed locally but had not reached GitHub. Pushed the current `main` commit to `origin/main`; GitHub advanced from `0741d20` to `9500c00`, and a remote SHA check confirmed `origin/main` is now `9500c00a49c92f893e28a02c9c694f3622951da7`.
+
+**User:** Supplied a screenshot of report v1.5.39 showing that the left parser heading still said `DataMan TruCheck Parser` and the right heading omitted the `VeriWedge GS1 Parser` prefix. Confirmed the longer right heading should fit.
+
+**Assistant:** Corrected the headings to `DataMan TruCheck GS1 Parser` and `VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. 1.4.0)`. Bumped the report to v1.5.40 and the application to 1.5.56. Focused tests passed 38/38, the Release solution build succeeded with 0 errors, and the complete DeviceInterface suite passed 161/161; only existing PDFsharp compatibility warnings remain.

@@ -483,7 +483,7 @@ public sealed class VccsHtmlReportGeneratorTests
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.Contains("DataMan TruCheck Parser", report, StringComparison.Ordinal);
+        Assert.Contains("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
         Assert.Contains("Web URI", report, StringComparison.Ordinal);
         Assert.Contains("AI (01) GTIN", report, StringComparison.Ordinal);
         Assert.Contains("Verifier GS1 row", report, StringComparison.Ordinal);
@@ -535,9 +535,11 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.True(
             report.IndexOf(">Web URI<", StringComparison.Ordinal) <
             report.IndexOf("AI (01) GTIN", StringComparison.Ordinal));
-        Assert.Contains("DataMan TruCheck Parser", report, StringComparison.Ordinal);
-        Assert.Contains("GS1 Barcode Syntax Engine (v. 1.4.0)", report, StringComparison.Ordinal);
-        Assert.DoesNotContain("VeriWedge GS1 Parser", report, StringComparison.Ordinal);
+        Assert.Contains("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
+        Assert.Contains(
+            "VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. 1.4.0)",
+            report,
+            StringComparison.Ordinal);
         Assert.DoesNotContain("<th>Source</th>", report, StringComparison.Ordinal);
         Assert.DoesNotContain("VCCS / GS1 Digital Link syntax validation", report,
             StringComparison.Ordinal);
@@ -585,9 +587,11 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains("<table class=\"dfc-dual-table\">", report, StringComparison.Ordinal);
-        Assert.Contains("DataMan TruCheck Parser", report, StringComparison.Ordinal);
-        Assert.Contains("GS1 Barcode Syntax Engine (v. 1.4.0)", report, StringComparison.Ordinal);
-        Assert.DoesNotContain("VeriWedge GS1 Parser", report, StringComparison.Ordinal);
+        Assert.Contains("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
+        Assert.Contains(
+            "VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. 1.4.0)",
+            report,
+            StringComparison.Ordinal);
         Assert.Contains("AI (10) LOT", report, StringComparison.Ordinal);
         Assert.Contains("AI (17) EXP", report, StringComparison.Ordinal);
         Assert.Contains("AI (21) SN", report, StringComparison.Ordinal);
