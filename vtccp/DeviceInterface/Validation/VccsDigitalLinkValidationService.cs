@@ -10,7 +10,7 @@ using ExcelEngine.Models;
 /// </summary>
 public static class VccsDigitalLinkValidationService
 {
-    public const string EngineVersion = "GS1 Syntax Engine 1.4.0";
+    public const string EngineVersion = "GS1 Barcode Syntax Engine 1.4.0";
 
     /// <summary>
     /// Validates a decoded GS1 Digital Link URI with the official GS1 engine.
@@ -38,7 +38,7 @@ public static class VccsDigitalLinkValidationService
         }
 
         return ValidateWithEngine(decodedData!, engine, DigitalLinkValidationResult.VccsSource,
-            "The GS1 Syntax Engine rejected the Digital Link URI.",
+            "The GS1 Barcode Syntax Engine rejected the Digital Link URI.",
             engine.Validate);
     }
 
@@ -68,7 +68,7 @@ public static class VccsDigitalLinkValidationService
             decodedData!,
             engine,
             DigitalLinkValidationResult.VccsElementStringSource,
-            "The GS1 Syntax Engine rejected the GS1 Element String.",
+            "The GS1 Barcode Syntax Engine rejected the GS1 Element String.",
             engine.ValidateElementString);
     }
 
@@ -138,8 +138,8 @@ public static class VccsDigitalLinkValidationService
 
     private static string BuildValidatedDetail(string? parsedAiData)
         => string.IsNullOrWhiteSpace(parsedAiData)
-            ? "Validated with the official GS1 Syntax Engine."
-            : $"Parsed GS1 AI data: {parsedAiData} Validated with the official GS1 Syntax Engine.";
+            ? "Validated with the official GS1 Barcode Syntax Engine."
+            : $"Parsed GS1 AI data: {parsedAiData} Validated with the official GS1 Barcode Syntax Engine.";
 
     private static bool IsHttpDigitalLinkUri(string? value)
         => Uri.TryCreate(value, UriKind.Absolute, out Uri? uri) &&
@@ -166,8 +166,8 @@ public static class VccsDigitalLinkValidationService
             Status = DigitalLinkValidationStatus.Unavailable,
             Source = source,
             Detail = string.IsNullOrWhiteSpace(reason)
-                ? "The GS1 Syntax Engine runtime is unavailable."
-                : $"The GS1 Syntax Engine runtime is unavailable: {reason}",
+                ? "The GS1 Barcode Syntax Engine runtime is unavailable."
+                : $"The GS1 Barcode Syntax Engine runtime is unavailable: {reason}",
         };
 }
 

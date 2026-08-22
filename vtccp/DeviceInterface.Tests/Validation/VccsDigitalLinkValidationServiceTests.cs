@@ -16,7 +16,7 @@ public sealed class VccsDigitalLinkValidationServiceTests
 
         Assert.Equal(DigitalLinkValidationStatus.Valid, result.Status);
         Assert.Equal(DigitalLinkValidationResult.VccsSource, result.Source);
-        Assert.Equal("GS1 Syntax Engine 1.4.0", result.EngineVersion);
+        Assert.Equal("GS1 Barcode Syntax Engine 1.4.0", result.EngineVersion);
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public sealed class VccsDigitalLinkValidationServiceTests
             new DetailEngine());
 
         Assert.Equal(
-            "Parsed GS1 AI data: (01)09506000134352(21)1234 Validated with the official GS1 Syntax Engine.",
+            "Parsed GS1 AI data: (01)09506000134352(21)1234 Validated with the official GS1 Barcode Syntax Engine.",
             result.Detail);
     }
 
@@ -62,7 +62,7 @@ public sealed class VccsDigitalLinkValidationServiceTests
 
         Assert.Equal(DigitalLinkValidationStatus.Valid, result.Status);
         Assert.Equal(DigitalLinkValidationResult.VccsElementStringSource, result.Source);
-        Assert.Equal("GS1 Syntax Engine 1.4.0", result.EngineVersion);
+        Assert.Equal("GS1 Barcode Syntax Engine 1.4.0", result.EngineVersion);
     }
 
     [Theory]

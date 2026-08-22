@@ -476,8 +476,8 @@ public sealed class VccsHtmlReportGeneratorTests
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
                 Status = DigitalLinkValidationStatus.Valid,
-                EngineVersion = "GS1 Syntax Engine 1.4.0",
-                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Syntax Engine.",
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.0",
+                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Barcode Syntax Engine.",
             },
         };
 
@@ -510,8 +510,8 @@ public sealed class VccsHtmlReportGeneratorTests
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
                 Status = DigitalLinkValidationStatus.Valid,
-                EngineVersion = "GS1 Syntax Engine 1.4.0",
-                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Syntax Engine.",
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.0",
+                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Barcode Syntax Engine.",
             },
         };
 
@@ -536,7 +536,8 @@ public sealed class VccsHtmlReportGeneratorTests
             report.IndexOf(">Web URI<", StringComparison.Ordinal) <
             report.IndexOf("AI (01) GTIN", StringComparison.Ordinal));
         Assert.Contains("DataMan TruCheck Parser", report, StringComparison.Ordinal);
-        Assert.Contains("VeriWedge GS1 Parser (v. 1.4.0)", report, StringComparison.Ordinal);
+        Assert.Contains("GS1 Barcode Syntax Engine (v. 1.4.0)", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("VeriWedge GS1 Parser", report, StringComparison.Ordinal);
         Assert.DoesNotContain("<th>Source</th>", report, StringComparison.Ordinal);
         Assert.DoesNotContain("VCCS / GS1 Digital Link syntax validation", report,
             StringComparison.Ordinal);
@@ -572,8 +573,8 @@ public sealed class VccsHtmlReportGeneratorTests
             {
                 Status = DigitalLinkValidationStatus.Valid,
                 Source = DigitalLinkValidationResult.VccsElementStringSource,
-                EngineVersion = "GS1 Syntax Engine 1.4.0",
-                Detail = "Parsed GS1 AI data: (01)09506000134352(10)LOT-12(17)250101(21)72803288707(20)3 Validated with the official GS1 Syntax Engine.",
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.0",
+                Detail = "Parsed GS1 AI data: (01)09506000134352(10)LOT-12(17)250101(21)72803288707(20)3 Validated with the official GS1 Barcode Syntax Engine.",
             },
         };
 
@@ -585,7 +586,8 @@ public sealed class VccsHtmlReportGeneratorTests
             StringComparison.Ordinal);
         Assert.Contains("<table class=\"dfc-dual-table\">", report, StringComparison.Ordinal);
         Assert.Contains("DataMan TruCheck Parser", report, StringComparison.Ordinal);
-        Assert.Contains("VeriWedge GS1 Parser (v. 1.4.0)", report, StringComparison.Ordinal);
+        Assert.Contains("GS1 Barcode Syntax Engine (v. 1.4.0)", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("VeriWedge GS1 Parser", report, StringComparison.Ordinal);
         Assert.Contains("AI (10) LOT", report, StringComparison.Ordinal);
         Assert.Contains("AI (17) EXP", report, StringComparison.Ordinal);
         Assert.Contains("AI (21) SN", report, StringComparison.Ordinal);
@@ -636,8 +638,8 @@ public sealed class VccsHtmlReportGeneratorTests
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
                 Status = DigitalLinkValidationStatus.Valid,
-                EngineVersion = "GS1 Syntax Engine 1.4.0",
-                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Syntax Engine.",
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.0",
+                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Barcode Syntax Engine.",
             },
         };
 
@@ -651,6 +653,22 @@ public sealed class VccsHtmlReportGeneratorTests
             StringComparison.Ordinal);
         Assert.Contains(
             "<div class=\"dual-native-note\">Firmware 6.1.16_sr4 does not support GS1 Digital Link parsing.</div>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "<span class=\"overall-pill pill-native-limitation\">OVERALL: FAIL*</span>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".pill-native-limitation { background:#f8d7da; color:#000; border-color:#000; }",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".dfc-dual-table .dual-native-note {\n      margin-top: 2pt; color: #000;",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".header-copyright {\n    font-size: 7pt; color: #000;",
             report,
             StringComparison.Ordinal);
         Assert.DoesNotContain("Native GS1 Digital Link Compatibility", report, StringComparison.Ordinal);
@@ -686,7 +704,7 @@ public sealed class VccsHtmlReportGeneratorTests
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
                 Status = DigitalLinkValidationStatus.Valid,
-                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Syntax Engine.",
+                Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Barcode Syntax Engine.",
             },
         };
 

@@ -2996,3 +2996,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Requested one additional wording change: in `TruCheck Barcode Verification Grades— Only fields present in the correlated HTML report are shown`, replace `correlated` with `associated`, consistent with the wording used elsewhere in the report.
 
 **Assistant:** Located the sentence in the active Git HTML template and confirmed the pending replacement is limited to `correlated` → `associated`. No report source was changed or built.
+
+**User:** Approved proceeding with all discussed report changes.
+
+**Assistant:** Updated the active report template and generator. The `www.vccs.llc` header line is now black; native Digital Link compatibility `OVERALL: FAIL*` and its firmware/software note use black text while retaining the pale-red limitation styling; the parser heading now uses the official **GS1 Barcode Syntax Engine** name; and “correlated HTML report” is now “associated HTML report.” Updated validation detail wording and engine version to the full official name, bumped the report to v1.5.39 and the application to 1.5.55, and aligned regression tests. NuGet dependencies required a restore because Tesseract 5.2.0 was missing from the local cache. The Release solution build succeeded with 0 errors, and all 161 DeviceInterface tests passed; only existing PDFsharp compatibility warnings remain.

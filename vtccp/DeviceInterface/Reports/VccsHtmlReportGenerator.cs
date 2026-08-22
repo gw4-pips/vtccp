@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.38";
+    public const string ReportVersion = "v1.5.39";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -644,7 +644,7 @@ public static class VccsHtmlReportGenerator
         sb.Append("          <div class=\"dfc-accordion-section dfc-dual-block\">\n");
         sb.Append("            <table class=\"dfc-dual-table\">\n");
         sb.Append("              <colgroup><col class=\"dual-left-field\"><col class=\"dual-left-data\"><col class=\"dual-left-check\"><col class=\"dual-divider\"><col class=\"dual-right-field\"><col class=\"dual-right-data\"><col class=\"dual-right-check\"></colgroup>\n");
-        sb.Append($"              <thead><tr class=\"dual-subhead\"><th colspan=\"3\">DataMan TruCheck Parser</th><th class=\"dual-divider\"></th><th colspan=\"3\">VeriWedge GS1 Parser (v. {H(GetParserVersion(validation))})</th></tr>\n");
+        sb.Append($"              <thead><tr class=\"dual-subhead\"><th colspan=\"3\">DataMan TruCheck Parser</th><th class=\"dual-divider\"></th><th colspan=\"3\">GS1 Barcode Syntax Engine (v. {H(GetParserVersion(validation))})</th></tr>\n");
         sb.Append("              <tr><th>Field</th><th>Data</th><th>Check</th><th class=\"dual-divider\"></th><th>Field</th><th>Data</th><th>Check</th></tr></thead>\n");
         sb.Append("              <tbody>\n");
 
@@ -692,6 +692,7 @@ public static class VccsHtmlReportGenerator
         if (nativeDigitalLinkSupportNote is not null)
         {
             leftOverallText = leftOverallText.Replace("FAIL", "FAIL*", StringComparison.Ordinal);
+            leftOverallClass = "pill-native-limitation";
             nativeNoteMarkup = $"<div class=\"dual-native-note\">{H(nativeDigitalLinkSupportNote)}</div>";
         }
         sb.Append($"                <tr class=\"dual-overall\"><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {leftOverallClass}\">{leftOverallText}</span>{nativeNoteMarkup}</td><td class=\"dual-divider\"></td><td colspan=\"3\" class=\"dual-overall-cell\"><span class=\"overall-pill {parserOverallClass}\">OVERALL: {parserCheck}</span></td></tr>\n");

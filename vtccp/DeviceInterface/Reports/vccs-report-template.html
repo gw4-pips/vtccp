@@ -61,7 +61,7 @@
     align-items: stretch; gap: 0;
   }
   .header-copyright {
-    font-size: 7pt; color: #444;
+    font-size: 7pt; color: #000;
     padding: 2pt 8pt 3pt 10pt; /* left edge aligned with VCCS logo */
   }
   .logo-box {
@@ -337,7 +337,7 @@
     border-left: 2px solid #1a3a6b;
   }
    .dfc-dual-table .dual-native-note {
-      margin-top: 2pt; color: #555; font-size: 6.5pt; font-style: italic;
+      margin-top: 2pt; color: #000; font-size: 6.5pt; font-style: italic;
       font-weight: normal; line-height: 1.15; overflow-wrap: anywhere;
     }
   .dfc-dual-table .overall-pill {
@@ -364,6 +364,7 @@
   .barcode-dfc-footer { padding: 4pt; text-align: right; }
   .pill-pass { background:#d4edda; color:#155724; border-color:#155724; }
   .pill-fail { background:#f8d7da; color:#721c24; border-color:#721c24; }
+  .pill-native-limitation { background:#f8d7da; color:#000; border-color:#000; }
   .pill-warn { background:#fff3cd; color:#856404; border-color:#856404; }
   .cf::after { content:""; display:table; clear:both; }
 
@@ -455,7 +456,7 @@
         </tbody>
       </table>
 
-      <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades</span><span class="sec-note"> &#x2014; <em>Only fields present in the correlated HTML report are shown</em></span></div>
+      <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades</span><span class="sec-note"> &#x2014; <em>Only fields present in the associated HTML report are shown</em></span></div>
       <table class="grades-table">
         <colgroup>
           <!-- Proportions taken from the approved reference snip; total = 100%. -->
