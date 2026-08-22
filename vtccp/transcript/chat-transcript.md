@@ -714,3 +714,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Asked to repeat the same isolated adjustment and move the VeriWedge Data column another 0.10 inch to the right, then push the change.
 
 **Assistant [2026-08-22]:** Increased the fixed VeriWedge Field allocation from 18% to 19.3% and reduced Data from 32% to 30.7%, moving the Data start another approximately 0.10 inch while preserving the 7% Check column and all other geometry. Updated the width assertions, bumped the application version to 1.5.75, and pushed commit `0b160e7`; local and both primary GitHub refs were verified equal.
+
+---
+
+**User [2026-08-22]:** Reported that the VeriWedge field name still wrapped and directed that no VeriWedge parser Field or Data cells should wrap; future overflows are acceptable until a deliberate field-name rule is defined.
+
+**Assistant [2026-08-22]:** Updated the canonical template so only the VeriWedge parser Field and Data cells use `white-space: nowrap` with normal overflow behavior, preserving the existing 19.3%/30.7% split and all other geometry. Updated regression assertions, bumped the application version to 1.5.76, and synchronized the implementation commit to GitHub. The Linux test project remained blocked before test execution by the existing ExcelEngine NPOI/OfficeOpenXml reference errors.
