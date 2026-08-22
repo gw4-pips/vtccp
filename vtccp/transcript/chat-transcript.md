@@ -507,6 +507,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Reported that Git displayed “waiting for my editor to close,” then the editor was closed and the PowerShell session ended.
+
+**Assistant [2026-08-22]:** Explained that waiting for the editor is normal during a merge commit and that closing it may have completed or cancelled the pull. Instructed the user to open a new PowerShell window and run only `cd C:\dev\vtccp` before checking status.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
