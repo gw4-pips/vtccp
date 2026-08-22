@@ -537,6 +537,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Reported a clean post-merge status with `main...origin/main [ahead 3]`; only the two local solution edits and three untracked local SDK/report folders remained.
+
+**Assistant [2026-08-22]:** Confirmed the pull and merge were complete, explained that ahead 3 is expected from the two Windows-local commits plus the merge commit, and confirmed the local setup artifacts were untouched. Instructed the user to rebuild from `VtccpWindows.sln` with `VtccpApp` as startup, without staging or pushing.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
