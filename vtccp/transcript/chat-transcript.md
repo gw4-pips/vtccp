@@ -565,6 +565,10 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 **Assistant [2026-08-22]:** Requested the read-only `git status --short --branch` command from the Windows repository so the checkout can be classified before any reset or other potentially destructive synchronization step.
 
+**User [2026-08-22]:** Reported that the Windows checkout is `ahead 5, behind 24`, with modified solution files and untracked local report and AsReader SDK directories.
+
+**Assistant [2026-08-22]:** Confirmed that the Windows checkout contains local work that must be preserved, warned against reset, clean, or another pull, and requested the list of the five local-only commits before selecting a safe synchronization path.
+
 ---
 
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
