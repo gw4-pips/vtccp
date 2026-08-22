@@ -346,14 +346,19 @@
      white-space: nowrap;
    }
    /*
-      Field labels are data, not headings.  Long GS1 AI names must wrap inside
-      their fixed 19.3% columns so they never run into Data or Check.
+      The VeriWedge parser uses fixed-width columns.  Keep its current Field
+      and Data values on one line; future overflows are handled by an explicit
+      field-name edit rule rather than automatic wrapping.
    */
    .dfc-dual-table td:nth-child(1),
    .dfc-dual-table td:nth-child(5) {
-     white-space: normal;
      min-width: 0;
-     overflow-wrap: anywhere;
+   }
+   .dfc-dual-table td:nth-child(5),
+   .dfc-dual-table td:nth-child(6) {
+     white-space: nowrap;
+     overflow-wrap: normal;
+     word-break: normal;
    }
    .dfc-dual-table th:nth-child(2),
    .dfc-dual-table td:nth-child(2),

@@ -731,7 +731,7 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_MultiElementGs1DataMatrixWrapsLongValuesAndFieldLabels()
+    public void Generate_MultiElementGs1DataMatrixKeepsParserFieldsAndValuesUnwrapped()
     {
         const string elementString =
             "(01)00696114704283(17)260822(10)BATCH-2026-08-22-LONG-LOT-VALUE(21)SERIAL-72803282010";
@@ -807,10 +807,13 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains(".sum-table td[colspan=\"2\"] {\n    white-space: normal;\n    overflow-wrap: anywhere;",
             report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table td:nth-child(1),\n   .dfc-dual-table td:nth-child(5) {\n     white-space: normal;\n     min-width: 0;\n     overflow-wrap: anywhere;",
+        Assert.Contains(".dfc-dual-table td:nth-child(1),\n   .dfc-dual-table td:nth-child(5) {\n     min-width: 0;",
             report,
             StringComparison.Ordinal);
-        Assert.Contains("overflow-wrap: anywhere; word-break: normal;", report, StringComparison.Ordinal);
+        Assert.Contains(
+            ".dfc-dual-table td:nth-child(5),\n   .dfc-dual-table td:nth-child(6) {\n     white-space: nowrap;\n     overflow-wrap: normal;\n     word-break: normal;",
+            report,
+            StringComparison.Ordinal);
         Assert.Contains("Webscan TruCheck GS1 Parser", report, StringComparison.Ordinal);
         Assert.DoesNotContain("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
         Assert.Contains("Software: 3.03.74", report, StringComparison.Ordinal);
@@ -938,7 +941,11 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            ".dfc-dual-table td:nth-child(1),\n   .dfc-dual-table td:nth-child(5) {\n     white-space: normal;\n     min-width: 0;\n     overflow-wrap: anywhere;",
+            ".dfc-dual-table td:nth-child(1),\n   .dfc-dual-table td:nth-child(5) {\n     min-width: 0;",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".dfc-dual-table td:nth-child(5),\n   .dfc-dual-table td:nth-child(6) {\n     white-space: nowrap;\n     overflow-wrap: normal;\n     word-break: normal;",
             report,
             StringComparison.Ordinal);
     }
