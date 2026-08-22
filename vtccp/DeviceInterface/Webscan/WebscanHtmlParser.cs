@@ -208,11 +208,15 @@ public static partial class WebscanHtmlParser
         if (gradeRow is null) missing.Add("Verification Grades row");
         if (quality.Count == 0) missing.Add("ISO quality-parameter rows");
 
+        // The report-level Verification Grades row is the Webscan-provided
+        // overall grade. Some valid QR exports do not include a separate
+        // Average Grade (AG) quality row, so AG must remain optional and blank
+        // when it is absent rather than causing the whole literal export to be
+        // rejected.
         string[] requiredQuality =
         [
             "Unused Error Correction (UEC)",
             "Symbol Contrast (SC)",
-            "Average Grade (AG)",
             "DECODE",
         ];
         foreach (string name in requiredQuality)

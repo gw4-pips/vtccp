@@ -738,3 +738,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Supplied the generated v1.5.53/v1.5.77 PDF and identified it as canonical for the current report output.
 
 **Assistant [2026-08-22]:** Visually verified the one-page Letter PDF, confirmed the exact `NO RFID TAG DETECTED` badge, parser layout, and no-wrap behavior, archived the original PDF, and updated the durable parser-panel baseline.
+
+---
+
+**User [2026-08-22]:** Supplied a Webscan QR verification export, symbol image, and application screenshot after VTCCP rejected the HTML because it lacked an Average Grade (AG) quality row. Confirmed approval to correct the import while preserving Webscan's native Data Format FAIL result.
+
+**Assistant [2026-08-22]:** Confirmed the Webscan report has an A (4.0) print-verification grade and all 15 available ISO15415 quality rows marked PASS, while separately reporting a native GS1 Data Format FAIL for “Application Header is Expected.” Updated the importer so an absent AG row no longer rejects a report that has a literal overall grade; AG remains blank and the Webscan DFC failure is retained exactly as reported. Added a regression test against the supplied QR HTML, updated the report format to v1.5.54 and application version to 1.5.78, and recorded that Linux test execution is blocked before running by pre-existing missing ExcelEngine NPOI/OfficeOpenXml references.

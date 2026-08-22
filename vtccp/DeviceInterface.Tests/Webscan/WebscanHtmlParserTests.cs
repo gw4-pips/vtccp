@@ -220,6 +220,30 @@ public sealed class WebscanHtmlParserTests
     }
 
     [Fact]
+    public void QrExportWithoutAverageGrade_ImportsLiteralOverallGradeAndNativeDfcFailure()
+    {
+        string sourcePath = GetQrExportWithoutAverageGradePath();
+
+        WebscanHtmlReport report = WebscanHtmlParser.ParseFile(sourcePath);
+        VerificationRecord record = report.ToVerificationRecord();
+
+        Assert.True(report.ParseSucceeded, report.ParseError);
+        Assert.Equal(SymbologyFamily.QRCode, record.SymbologyFamily);
+        Assert.Equal(4.0m, record.OverallGrade?.NumericGrade);
+        Assert.Equal(GradeLetterValue.A, record.OverallGrade?.LetterGrade);
+        Assert.DoesNotContain(
+            report.QualityParameters,
+            parameter => parameter.Name.Equals(
+                "Average Grade (AG)",
+                StringComparison.OrdinalIgnoreCase));
+        Assert.Null(record.AG_Value);
+        Assert.Null(record.AG_Grade);
+        Assert.NotNull(record.DataFormatCheck);
+        Assert.Equal(OverallPassFail.Fail, record.DataFormatCheck!.Overall);
+        Assert.Equal("GS1 Application Data Format", record.DataFormatCheck.Standard);
+    }
+
+    [Fact]
     public void ImageReferenceOutsideReportDirectory_IsRejected()
     {
         string tempDirectory = Path.Combine(Path.GetTempPath(), "vtccp-webscan-" + Guid.NewGuid());
@@ -311,6 +335,14 @@ public sealed class WebscanHtmlParserTests
     }
 
     private static string GetControlledReportPath()
+        => GetAttachedAssetPath(
+            "DataMatrix-26-08-22_08_31_50-WEBSCAN_020_CAL._1787402227622.html");
+
+    private static string GetQrExportWithoutAverageGradePath()
+        => GetAttachedAssetPath(
+            "QR-26-08-22_18_58_42-https___srk.my2dir.com_01_00696114704318_1787439623070.html");
+
+    private static string GetAttachedAssetPath(string fileName)
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null)
@@ -318,12 +350,12 @@ public sealed class WebscanHtmlParserTests
             string candidate = Path.Combine(
                 directory.FullName,
                 "attached_assets",
-                "DataMatrix-26-08-22_08_31_50-WEBSCAN_020_CAL._1787402227622.html");
+                fileName);
             if (File.Exists(candidate))
                 return candidate;
             directory = directory.Parent;
         }
 
-        throw new FileNotFoundException("Controlled TC-829 Webscan report fixture was not found.");
+        throw new FileNotFoundException($"Webscan report fixture '{fileName}' was not found.");
     }
 }
