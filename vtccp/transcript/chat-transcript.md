@@ -95,6 +95,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-21]:** Corrected the meaning of cross-validation: it is used when RFID validation cannot be accomplished by the TruCheck parser, or may have failed against it but can be checked by the VeriWedge GS1 parser.
+
+**Assistant [2026-08-21]:** Acknowledged the misinterpretation and removed the incorrect rule that skipped RFID whenever a GS1 DataMatrix passed TruCheck. Cross-validation is again retained for every configured RFID scan, with the one-line result and parser-alignment layout fixes preserved. The correction passed all DeviceInterface tests and the Windows build.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.

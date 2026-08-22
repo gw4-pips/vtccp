@@ -756,39 +756,17 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_TruCheckPassedGs1DataMatrixOmitsRfidValidationSection()
-    {
-        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
-        {
-            Symbology = "GS1 DataMatrix",
-            ApplicationPass = "Pass",
-            RfidStatus = "Pass",
-        });
-
-        Assert.DoesNotContain(
-            "<div class=\"sec-hdr\">VCCS <em>RFID VeriWedge&#x2122; PowerPro</em>",
-            report,
-            StringComparison.Ordinal);
-        Assert.DoesNotContain(
-            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Validation Result</td>",
-            report,
-            StringComparison.Ordinal);
-        Assert.Contains("class=\"rfid-badge badge-hidden\"", report, StringComparison.Ordinal);
-        Assert.DoesNotContain("class=\"rfid-badge badge-pass\"", report, StringComparison.Ordinal);
-    }
-
-    [Fact]
     public void Generate_RfidValidationResultUsesOneLineLabelAndAlignedDualParserColumns()
     {
         string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
         {
             Symbology = "GS1 DataMatrix",
-            ApplicationPass = "Fail (Quality)",
+            ApplicationPass = "Pass",
             RfidStatus = "Fail",
         });
 
         Assert.Contains(
-            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Validation Result</td>",
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Cross-Validation Result</td>",
             report,
             StringComparison.Ordinal);
         Assert.Contains(
@@ -921,7 +899,7 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_RfidFailure_UsesExplicitValidationLabel()
+    public void Generate_RfidFailure_UsesExplicitCrossValidationLabel()
     {
         string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
         {
@@ -931,7 +909,7 @@ public sealed class VccsHtmlReportGeneratorTests
         });
 
         Assert.Contains(
-            "QR Code RFID Validation Result",
+            "QR Code RFID Cross-Validation Result",
             report,
             StringComparison.Ordinal);
     }

@@ -1297,11 +1297,8 @@ public sealed class SessionViewModel : ViewModelBase
         // Awaiting here means the RFID result lands in the same Excel row as the
         // barcode grade — no row-update pass needed later.
         // Non-fatal: an RFID error never blocks barcode record acceptance.
-        // A GS1 DataMatrix that has already passed TruCheck validation does not
-        // open an RFID window: cross-validation adds no operator-facing value.
         RfidValidationResult? rfidResult = null;
-        if (_rfidCoordinator is { } rfidCoord &&
-            RfidCrossValidationPolicy.ShouldRun(record))
+        if (_rfidCoordinator is { } rfidCoord)
         {
             try
             {
