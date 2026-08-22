@@ -771,6 +771,21 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_RfidGcpInvalid_ShowsLengthWithoutEqualsSign()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Pass",
+            RfidGcpStatus = "Invalid",
+            RfidGcpLength = 8,
+        });
+
+        Assert.Contains("Invalid (8)", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Invalid (=8)", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_LabelsDigitalLinkNotApplicable()
     {
         var record = new VerificationRecord

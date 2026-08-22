@@ -8,7 +8,8 @@ description: Rules for distinguishing registered-prefix validation outcomes in R
 Treat an absent GCP-table lookup as **NOT FOUND**, not as an invalid prefix.
 Use **Invalid** only when a prefix is present in the GS1 table but its registered
 length disagrees with the length encoded by the SGTIN partition. When known, display
-the partition-derived length alongside the result, for example `Valid (=7)`.
+the partition-derived length alongside the result: `Valid (=7)` uses an equals sign,
+while `Invalid (8)` does not.
 
 **Why:** An unlisted prefix and an encoded-length mismatch are materially different
 operational conditions. Collapsing them into a Boolean `false` makes the report

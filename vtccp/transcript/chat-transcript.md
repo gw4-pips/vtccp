@@ -64,3 +64,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-21]:** Is there a push coming? What about the GCP and Syntax Engine updates?
 
 **Assistant [2026-08-21]:** Confirmed the layout commits had already been pushed through the post-commit hook. Updated the GS1 Syntax Engine from 1.4.0 to verified release 1.4.1 assets, replaced the bundled GCP table with the supplied June 3, 2026 table, and separated GCP results into Valid, Invalid, and NOT FOUND. The report now receives the encoded GCP length from the EPC partition, so a valid 7-digit prefix renders as “Valid (=7)”. All 167 DeviceInterface tests and the Windows-targeted VtccpApp build pass.
+
+---
+
+**User [2026-08-21]:** For GCP output, use `Invalid (8)` without an equals sign, while valid remains `Valid (=7)`.
+
+**Assistant [2026-08-21]:** Updated the report formatting and regression coverage so valid GCP results use `Valid (=N)` and invalid results use `Invalid (N)`.
