@@ -531,6 +531,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Reported that `git commit --no-edit` completed successfully and created merge commit `1800ed4`.
+
+**Assistant [2026-08-22]:** Confirmed the merge commit succeeded and that the displayed editor text was only the recorded merge message. Instructed the user to run the read-only `git status --short --branch` check, without pushing, pulling, or staging anything else.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
