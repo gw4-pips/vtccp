@@ -559,6 +559,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 **Assistant [2026-08-22]:** Explained that the issue is a Git history conflict rather than a build failure, warned not to commit the conflict, and asked whether the Windows checkout contained unpublished work. The user was unsure, so the safe next step is to abort only the interrupted merge before inspecting the Windows branch.
 
+**User [2026-08-22]:** Ran `git merge --abort` successfully from `C:\dev\vtccp`; PowerShell returned without an error.
+
+**Assistant [2026-08-22]:** Confirmed that the interrupted merge was canceled without creating a conflict commit and requested the Windows branch status before taking any further synchronization action.
+
+**Assistant [2026-08-22]:** Requested the read-only `git status --short --branch` command from the Windows repository so the checkout can be classified before any reset or other potentially destructive synchronization step.
+
 ---
 
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
