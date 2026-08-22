@@ -46,3 +46,4 @@
 - [GCP validation status semantics](gcp-status-semantics.md) — NOT FOUND is distinct from Invalid; show the EPC partition’s encoded length with the result
 - [RFID cross-validation semantics](rfid-cross-validation-semantics.md) — VeriWedge is the GS1 parser fallback/comparison path, not a generic RFID step to suppress after a TruCheck pass
 - [Parser-panel baseline](parser-panel-baseline.md) — the user-confirmed v1.5.44 PDF parser layout is canonical; visually verify any future parser-panel change before delivery
+- [Webscan TruCheck transport](webscan-trucheck-transport.md) — all Webscan TruChecks are USB-connected; never request or probe a network address

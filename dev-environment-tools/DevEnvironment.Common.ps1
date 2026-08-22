@@ -234,8 +234,8 @@ function Get-PnpInventory {
     if ($null -ne $getPnpDevice) {
         $ports = @(Get-PnpDevice -Class "Ports" -ErrorAction SilentlyContinue |
             Select-Object Status, Class, FriendlyName, InstanceId, ProblemCode)
-        $usb = @(Get-PnpDevice -Class "USB" -ErrorAction SilentlyContinue |
-            Where-Object { $_.FriendlyName -match "AsReader|Cognex|DataMan|RFID|Serial|USB" } |
+        $usb = @(Get-PnpDevice -ErrorAction SilentlyContinue |
+            Where-Object { $_.FriendlyName -match "AsReader|Cognex|DataMan|RFID|Serial|USB|Webscan|TruCheck" } |
             Select-Object Status, Class, FriendlyName, InstanceId, ProblemCode)
     }
 

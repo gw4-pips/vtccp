@@ -2,8 +2,6 @@
 param(
     [string] $DevRoot = "C:\dev",
     [string] $RepoPath = "",
-    [string] $DeviceHost = "",
-    [int] $DevicePort = 44444,
     [switch] $RunBuild,
     [switch] $RunValidationTests,
     [switch] $AsObject
@@ -28,45 +26,6 @@ function New-HomeCheck {
         Name = $Name
         Status = $Status
         Detail = $Detail
-    }
-}
-
-function Test-TcpHandshake {
-    param(
-        [string] $HostName,
-        [int] $Port
-    )
-
-    $client = New-Object System.Net.Sockets.TcpClient
-    try {
-        $connectTask = $client.ConnectAsync($HostName, $Port)
-        if (-not $connectTask.Wait(4000)) {
-            return [pscustomobject]@{
-                Connected = $false
-                Detail = "Timed out after 4 seconds."
-            }
-        }
-
-        if ($client.Connected) {
-            return [pscustomobject]@{
-                Connected = $true
-                Detail = "TCP handshake succeeded."
-            }
-        }
-
-        return [pscustomobject]@{
-            Connected = $false
-            Detail = "Connection completed without an active socket."
-        }
-    }
-    catch {
-        return [pscustomobject]@{
-            Connected = $false
-            Detail = $_.Exception.Message
-        }
-    }
-    finally {
-        $client.Dispose()
     }
 }
 
@@ -123,19 +82,34 @@ foreach ($asset in @(
     }
 }
 
-if ([string]::IsNullOrWhiteSpace($DeviceHost)) {
+$pnpInventory = Get-PnpInventory
+$webscanUsb = @($pnpInventory.PnpUsb | Where-Object {
+    $_.FriendlyName -match "Webscan|TruCheck"
+})
+$readyWebscanUsb = @($webscanUsb | Where-Object { $_.Status -eq "OK" })
+
+if ($readyWebscanUsb.Count -gt 0) {
+    $deviceDetail = @($readyWebscanUsb | ForEach-Object {
+        "$($_.FriendlyName) [$($_.Status)]"
+    }) -join "; "
     $checks += New-HomeCheck `
-        -Name "TC-829 TCP reachability" `
-        -Status "WARN" `
-        -Detail "Not tested. Re-run with -DeviceHost <TC-829-IP>."
+        -Name "Webscan TruCheck USB presence" `
+        -Status "PASS" `
+        -Detail $deviceDetail
 }
 else {
-    $tcpResult = Test-TcpHandshake -HostName $DeviceHost -Port $DevicePort
-    $tcpStatus = if ($tcpResult.Connected) { "PASS" } else { "FAIL" }
+    $deviceDetail = if ($webscanUsb.Count -gt 0) {
+        @($webscanUsb | ForEach-Object {
+            "$($_.FriendlyName) [$($_.Status)]"
+        }) -join "; "
+    }
+    else {
+        "No PnP USB entry named Webscan or TruCheck was found. Confirm the USB cable, powered device, and Windows Device Manager entry."
+    }
     $checks += New-HomeCheck `
-        -Name "TC-829 TCP reachability" `
-        -Status $tcpStatus `
-        -Detail "$DeviceHost`:$DevicePort - $($tcpResult.Detail) No subscription or DMCC command was sent."
+        -Name "Webscan TruCheck USB presence" `
+        -Status "WARN" `
+        -Detail $deviceDetail
 }
 
 $dotnet = Get-CommandInventory -Name "dotnet" -VersionArguments @("--version")
@@ -202,8 +176,8 @@ else {
 $result = [pscustomobject]@{
     GeneratedAt = (Get-Date).ToString("o")
     RepoPath = $RepoPath
-    DeviceHost = $DeviceHost
-    DevicePort = $DevicePort
+    DeviceTransport = "USB"
+    WebscanUsbCandidates = $webscanUsb
     OverallStatus = $overallStatus
     Checks = $checks
 }
@@ -233,7 +207,7 @@ $markdown = @(
     "",
     "- Generated: $($result.GeneratedAt)",
     "- Repository: $($result.RepoPath)",
-    "- Device: $($result.DeviceHost):$($result.DevicePort)",
+    "- Device transport: USB (Webscan TruCheck; no network endpoint is used)",
     "- Overall status: **$($result.OverallStatus)**",
     "",
     "| Status | Check | Detail |",

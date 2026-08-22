@@ -220,3 +220,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Approved the home VTCCP VeriWedge development task for the TC-829.
 
 **Assistant [2026-08-22]:** Aligned the runtime GS1 provenance with the already-bundled 1.4.1 engine, added Windows production-engine smoke coverage, and added an opt-in HTTP evidence capture folder plus a non-invasive home preflight script. The full DeviceInterface suite passed with 182 tests and the Windows-targeted application build succeeded. A real TC-829 result remains pending from the home laptop.
+
+---
+
+**User [2026-08-22]:** Corrected the TC-829 transport assumption: all Webscan TruChecks are USB-connected devices and must not be treated as network-addressable.
+
+**Assistant [2026-08-22]:** Removed the incorrect TCP preflight and documented the USB connection model as canonical. The home check now inventories the local Windows USB device only and keeps the controlled validation on the existing DMS-linked workflow.
