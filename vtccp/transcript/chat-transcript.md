@@ -364,3 +364,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
 
 **Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
+
+---
+
+**User [2026-08-22]:** Completed the setup verification and build. All checks passed except the overall status was `WARN` because the local ASR SDK folder and generated reports are untracked.
+
+**Assistant [2026-08-22]:** Confirmed the Windows environment is functionally ready: the ASR DLL exists at the expected path with the matching SHA-256 hash, Visual Studio/.NET/MSBuild are available, and the VTCCP build succeeded. Explained that the warning is limited to local-only untracked files.
