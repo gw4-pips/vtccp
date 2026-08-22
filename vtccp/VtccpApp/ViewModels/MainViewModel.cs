@@ -104,7 +104,7 @@ public sealed class MainViewModel : ViewModelBase
             await Repository.LoadAsync();
             DevicesVM.Reload();
             TemplatesVM.Reload();
-            SessionVM.Reload();
+            SessionVM.Reload(settingsLoaded: true);
             SettingsVM.Reload();
         }
         catch { /* first run — defaults in effect */ }

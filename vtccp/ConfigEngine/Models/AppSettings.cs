@@ -70,6 +70,13 @@ public sealed class AppSettings
     /// <summary>Operator ID typed at last session start (pre-fills the session launcher).</summary>
     public string? LastOperatorId { get; set; }
 
+    /// <summary>
+    /// Scan mode selected at last use (for example, "Manual", "AutoPoll", "Push",
+    /// or "Webscan"). Stored by name so enum ordering changes cannot alter the
+    /// meaning of an existing preference.
+    /// </summary>
+    public string? LastScanMode { get; set; }
+
     // ── RFID cross-validation (Phase 0 POC) ──────────────────────────────────
 
     /// <summary>

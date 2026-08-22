@@ -549,6 +549,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Requested that the Session Launcher remember the last selected Scan mode, and reported that build 1.5.67 was not reaching the Windows workstation.
+
+**Assistant [2026-08-22]:** Confirmed GitHub was still at 1.5.66 because the report commit had not been published. Added a persisted, operator-selected Scan mode preference: it restores on the next launch, retains the first-run Push-or-Manual fallback, and preserves the preference if a profile temporarily cannot use Push. Bumped the application to 1.5.68, compiled the Windows target, and ran all 191 DeviceInterface tests successfully before publishing.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.

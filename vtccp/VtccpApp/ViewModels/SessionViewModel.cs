@@ -164,11 +164,11 @@ public sealed class SessionViewModel : ViewModelBase
             OnPropertyChanged(nameof(HasSelectedDevice));
             RelayCommand.Refresh();
 
-            // Auto-select the best mode for the newly chosen device:
-            //   • If the device has a push port → Push mode
-            //   • Otherwise fall back to Manual (never leave mode on Push when unavailable)
-            if (!IsRunning && _scanMode != ScanMode.Webscan)
-                ActiveScanMode = value?.DmstListenPort > 0 ? ScanMode.Push : ScanMode.Manual;
+            // Keep the operator's selected mode when changing device profiles.
+            // Push is the one mode whose availability depends on the profile;
+            // fall back to Manual rather than leaving the UI on an unusable mode.
+            if (!IsRunning && _scanMode == ScanMode.Push && !IsPushAvailable)
+                ActiveScanMode = ScanMode.Manual;
         }
     }
 
@@ -374,10 +374,10 @@ public sealed class SessionViewModel : ViewModelBase
         TriggerCommand = new RelayCommand(async () => await OnTriggerAsync(),
             () => IsRunning && (_scanMode == ScanMode.Manual || _scanMode == ScanMode.Push));
 
-        SetManualCommand   = new RelayCommand(() => ActiveScanMode = ScanMode.Manual,   () => !IsRunning);
-        SetAutoPollCommand = new RelayCommand(() => ActiveScanMode = ScanMode.AutoPoll, () => !IsRunning);
-        SetPushCommand     = new RelayCommand(() => ActiveScanMode = ScanMode.Push,     () => !IsRunning && IsPushAvailable);
-        SetWebscanCommand  = new RelayCommand(() => ActiveScanMode = ScanMode.Webscan,  () => !IsRunning);
+        SetManualCommand   = new RelayCommand(() => SelectScanMode(ScanMode.Manual),   () => !IsRunning);
+        SetAutoPollCommand = new RelayCommand(() => SelectScanMode(ScanMode.AutoPoll), () => !IsRunning);
+        SetPushCommand     = new RelayCommand(() => SelectScanMode(ScanMode.Push),     () => !IsRunning && IsPushAvailable);
+        SetWebscanCommand  = new RelayCommand(() => SelectScanMode(ScanMode.Webscan),  () => !IsRunning);
 
         ReadSupplementalCommand  = new RelayCommand(
             async () => await OnReadSupplementalAsync(),
@@ -419,7 +419,7 @@ public sealed class SessionViewModel : ViewModelBase
 
     // ── Reload from repository ────────────────────────────────────────────────
 
-    public void Reload()
+    public void Reload(bool settingsLoaded = false)
     {
         AvailableDevices.Clear();
         AvailableTemplates.Clear();
@@ -446,6 +446,44 @@ public sealed class SessionViewModel : ViewModelBase
         {
             OperatorOverride = _repo.Settings.LastOperatorId;
         }
+
+        if (settingsLoaded)
+        {
+            RestoreLastScanMode();
+        }
+    }
+
+    private void SelectScanMode(ScanMode mode)
+    {
+        ActiveScanMode = mode;
+
+        string modeName = mode.ToString();
+        if (_repo.Settings.LastScanMode != modeName)
+        {
+            _repo.Settings.LastScanMode = modeName;
+            _ = _repo.SaveSettingsAsync();
+        }
+    }
+
+    /// <summary>
+    /// Restores the last operator-selected scan mode after the repository has
+    /// loaded. Missing or invalid values retain the original first-run default.
+    /// </summary>
+    private void RestoreLastScanMode()
+    {
+        if (Enum.TryParse<ScanMode>(
+                _repo.Settings.LastScanMode,
+                ignoreCase: true,
+                out var savedMode))
+        {
+            ActiveScanMode = savedMode == ScanMode.Push && !IsPushAvailable
+                ? ScanMode.Manual
+                : savedMode;
+            return;
+        }
+
+        // Preserve the pre-persistence startup behavior for existing installs.
+        ActiveScanMode = IsPushAvailable ? ScanMode.Push : ScanMode.Manual;
     }
 
     // ── Start / Stop ──────────────────────────────────────────────────────────
