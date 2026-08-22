@@ -1,0 +1,190 @@
+PS C:\dev\dev-environment-tools> .\Invoke-DevEnvironmentAudit.ps1 -DevRoot C:\dev
+>> Get-ChildItem -Force
+>> cd C:\dev\dev-environment-tools
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayVersion' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:169 char:17
++                 $matches += [pscustomobject]@{
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'InstallationName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\Invoke-DevEnvironmentAudit.ps1:80 char:18
++     $md.Add("- $($installation.InstallationName) | $($installation.Ca ...
++                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'CatalogVersion' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\Invoke-DevEnvironmentAudit.ps1:80 char:54
++ ... stallation.InstallationName) | $($installation.CatalogVersion) | $($i ...
++                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'InstallationPath' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\Invoke-DevEnvironmentAudit.ps1:80 char:88
++ ... $($installation.CatalogVersion) | $($installation.InstallationPath)")
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+Audit complete.
+JSON: C:\dev\dev-environment-tools\reports\dev-environment-audit-20260822-064251.json
+Markdown: C:\dev\dev-environment-tools\reports\dev-environment-audit-20260822-064251.md
+
+
+    Directory: C:\dev\dev-environment-tools
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/22/2026   6:40 AM                reports
+-a----         8/22/2026   6:36 AM           7483 DevEnvironment.Common.ps1
+-a----         8/22/2026   6:36 AM           3536 Find-RepoAndSdkDependencies.ps1
+-a----         8/22/2026   6:36 AM           1727 Get-DevToolInventory.ps1
+-a----         8/22/2026   6:36 AM           4844 Invoke-DevEnvironmentAudit.ps1
+-a----         8/22/2026   6:36 AM           2267 README.md
+
+
+PS C:\dev\dev-environment-tools>

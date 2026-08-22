@@ -77,7 +77,15 @@ $md.Add("")
 $md.Add("## Visual Studio")
 $md.Add("")
 foreach ($installation in @($toolInventory.VisualStudio.Installations)) {
-    $md.Add("- $($installation.InstallationName) | $($installation.CatalogVersion) | $($installation.InstallationPath)")
+    if ($installation.ParseError) {
+        $md.Add("- vswhere returned data that could not be parsed: $($installation.ParseError)")
+    }
+    else {
+        $name = if ($installation.InstallationName) { $installation.InstallationName } else { "Visual Studio installation" }
+        $version = if ($installation.CatalogVersion) { $installation.CatalogVersion } else { "version unavailable" }
+        $path = if ($installation.InstallationPath) { $installation.InstallationPath } else { "path unavailable" }
+        $md.Add("- $name | $version | $path")
+    }
 }
 if (@($toolInventory.VisualStudio.Installations).Count -eq 0) {
     $md.Add("- No Visual Studio installation was discovered through vswhere.")

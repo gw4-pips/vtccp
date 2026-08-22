@@ -41,6 +41,10 @@ The audit writes timestamped JSON and Markdown reports to:
 C:\dev\dev-environment-tools\reports
 ```
 
+If you update the toolkit, replace the entire `dev-environment-tools` folder.
+The entry script and the shared `DevEnvironment.Common.ps1` file must come from
+the same bundle.
+
 ## Run focused checks
 
 Toolchain only:

@@ -21,6 +21,27 @@ function Invoke-CapturedCommand {
     return $lines
 }
 
+function Get-OptionalPropertyValue {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object] $Object,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Name
+    )
+
+    if ($null -eq $Object) {
+        return $null
+    }
+
+    $property = $Object.PSObject.Properties[$Name]
+    if ($null -eq $property) {
+        return $null
+    }
+
+    return $property.Value
+}
+
 function Get-CommandInventory {
     param(
         [Parameter(Mandatory = $true)]
@@ -114,20 +135,29 @@ function Get-VisualStudioInventory {
     try {
         $parsed = ($raw -join "`n") | ConvertFrom-Json
         foreach ($item in @($parsed)) {
+            $catalogInfo = Get-OptionalPropertyValue -Object $item -Name "catalogInfo"
             $installations += [pscustomobject]@{
-                InstallationPath = $item.installationPath
-                InstallationName = $item.displayName
-                ProductId        = $item.productId
-                CatalogVersion   = $item.catalogInfo.productDisplayVersion
-                IsComplete       = $item.isComplete
-                IsLaunchable     = $item.isLaunchable
+                InstallationPath = Get-OptionalPropertyValue -Object $item -Name "installationPath"
+                InstallationName = Get-OptionalPropertyValue -Object $item -Name "displayName"
+                ProductId        = Get-OptionalPropertyValue -Object $item -Name "productId"
+                CatalogVersion   = Get-OptionalPropertyValue -Object $catalogInfo -Name "productDisplayVersion"
+                IsComplete       = Get-OptionalPropertyValue -Object $item -Name "isComplete"
+                IsLaunchable     = Get-OptionalPropertyValue -Object $item -Name "isLaunchable"
+                ParseError       = $null
+                RawOutput        = @()
             }
         }
     }
     catch {
         $installations = @([pscustomobject]@{
-            ParseError = $_.Exception.Message
-            RawOutput  = $raw
+            InstallationPath = $null
+            InstallationName = $null
+            ProductId        = $null
+            CatalogVersion   = $null
+            IsComplete       = $null
+            IsLaunchable     = $null
+            ParseError       = $_.Exception.Message
+            RawOutput        = $raw
         })
     }
 
@@ -154,7 +184,7 @@ function Get-InstalledProgramInventory {
     foreach ($root in $roots) {
         $items = @(Get-ItemProperty -Path $root -ErrorAction SilentlyContinue)
         foreach ($item in $items) {
-            $displayName = $item.DisplayName
+            $displayName = Get-OptionalPropertyValue -Object $item -Name "DisplayName"
             if ([string]::IsNullOrWhiteSpace($displayName)) {
                 continue
             }
@@ -168,10 +198,10 @@ function Get-InstalledProgramInventory {
             if ($isMatch) {
                 $matches += [pscustomobject]@{
                     DisplayName     = $displayName
-                    DisplayVersion  = $item.DisplayVersion
-                    Publisher       = $item.Publisher
-                    InstallLocation = $item.InstallLocation
-                    UninstallKey    = $item.PSPath
+                    DisplayVersion  = Get-OptionalPropertyValue -Object $item -Name "DisplayVersion"
+                    Publisher       = Get-OptionalPropertyValue -Object $item -Name "Publisher"
+                    InstallLocation = Get-OptionalPropertyValue -Object $item -Name "InstallLocation"
+                    UninstallKey    = Get-OptionalPropertyValue -Object $item -Name "PSPath"
                 }
             }
         }
