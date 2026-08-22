@@ -3044,3 +3044,5 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Assigned Task 195: ensure a slow Webscan scan cannot write after the session closes, with deterministic coverage for normal Stop, application exit, and startup-failure cleanup.
 
 **Assistant:** Added atomic Webscan acceptance admission and shutdown draining so callbacks admitted before invalidation finish before session-owned writers close, while late callbacks are rejected. Added a deterministic delayed-acceptance regression test that simulates an RFID wait, confirms the drain blocks closure, and verifies no late work can be admitted. Bumped the app to version 1.5.65. The WPF app build completed with zero errors and all 186 DeviceInterface tests passed.
+
+**Assistant:** Rechecked Task 196. The focused Webscan suite passed all 5 tests after restoring the NuGet cache, including the delayed-acceptance shutdown drain. The real Windows USB Webscan TruCheck plus RFID acceptance test is not runnable in this Linux environment, so it was proposed as follow-up Task 197 rather than claimed as completed.
