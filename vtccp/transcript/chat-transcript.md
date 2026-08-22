@@ -121,6 +121,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-21]:** Corrected the label behavior: when the TruCheck parser confirms the RFID encoding, the result is simple Validation, not Cross-Validation. Requested a complete restatement of the instructions and requested changes since v1.5.44.
+
+**Assistant [2026-08-21]:** Restated that v1.5.44 parser geometry is the canonical baseline; app version 1.5.60 is paired with it; the footer must show both report and app versions; TruCheck confirmation of the relevant RFID encoding must produce a Validation label even if a VeriWedge parser panel is visible; Cross-Validation is reserved for cases where TruCheck cannot confirm or fails and VeriWedge is actually used as fallback/comparison. No code changes were made pending further instruction.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.
