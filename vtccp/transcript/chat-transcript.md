@@ -328,3 +328,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Ran the copy commands before assigning `$source` and `$target`, so PowerShell reported null arguments.
 
 **Assistant [2026-08-22]:** Explained that the variables were assigned in the wrong order, confirmed nothing was damaged, and supplied the copy block with assignments first.
+
+---
+
+**User [2026-08-22]:** Pasted the multiline PowerShell block in reverse order again, causing `-Algorithm` and `-LiteralPath` to be interpreted as standalone commands.
+
+**Assistant [2026-08-22]:** Switched to four independent one-line commands to avoid multiline paste-order issues.
