@@ -702,3 +702,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Asked why task changes were not automatically reaching GitHub and why the Windows build appeared perpetually behind.
 
 **Assistant [2026-08-22]:** Confirmed that ordinary commits were auto-pushed successfully, but Replit task merges bypassed Git's local `post-commit` hook. Updated the configured post-merge script to invoke the same authenticated, status-logging hook after every task merge, then syntax-checked it and verified the hook publishes successfully with both primary GitHub tracking refs aligned.
+
+---
+
+**User [2026-08-22]:** Supplied a report crop and clarified that only the VeriWedge Field/Data horizontal boundary should move right enough to fit the two currently displayed wider field names, with no general future-name widening.
+
+**Assistant [2026-08-22]:** Shifted only the VeriWedge Field/Data split from 17%/33% to 18%/32%, moving the Data start by approximately 0.077 inch while leaving the Check column and all other report geometry unchanged. Updated the focused width assertions, bumped the application version to 1.5.74, and synchronized the change to GitHub. The Linux test run remained blocked before execution by existing ExcelEngine NPOI/OfficeOpenXml reference errors.
