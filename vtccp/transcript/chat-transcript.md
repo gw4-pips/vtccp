@@ -432,3 +432,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **Assistant [2026-08-22]:** Confirmed that the verifier checked the outer repository `lib` while both Windows projects used the nested `vtccp\lib` path. Updated the verifier and dependency inventory, documented the single correct location, and added a project-path alignment check.
 
 **Assistant [2026-08-22]:** Validated the project references, PowerShell file encoding, and diff whitespace statically. Noted that Windows PowerShell is unavailable in this Linux workspace, so the verifier itself could not be executed here.
+
+---
+
+**User [2026-08-22]:** Noted that the preexisting job templates did not come over to the new Windows setup and said they would create new entries because the old templates were DataMan-specific.
+
+**Assistant [2026-08-22]:** Reviewed the current template and Webscan session behavior to provide a Webscan-specific template checklist, including the fact that Webscan mode does not require a DataMan device profile.
