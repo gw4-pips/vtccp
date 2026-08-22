@@ -234,3 +234,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **Assistant [2026-08-22]:** Made the separation canonical in the runbook, code documentation, and project memory. The DataMan HTTP capture is now explicitly DataMan-only, and the Webscan procedure no longer assumes DMST, HTTP, or the DataMan subscriber.
 
 **Assistant [2026-08-22]:** Proposed the next focused work item: identify the actual Webscan result/export interface from a controlled scan, preserve its raw evidence, and connect it through a dedicated adapter rather than the DataMan path.
+
+---
+
+**User [2026-08-22]:** Asked why task 194 had been running for 13 minutes.
+
+**Assistant [2026-08-22]:** Confirmed task 194 completed and merged into main. Its six-file change clarified the Webscan/DataMan transport boundary; task 195 was proposed separately to prevent delayed Webscan writes after session closure.
