@@ -684,3 +684,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Asked for the current status after the multi-element GS1 report task was merged.
 
 **Assistant [2026-08-22]:** Confirmed that the report changes are merged in commit `1932703`, the working tree is clean, and the canonical shared template now widens the VeriWedge GS1 parser panel and wraps long values. Reported that the current Linux test rerun is blocked by existing ExcelEngine package/reference errors, while unrelated web artifact workflows are failing from ports already in use. Noted that a Windows/render pass remains the relevant final verification.
+
+---
+
+**User [2026-08-22]:** Asked to resolve the Git synchronization issues.
+
+**Assistant [2026-08-22]:** Fetched only the primary `origin` and `github` remotes, confirmed local `main` contained three commits absent from GitHub and no remote-only commits, pushed them with a normal non-force push, removed four stale task-agent remotes, refreshed both primary tracking refs, and confirmed local `main`, `origin/main`, and `github/main` all match at `b004b61`.
