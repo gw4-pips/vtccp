@@ -450,3 +450,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Clarified that the existing multi-mode work should soon address EAN/EPC as a stand-alone single-symbol encounter, which will be the predominant GTIN-RFID validation embodiment for the near term, while also coupling with GS1 DataMatrix or Digital Link QR.
 
 **Assistant [2026-08-22]:** Recorded the priority as a first-class single-symbol EAN/UPC plus EPC workflow, with GS1 DataMatrix or Digital Link QR as paired 2D cases. Kept the existing multi-mode parsing task as the home for that work rather than creating a duplicate.
+
+---
+
+**User [2026-08-22]:** Asked whether the merged Webscan changes should now be rebuilt and tested.
+
+**Assistant [2026-08-22]:** Ran the focused Webscan and report regression suite with 190 passing tests, rebuilt the Windows solution with 0 errors and 6 pre-existing warnings, confirmed application version 1.5.66, and verified the workspace was clean.
