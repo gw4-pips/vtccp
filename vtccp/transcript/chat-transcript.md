@@ -259,6 +259,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Shared GitHub Desktop screenshots showing `gw4-pips/vtccp` selected with a `Clone` button and a GitHub OAuth authorization page.
+
+**Assistant [2026-08-22]:** Corrected the interpretation: GitHub Desktop is showing the remote repository list, not an existing local checkout. The next step is to complete OAuth and clone the repository to `C:\dev\vtccp`, unless that folder already exists.
+
+---
+
 **User [2026-08-22]:** Shared the GitHub Desktop start screen showing `gw4-pips/vtccp` in the repository list.
 
 **Assistant [2026-08-22]:** Confirmed GitHub Desktop already recognizes the local VTCCP repository and instructed the user to open that entry rather than clone or create another copy.
