@@ -544,6 +544,55 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_WebscanUsesSoftwareHeaderAndWebscanParserHeading()
+    {
+        var record = new VerificationRecord
+        {
+            VerifierBrand = "WEBSCAN",
+            DeviceName = "Webscan TruCheck",
+            SoftwareVersion = "3.03.74",
+            Symbology = "GS1 DataMatrix",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "webscan-report.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Rows =
+                [
+                    new DataFormatCheckRow
+                    {
+                        Name = "GS1 Header",
+                        Data = "<F1>",
+                        Check = "PASS",
+                    },
+                ],
+            },
+            VeriWedgeValidationUsed = true,
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Source = DigitalLinkValidationResult.VccsElementStringSource,
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.1",
+                Detail = "Parsed GS1 AI data: (01)00696114704283",
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "<div class=\"ln\">Software: 3.03.74</div>",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "<div class=\"ln\">Firmware:",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("Webscan TruCheck GS1 Parser", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_NoVerifierDfcForDigitalLink_UsesVeriWedgeAlgorithmOnly()
     {
         var record = new VerificationRecord

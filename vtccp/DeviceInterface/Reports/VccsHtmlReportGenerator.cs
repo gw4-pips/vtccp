@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.47";
+    public const string ReportVersion = "v1.5.48";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -95,6 +95,9 @@ public static class VccsHtmlReportGenerator
         // The DMST filename wins only when it contains a timestamp. Otherwise
         // preserve the HTML Verified: string exactly as displayed by the device.
         string reportDateTime = H(GetSourceDateTimeText(r));
+        bool isWebscan = IsWebscanRecord(r);
+        string headerVersionLabel = isWebscan ? "Software" : "Firmware";
+        string? headerVersion = isWebscan ? r.SoftwareVersion : r.FirmwareVersion;
 
         // ── token replacement ─────────────────────────────────────────────
         return _template.Value
@@ -102,7 +105,8 @@ public static class VccsHtmlReportGenerator
             .Replace("{{HDR_COMPANY_LOGO}}",    companyLogoHtml)
             .Replace("{{HDR_DEVICE}}",          H(r.DeviceName ?? "\u2014"))
             .Replace("{{HDR_SERIAL}}",          H(r.DeviceSerial ?? "\u2014"))
-            .Replace("{{HDR_FW}}",              H(r.FirmwareVersion ?? "\u2014"))
+            .Replace("{{HDR_VERSION_LABEL}}",   headerVersionLabel)
+            .Replace("{{HDR_VERSION}}",         H(headerVersion ?? "\u2014"))
             .Replace("{{HDR_BADGE_CLASS}}",     badgeCls)
             .Replace("{{HDR_BADGE_TEXT}}",      badgeTxt)
             .Replace("{{SECTION1_TITLE}}",      section1Title)
@@ -530,6 +534,9 @@ public static class VccsHtmlReportGenerator
                    : $"<span class=\"sec-note\">{imageSourceNote}</span>");
     }
 
+    private static bool IsWebscanRecord(VerificationRecord record)
+        => string.Equals(record.VerifierBrand, "WEBSCAN", StringComparison.OrdinalIgnoreCase);
+
     private static bool IsElementStringValidation(DigitalLinkValidationResult? validation)
         => string.Equals(
             validation?.Source,
@@ -703,7 +710,8 @@ public static class VccsHtmlReportGenerator
         sb.Append("          <div class=\"dfc-accordion-section dfc-dual-block\">\n");
         sb.Append("            <table class=\"dfc-dual-table\">\n");
         sb.Append("              <colgroup><col class=\"dual-left-field\"><col class=\"dual-left-data\"><col class=\"dual-left-check\"><col class=\"dual-divider\"><col class=\"dual-right-field\"><col class=\"dual-right-data\"><col class=\"dual-right-check\"></colgroup>\n");
-        sb.Append($"              <thead><tr class=\"dual-subhead\"><th colspan=\"3\">DataMan TruCheck GS1 Parser</th><th class=\"dual-divider\"></th><th colspan=\"3\" class=\"dual-right-parser-header\">VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. {H(GetParserVersion(validation))})</th></tr>\n");
+        string nativeParserName = IsWebscanRecord(record) ? "Webscan" : "DataMan";
+        sb.Append($"              <thead><tr class=\"dual-subhead\"><th colspan=\"3\">{nativeParserName} TruCheck GS1 Parser</th><th class=\"dual-divider\"></th><th colspan=\"3\" class=\"dual-right-parser-header\">VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. {H(GetParserVersion(validation))})</th></tr>\n");
         sb.Append("              <tr><th>Field</th><th>Data</th><th>Check</th><th class=\"dual-divider\"></th><th class=\"dual-right-field\">Field</th><th>Data</th><th>Check</th></tr></thead>\n");
         sb.Append("              <tbody>\n");
 

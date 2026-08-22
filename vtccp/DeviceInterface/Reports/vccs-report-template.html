@@ -11,7 +11,8 @@
     {{HDR_COMPANY_LOGO}}   — <img> tag (base64 PNG) or text fallback
     {{HDR_DEVICE}}         — device model/name string
     {{HDR_SERIAL}}         — device serial number
-    {{HDR_FW}}             — firmware version
+    {{HDR_VERSION_LABEL}}  — "Firmware" for DataMan or "Software" for Webscan
+    {{HDR_VERSION}}        — firmware or software version, depending on the verifier
     {{HDR_BADGE_CLASS}}    — badge-pass / badge-fail / badge-warn
     {{HDR_BADGE_TEXT}}     — e.g. "&#x2713; RFID MATCHED" (raw HTML, not escaped)
     {{SECTION1_TITLE}}     — "TruCheck Barcode Verification Results Summary" (HTML-escaped)
@@ -427,7 +428,7 @@
       <div class="header-meta">
         <div class="dev">Device: {{HDR_DEVICE}}</div>
         <div class="ln">Serial: {{HDR_SERIAL}}</div>
-        <div class="ln">Firmware: {{HDR_FW}}</div>
+        <div class="ln">{{HDR_VERSION_LABEL}}: {{HDR_VERSION}}</div>
       </div>
       <div class="header-title">
         <h1>VCCS <em>RFID VeriWedge&#x2122; PowerPro</em><br>Barcode-to-RFID Validation Report</h1>

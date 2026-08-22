@@ -543,6 +543,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Reported that the updated report was much better, but requested that the parser header say `Webscan` instead of `DataMan`, and that Webscan TruCheck use the HTML software version with a `Software` header instead of `Firmware`.
+
+**Assistant [2026-08-22]:** Updated the report generator and template so Webscan records render `Software: <HTML software version>` and `Webscan TruCheck GS1 Parser`, while DataMan records retain their firmware label and parser name. Added regression coverage, bumped the application to 1.5.67 and report format to v1.5.48, and verified all 191 DeviceInterface tests pass. The new change remains local to Replit and is not yet pushed to GitHub.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
