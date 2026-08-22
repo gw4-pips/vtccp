@@ -304,3 +304,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Ran `Confirm-VtccpSetup.ps1` from `C:\dev\vtccp`, received a command-not-found error, then changed into `C:\dev\vtccp\dev-environment-tools`.
 
 **Assistant [2026-08-22]:** Explained that the first command used the wrong working directory and instructed the user to rerun it from the now-correct `dev-environment-tools` directory.
+
+---
+
+**User [2026-08-22]:** Typed the displayed PowerShell prompt text `PS C:\dev\vtccp\dev-environment-tools>` as a command.
+
+**Assistant [2026-08-22]:** Clarified that the prompt text is displayed by PowerShell and should not be typed; only the script command should be entered.
