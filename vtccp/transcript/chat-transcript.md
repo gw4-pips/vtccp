@@ -358,3 +358,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Shared a PowerShell capture containing copied error text, continuation markers, and a failed copy/hash attempt.
 
 **Assistant [2026-08-22]:** Identified that PowerShell was interpreting pasted diagnostic text as commands, while the Explorer screenshot already showed the correct destination folder. Recommended avoiding multiline paste and using a direct one-line copy or visual file check.
+
+---
+
+**User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
+
+**Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
