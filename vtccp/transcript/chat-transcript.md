@@ -599,6 +599,14 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Supplied a generated report image and clarified that the entire section should not show the image-provenance annotation (`— image referenced by the HTML export`) or the `Native standard: GS1 Application Data Format` line.
+
+**Assistant [2026-08-22]:** Confirmed those residual annotations were still emitted by the active report generator, removed them while preserving the barcode image and parser table, removed the sibling-image provenance annotation as well, added regression assertions, and prepared report v1.5.49 / application v1.5.70.
+
+**Assistant [2026-08-22]:** The first regression run found two older tests still requiring the removed annotations. Updated those tests to assert the clean section instead; no production behavior was reverted.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.

@@ -205,15 +205,14 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("<td class=\"barcode-dfc-column\"", report, StringComparison.Ordinal);
         Assert.Contains("border-left: 2px solid #1a3a6b", report, StringComparison.Ordinal);
         Assert.Contains("object-position: left center", report, StringComparison.Ordinal);
-        Assert.Contains(
-            "Native TruCheck data and VCCS Digital Link validation are separately labelled",
+        Assert.DoesNotContain("Native TruCheck data and VCCS Digital Link validation are separately labelled",
             report,
             StringComparison.Ordinal);
         Assert.DoesNotContain(">Barcode Image</div>", report, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Generate_SiblingExportImageKeepsNativeDfcAndExplicitProvenance()
+    public void Generate_SiblingExportImageOmitsProvenanceAndNativeStandardAnnotations()
     {
         var record = new VerificationRecord
         {
@@ -250,9 +249,13 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains("data:image/png;base64,iVBORw0KGgo=", report, StringComparison.Ordinal);
-        Assert.Contains("Image1 sibling export; not embedded in the HTML", report,
+        Assert.DoesNotContain("Image1 sibling export; not embedded in the HTML", report,
             StringComparison.Ordinal);
-        Assert.Contains("Native standard: GS1 Application Data Format", report,
+        Assert.DoesNotContain("image referenced by the HTML export", report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("Native standard: GS1 Application Data Format", report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("Standard: GS1 Application Data Format", report,
             StringComparison.Ordinal);
         Assert.Contains("AI (21) Serial", report, StringComparison.Ordinal);
         Assert.Contains("OVERALL: FAIL", report, StringComparison.Ordinal);

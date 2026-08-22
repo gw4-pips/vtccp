@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.48";
+    public const string ReportVersion = "v1.5.49";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -450,14 +450,6 @@ public static class VccsHtmlReportGenerator
         string imageMimeType = hasHtml
             ? (r.HtmlBarcodeImageMimeType ?? "image/jpeg")
             : "image/jpeg";
-        string imageSourceNote = r.HtmlBarcodeImageProvenance switch
-        {
-            "SiblingExport" =>
-                " &#x2014; <em>Image1 sibling export; not embedded in the HTML</em>",
-            "EmbeddedHtml" =>
-                " &#x2014; <em>image referenced by the HTML export</em>",
-            _ => string.Empty,
-        };
         bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         DataFormatCheckResult? htmlDfc = hasHtml ? r.HtmlDataFormatCheck : null;
         bool veriWedgeValidationUsed = IsVeriWedgeValidationUsed(r);
@@ -472,8 +464,8 @@ public static class VccsHtmlReportGenerator
         sb.Append("    <div class=\"barcode-detail-section\">\n");
         sb.Append(hasHtml
             ? useParserComparisonLayout
-                ? $"      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header barcode-dual-header\">{BuildVeriWedgeDfcHeader(r, imageSourceNote)}</div>\n"
-                : $"      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1</span><span class=\"sec-note\"> &#x2014; <em>Native TruCheck data and VCCS Digital Link validation are separately labelled</em>{imageSourceNote}</span></div>\n"
+                ? $"      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header barcode-dual-header\">{BuildVeriWedgeDfcHeader(r)}</div>\n"
+                : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1</span></div>\n"
             : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">Barcode Verification Capture Unavailable</span><span class=\"sec-note\"> &#x2014; <em>No correlated DMST HTML report</em></span></div>\n");
         sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
         sb.Append("        <td class=\"barcode-image-column\">\n");
@@ -514,9 +506,7 @@ public static class VccsHtmlReportGenerator
         return sb.ToString();
     }
 
-    private static string BuildVeriWedgeDfcHeader(
-        VerificationRecord r,
-        string imageSourceNote)
+    private static string BuildVeriWedgeDfcHeader(VerificationRecord r)
     {
         DigitalLinkValidationResult? validation = r.VccsDigitalLinkValidation;
         string algorithm = string.Equals(
@@ -528,10 +518,7 @@ public static class VccsHtmlReportGenerator
 
         return "<span class=\"barcode-header-image-title\">TruCheck Barcode Image</span>" +
                "<span class=\"barcode-header-dfc-title\"><span class=\"detail-separator\">|</span> " +
-               $"Data Format Check (DFC) &#x2014; GS1 {algorithm}</span>" +
-               (imageSourceNote.Length == 0
-                   ? string.Empty
-                   : $"<span class=\"sec-note\">{imageSourceNote}</span>");
+               $"Data Format Check (DFC) &#x2014; GS1 {algorithm}</span>";
     }
 
     private static bool IsWebscanRecord(VerificationRecord record)
@@ -613,9 +600,6 @@ public static class VccsHtmlReportGenerator
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(htmlDfc.Standard))
-            sb.Append($"          <div class=\"sec-note\" style=\"margin:0 0 3pt 0;\">Standard: {H(htmlDfc.Standard)}</div>\n");
-
         (string pillCls, string pillTxt) = htmlDfc.Overall switch
         {
             OverallPassFail.Fail => ("pill-fail", "OVERALL: FAIL"),
@@ -668,11 +652,6 @@ public static class VccsHtmlReportGenerator
         string? nativeDigitalLinkSupportNote)
     {
         var verifierRows = htmlDfc?.Rows?.ToList() ?? [];
-        if (!string.IsNullOrWhiteSpace(htmlDfc?.Standard))
-        {
-            sb.Append(
-                $"          <div class=\"sec-note\" style=\"margin:0 0 3pt 0;\">Native standard: {H(htmlDfc.Standard)}</div>\n");
-        }
         if (verifierRows.Count == 0)
         {
             verifierRows.Add(new DataFormatCheckRow

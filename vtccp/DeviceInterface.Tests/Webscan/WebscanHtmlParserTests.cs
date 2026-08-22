@@ -177,7 +177,9 @@ public sealed class WebscanHtmlParserTests
             Assert.Same(parsed.DataFormatCheck, record.HtmlDataFormatCheck);
             Assert.Equal("SiblingExport", record.HtmlBarcodeImageProvenance);
             Assert.Contains("data:image/png;base64,", rendered, StringComparison.Ordinal);
-            Assert.Contains("Image1 sibling export; not embedded in the HTML", rendered,
+            Assert.DoesNotContain("Image1 sibling export; not embedded in the HTML", rendered,
+                StringComparison.Ordinal);
+            Assert.DoesNotContain("image referenced by the HTML export", rendered,
                 StringComparison.Ordinal);
             Assert.Contains("AI (01) GTIN-14", rendered, StringComparison.Ordinal);
             Assert.Contains("AI (21) Serial", rendered, StringComparison.Ordinal);
