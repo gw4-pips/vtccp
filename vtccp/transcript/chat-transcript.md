@@ -361,6 +361,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Asked what action to take next after the Windows environment build succeeded.
+
+**Assistant [2026-08-22]:** Confirmed the next step is a normal physical Webscan HTML import using the dedicated USB/export path, followed by the delayed-RFID/session-close check only after the basic import is proven.
+
+---
+
 **User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
 
 **Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
