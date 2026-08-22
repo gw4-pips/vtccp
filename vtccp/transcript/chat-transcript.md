@@ -145,6 +145,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-21]:** Reported successful validation of the final PDFs and requested a final Git consistency check before considering the work complete.
+
+**Assistant [2026-08-21]:** Verified the working tree, refreshed stale remote-tracking refs, committed the two supplied PDF evidence files consistently with the existing tracked report assets, and confirmed local `main`, `origin/main`, and `github/main` resolve to the same commit with zero divergence.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.

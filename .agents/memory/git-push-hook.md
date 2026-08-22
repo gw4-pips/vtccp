@@ -26,3 +26,14 @@ it always returns `/home/runner/workspace`.
 - `GITHUB_TOKEN` — present in env but expired/revoked; do not rely on it
 - `GITHUB_PAT2` / `GITHUB_TOKEN2` — user created one of these (name not confirmed);
   not yet injected into environment; hook will pick it up automatically on restart
+
+## Remote-tracking refs
+The automatic post-commit push can succeed while the local `origin/main` and
+`github/main` tracking refs still point to the previous commit until a fetch.
+
+**Why:** A clean push does not automatically refresh every local remote-tracking
+ref, so `git status` may temporarily report the branch as ahead even though the
+remote server already has the current commit.
+
+**How to apply:** After the final automatic push, fetch the tracked `main` branch
+from each configured GitHub remote before treating divergence output as final.
