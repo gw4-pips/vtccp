@@ -620,12 +620,20 @@ public sealed class VccsHtmlReportGeneratorTests
             "Data Format Check (DFC) &#x2014; GS1 Digital Link",
             report,
             StringComparison.Ordinal);
+        Assert.DoesNotContain("Verifier DFC", report, StringComparison.Ordinal);
         Assert.Contains("https://id.gs1.org/01/09506000134352/21/72803288707", report,
             StringComparison.Ordinal);
         Assert.Contains("AI (01) GTIN", report, StringComparison.Ordinal);
         Assert.Contains("AI (21) Serial Number", report, StringComparison.Ordinal);
         Assert.Contains(
             "AI (21) Serial Number</td><td class=\"dual-data\">72803288707</td><td class=\"dual-check pass-fg\">PASS</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("class=\"dual-data parser-uri-data\"",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".dfc-dual-table td:nth-child(6).parser-uri-data",
             report,
             StringComparison.Ordinal);
         Assert.Contains("GS1 Element String", report, StringComparison.Ordinal);
@@ -702,6 +710,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("AI (17) Expiration Date", report, StringComparison.Ordinal);
         Assert.Contains("AI (20) Variant", report, StringComparison.Ordinal);
         Assert.Contains("parser-element-string-data", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Verifier DFC", report, StringComparison.Ordinal);
         Assert.Contains("table-layout: fixed", report, StringComparison.Ordinal);
         Assert.Contains("white-space: nowrap", report, StringComparison.Ordinal);
         Assert.Contains("break-inside: avoid", report, StringComparison.Ordinal);
@@ -727,6 +736,11 @@ public sealed class VccsHtmlReportGeneratorTests
             StringComparison.Ordinal);
         Assert.DoesNotContain("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Native TruCheck Data Format Check", report,
+            StringComparison.Ordinal);
+        Assert.Contains("min-height: 11in", report, StringComparison.Ordinal);
+        Assert.Contains("margin-top: auto", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Verification Command &amp; Control System (VCCS)",
+            report,
             StringComparison.Ordinal);
     }
 

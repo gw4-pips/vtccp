@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.54";
+    public const string ReportVersion = "v1.5.55";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -523,8 +523,6 @@ public static class VccsHtmlReportGenerator
                 r,
                 htmlDfc,
                 r.VccsDigitalLinkValidation,
-                hasHtml,
-                string.Equals(r.DataFormatCheckSetting, "None", StringComparison.OrdinalIgnoreCase),
                 nativeDigitalLinkSupportNote);
         }
         else
@@ -679,24 +677,13 @@ public static class VccsHtmlReportGenerator
         VerificationRecord record,
         DataFormatCheckResult? htmlDfc,
         DigitalLinkValidationResult? validation,
-        bool hasCorrelatedHtml,
-        bool noVerifierDfcSelected,
         string? nativeDigitalLinkSupportNote)
     {
+        // Do not manufacture a verifier row when the native DFC table is absent.
+        // The dual parser comparison layout leaves that side blank and carries
+        // the native state in its overall pill; the VeriWedge parser rows remain
+        // independently visible on the right.
         var verifierRows = htmlDfc?.Rows?.ToList() ?? [];
-        if (verifierRows.Count == 0)
-        {
-            verifierRows.Add(new DataFormatCheckRow
-            {
-                Name = "Verifier DFC",
-                Data = noVerifierDfcSelected
-                    ? "No verifier GS1 parser selected."
-                    : hasCorrelatedHtml
-                    ? "[DATA FORMAT CHECK UNAVAILABLE — NOT PRESENT IN TRUCHECK HTML]"
-                    : "[DATA FORMAT CHECK UNAVAILABLE — NO DMST HTML REPORT CORRELATED]",
-                Check = noVerifierDfcSelected ? "NOT APPLICABLE" : "UNAVAILABLE",
-            });
-        }
 
         string detail = validation?.Detail ??
             "VCCS parsing was not calculated for this record.";
@@ -748,6 +735,8 @@ public static class VccsHtmlReportGenerator
                 : H(parserRow?.Data);
             string parserDataClass = parserRow?.IsCanonicalAiString == true
                 ? "dual-data parser-element-string-data"
+                : parserRow?.Field == "Web URI"
+                ? "dual-data parser-uri-data"
                 : "dual-data";
             sb.Append($"                <tr><td>{H(verifierRow?.Name)}</td><td class=\"dual-data\">{H(verifierRow?.Data)}</td><td class=\"dual-check {leftClass}\">{H(verifierCheck)}</td><td class=\"dual-divider\"></td><td class=\"dual-right-field\">{H(parserRow?.Field)}</td><td class=\"{parserDataClass}\">{parserData}</td><td class=\"dual-check {parserClass}\">{(parserRow is not null ? parserCheck : "")}</td></tr>\n");
         }
