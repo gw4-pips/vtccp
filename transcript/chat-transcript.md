@@ -3012,3 +3012,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked for confirmation that the corrected report heading changes were pushed.
 
 **Assistant:** Verified that local `main` and GitHub `origin/main` both point to commit `107b9bcd77184ee80c6db0e090c51f6bc9f940b9`. The push is confirmed and synchronized.
+
+**User:** Pulled the latest code, ran a scan, and showed a PDF, hybrid HTML report, Excel workbook, and `.xlsx.vtccp.json` sidecar in the output folder. Asked whether this is the expected JSON state after a single scan.
+
+**Assistant:** Confirmed from the Git implementation that `.vtccp.json` is a session-resume sidecar, not a per-scan record export. Its presence while the session remains open is expected; after one scan its `RecordCount` should be `1`, alongside session metadata such as job/operator, roll, output, device fields, and timestamps. Barcode/RFID record details belong in the Excel/report outputs, not this sidecar. A clean session close deletes the sidecar.
