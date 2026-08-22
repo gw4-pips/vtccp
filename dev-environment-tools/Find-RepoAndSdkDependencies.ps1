@@ -99,7 +99,7 @@ $expectedPaths = @(
     (Join-Path $DevRoot "vtccp"),
     (Join-Path $DevRoot "vtccp\vtccp"),
     (Join-Path $DevRoot "vtccp\vtccp\VTCCP.sln"),
-    (Join-Path $DevRoot "vtccp\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll"),
+    (Join-Path $DevRoot "vtccp\vtccp\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll"),
     "Q:\VendorDOC\AsReader (Asterisk)\AsReader_P35U_SDK_cs_1_3_0\AsReader_P35U_SDK_c#_1_3_0\AsReaderP3xU.dll"
 ) | ForEach-Object {
     [pscustomobject]@{

@@ -68,6 +68,16 @@ Verify the VTCCP checkout and ASR SDK placement without changing anything:
 .\Confirm-VtccpSetup.ps1 -DevRoot C:\dev
 ```
 
+The ASR SDK DLL must be placed at this single application build location:
+
+```text
+C:\dev\vtccp\vtccp\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll
+```
+
+This is the path referenced by both `DeviceInterface.csproj` and
+`VtccpApp.csproj`. A DLL at `C:\dev\vtccp\lib` is outside the application
+source tree and does not enable RFID support in the Windows build.
+
 After the repository and SDK DLL are in place, optionally run a build check:
 
 ```powershell

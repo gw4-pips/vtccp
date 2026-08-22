@@ -59,7 +59,9 @@ $checks += New-SetupCheck `
     -Detail $DevRoot
 
 $solutionPath = Join-Path $RepoPath "vtccp\VTCCP.sln"
-$expectedDllPath = Join-Path $RepoPath "lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll"
+$deviceInterfaceProjectPath = Join-Path $RepoPath "vtccp\DeviceInterface\DeviceInterface.csproj"
+$appProjectPath = Join-Path $RepoPath "vtccp\VtccpApp\VtccpApp.csproj"
+$expectedDllPath = Join-Path $RepoPath "vtccp\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll"
 
 if (-not (Test-Path -LiteralPath $RepoPath -PathType Container)) {
     $checks += New-SetupCheck -Name "VTCCP repository folder" -Status "FAIL" -Detail "$RepoPath is missing"
@@ -109,6 +111,47 @@ if (Test-Path -LiteralPath $solutionPath -PathType Leaf) {
 }
 else {
     $checks += New-SetupCheck -Name "VTCCP solution" -Status "FAIL" -Detail "$solutionPath is missing"
+}
+
+function Get-AsReaderProjectPath {
+    param([string] $ProjectPath)
+
+    if (-not (Test-Path -LiteralPath $ProjectPath -PathType Leaf)) {
+        return $null
+    }
+
+    $projectText = Get-Content -LiteralPath $ProjectPath -Raw
+    $match = [regex]::Match(
+        $projectText,
+        "(?i)\.\.\\lib\\asreader-p3xu-sdk-1\.3\.0\\AsReaderP3xU\.dll"
+    )
+    if (-not $match.Success) {
+        return $null
+    }
+
+    return $match.Value
+}
+
+$deviceInterfaceSdkPath = Get-AsReaderProjectPath -ProjectPath $deviceInterfaceProjectPath
+$appSdkPath = Get-AsReaderProjectPath -ProjectPath $appProjectPath
+$expectedProjectSdkPath = "..\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll"
+if (-not $deviceInterfaceSdkPath -or -not $appSdkPath) {
+    $checks += New-SetupCheck `
+        -Name "ASR SDK project path alignment" `
+        -Status "FAIL" `
+        -Detail "could not find the AsReaderP3xU.dll path in both Windows project files"
+}
+elseif ($deviceInterfaceSdkPath -ne $appSdkPath -or $deviceInterfaceSdkPath -ne $expectedProjectSdkPath) {
+    $checks += New-SetupCheck `
+        -Name "ASR SDK project path alignment" `
+        -Status "FAIL" `
+        -Detail "DeviceInterface.csproj and VtccpApp.csproj must both use $expectedProjectSdkPath"
+}
+else {
+    $checks += New-SetupCheck `
+        -Name "ASR SDK project path alignment" `
+        -Status "PASS" `
+        -Detail "both Windows projects use $expectedProjectSdkPath"
 }
 
 $dotnet = Get-CommandInventory -Name "dotnet" -VersionArguments @("--version")

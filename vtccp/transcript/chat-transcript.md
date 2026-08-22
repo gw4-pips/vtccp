@@ -424,3 +424,11 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Completed the setup verification and build. All checks passed except the overall status was `WARN` because the local ASR SDK folder and generated reports are untracked.
 
 **Assistant [2026-08-22]:** Confirmed the Windows environment is functionally ready: the ASR DLL exists at the expected path with the matching SHA-256 hash, Visual Studio/.NET/MSBuild are available, and the VTCCP build succeeded. Explained that the warning is limited to local-only untracked files.
+
+---
+
+**User [2026-08-22]:** Assigned the task to make the Windows setup check catch a missing RFID SDK before launch by aligning the verifier with the application-side DLL path, updating setup instructions, and adding drift coverage.
+
+**Assistant [2026-08-22]:** Confirmed that the verifier checked the outer repository `lib` while both Windows projects used the nested `vtccp\lib` path. Updated the verifier and dependency inventory, documented the single correct location, and added a project-path alignment check.
+
+**Assistant [2026-08-22]:** Validated the project references, PowerShell file encoding, and diff whitespace statically. Noted that Windows PowerShell is unavailable in this Linux workspace, so the verifier itself could not be executed here.
