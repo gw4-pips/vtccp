@@ -9,7 +9,7 @@ Treat an absent GCP-table lookup as **NOT FOUND**, not as an invalid prefix.
 Use **Invalid** only when a prefix is present in the GS1 table but its registered
 length disagrees with the length encoded by the SGTIN partition. When known, display
 the partition-derived length alongside the result: `Valid (=7)` uses an equals sign,
-while `Invalid (8)` does not.
+while an invalid mismatch includes both values, such as `Invalid (8); Valid = 7`.
 
 **Why:** An unlisted prefix and an encoded-length mismatch are materially different
 operational conditions. Collapsing them into a Boolean `false` makes the report

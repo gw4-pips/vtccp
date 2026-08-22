@@ -92,6 +92,12 @@ public sealed record RfidValidationResult
     public GcpValidationStatus GcpStatus { get; init; } = GcpValidationStatus.NotChecked;
 
     /// <summary>
+    /// GCP length registered for the company prefix in the lookup table.
+    /// Null when the prefix was not found or the lookup was not checked.
+    /// </summary>
+    public int? GcpRegisteredLength { get; init; }
+
+    /// <summary>
     /// Legacy Boolean projection of <see cref="GcpStatus"/>.
     /// True means valid, false means a found prefix had an incompatible encoded length,
     /// and null means not checked or not found.

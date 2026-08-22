@@ -543,6 +543,13 @@ public sealed record class VerificationRecord
     public string? RfidGcpStatus { get; init; }
 
     /// <summary>
+    /// GCP length registered for the company prefix in the lookup table.
+    /// Used with <see cref="RfidGcpLength"/> for invalid output such as
+    /// "Invalid (8); Valid = 7".
+    /// </summary>
+    public int? RfidGcpRegisteredLength { get; init; }
+
+    /// <summary>
     /// Length of the GCP as encoded in the EPC (number of digits allocated to the GCP
     /// in the SGTIN partition table: 6–12 digits).  Null when not decoded or no tag.
     /// Displayed on the PDF report as "Valid (=N)", "Invalid (=N)", or "NOT FOUND (=N)".

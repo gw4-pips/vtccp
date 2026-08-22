@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.43";
+    public const string ReportVersion = "v1.5.44";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -312,6 +312,9 @@ public static class VccsHtmlReportGenerator
             : string.Empty;
         string gcpInvalidLenPart = r.RfidGcpLength.HasValue
             ? $" ({r.RfidGcpLength.Value})"
+              + (r.RfidGcpRegisteredLength.HasValue
+                  ? $"; Valid = {r.RfidGcpRegisteredLength.Value}"
+                  : string.Empty)
             : string.Empty;
         string gcpDisplay = r.RfidGcpStatus switch
         {

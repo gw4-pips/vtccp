@@ -24,6 +24,11 @@ public sealed class GcpValidatorTests
         Assert.Equal(
             GcpValidationStatus.NotFound,
             validator.Validate(CreateSgtin(partition: 5, companyPrefix: "9999999")));
+        Assert.True(
+            validator.TryGetRegisteredLength(
+                CreateSgtin(partition: 4, companyPrefix: "0614141"),
+                out int registeredLength));
+        Assert.Equal(7, registeredLength);
     }
 
     [Fact]

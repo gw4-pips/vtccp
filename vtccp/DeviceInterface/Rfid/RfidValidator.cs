@@ -78,6 +78,11 @@ public sealed class RfidValidator
         // ── GCP validation ─────────────────────────────────────────────────────
         GcpValidationStatus gcpStatus = _gcpValidator?.Validate(parsedEpc)
             ?? GcpValidationStatus.NotChecked;
+        int? gcpRegisteredLength = _gcpValidator?.TryGetRegisteredLength(
+            parsedEpc,
+            out int registeredLength) == true
+            ? registeredLength
+            : null;
 
         // ── Compare GTIN-14 ────────────────────────────────────────────────────
         string rfidGtin14 = parsedEpc.Gtin14!;
@@ -124,6 +129,7 @@ public sealed class RfidValidator
             RfidSerial      = rfidSerial,
             BarcodeSerial   = barcodeSerial,
             GcpStatus       = gcpStatus,
+            GcpRegisteredLength = gcpRegisteredLength,
             ScanWindowMs    = scanWindowMs,
             MismatchDetail  = mismatches.Count > 0 ? string.Join(";", mismatches) : null,
         };

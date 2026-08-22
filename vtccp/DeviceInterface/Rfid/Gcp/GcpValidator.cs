@@ -33,12 +33,23 @@ public sealed class GcpValidator
         if (!claimedLength.HasValue)
             return GcpValidationStatus.NotChecked;
 
-        if (!_table.TryLookup(epc.CompanyPrefix, out int registeredLength))
+        if (!TryGetRegisteredLength(epc, out int registeredLength))
             return GcpValidationStatus.NotFound;
 
         return registeredLength == claimedLength.Value
             ? GcpValidationStatus.Valid
             : GcpValidationStatus.Invalid;
+    }
+
+    /// <summary>
+    /// Returns the registered GCP length for an EPC's company prefix, when that
+    /// prefix exists in the loaded table.
+    /// </summary>
+    public bool TryGetRegisteredLength(ParsedEpc? epc, out int registeredLength)
+    {
+        registeredLength = 0;
+        return epc?.CompanyPrefix is not null
+            && _table.TryLookup(epc.CompanyPrefix, out registeredLength);
     }
 
     /// <summary>

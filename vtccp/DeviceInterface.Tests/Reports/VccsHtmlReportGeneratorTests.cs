@@ -779,9 +779,10 @@ public sealed class VccsHtmlReportGeneratorTests
             RfidStatus = "Pass",
             RfidGcpStatus = "Invalid",
             RfidGcpLength = 8,
+            RfidGcpRegisteredLength = 7,
         });
 
-        Assert.Contains("Invalid (8)", report, StringComparison.Ordinal);
+        Assert.Contains("Invalid (8); Valid = 7", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Invalid (=8)", report, StringComparison.Ordinal);
     }
 
