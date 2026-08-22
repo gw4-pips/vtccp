@@ -171,6 +171,13 @@
     padding: 2.5pt 4pt 2pt;
     white-space: nowrap; overflow: hidden;
   }
+  /* Multi-element GS1 payloads and correlated filenames can be longer than
+     the fixed summary columns.  Let the merged value cells grow vertically
+     instead of clipping the tail of a value. */
+  .sum-table td[colspan="2"] {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
   .sum-table td:not(:last-child) { border-right: 1px solid #aaa; }
   /* Applies only to symbol rows; metadata rows use colspan="2" and must not
      acquire a divider at the right edge of their merged cell. */
@@ -226,6 +233,7 @@
   .rfid-table td {
     border-bottom: 1px solid #aaa;
     padding: 2.5pt 4pt 2pt;
+    overflow-wrap: anywhere;
   }
   .rfid-table .lbl-col { width: 178pt; }
   .rfid-table .rfid-result-label { white-space: nowrap; }
@@ -296,18 +304,17 @@
     break-inside: avoid; page-break-inside: avoid;
   }
    /*
-      Each parser owns 49% of the DFC area (the 2% center divider is shared).
-      With the barcode image held at 1.50in, the wider page gives each parser
-      block approximately 0.10in more live width.  Explicit columns also make
-      the right parser header and Field start at exactly the same inset as the
-      corresponding DataMan elements.
+      Give the VeriWedge parser more room for BSE descriptions and canonical
+      element strings. The 41% left block, 2% shared divider, and 57% right
+      block move the separator left by about 0.5in while keeping the right
+      Field heading flush at the new edge.
    */
-   .dfc-dual-table col.dual-left-field  { width: 17%; }
-   .dfc-dual-table col.dual-left-data   { width: 25%; }
-   .dfc-dual-table col.dual-left-check  { width: 7%; }
+   .dfc-dual-table col.dual-left-field  { width: 14%; }
+   .dfc-dual-table col.dual-left-data   { width: 21%; }
+   .dfc-dual-table col.dual-left-check  { width: 6%; }
    .dfc-dual-table col.dual-divider     { width: 2%; }
    .dfc-dual-table col.dual-right-field { width: 17%; }
-   .dfc-dual-table col.dual-right-data  { width: 25%; }
+   .dfc-dual-table col.dual-right-data  { width: 33%; }
    .dfc-dual-table col.dual-right-check { width: 7%; }
    /* Keep the VeriWedge title and Field column flush with the left edge of
       their parser half; the table widths and center divider remain unchanged. */
@@ -324,10 +331,17 @@
     vertical-align: top; line-height: 1.05;
   }
    .dfc-dual-table th:nth-child(1),
-   .dfc-dual-table td:nth-child(1),
-   .dfc-dual-table th:nth-child(5),
-   .dfc-dual-table td:nth-child(5) {
+   .dfc-dual-table th:nth-child(5) {
      white-space: nowrap;
+   }
+   /*
+      Field labels are data, not headings.  Long GS1 AI names must wrap inside
+      their fixed 17% columns so they never run into Data or Check.
+   */
+   .dfc-dual-table td:nth-child(1),
+   .dfc-dual-table td:nth-child(5) {
+     white-space: normal;
+     overflow-wrap: anywhere;
    }
    .dfc-dual-table th:nth-child(2),
    .dfc-dual-table td:nth-child(2),
@@ -368,7 +382,7 @@
     overflow-wrap: anywhere;
   }
    .dfc-dual-table .parser-element-string-data {
-     line-height: 1.35; overflow-wrap: normal; word-break: normal;
+     line-height: 1.35; overflow-wrap: anywhere; word-break: normal;
    }
   .dfc-accordion-section {
     break-inside: avoid; page-break-inside: avoid;

@@ -666,3 +666,15 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Supplied the WTC 2D settings screenshot and asked which of its symbology, aperture, and Application Standards controls are actually visible in the associated WTC HTML report.
 
 **Assistant [2026-08-22]:** Inspected the supplied Webscan TruCheck HTML. Confirmed it contains report results (`DataMatrix`, `Standard: ISO15415:2011`, grade `A (4.0)`, aperture `08`, wavelength `660`, lighting `45`, and formal grade `4.0/08/660/45`) but no checkbox/radio/select controls or explicit Application Standard selection. Confirmed that `GS1`, `Auto`, `Always`, `Format Check`, `MIL 130`, `UID Format Check`, `Pass Grade`, `UDI/HIBC`, and `ISO15434` are not present in that HTML. No application files were changed.
+
+---
+
+**User [2026-08-22]:** Asked whether this is the main agent's dialog box.
+
+**Assistant [2026-08-22]:** Confirmed that this is the main Replit Agent dialog and explained that other agents, when used, are delegated helpers whose findings are reviewed here.
+
+---
+
+**User [2026-08-22]:** Supplied three canonical report crops and asked for the VeriWedge parser half to move left and gain room, a rule to shorten the BSE Batch/Lot description, and a human-readable no-tag RFID result.
+
+**Assistant [2026-08-22]:** Reopened the report task. Shifted the shared dual-parser divider about 0.5in left so the VeriWedge header, Field column, and data rows move together and gain a 57% panel share. Added a BSE-only description-rule table with `Batch or Lot Num.` for AI (10), rendered `NoTag` as `No Tag Detected` in the RFID validation result, added regression coverage, and verified a Letter PDF render, 193 tests, and the Windows solution build.

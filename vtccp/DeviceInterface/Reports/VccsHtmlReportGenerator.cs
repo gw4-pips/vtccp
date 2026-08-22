@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.49";
+    public const string ReportVersion = "v1.5.51";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -412,6 +412,7 @@ public static class VccsHtmlReportGenerator
             {
                 "Pass" => "Pass &#x2014; EPC data matches barcode GTIN",
                 "Fail" => "Fail &#x2014; GTIN mismatch",
+                "NoTag" => "No Tag Detected",
                 var s  => H(s ?? "\u2014"),
             };
             ResultRow($"{r.LinearSymbology} {resultLabel}", linVal);
@@ -421,6 +422,7 @@ public static class VccsHtmlReportGenerator
             {
                 "Pass" => "Pass &#x2014; EPC data matches barcode GTIN and Serial Number",
                 "Fail" => BuildMismatch2DLabel(r.RfidMismatchDetail),
+                "NoTag" => "No Tag Detected",
                 var s  => H(s ?? "\u2014"),
             };
             ResultRow($"{twoDSym} {resultLabel}", twoDVal);
@@ -433,6 +435,7 @@ public static class VccsHtmlReportGenerator
             {
                 "Pass" when is1DOnly => "Pass &#x2014; EPC data matches barcode GTIN",
                 "Fail" when is1DOnly => "Fail &#x2014; GTIN mismatch",
+                "NoTag"             => "No Tag Detected",
                 "Pass"               => "Pass &#x2014; EPC data matches barcode GTIN and Serial Number",
                 "Fail"               => BuildMismatch2DLabel(r.RfidMismatchDetail),
                 var s                => H(s ?? "\u2014"),
@@ -775,7 +778,7 @@ public static class VccsHtmlReportGenerator
         }
 
         foreach ((string ai, string value) in ParseAiElements(parsedAiData))
-            rows.Add(new Gs1ParserRow($"AI ({ai}) {GetGs1AiName(ai)}", value, false));
+            rows.Add(new Gs1ParserRow($"AI ({ai}) {GetBseAiDisplayName(ai)}", value, false));
 
         if (!string.IsNullOrWhiteSpace(parsedAiData))
         {
@@ -835,7 +838,21 @@ public static class VccsHtmlReportGenerator
     private static string GetGs1AiName(string ai)
         => Gs1AiNames.TryGetValue(ai, out string? name) ? name : "GS1 Application Identifier";
 
+    private static string GetBseAiDisplayName(string ai)
+        => Gs1BseDescriptionRules.TryGetValue(ai, out string? name)
+            ? name
+            : GetGs1AiName(ai);
+
     private sealed record Gs1ParserRow(string Field, string Data, bool IsCanonicalAiString);
+
+    // BSE parser descriptions are display text, not parser semantics. Keep
+    // selective shortening here so future long descriptions can be adjusted
+    // without changing the GS1 AI dictionary or native verifier labels.
+    private static readonly IReadOnlyDictionary<string, string> Gs1BseDescriptionRules =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["10"] = "Batch or Lot Num.",
+        };
 
     private static readonly IReadOnlyDictionary<string, string> Gs1AiNames =
         new Dictionary<string, string>(StringComparer.Ordinal)

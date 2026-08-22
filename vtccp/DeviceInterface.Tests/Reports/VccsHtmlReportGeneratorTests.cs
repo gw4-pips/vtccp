@@ -698,7 +698,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("OVERALL: PASS", report, StringComparison.Ordinal);
         Assert.Contains("<td colspan=\"3\" class=\"dual-overall-cell\">", report,
             StringComparison.Ordinal);
-        Assert.Contains("AI (10) Batch or Lot Number", report, StringComparison.Ordinal);
+        Assert.Contains("AI (10) Batch or Lot Num.", report, StringComparison.Ordinal);
         Assert.Contains("AI (17) Expiration Date", report, StringComparison.Ordinal);
         Assert.Contains("AI (20) Variant", report, StringComparison.Ordinal);
         Assert.Contains("parser-element-string-data", report, StringComparison.Ordinal);
@@ -710,13 +710,15 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("grid-template-columns: 19.48% 80.52%", report, StringComparison.Ordinal);
         Assert.Contains(".barcode-image-column {\n    width: 19.48%", report, StringComparison.Ordinal);
         Assert.Contains(".barcode-dfc-column {\n    width: 80.52%", report, StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-left-field  { width: 17%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-left-field  { width: 14%; }", report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-left-data   { width: 25%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-left-data   { width: 21%; }", report,
+            StringComparison.Ordinal);
+        Assert.Contains(".dfc-dual-table col.dual-left-check  { width: 6%; }", report,
             StringComparison.Ordinal);
         Assert.Contains(".dfc-dual-table col.dual-right-field { width: 17%; }", report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-right-data  { width: 25%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-right-data  { width: 33%; }", report,
             StringComparison.Ordinal);
         Assert.Contains(".dfc-dual-table .dual-subhead th {\n    background: #dbe5f1; font-size: 6.5pt;",
             report, StringComparison.Ordinal);
@@ -726,6 +728,113 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.DoesNotContain("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Native TruCheck Data Format Check", report,
             StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_MultiElementGs1DataMatrixWrapsLongValuesAndFieldLabels()
+    {
+        const string elementString =
+            "(01)00696114704283(17)260822(10)BATCH-2026-08-22-LONG-LOT-VALUE(21)SERIAL-72803282010";
+        var record = new VerificationRecord
+        {
+            VerifierBrand = "WEBSCAN",
+            DeviceName = "Webscan TruCheck",
+            SoftwareVersion = "3.03.74",
+            Symbology = "GS1 DataMatrix",
+            HtmlSymbology = "GS1 DataMatrix",
+            HtmlDecodedData = elementString,
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "multi-element-gs1.html",
+            HtmlVerifiedString = "Sat 22-Aug-2026 01:24:26 PM",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Standard = "GS1 Application Data Format",
+                Rows =
+                [
+                    new DataFormatCheckRow
+                    {
+                        Name = "AI (01) GTIN-14",
+                        Data = "00696114704283",
+                        Check = "PASS",
+                    },
+                    new DataFormatCheckRow
+                    {
+                        Name = "AI (17) Expiration Date",
+                        Data = "260822",
+                        Check = "PASS",
+                    },
+                    new DataFormatCheckRow
+                    {
+                        Name = "AI (10) Batch or Lot Number",
+                        Data = "BATCH-2026-08-22-LONG-LOT-VALUE",
+                        Check = "PASS",
+                    },
+                    new DataFormatCheckRow
+                    {
+                        Name = "AI (21) Serial Number",
+                        Data = "SERIAL-72803282010",
+                        Check = "PASS",
+                    },
+                ],
+            },
+            DataFormatCheckSetting = "GS1",
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Source = DigitalLinkValidationResult.VccsElementStringSource,
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.1",
+                Detail = $"Parsed GS1 AI data: {elementString} Validated with the official GS1 Barcode Syntax Engine.",
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(elementString, report, StringComparison.Ordinal);
+        Assert.Contains("(01)00696114704283<wbr>(17)260822<wbr>(10)BATCH-2026-08-22-LONG-LOT-VALUE<wbr>(21)SERIAL-72803282010<wbr>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("AI (10) Batch or Lot Number", report, StringComparison.Ordinal);
+        Assert.Contains(
+            "<td class=\"dual-right-field\">AI (10) Batch or Lot Num.</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "<td class=\"dual-right-field\">AI (10) Batch or Lot Number</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("AI (21) Serial Number", report, StringComparison.Ordinal);
+        Assert.Contains(".sum-table td[colspan=\"2\"] {\n    white-space: normal;\n    overflow-wrap: anywhere;",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(".dfc-dual-table td:nth-child(1),\n   .dfc-dual-table td:nth-child(5) {\n     white-space: normal;\n     overflow-wrap: anywhere;",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("overflow-wrap: anywhere; word-break: normal;", report, StringComparison.Ordinal);
+        Assert.Contains("Webscan TruCheck GS1 Parser", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
+        Assert.Contains("Software: 3.03.74", report, StringComparison.Ordinal);
+        Assert.Contains("OVERALL: PASS", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_NoTagUsesHumanReadableValidationResult()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "NoTag",
+        });
+
+        Assert.Contains(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "<td>No Tag Detected</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("<td>NoTag</td>", report, StringComparison.Ordinal);
     }
 
     [Fact]

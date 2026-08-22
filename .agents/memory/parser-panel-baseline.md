@@ -16,9 +16,14 @@ generated PDF, not inferred from CSS or source-level column math.
 report and compare it visually with the v1.5.44 baseline. Preserve the
 baseline layout unless the user explicitly approves a new rendered result.
 
-**Approved exception:** The user approved moving only the VeriWedge parser
-header and Field-column text flush left inside their existing parser half.
-Keep the baseline column widths and center divider unchanged.
+**Approved exceptions:** The VeriWedge parser header and Field-column text are
+flush left inside their parser half. The user also approved giving the
+VeriWedge parser a 57% share of the dual-panel DFC area, shifting the center
+divider about 0.5in left to protect long BSE descriptions and element strings.
+
+**Why:** The current BSE output needs more horizontal room than the native
+verifier half; visually verify this exception in a rendered Letter PDF before
+altering the split again.
 
 **Structural rule:** For GS1-applicable scans, retain both TruCheck and
 VeriWedge parser blocks regardless of whether TruCheck passes. The RFID result
