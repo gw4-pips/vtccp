@@ -298,3 +298,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Confirmed the clone completed and shared the `C:\dev\vtccp` directory listing.
 
 **Assistant [2026-08-22]:** Verified that the full repository checkout is present at `C:\dev\vtccp`, with the application source under `C:\dev\vtccp\vtccp` and the staging folder kept separate.
+
+---
+
+**User [2026-08-22]:** Ran `Confirm-VtccpSetup.ps1` from `C:\dev\vtccp`, received a command-not-found error, then changed into `C:\dev\vtccp\dev-environment-tools`.
+
+**Assistant [2026-08-22]:** Explained that the first command used the wrong working directory and instructed the user to rerun it from the now-correct `dev-environment-tools` directory.
