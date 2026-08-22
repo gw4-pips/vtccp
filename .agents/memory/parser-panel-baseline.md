@@ -35,3 +35,15 @@ evidence that the RFID result itself must be called Cross-Validation.
 
 **How to apply:** Never gate the right-hand parser block on the RFID result
 label or the native TruCheck pass state.
+
+**Current parser-cell rule:** Keep the VeriWedge parser Field and Data values on
+one line. Intentional horizontal overflow is acceptable for future names or
+values until an explicit edit rule is approved; do not introduce automatic
+wrapping to solve a new overflow.
+
+**Why:** The user confirmed the rendered record PDFs as the accepted result
+after the Field/Data boundary was adjusted and parser-cell wrapping was removed.
+
+**How to apply:** Preserve the fixed parser columns and no-wrap behavior when
+making later report changes. Handle a specific future over-wide field by an
+explicit, reviewed name/value rule.

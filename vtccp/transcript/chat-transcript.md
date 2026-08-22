@@ -720,3 +720,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Reported that the VeriWedge field name still wrapped and directed that no VeriWedge parser Field or Data cells should wrap; future overflows are acceptable until a deliberate field-name rule is defined.
 
 **Assistant [2026-08-22]:** Updated the canonical template so only the VeriWedge parser Field and Data cells use `white-space: nowrap` with normal overflow behavior, preserving the existing 19.3%/30.7% split and all other geometry. Updated regression assertions, bumped the application version to 1.5.76, and synchronized the implementation commit to GitHub. The Linux test project remained blocked before test execution by the existing ExcelEngine NPOI/OfficeOpenXml reference errors.
+
+---
+
+**User [2026-08-22]:** Confirmed the no-wrap report behavior worked and supplied two generated PDFs to preserve as the record.
+
+**Assistant [2026-08-22]:** Visually inspected both supplied PDFs with PyMuPDF, confirmed each is a one-page Letter report with the shared parser layout and the distinct RFID states `No Tag Detected` and `No RFID Data`, archived both originals, and updated the durable parser-layout note and transcript.
