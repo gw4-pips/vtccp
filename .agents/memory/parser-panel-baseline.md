@@ -15,3 +15,7 @@ generated PDF, not inferred from CSS or source-level column math.
 **How to apply:** Before changing the parser panel, render a representative
 report and compare it visually with the v1.5.44 baseline. Preserve the
 baseline layout unless the user explicitly approves a new rendered result.
+
+**Approved exception:** The user approved moving only the VeriWedge parser
+header and Field-column text flush left inside their existing parser half.
+Keep the baseline column widths and center divider unchanged.

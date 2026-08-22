@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.44";
+    public const string ReportVersion = "v1.5.45";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -390,7 +390,7 @@ public static class VccsHtmlReportGenerator
 
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         bool is1DOnly  = r.Is1D && !multiMode;
-        string resultLabel = IsVeriWedgeFallbackUsed(r)
+        string resultLabel = IsRfidCrossValidation(r)
             ? "RFID Cross-Validation Result"
             : "RFID Validation Result";
 
@@ -445,10 +445,10 @@ public static class VccsHtmlReportGenerator
         string? img2D      = hasHtml ? r.HtmlBarcodeImageBase64 : null;
         bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         DataFormatCheckResult? htmlDfc = hasHtml ? r.HtmlDataFormatCheck : null;
-        bool veriWedgeFallbackUsed = IsVeriWedgeFallbackUsed(r);
-        bool useElementStringLayout = veriWedgeFallbackUsed &&
+        bool veriWedgeValidationUsed = IsVeriWedgeValidationUsed(r);
+        bool useElementStringLayout = veriWedgeValidationUsed &&
             IsElementStringValidation(r.VccsDigitalLinkValidation);
-        bool useParserComparisonLayout = veriWedgeFallbackUsed;
+        bool useParserComparisonLayout = veriWedgeValidationUsed;
         string? nativeDigitalLinkSupportNote = useParserComparisonLayout && !useElementStringLayout
             ? BuildNativeDigitalLinkSupportNote(r, htmlDfc, r.VccsDigitalLinkValidation)
             : null;
@@ -520,12 +520,16 @@ public static class VccsHtmlReportGenerator
             DigitalLinkValidationResult.VccsElementStringSource,
             StringComparison.Ordinal);
 
-    private static bool IsVeriWedgeFallbackUsed(VerificationRecord record)
+    private static bool IsVeriWedgeValidationUsed(VerificationRecord record)
         // Saved records created before explicit provenance retain their
         // populated parser result as evidence that the fallback was used.
         // New records always set VeriWedgeValidationUsed, which takes priority.
         => record.VeriWedgeValidationUsed ??
            record.VccsDigitalLinkValidation is not null;
+
+    private static bool IsRfidCrossValidation(VerificationRecord record)
+        => IsVeriWedgeValidationUsed(record) &&
+           (!record.TruCheckValidationUsable || record.TruCheckValidationFailed);
 
     private static string? BuildNativeDigitalLinkSupportNote(
         VerificationRecord record,
@@ -675,8 +679,8 @@ public static class VccsHtmlReportGenerator
         sb.Append("          <div class=\"dfc-accordion-section dfc-dual-block\">\n");
         sb.Append("            <table class=\"dfc-dual-table\">\n");
         sb.Append("              <colgroup><col class=\"dual-left-field\"><col class=\"dual-left-data\"><col class=\"dual-left-check\"><col class=\"dual-divider\"><col class=\"dual-right-field\"><col class=\"dual-right-data\"><col class=\"dual-right-check\"></colgroup>\n");
-        sb.Append($"              <thead><tr class=\"dual-subhead\"><th colspan=\"3\">DataMan TruCheck GS1 Parser</th><th class=\"dual-divider\"></th><th colspan=\"3\">VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. {H(GetParserVersion(validation))})</th></tr>\n");
-        sb.Append("              <tr><th>Field</th><th>Data</th><th>Check</th><th class=\"dual-divider\"></th><th>Field</th><th>Data</th><th>Check</th></tr></thead>\n");
+        sb.Append($"              <thead><tr class=\"dual-subhead\"><th colspan=\"3\">DataMan TruCheck GS1 Parser</th><th class=\"dual-divider\"></th><th colspan=\"3\" class=\"dual-right-parser-header\">VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. {H(GetParserVersion(validation))})</th></tr>\n");
+        sb.Append("              <tr><th>Field</th><th>Data</th><th>Check</th><th class=\"dual-divider\"></th><th class=\"dual-right-field\">Field</th><th>Data</th><th>Check</th></tr></thead>\n");
         sb.Append("              <tbody>\n");
 
         int rowCount = Math.Max(verifierRows.Count, parserRows.Count);
@@ -702,7 +706,7 @@ public static class VccsHtmlReportGenerator
             string parserDataClass = parserRow?.IsCanonicalAiString == true
                 ? "dual-data parser-element-string-data"
                 : "dual-data";
-            sb.Append($"                <tr><td>{H(verifierRow?.Name)}</td><td class=\"dual-data\">{H(verifierRow?.Data)}</td><td class=\"dual-check {leftClass}\">{H(verifierCheck)}</td><td class=\"dual-divider\"></td><td>{H(parserRow?.Field)}</td><td class=\"{parserDataClass}\">{parserData}</td><td class=\"dual-check {parserClass}\">{(parserRow is not null ? parserCheck : "")}</td></tr>\n");
+            sb.Append($"                <tr><td>{H(verifierRow?.Name)}</td><td class=\"dual-data\">{H(verifierRow?.Data)}</td><td class=\"dual-check {leftClass}\">{H(verifierCheck)}</td><td class=\"dual-divider\"></td><td class=\"dual-right-field\">{H(parserRow?.Field)}</td><td class=\"{parserDataClass}\">{parserData}</td><td class=\"dual-check {parserClass}\">{(parserRow is not null ? parserCheck : "")}</td></tr>\n");
         }
 
         (string leftOverallClass, string leftOverallText) = htmlDfc is null

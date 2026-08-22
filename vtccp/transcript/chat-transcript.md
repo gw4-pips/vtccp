@@ -127,6 +127,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-21]:** Authorized safe implementation of the previously deferred VeriWedge parser-header and Field-column left alignment.
+
+**Assistant [2026-08-21]:** Implemented the isolated alignment change without changing the v1.5.44 parser widths or center divider. Also corrected the result label so a TruCheck-confirmed RFID encoding is labeled Validation even when a VeriWedge panel is present. Bumped the report to v1.5.45 and app to 1.5.61. Tests and the Windows build pass.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.

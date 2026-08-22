@@ -826,6 +826,47 @@ public sealed class VccsHtmlReportGeneratorTests
             ".rfid-table .rfid-result-label { white-space: nowrap;",
             report,
             StringComparison.Ordinal);
+        Assert.Contains(
+            "class=\"dual-right-parser-header\"",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "class=\"dual-right-field\">Field</th>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".dfc-dual-table .dual-right-parser-header,\n   .dfc-dual-table .dual-right-field",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_TruCheckPassWithVeriWedgePanel_UsesValidationLabel()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Pass",
+            TruCheckValidationUsable = true,
+            TruCheckValidationFailed = false,
+            VeriWedgeValidationUsed = true,
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Source = DigitalLinkValidationResult.VccsElementStringSource,
+            },
+        });
+
+        Assert.Contains(
+            "GS1 DataMatrix RFID Validation Result",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "GS1 DataMatrix RFID Cross-Validation Result",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("<table class=\"dfc-dual-table\">", report,
+            StringComparison.Ordinal);
     }
 
     [Fact]

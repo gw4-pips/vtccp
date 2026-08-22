@@ -308,6 +308,12 @@
    .dfc-dual-table col.dual-right-field { width: 17%; }
    .dfc-dual-table col.dual-right-data  { width: 25%; }
    .dfc-dual-table col.dual-right-check { width: 7%; }
+   /* Keep the VeriWedge title and Field column flush with the left edge of
+      their parser half; the table widths and center divider remain unchanged. */
+   .dfc-dual-table .dual-right-parser-header,
+   .dfc-dual-table .dual-right-field {
+     padding-left: 0 !important;
+   }
   .dfc-dual-table th {
     background: #e8eef5; border-bottom: 1px solid #aaa;
     padding: 2pt 3pt; text-align: left; font-size: 7.5pt;
