@@ -50,3 +50,19 @@ needed after their work has merged.
 **How to apply:** When no task merge is active, remove only the `subrepl-*`
 remote definitions, preserving local branches plus `origin`, `github`, and
 `gitsafe-backup`. Fetch only `origin main` and `github main` to verify a push.
+
+## GitHub connector fallback
+
+When a shell push is rejected because the configured credential is unavailable,
+use the already-connected GitHub integration to update the required tracked files
+through the Git database API.
+
+**Why:** The workspace may not have a usable shell credential even though the
+GitHub integration remains authorized. The connector can create blobs, a tree,
+and one non-forced commit after confirming the remote branch has not moved.
+
+**How to apply:** Fetch only `origin main`, compare the exact branch tip, publish
+only the approved tracked paths, update the branch without force, then fetch
+`origin main` again and verify the remote commit plus the app/report versions.
+Never include local SDK binaries, scan-report folders, or Visual Studio solution
+state in that update.

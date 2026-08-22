@@ -489,6 +489,18 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Asked whether they should pull from GitHub immediately.
+
+**Assistant [2026-08-22]:** Advised not to pull yet because GitHub still lacks the Webscan merge, and another pull could complicate the local solution edits. Recommended preserving the SDK/report folders and waiting until the remote is updated before doing one pull and rebuild.
+
+---
+
+**User [2026-08-22]:** Asked whether they should pull after the GitHub synchronization work.
+
+**Assistant [2026-08-22]:** Published and verified the Webscan DFC/sibling-image update on GitHub main as commit `af803f2`, with application version 1.5.66 and report revision v1.5.47. Confirmed only the required tracked source/test files were published and prepared the user for a controlled Windows pull.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
