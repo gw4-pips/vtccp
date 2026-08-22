@@ -115,6 +115,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-21]:** Asked whether to pull and test the restored build before restarting implementation from that exact baseline with the corrected understanding of the instructions.
+
+**Assistant [2026-08-21]:** Confirmed that the user should pull and test the v1.5.44 / 1.5.60 baseline first. Requested verification of the parser section, RFID result behavior, and the `Report v1.5.44 — App v1.5.60` footer before making further changes.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.
