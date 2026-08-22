@@ -352,3 +352,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Shared a screenshot confirming `AsReaderP3xU.dll` is now under `C:\dev\vtccp\lib\asreader-p3xu-sdk-1.3.0`.
 
 **Assistant [2026-08-22]:** Confirmed the DLL is in the expected path and noted that only the setup verifier/build remains to confirm the environment.
+
+---
+
+**User [2026-08-22]:** Shared a PowerShell capture containing copied error text, continuation markers, and a failed copy/hash attempt.
+
+**Assistant [2026-08-22]:** Identified that PowerShell was interpreting pasted diagnostic text as commands, while the Explorer screenshot already showed the correct destination folder. Recommended avoiding multiline paste and using a direct one-line copy or visual file check.
