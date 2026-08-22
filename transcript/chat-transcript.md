@@ -2984,3 +2984,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Requested Task 184: make Windows desktop builds verifiable from this workspace without the optional RFID and Cognex SDK binaries, while preserving SDK-backed production builds.
 
 **Assistant:** Added an SDK-free DeviceSession compile boundary, kept network discovery available without the Cognex SDK, guarded optional AsReader and Cognex UI references, and bumped the app version to 1.5.54. Added shared non-Windows targeting configuration so the normal VtccpWindows solution command succeeds on Linux with 0 errors; 160 DeviceInterface tests passed. Proposed follow-up Task 185 to verify the vendor-SDK production path on Windows.
+
+---
+
+**`2026-08-21`**
+
+**User:** Supplied a VCCS RFID report PDF and asked to make the header copyright line and the native DataMan `OVERALL: FAIL*` compatibility note use a full dark text color, but explicitly said not to build yet. Asked for GS1's official name for the parser, then requested a check of the Git codebase.
+
+**Assistant:** Inspected the PDF and the tracked report source without building. The header copyright is styled `#444`; the native failure pill uses burgundy `#721c24`, and its firmware compatibility note uses `#555`. The current report header says `VeriWedge GS1 Parser`, while the actual GS1 reference library in the repository is officially named the **GS1 Barcode Syntax Engine** (v1.4.0), a component of the GS1 Barcode Syntax Resource. No report source was changed.
