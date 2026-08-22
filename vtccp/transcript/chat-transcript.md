@@ -409,6 +409,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Selected `COM4` in VTCCP, but the application displayed “AsReader SDK DLL not present.”
+
+**Assistant [2026-08-22]:** Found a path inconsistency: the setup checker accepted the DLL under the outer repository `lib`, while the Windows project conditionally includes the SDK from the inner source-tree `vtccp\lib`. The DLL must be copied into the inner path and the app rebuilt.
+
+---
+
 **User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
 
 **Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
