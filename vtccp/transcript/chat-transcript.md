@@ -322,3 +322,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Showed that `AsReaderP3xU.dll` is present at `C:\dev\vtccp-staging\lib\asreader-p3xu-sdk-1.3.0`, the location used before the repository was recloned.
 
 **Assistant [2026-08-22]:** Corrected the path distinction: the DLL is valid and preserved in staging, but the new checkout at `C:\dev\vtccp` needs its own copy. Recommended copying from staging into the new clone without moving or redownloading it.
+
+---
+
+**User [2026-08-22]:** Ran the copy commands before assigning `$source` and `$target`, so PowerShell reported null arguments.
+
+**Assistant [2026-08-22]:** Explained that the variables were assigned in the wrong order, confirmed nothing was damaged, and supplied the copy block with assignments first.
