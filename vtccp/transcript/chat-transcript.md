@@ -660,3 +660,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Thanked the assistant for clarifying that abbreviated Git commit IDs use the first characters rather than the last characters of the full hash.
 
 **Assistant [2026-08-22]:** Confirmed that Git short IDs use the first characters of the full commit hash.
+
+---
+
+**User [2026-08-22]:** Supplied the WTC 2D settings screenshot and asked which of its symbology, aperture, and Application Standards controls are actually visible in the associated WTC HTML report.
+
+**Assistant [2026-08-22]:** Inspected the supplied Webscan TruCheck HTML. Confirmed it contains report results (`DataMatrix`, `Standard: ISO15415:2011`, grade `A (4.0)`, aperture `08`, wavelength `660`, lighting `45`, and formal grade `4.0/08/660/45`) but no checkbox/radio/select controls or explicit Application Standard selection. Confirmed that `GS1`, `Auto`, `Always`, `Format Check`, `MIL 130`, `UID Format Check`, `Pass Grade`, `UDI/HIBC`, and `ISO15434` are not present in that HTML. No application files were changed.
