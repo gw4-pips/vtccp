@@ -37,3 +37,16 @@ remote server already has the current commit.
 
 **How to apply:** After the final automatic push, fetch the tracked `main` branch
 from each configured GitHub remote before treating divergence output as final.
+
+## Remote hygiene
+Task-agent sessions leave temporary `subrepl-*` SSH remotes and matching local
+branches. Do not run `git fetch --all`: it contacts those SSH remotes and can
+block on a Replit SSH password prompt.
+
+**Why:** A workspace accumulated 60 task-agent remotes; `fetch --all` stalled
+after the primary GitHub remotes had refreshed. The task-agent remotes are not
+needed after their work has merged.
+
+**How to apply:** When no task merge is active, remove only the `subrepl-*`
+remote definitions, preserving local branches plus `origin`, `github`, and
+`gitsafe-backup`. Fetch only `origin main` and `github main` to verify a push.

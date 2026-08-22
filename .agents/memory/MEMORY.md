@@ -32,7 +32,7 @@
 - [CP Inline project status](cp-inline-project-status.md) — CP Inline abandoned for Serview 475V-LBL inline application (5 Aug 2026); CP continues as desktop tool; DPM unit factory-reset to fw 6.1.16_tc9
 - [TRUCHECK.APPLICATION-STANDARD mapping](trucheck-app-standard-mapping.md) — DMCC ref says 4=Auto/5=Custom but fw 6.1.16_tc9 returns 5 for a unit showing "Auto" in UI; treat 5=Auto until Cognex clarifies
 - [WebView2 headless PDF](webview2-headless-pdf.md) — STA thread + hidden window + manual pump; file:// temp HTML; wkhtmltopdf static exe fallback; QuestPDF retired
-- [git push hook](git-push-hook.md) — real hook is workspace root .githooks/post-commit; vtccp/ is a subdir not a separate repo; must unset GIT_ASKPASS before push
+- [Git sync & remote hygiene](git-push-hook.md) — use root hook; fetch only primary GitHub remotes, never stale task-agent SSH remotes
 - [Hybrid Report generator](hybrid-report-generator.md) — DeviceInterface/Reports/HybridReportGenerator.cs; fire-and-forget from SessionViewModel after AddRecord; mirrors Webscan TruCheck CSS exactly; RFID block after Verification Grades
 - [Windows workstation setup](windows-workstation-setup.md) — clone to C:\dev\vtccp; source root is C:\dev\vtccp\vtccp; AsReader DLL at Q:\VendorDOC\AsReader…; known Windows-only build errors catalogued
 - [PowerShell 5.1 encoding trap](powershell-encoding.md) — PS 5.1 reads .ps1 as Win-1252; em-dash (0x94) and checkmark (0x93) silently close strings; all PS scripts must be ASCII-only

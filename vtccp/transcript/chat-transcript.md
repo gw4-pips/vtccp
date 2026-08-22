@@ -241,6 +241,8 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 **Assistant [2026-08-22]:** Verified the managed Git 2.53.0, Git LFS 3.6.1, and GitHub CLI 2.88.1 installations; the worktree is clean and the post-commit hook is active. Found stale remote-tracking refs and 59 task-agent remotes that make `git fetch --all` unsafe; held cleanup until the task 195 merge lock clears.
 
+**Assistant [2026-08-22]:** After task 195 merged, removed the unowned stale Git maintenance lock and task-agent remote definitions while retaining all local branches and the three primary remotes. Enabled primary-remote pruning and fast-forward-only pulls, then synchronized the current main commit to GitHub and confirmed both tracked GitHub refs match it.
+
 ---
 
 **User [2026-08-22]:** Asked why task 194 had been running for 13 minutes.
