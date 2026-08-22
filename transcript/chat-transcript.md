@@ -2992,3 +2992,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Supplied a VCCS RFID report PDF and asked to make the header copyright line and the native DataMan `OVERALL: FAIL*` compatibility note use a full dark text color, but explicitly said not to build yet. Asked for GS1's official name for the parser, then requested a check of the Git codebase.
 
 **Assistant:** Inspected the PDF and the tracked report source without building. The header copyright is styled `#444`; the native failure pill uses burgundy `#721c24`, and its firmware compatibility note uses `#555`. The current report header says `VeriWedge GS1 Parser`, while the actual GS1 reference library in the repository is officially named the **GS1 Barcode Syntax Engine** (v1.4.0), a component of the GS1 Barcode Syntax Resource. No report source was changed.
+
+**User:** Requested one additional wording change: in `TruCheck Barcode Verification Grades— Only fields present in the correlated HTML report are shown`, replace `correlated` with `associated`, consistent with the wording used elsewhere in the report.
+
+**Assistant:** Located the sentence in the active Git HTML template and confirmed the pending replacement is limited to `correlated` → `associated`. No report source was changed or built.
