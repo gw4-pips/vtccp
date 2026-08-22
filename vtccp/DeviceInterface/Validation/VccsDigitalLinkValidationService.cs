@@ -10,7 +10,7 @@ using ExcelEngine.Models;
 /// </summary>
 public static class VccsDigitalLinkValidationService
 {
-    public const string EngineVersion = "GS1 Barcode Syntax Engine 1.4.0";
+    public const string EngineVersion = "GS1 Barcode Syntax Engine 1.4.1";
 
     /// <summary>
     /// Validates a decoded GS1 Digital Link URI with the official GS1 engine.

@@ -61,10 +61,13 @@ public sealed class HttpEventSubscriber : IAsyncDisposable
     private readonly VerificationXmlMap         _map;
     private readonly VerificationRecord         _context;
     private readonly Action<VerificationRecord> _callback;
+    private readonly string?                    _diagnosticCaptureDirectory;
 
     private TcpClient?               _tcp;
     private CancellationTokenSource? _cts;
     private Task?                    _receiveTask;
+    private string?                  _pendingCaptureStem;
+    private int                      _captureSequence;
 
     /// <summary>
     /// Most recently parsed HTML report from PUT /pcm_report.html.
@@ -80,13 +83,17 @@ public sealed class HttpEventSubscriber : IAsyncDisposable
         int                        port,
         VerificationXmlMap         map,
         VerificationRecord         sessionContext,
-        Action<VerificationRecord> resultCallback)
+        Action<VerificationRecord> resultCallback,
+        string?                    diagnosticCaptureDirectory = null)
     {
-        _host     = host;
-        _port     = port;
-        _map      = map;
-        _context  = sessionContext;
-        _callback = resultCallback;
+        _host                       = host;
+        _port                       = port;
+        _map                        = map;
+        _context                    = sessionContext;
+        _callback                   = resultCallback;
+        _diagnosticCaptureDirectory = string.IsNullOrWhiteSpace(diagnosticCaptureDirectory)
+            ? null
+            : diagnosticCaptureDirectory.Trim();
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -207,6 +214,8 @@ public sealed class HttpEventSubscriber : IAsyncDisposable
 
     private void HandleHtml(string html, string? dateHeader)
     {
+        _pendingCaptureStem = CapturePayload("pcm_report.html", html, _pendingCaptureStem);
+
         // Build a synthetic path solely so ParseHtml can extract a correlation
         // timestamp. The HTTP stream transports report content, not the original
         // DMST filesystem filename, so clear file provenance before the parsed
@@ -244,6 +253,10 @@ public sealed class HttpEventSubscriber : IAsyncDisposable
 
     private void HandleCodesXml(string xml)
     {
+        string? captureStem = _pendingCaptureStem;
+        _pendingCaptureStem = null;
+        CapturePayload("codes.xml", xml, captureStem);
+
         try
         {
             var doc  = XDocument.Parse(xml);
@@ -279,6 +292,7 @@ public sealed class HttpEventSubscriber : IAsyncDisposable
 
             // Decode to UTF-8 push XML document and parse.
             string pushXml = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
+            CapturePayload("push.xml", pushXml, captureStem);
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-HTTP-SUB] Push XML decoded: {pushXml.Length} chars.");
 
@@ -299,6 +313,38 @@ public sealed class HttpEventSubscriber : IAsyncDisposable
                 $"[VTCCP-HTTP-SUB] HandleCodesXml: {ex.GetType().Name}: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// Writes source evidence only when an explicit local capture directory was
+    /// supplied by the caller. Captures are paired by the stream's guaranteed
+    /// pcm_report.html-before-codes.xml ordering. Capture failures are diagnostic
+    /// only and never prevent a verification result from reaching the session.
+    /// </summary>
+    private string? CapturePayload(string suffix, string content, string? captureStem)
+    {
+        if (string.IsNullOrWhiteSpace(_diagnosticCaptureDirectory))
+            return captureStem;
+
+        string stem = captureStem ?? CreateCaptureStem();
+        try
+        {
+            Directory.CreateDirectory(_diagnosticCaptureDirectory);
+            string path = Path.Combine(_diagnosticCaptureDirectory, $"{stem}.{suffix}");
+            File.WriteAllText(path, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-HTTP-SUB] Diagnostic event capture saved: {Path.GetFileName(path)}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-HTTP-SUB] Diagnostic event capture failed: {ex.Message}");
+        }
+
+        return stem;
+    }
+
+    private string CreateCaptureStem()
+        => $"device-event-{DateTime.Now:yyyyMMdd-HHmmss-fff}-{++_captureSequence:D3}";
 
     // ── Low-level HTTP stream helpers ─────────────────────────────────────────
 

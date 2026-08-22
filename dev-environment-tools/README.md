@@ -77,6 +77,52 @@ After the repository and SDK DLL are in place, optionally run a build check:
 This verifier never installs, moves, deletes, or overwrites files. The optional
 build can create normal `bin` and `obj` build outputs.
 
+## Run the home TC-829 / VeriWedge check
+
+After the VTCCP checkout is present, run the focused home-development check.
+Replace the example address with the TC-829's known network address:
+
+```powershell
+.\Test-HomeVtccpVeriWedge.ps1 `
+  -DevRoot C:\dev `
+  -DeviceHost 192.0.2.25 `
+  -RunBuild `
+  -RunValidationTests
+```
+
+The device test is deliberately a TCP handshake to port `44444` only. It does
+not subscribe to events, trigger a scan, change DataMan/Webscan settings, or
+communicate with the ASR reader. The validation tests then exercise the bundled
+GS1 1.4.1 engine against a known Digital Link, a GS1 Element String, and
+invalid input on Windows. The script writes a timestamped JSON and Markdown
+result pair to `reports`.
+
+For a local-only readiness check without a device address, omit `-DeviceHost`.
+That result will show reachability as `WARN` rather than guessing a device IP.
+
+### Capture one controlled device result
+
+The app's normal Push mode uses the existing HTTP event subscriber. To preserve
+the original event evidence for one bench run, set this process-only environment
+variable before launching the built app from that same PowerShell window:
+
+```powershell
+$env:VTCCP_HTTP_CAPTURE_DIR = "$env:USERPROFILE\Documents\VTCCP-Diagnostic\TC-829"
+& "C:\dev\vtccp\vtccp\VtccpApp\bin\Release\net8.0-windows10.0.18362.0\VtccpApp.exe"
+```
+
+This does not change the TC-829. For each normal verification result, VTCCP
+writes a paired `pcm_report.html`, `codes.xml`, and decoded `push.xml` file to
+the chosen folder. Treat these files as scan evidence: they can contain the
+decoded barcode data and should not be committed to Git. Leave the variable
+unset for normal operation.
+
+For the first controlled test, keep DMST connected to the TC-829, leave
+TruCheck out of LIVE mode, start VTCCP in Push mode, and scan one known GS1
+Digital Link or GS1 Element String. The preflight reports, captured trio, and
+session output together are the evidence to return for review. Do not alter
+firmware, trigger type, or reader settings during this test.
+
 Use a different repository list:
 
 ```powershell

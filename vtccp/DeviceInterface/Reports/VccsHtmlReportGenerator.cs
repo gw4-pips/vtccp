@@ -884,7 +884,7 @@ public static class VccsHtmlReportGenerator
         Match match = Regex.Match(
             validation?.EngineVersion ?? string.Empty,
             @"\b\d+\.\d+\.\d+\b");
-        return match.Success ? match.Value : "1.4.0";
+        return match.Success ? match.Value : "1.4.1";
     }
 
     public static bool HasCorrelatedFilesystemHtml(VerificationRecord r)

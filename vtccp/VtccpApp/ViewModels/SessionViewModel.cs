@@ -484,7 +484,12 @@ public sealed class SessionViewModel : ViewModelBase
                     LogoPath        = state.LogoPath,
                 };
                 _pushHttpSubscriber = new DeviceInterface.Dmst.HttpEventSubscriber(
-                    cfg.Host, cfg.Port, _xmlMap, ctx, OnPushRecord);
+                    cfg.Host,
+                    cfg.Port,
+                    _xmlMap,
+                    ctx,
+                    OnPushRecord,
+                    Environment.GetEnvironmentVariable("VTCCP_HTTP_CAPTURE_DIR"));
                 await _pushHttpSubscriber.StartAsync(_pollCts.Token);
 
                 // ── HTML provenance watcher in Push mode ─────────────────────

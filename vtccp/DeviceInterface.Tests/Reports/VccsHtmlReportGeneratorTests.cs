@@ -477,7 +477,7 @@ public sealed class VccsHtmlReportGeneratorTests
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
                 Status = DigitalLinkValidationStatus.Valid,
-                EngineVersion = "GS1 Barcode Syntax Engine 1.4.0",
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.1",
                 Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Barcode Syntax Engine.",
             },
         };
@@ -511,7 +511,7 @@ public sealed class VccsHtmlReportGeneratorTests
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
                 Status = DigitalLinkValidationStatus.Valid,
-                EngineVersion = "GS1 Barcode Syntax Engine 1.4.0",
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.1",
                 Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Barcode Syntax Engine.",
             },
         };
@@ -538,7 +538,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report.IndexOf("AI (01) GTIN", StringComparison.Ordinal));
         Assert.Contains("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
         Assert.Contains(
-            "VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. 1.4.0)",
+            "VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. 1.4.1)",
             report,
             StringComparison.Ordinal);
         Assert.DoesNotContain("<th>Source</th>", report, StringComparison.Ordinal);
@@ -576,7 +576,7 @@ public sealed class VccsHtmlReportGeneratorTests
             {
                 Status = DigitalLinkValidationStatus.Valid,
                 Source = DigitalLinkValidationResult.VccsElementStringSource,
-                EngineVersion = "GS1 Barcode Syntax Engine 1.4.0",
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.1",
                 Detail = "Parsed GS1 AI data: (01)09506000134352(10)LOT-12(17)250101(21)72803288707(20)3 Validated with the official GS1 Barcode Syntax Engine.",
             },
         };
@@ -590,7 +590,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("<table class=\"dfc-dual-table\">", report, StringComparison.Ordinal);
         Assert.Contains("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
         Assert.Contains(
-            "VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. 1.4.0)",
+            "VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. 1.4.1)",
             report,
             StringComparison.Ordinal);
         Assert.Contains("AI (10) LOT", report, StringComparison.Ordinal);
@@ -699,7 +699,7 @@ public sealed class VccsHtmlReportGeneratorTests
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
                 Status = DigitalLinkValidationStatus.Valid,
-                EngineVersion = "GS1 Barcode Syntax Engine 1.4.0",
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.1",
                 Detail = "Parsed GS1 AI data: (01)09506000134352(21)72803288707 Validated with the official GS1 Barcode Syntax Engine.",
             },
         };

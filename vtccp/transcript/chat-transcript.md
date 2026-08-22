@@ -214,3 +214,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.
+
+---
+
+**User [2026-08-22]:** Approved the home VTCCP VeriWedge development task for the TC-829.
+
+**Assistant [2026-08-22]:** Aligned the runtime GS1 provenance with the already-bundled 1.4.1 engine, added Windows production-engine smoke coverage, and added an opt-in HTTP evidence capture folder plus a non-invasive home preflight script. The full DeviceInterface suite passed with 182 tests and the Windows-targeted application build succeeded. A real TC-829 result remains pending from the home laptop.

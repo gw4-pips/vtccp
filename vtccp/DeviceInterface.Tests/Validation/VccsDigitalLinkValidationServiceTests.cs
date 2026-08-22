@@ -16,7 +16,7 @@ public sealed class VccsDigitalLinkValidationServiceTests
 
         Assert.Equal(DigitalLinkValidationStatus.Valid, result.Status);
         Assert.Equal(DigitalLinkValidationResult.VccsSource, result.Source);
-        Assert.Equal("GS1 Barcode Syntax Engine 1.4.0", result.EngineVersion);
+        Assert.Equal("GS1 Barcode Syntax Engine 1.4.1", result.EngineVersion);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public sealed class VccsDigitalLinkValidationServiceTests
 
         Assert.Equal(DigitalLinkValidationStatus.Valid, result.Status);
         Assert.Equal(DigitalLinkValidationResult.VccsElementStringSource, result.Source);
-        Assert.Equal("GS1 Barcode Syntax Engine 1.4.0", result.EngineVersion);
+        Assert.Equal("GS1 Barcode Syntax Engine 1.4.1", result.EngineVersion);
     }
 
     [Theory]
@@ -98,6 +98,45 @@ public sealed class VccsDigitalLinkValidationServiceTests
 
         Assert.Equal(DigitalLinkValidationStatus.Unavailable, result.Status);
         Assert.Contains("unavailable", result.Detail!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Validate_ProductionEngine_ValidDigitalLink_ReportsPinnedEngine()
+    {
+        if (!OperatingSystem.IsWindows())
+            return; // The bundled native engine is a Windows runtime dependency.
+
+        var result = VccsDigitalLinkValidationService.Validate(
+            "https://id.gs1.org/01/09506000134352/21/1234");
+
+        Assert.Equal(DigitalLinkValidationStatus.Valid, result.Status);
+        Assert.Equal(VccsDigitalLinkValidationService.EngineVersion, result.EngineVersion);
+    }
+
+    [Fact]
+    public void ValidateElementString_ProductionEngine_ValidGs1DataMatrix_ReportsPinnedEngine()
+    {
+        if (!OperatingSystem.IsWindows())
+            return; // The bundled native engine is a Windows runtime dependency.
+
+        var result = VccsDigitalLinkValidationService.ValidateElementString(
+            "(01)09506000134352(21)72803288707");
+
+        Assert.Equal(DigitalLinkValidationStatus.Valid, result.Status);
+        Assert.Equal(VccsDigitalLinkValidationService.EngineVersion, result.EngineVersion);
+    }
+
+    [Fact]
+    public void Validate_ProductionEngine_InvalidDigitalLink_ReportsInvalid()
+    {
+        if (!OperatingSystem.IsWindows())
+            return; // The bundled native engine is a Windows runtime dependency.
+
+        var result = VccsDigitalLinkValidationService.Validate(
+            "https://id.gs1.org/01/not-a-gtin");
+
+        Assert.Equal(DigitalLinkValidationStatus.Invalid, result.Status);
+        Assert.Equal(VccsDigitalLinkValidationService.EngineVersion, result.EngineVersion);
     }
 
     private sealed class AcceptingEngine : IGs1DigitalLinkSyntaxEngine
