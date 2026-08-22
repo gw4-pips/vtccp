@@ -56,8 +56,8 @@ public sealed class SessionViewModel : ViewModelBase
     private EventHandler<VerificationRecord>?           _webscanRecordHandler;
     private EventHandler<string>?                       _webscanParseFailedHandler;
     private int                                         _webscanSessionGeneration;
-    private readonly object                             _webscanAcceptLock = new();
-    private readonly HashSet<Task>                      _webscanAcceptTasks = [];
+    private readonly object                             _webscanStateLock = new();
+    private readonly WebscanAcceptanceTracker           _webscanAcceptance = new();
     private readonly System.Threading.SemaphoreSlim    _pushTruCheckSettingsGate = new(1, 1);
     private SessionManager?                             _sessionMgr;
     private System.Threading.CancellationTokenSource? _pollCts;
@@ -572,6 +572,7 @@ public sealed class SessionViewModel : ViewModelBase
                 int generation = System.Threading.Interlocked.Increment(
                     ref _webscanSessionGeneration);
                 _webscanHtmlAdapter = new WebscanHtmlFileAdapter();
+                _webscanAcceptance.BeginSession(generation);
                 _webscanRecordHandler = (_, record) => OnWebscanRecord(generation, record);
                 _webscanParseFailedHandler = (_, message) =>
                     OnWebscanParseFailed(generation, message);
@@ -1293,40 +1294,26 @@ public sealed class SessionViewModel : ViewModelBase
     /// </summary>
     private void OnWebscanRecord(int generation, VerificationRecord record)
     {
-        Task acceptanceTask;
-        lock (_webscanAcceptLock)
+        _webscanAcceptance.TryAdmit(generation, () => IsRunning, async () =>
         {
-            if (generation != _webscanSessionGeneration || !IsRunning)
-                return;
-
             System.Threading.Interlocked.Increment(ref _pendingAccept);
-            acceptanceTask = Task.Run(async () =>
+            try
             {
-                try
-                {
-                    await Application.Current.Dispatcher.InvokeAsync(
-                        () => generation == _webscanSessionGeneration && IsRunning
-                            ? AcceptWebscanRecordAsync(record)
-                            : Task.CompletedTask).Task.Unwrap();
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[VTCCP-WEBSCAN] record acceptance failed: {ex.Message}");
-                }
-                finally
-                {
-                    System.Threading.Interlocked.Decrement(ref _pendingAccept);
-                }
-            });
-            _webscanAcceptTasks.Add(acceptanceTask);
-        }
-
-        _ = acceptanceTask.ContinueWith(completed =>
-        {
-            lock (_webscanAcceptLock)
-                _webscanAcceptTasks.Remove(completed);
-        }, TaskScheduler.Default);
+                await Application.Current.Dispatcher.InvokeAsync(
+                    () => _webscanAcceptance.IsCurrent(generation) && IsRunning
+                        ? AcceptWebscanRecordAsync(record)
+                        : Task.CompletedTask).Task.Unwrap();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-WEBSCAN] record acceptance failed: {ex.Message}");
+            }
+            finally
+            {
+                System.Threading.Interlocked.Decrement(ref _pendingAccept);
+            }
+        });
     }
 
     private async Task AcceptWebscanRecordAsync(VerificationRecord record)
@@ -1943,7 +1930,7 @@ public sealed class SessionViewModel : ViewModelBase
         EventHandler<string>? parseFailedHandler;
         Task[] acceptanceTasks;
 
-        lock (_webscanAcceptLock)
+        lock (_webscanStateLock)
         {
             _webscanSessionGeneration++;
             adapter = _webscanHtmlAdapter;
@@ -1952,8 +1939,8 @@ public sealed class SessionViewModel : ViewModelBase
             _webscanHtmlAdapter = null;
             _webscanRecordHandler = null;
             _webscanParseFailedHandler = null;
-            acceptanceTasks = _webscanAcceptTasks.ToArray();
         }
+        acceptanceTasks = _webscanAcceptance.InvalidateAndCapture();
 
         if (adapter is not null)
         {

@@ -3036,3 +3036,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Said the next priority is to make Git solid on this laptop and establish a consistent development environment across three Windows 10/11 systems used for Claude/Replit project work.
 
 **Assistant:** Confirmed that the current Webscan task will be closed first, then the Windows Git environment will be standardized across the three machines.
+
+---
+
+**`2026-08-22 — afternoon`**
+
+**User:** Assigned Task 195: ensure a slow Webscan scan cannot write after the session closes, with deterministic coverage for normal Stop, application exit, and startup-failure cleanup.
+
+**Assistant:** Added atomic Webscan acceptance admission and shutdown draining so callbacks admitted before invalidation finish before session-owned writers close, while late callbacks are rejected. Added a deterministic delayed-acceptance regression test that simulates an RFID wait, confirms the drain blocks closure, and verifies no late work can be admitted. Bumped the app to version 1.5.65. The WPF app build completed with zero errors and all 186 DeviceInterface tests passed.

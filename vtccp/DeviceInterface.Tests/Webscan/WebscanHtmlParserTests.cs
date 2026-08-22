@@ -83,6 +83,48 @@ public sealed class WebscanHtmlParserTests
     }
 
     [Fact]
+    public async Task ShutdownDrain_WaitsForDelayedAcceptanceBeforeWorkbookClose()
+    {
+        var tracker = new WebscanAcceptanceTracker();
+        tracker.BeginSession(1);
+
+        bool sessionOpen = true;
+        bool recordWritten = false;
+        var acceptanceStarted = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseAcceptance = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+
+        Assert.True(tracker.TryAdmit(
+            1,
+            () => sessionOpen,
+            async () =>
+            {
+                acceptanceStarted.SetResult();
+                await releaseAcceptance.Task;
+
+                Assert.True(sessionOpen, "The workbook closed before acceptance finished.");
+                recordWritten = true;
+            }));
+
+        await acceptanceStarted.Task;
+        Task[] admitted = tracker.InvalidateAndCapture();
+
+        // A callback that loses the admission race must not start another write.
+        Assert.False(tracker.TryAdmit(1, () => sessionOpen, () => Task.CompletedTask));
+
+        Task drain = Task.WhenAll(admitted);
+        Assert.False(drain.IsCompleted);
+
+        releaseAcceptance.SetResult();
+        await drain;
+        sessionOpen = false;
+
+        Assert.True(recordWritten);
+        Assert.False(tracker.TryAdmit(2, () => sessionOpen, () => Task.CompletedTask));
+    }
+
+    [Fact]
     public void TitleOnlyHtml_IsRejectedWithoutFabricatingARecordTimestamp()
     {
         const string rawHtml =
