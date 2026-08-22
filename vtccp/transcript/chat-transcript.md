@@ -732,3 +732,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Requested that the header badge text change from `NO RFID TAG` to `NO RFID TAG DETECTED` and asked for the change to be pushed.
 
 **Assistant [2026-08-22]:** Updated the active VCCS report badge mapping and regression coverage, bumped the report format to v1.5.53 and the application build to 1.5.77, and pushed the change to GitHub. The separate connected-reader/no-data collapse issue was preserved as follow-up task #206.
+
+---
+
+**User [2026-08-22]:** Supplied the generated v1.5.53/v1.5.77 PDF and identified it as canonical for the current report output.
+
+**Assistant [2026-08-22]:** Visually verified the one-page Letter PDF, confirmed the exact `NO RFID TAG DETECTED` badge, parser layout, and no-wrap behavior, archived the original PDF, and updated the durable parser-panel baseline.

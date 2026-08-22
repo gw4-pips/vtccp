@@ -47,3 +47,14 @@ after the Field/Data boundary was adjusted and parser-cell wrapping was removed.
 **How to apply:** Preserve the fixed parser columns and no-wrap behavior when
 making later report changes. Handle a specific future over-wide field by an
 explicit, reviewed name/value rule.
+
+**Latest accepted record:** The user supplied and identified a one-page rendered
+PDF from report v1.5.53/app v1.5.77 as canonical. It confirms the current
+header badge text, parser layout, and no-wrap behavior.
+
+**Why:** The user’s generated PDF is the authoritative visual acceptance check
+for the current report output, including the exact badge wording.
+
+**How to apply:** Preserve the accepted rendered result when making later
+changes. Treat any visual deviation from this current record as intentional
+only after explicit user approval.
