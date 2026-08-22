@@ -286,3 +286,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Asked why task 194 had been running for 13 minutes.
 
 **Assistant [2026-08-22]:** Confirmed task 194 completed and merged into main. Its six-file change clarified the Webscan/DataMan transport boundary; task 195 was proposed separately to prevent delayed Webscan writes after session closure.
+
+---
+
+**User [2026-08-22]:** Renamed the original `C:\dev\vtccp` folder to staging and started cloning the repository.
+
+**Assistant [2026-08-22]:** Confirmed that the clone should finish at `C:\dev\vtccp` while the preserved files remain in `C:\dev\vtccp-staging`.
