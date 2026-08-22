@@ -55,3 +55,17 @@ The **AsReader ASR-P35U** is the confirmed canonical RFID reader (2026-08-06).
 - Excel: child RFID tab (not additional columns on 167-col schema); Scan ID is join key
 - Report: inject RFID HTML block post-XSLT; XSLT templates untouched
 - EPC scheme dispatch on header byte; SGTIN-96 (0x30) and SGTIN-198 (0x36) are primary
+
+## Near-term validation embodiment
+
+The immediate priority is stand-alone single-symbol EAN/UPC plus EPC validation. This
+will be the predominant GTIN-RFID workflow for the near term, while still supporting a
+paired 2D symbol through either GS1 DataMatrix or GS1 Digital Link QR.
+
+**Why:** The operational workflow is not inherently a multi-mode (linear + 2D in one
+verifier result) problem. Treating EAN/EPC as first-class prevents the primary
+GTIN-RFID use case from being blocked on multi-mode Webscan parsing.
+
+**How to apply:** Build and validate the single-symbol linear path independently first,
+then add explicit companion handling for GS1 DataMatrix and Digital Link QR. Preserve
+the raw EPC contract and keep native verifier provenance separate from VCCS parsing.

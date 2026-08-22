@@ -444,3 +444,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Reported that the Start Session button does not go live and supplied a screenshot showing the Webscan template selected, COM4 connected, Manual Trigger selected, and no Device Profile selected.
 
 **Assistant [2026-08-22]:** Confirmed from the current session-launch rules that Manual Trigger requires a DataMan device profile, while Webscan HTML (USB) requires only the job template. Advised selecting Webscan HTML (USB); clarified that Webscan starts a file-watching import session rather than a live camera view.
+
+---
+
+**User [2026-08-22]:** Clarified that the existing multi-mode work should soon address EAN/EPC as a stand-alone single-symbol encounter, which will be the predominant GTIN-RFID validation embodiment for the near term, while also coupling with GS1 DataMatrix or Digital Link QR.
+
+**Assistant [2026-08-22]:** Recorded the priority as a first-class single-symbol EAN/UPC plus EPC workflow, with GS1 DataMatrix or Digital Link QR as paired 2D cases. Kept the existing multi-mode parsing task as the home for that work rather than creating a duplicate.
