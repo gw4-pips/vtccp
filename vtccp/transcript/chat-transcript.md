@@ -573,6 +573,10 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 **Assistant [2026-08-22]:** Identified the safe recovery path: preserve the five commits on a backup branch, stash the two modified solution files, leave the untracked SDK/report directories untouched, and only then consider aligning `main` to the published GitHub branch.
 
+**User [2026-08-22]:** Created the `windows-local-before-sync` backup branch successfully; PowerShell returned without an error.
+
+**Assistant [2026-08-22]:** Confirmed that the five Windows-only commits are preserved and requested the next preservation step for the two modified solution files, without touching the untracked SDK or report directories.
+
 ---
 
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
