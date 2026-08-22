@@ -105,6 +105,8 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 **Assistant [2026-08-21]:** Implemented the parser-selection rule. VeriWedge is now attempted only after unavailable or failed TruCheck data-format validation. Reports use “RFID Cross-Validation Result” only when that fallback was actually used; otherwise they use “RFID Validation Result.” The result label remains one line and the parser columns remain aligned. All 171 tests and the Windows build pass.
 
+**Assistant [2026-08-21]:** Committed the completed change as `9d79eed` (`Use VeriWedge only as TruCheck fallback`). The post-commit hook pushed it to GitHub; the working tree is clean.
+
 ---
 
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
