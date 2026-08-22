@@ -591,6 +591,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Supplied the Windows build output showing two `CS1503` errors in `MainViewModel.cs`: `Argument 2: cannot convert from 'method group' to 'System.Action?'`.
+
+**Assistant [2026-08-22]:** Traced both errors to the new optional parameter on `SessionViewModel.Reload()`, which no longer binds directly as the `Action` callback used by the device and template view-models. The fix is to use explicit parameterless lambdas and publish it as 1.5.69.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.

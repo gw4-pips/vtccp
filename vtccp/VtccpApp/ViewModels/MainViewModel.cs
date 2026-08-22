@@ -55,8 +55,8 @@ public sealed class MainViewModel : ViewModelBase
     {
         HistoryVM   = new HistoryViewModel();
         SessionVM   = new SessionViewModel(Repository, HistoryVM);
-        DevicesVM   = new DevicesViewModel(Repository,  onListChanged: SessionVM.Reload);
-        TemplatesVM = new TemplatesViewModel(Repository, onListChanged: SessionVM.Reload);
+        DevicesVM   = new DevicesViewModel(Repository,  onListChanged: () => SessionVM.Reload());
+        TemplatesVM = new TemplatesViewModel(Repository, onListChanged: () => SessionVM.Reload());
         SettingsVM  = new SettingsViewModel(Repository);
 
         NavDevicesCommand   = new RelayCommand(() => Navigate("Devices"));
