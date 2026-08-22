@@ -38,7 +38,10 @@ $audit | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $jsonPath -Encoding
 
 function Get-MarkdownToolLine {
     param([object] $Command)
-    $state = if ($Command.Available) { "FOUND" } else { "MISSING" }
+    $state = $Command.State
+    if ([string]::IsNullOrWhiteSpace($state)) {
+        $state = if ($Command.Available) { "FOUND" } else { "MISSING" }
+    }
     $version = if ($Command.Version) { $Command.Version } else { "" }
     $path = if ($Command.Path) { $Command.Path } else { "" }
     return "| $($Command.Name) | $state | $version | $path |"

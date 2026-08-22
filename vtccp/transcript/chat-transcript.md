@@ -199,6 +199,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Supplied the next audit pair after the null-metadata fix.
+
+**Assistant [2026-08-22]:** Reviewed the clean audit output: Visual Studio Community 2026 is installed, the resolver and three ASR DLL candidates are present, `COM4` is available, and the VTCCP checkout is still missing. Identified the Windows Python execution alias as a reporting-label issue and began tightening the audit status before organizing the workspace.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.

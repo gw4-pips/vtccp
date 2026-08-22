@@ -35,6 +35,9 @@ C:\dev\gs1-digital-link-resolver
 C:\dev\vtccp
 ```
 
+Command states are `FOUND` for a usable command, `BROKEN` when a command
+resolves but its version check fails, and `MISSING` when no command is found.
+
 The audit writes timestamped JSON and Markdown reports to:
 
 ```text

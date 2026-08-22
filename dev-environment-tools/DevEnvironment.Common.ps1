@@ -58,6 +58,8 @@ function Get-CommandInventory {
         return [pscustomobject]@{
             Name      = $Name
             Available = $false
+            Healthy   = $false
+            State     = "MISSING"
             Path      = $null
             Version   = $null
             Details   = @()
@@ -73,10 +75,17 @@ function Get-CommandInventory {
     $version = $details |
         Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
         Select-Object -First 1
+    $healthy = $true
+    if ($version -like "ERROR:*") {
+        $healthy = $false
+    }
+    $state = if ($healthy) { "FOUND" } else { "BROKEN" }
 
     return [pscustomobject]@{
         Name      = $Name
         Available = $true
+        Healthy   = $healthy
+        State     = $state
         Path      = $path
         Version   = $version
         Details   = $details
@@ -139,11 +148,15 @@ function Get-VisualStudioInventory {
                 continue
             }
             $catalogInfo = Get-OptionalPropertyValue -Object $item -Name "catalogInfo"
+            $catalogVersion = Get-OptionalPropertyValue -Object $catalogInfo -Name "productDisplayVersion"
+            if ([string]::IsNullOrWhiteSpace($catalogVersion)) {
+                $catalogVersion = Get-OptionalPropertyValue -Object $item -Name "installationVersion"
+            }
             $installations += [pscustomobject]@{
                 InstallationPath = Get-OptionalPropertyValue -Object $item -Name "installationPath"
                 InstallationName = Get-OptionalPropertyValue -Object $item -Name "displayName"
                 ProductId        = Get-OptionalPropertyValue -Object $item -Name "productId"
-                CatalogVersion   = Get-OptionalPropertyValue -Object $catalogInfo -Name "productDisplayVersion"
+                CatalogVersion   = $catalogVersion
                 IsComplete       = Get-OptionalPropertyValue -Object $item -Name "isComplete"
                 IsLaunchable     = Get-OptionalPropertyValue -Object $item -Name "isLaunchable"
                 ParseError       = $null
