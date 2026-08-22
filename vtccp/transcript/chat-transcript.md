@@ -648,3 +648,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Asked whether the abbreviated commit reference `288516f` omitted an additional `f`.
 
 **Assistant [2026-08-22]:** Confirmed that `288516f` is the standard seven-character abbreviation; the full synchronized commit is `288516fff8892d2cae2eb70f63dcd624a3084dda`.
+
+---
+
+**User [2026-08-22]:** Thanked the assistant for clarifying that abbreviated Git commit IDs use the first characters rather than the last characters of the full hash.
+
+**Assistant [2026-08-22]:** Confirmed that Git short IDs use the first characters of the full commit hash.
