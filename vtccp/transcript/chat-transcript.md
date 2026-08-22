@@ -259,6 +259,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Shared the GitHub Desktop start screen showing `gw4-pips/vtccp` in the repository list.
+
+**Assistant [2026-08-22]:** Confirmed GitHub Desktop already recognizes the local VTCCP repository and instructed the user to open that entry rather than clone or create another copy.
+
+---
+
 **User [2026-08-22]:** Asked why task 194 had been running for 13 minutes.
 
 **Assistant [2026-08-22]:** Confirmed task 194 completed and merged into main. Its six-file change clarified the Webscan/DataMan transport boundary; task 195 was proposed separately to prevent delayed Webscan writes after session closure.
