@@ -373,6 +373,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Opened the `VTCCP` solution in Visual Studio, saw `ExcelEngine` selected as the run target, and asked where Session Launcher is and what Visual Studio configuration is needed.
+
+**Assistant [2026-08-22]:** Identified that `VtccpApp` must be set as the startup project. Session Launcher is a runtime page in the VTCCP application, not a Visual Studio panel.
+
+---
+
 **User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
 
 **Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
