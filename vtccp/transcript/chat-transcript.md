@@ -397,6 +397,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Launched VTCCP v1.5.65 and saw `COM3` selected with the status “Last used: COM3 — reader not detected,” asking why automatic reader discovery did not find it.
+
+**Assistant [2026-08-22]:** Explained that startup discovery is implemented and runs a USB VID/PID registry lookup, but `COM3` is only a persisted last-used fallback. Discovery does not automatically connect; a confirmed port must be found and then connected.
+
+---
+
 **User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
 
 **Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
