@@ -605,6 +605,8 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 **Assistant [2026-08-22]:** The first regression run found two older tests still requiring the removed annotations. Updated those tests to assert the clean section instead; no production behavior was reverted.
 
+**Assistant [2026-08-22]:** Re-ran the Windows-target build with 0 errors and all 191 tests successfully, confirmed the active generator contains neither removed annotation, and published application 1.5.70 with report format v1.5.49 to GitHub.
+
 ---
 
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
