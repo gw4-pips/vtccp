@@ -17,3 +17,6 @@ cross-validation is intended to provide.
 **How to apply:** Any future parser-selection logic must model the TruCheck
 parser result and the VeriWedge fallback explicitly. Never infer eligibility
 from the overall barcode grade alone.
+
+**Confirmation:** The user reconfirmed this definition on 2026-08-21 before
+the fallback behavior was implemented.

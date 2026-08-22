@@ -60,15 +60,22 @@ public static class DmstReportValidator
         // Keep VCCS's Digital Link syntax result separate from the vendor DFC.
         // When HTML is present, use its literal decoded value as the validation input.
         string? gs1ValidationInput = html.HtmlDecodedData ?? record.DecodedData;
-        var digitalLinkValidation =
-            DeviceInterface.Validation.VccsDigitalLinkValidationService.Validate(gs1ValidationInput);
-        if (digitalLinkValidation.Status == DigitalLinkValidationStatus.NotApplicable &&
-            DeviceInterface.Validation.VccsDigitalLinkValidationService
-                .LooksLikeGs1ElementString(gs1ValidationInput))
+        DigitalLinkValidationResult? digitalLinkValidation = null;
+        bool truCheckDfcPassed =
+            html.ScrapedDataFormatCheck is { Rows.Count: > 0, Overall: OverallPassFail.Pass };
+        if (!truCheckDfcPassed)
         {
             digitalLinkValidation =
                 DeviceInterface.Validation.VccsDigitalLinkValidationService
-                    .ValidateElementString(gs1ValidationInput);
+                    .Validate(gs1ValidationInput);
+            if (digitalLinkValidation.Status == DigitalLinkValidationStatus.NotApplicable &&
+                DeviceInterface.Validation.VccsDigitalLinkValidationService
+                    .LooksLikeGs1ElementString(gs1ValidationInput))
+            {
+                digitalLinkValidation =
+                    DeviceInterface.Validation.VccsDigitalLinkValidationService
+                        .ValidateElementString(gs1ValidationInput);
+            }
         }
         bool hasCorrelatedFilesystemHtml =
             html.ParseSucceeded &&
