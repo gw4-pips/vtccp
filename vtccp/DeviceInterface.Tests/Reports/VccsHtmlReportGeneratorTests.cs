@@ -631,6 +631,48 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_TruCheckPassUsesRegularRfidValidationLabel()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Pass",
+            VeriWedgeValidationUsed = false,
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Rows =
+                [
+                    new DataFormatCheckRow
+                    {
+                        Name = "AI (01) GTIN-14",
+                        Data = "09506000134352",
+                        Check = "PASS",
+                    },
+                ],
+            },
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Source = DigitalLinkValidationResult.VccsElementStringSource,
+            },
+        });
+
+        Assert.Contains(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Cross-Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("<table class=\"dfc-dual-table\">", report,
+            StringComparison.Ordinal);
+        Assert.Contains("Native TruCheck Data Format Check", report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_KnownUnsupportedDigitalLinkFirmware_StarsNativeFailure()
     {
         var record = new VerificationRecord
@@ -757,6 +799,120 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_RfidValidationResultUsesOneLineLabelAndAlignedDualParserColumns()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            ApplicationPass = "Pass",
+            RfidStatus = "Fail",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Fail,
+            },
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Source = DigitalLinkValidationResult.VccsElementStringSource,
+            },
+            VeriWedgeValidationUsed = true,
+        });
+
+        Assert.Contains(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Cross-Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".rfid-table .rfid-result-label { white-space: nowrap;",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_TruCheckOnlyPass_DoesNotUseCrossValidationLabel()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Pass",
+            TruCheckValidationUsable = true,
+            TruCheckValidationFailed = false,
+            VeriWedgeValidationUsed = false,
+        });
+
+        Assert.Contains(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Cross-Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_TruCheckOnlyFailure_DoesNotUseCrossValidationLabel()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Fail",
+            TruCheckValidationUsable = true,
+            TruCheckValidationFailed = true,
+            VeriWedgeValidationUsed = false,
+        });
+
+        Assert.Contains(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Cross-Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_UnavailableTruCheckWithVeriWedge_UsesCrossValidationLabel()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Pass",
+            TruCheckValidationUsable = false,
+            TruCheckValidationFailed = false,
+            VeriWedgeValidationUsed = true,
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Detail = "Validated by VeriWedge.",
+            },
+        });
+
+        Assert.Contains("GS1 DataMatrix RFID Cross-Validation Result", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_FailedTruCheckWithVeriWedge_UsesCrossValidationLabel()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Fail",
+            TruCheckValidationUsable = true,
+            TruCheckValidationFailed = true,
+            VeriWedgeValidationUsed = true,
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Invalid,
+                Detail = "VeriWedge rejected the GS1 data.",
+            },
+        });
+
+        Assert.Contains("GS1 DataMatrix RFID Cross-Validation Result", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_RfidGcpNotFound_IsNotReportedAsInvalid()
     {
         string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
@@ -788,11 +944,12 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_LabelsDigitalLinkNotApplicable()
+    public void Generate_DoesNotRenderVeriWedgePanelWhenItWasNotUsed()
     {
         var record = new VerificationRecord
         {
             Symbology = "EAN-13",
+            VeriWedgeValidationUsed = false,
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
                 Status = DigitalLinkValidationStatus.NotApplicable,
@@ -802,8 +959,8 @@ public sealed class VccsHtmlReportGeneratorTests
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.Contains("NOT APPLICABLE", report, StringComparison.Ordinal);
-        Assert.Contains("Decoded verifier data is not a GS1 Digital Link URI.", report,
+        Assert.DoesNotContain("NOT APPLICABLE", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Decoded verifier data is not a GS1 Digital Link URI.", report,
             StringComparison.Ordinal);
     }
 
@@ -878,6 +1035,7 @@ public sealed class VccsHtmlReportGeneratorTests
         {
             Symbology = "QR Code",
             RfidStatus = "Fail",
+            VeriWedgeValidationUsed = true,
             RfidMismatchDetail = "GTIN14:RFID=09506000134351,BC=09506000134352",
         });
 

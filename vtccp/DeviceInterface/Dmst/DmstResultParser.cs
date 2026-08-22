@@ -587,8 +587,6 @@ public static class DmstResultParser
             Symbology            = symbology,
             SymbologyFamily      = symbFamily,
             DecodedData          = decodedData,
-            VccsDigitalLinkValidation =
-                DeviceInterface.Validation.VccsDigitalLinkValidationService.Validate(decodedData),
             FormalGrade          = formalGrade,
             OverallGrade         = overall,
 

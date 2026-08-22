@@ -672,6 +672,26 @@ public sealed record class VerificationRecord
     /// </summary>
     public DigitalLinkValidationResult? VccsDigitalLinkValidation { get; init; }
 
+    /// <summary>
+    /// True when the correlated TruCheck Data Format Check supplied a usable
+    /// GS1 validation outcome for this scan. False means the native validation
+    /// was unavailable or not applicable to the decoded data.
+    /// </summary>
+    public bool TruCheckValidationUsable { get; init; }
+
+    /// <summary>
+    /// True when a usable native TruCheck GS1 validation outcome failed.
+    /// Always false when <see cref="TruCheckValidationUsable"/> is false.
+    /// </summary>
+    public bool TruCheckValidationFailed { get; init; }
+
+    /// <summary>
+    /// True only when VeriWedge's GS1 parser was selected as the fallback or
+    /// comparison path because native TruCheck validation was unavailable or
+    /// failed. This controls Cross-Validation wording in the PDF report.
+    /// </summary>
+    public bool? VeriWedgeValidationUsed { get; init; }
+
     // ─── Linear Symbol (Multi-mode) ───────────────────────────────────────────
     // Populated when the verifier runs in multi-mode (EAN/UPC + 2D simultaneously).
     // When present, the PDF grades table shows two rows (linear first, then 2D).

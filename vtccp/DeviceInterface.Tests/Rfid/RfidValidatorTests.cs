@@ -1,10 +1,61 @@
 using DeviceInterface.Rfid;
+using ExcelEngine.Models;
 using Xunit;
 
 namespace DeviceInterface.Tests.Rfid;
 
 public sealed class RfidValidatorTests
 {
+    [Fact]
+    public void AssessTruCheckValidation_PassingNativeDfc_DoesNotRequireVeriWedge()
+    {
+        var assessment = RfidValidator.AssessTruCheckValidation(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Rows = [new DataFormatCheckRow { Name = "AI (01)", Data = "09506000134352", Check = "PASS" }],
+            },
+        });
+
+        Assert.True(assessment.Usable);
+        Assert.False(assessment.Failed);
+        Assert.False(assessment.RequiresVeriWedge);
+    }
+
+    [Fact]
+    public void AssessTruCheckValidation_FailedNativeDfc_RequiresVeriWedge()
+    {
+        var assessment = RfidValidator.AssessTruCheckValidation(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Fail,
+                Rows = [new DataFormatCheckRow { Name = "AI (01)", Data = "09506000134352", Check = "FAIL" }],
+            },
+        });
+
+        Assert.True(assessment.Usable);
+        Assert.True(assessment.Failed);
+        Assert.True(assessment.RequiresVeriWedge);
+    }
+
+    [Fact]
+    public void AssessTruCheckValidation_MissingNativeDfc_RequiresVeriWedge()
+    {
+        var assessment = RfidValidator.AssessTruCheckValidation(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            ApplicationPass = "Pass",
+        });
+
+        Assert.False(assessment.Usable);
+        Assert.False(assessment.Failed);
+        Assert.True(assessment.RequiresVeriWedge);
+    }
+
     [Theory]
     [InlineData("<F1>01006961147042882172803282009")]
     [InlineData("<GS>01006961147042882172803282009")]

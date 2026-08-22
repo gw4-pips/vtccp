@@ -3016,3 +3016,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Pulled the latest code, ran a scan, and showed a PDF, hybrid HTML report, Excel workbook, and `.xlsx.vtccp.json` sidecar in the output folder. Asked whether this is the expected JSON state after a single scan.
 
 **Assistant:** Confirmed from the Git implementation that `.vtccp.json` is a session-resume sidecar, not a per-scan record export. Its presence while the session remains open is expected; after one scan its `RecordCount` should be `1`, alongside session metadata such as job/operator, roll, output, device fields, and timestamps. Barcode/RFID record details belong in the Excel/report outputs, not this sidecar. A clean session close deletes the sidecar.
+
+**`2026-08-22`**
+
+**User:** Asked to complete the fallback-selection work so VeriWedge is used only when native TruCheck validation is unavailable or fails, and reports call it Cross-Validation only when that fallback was actually used.
+
+**Assistant:** Added explicit native-TruCheck usable/failed and VeriWedge-used provenance to scan records. Native selection now follows only the correlated TruCheck Data Format Check, never a barcode grade or application status; XML/HTML parsing no longer invokes VeriWedge early. RFID capture remains independent of this parser selection. The report uses “RFID Validation Result” for native-only cases and “RFID Cross-Validation Result” only for real fallback cases. Added regression coverage for native pass, native failure, unavailable native validation with VeriWedge, and failed native validation with VeriWedge; bumped the report to v1.5.47 and app to 1.5.64. The full Release solution build succeeded with zero errors, and all 178 DeviceInterface tests passed.

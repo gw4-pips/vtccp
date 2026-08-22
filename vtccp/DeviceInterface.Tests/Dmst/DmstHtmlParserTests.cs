@@ -689,6 +689,7 @@ public sealed class DmstHtmlParserTests
         VerificationRecord merged = DmstReportValidator.MergeAndValidate(record, html);
 
         Assert.Null(merged.DataFormatCheck);
+        Assert.Null(merged.VccsDigitalLinkValidation);
     }
 
     [Fact]
@@ -724,7 +725,7 @@ public sealed class DmstHtmlParserTests
     }
 
     [Fact]
-    public void MergeAndValidate_PreservesVendorDfcWhenVccsDigitalLinkValidationIsAdded()
+    public void MergeAndValidate_PreservesVendorDfcWithoutEagerVeriWedgeValidation()
     {
         var scraped = new DataFormatCheckResult
         {
@@ -764,8 +765,40 @@ public sealed class DmstHtmlParserTests
 
         Assert.Same(scraped, merged.DataFormatCheck);
         Assert.Same(scraped, merged.HtmlDataFormatCheck);
-        Assert.NotNull(merged.VccsDigitalLinkValidation);
+        Assert.Null(merged.VccsDigitalLinkValidation);
         Assert.NotSame(localLegacyDfc, merged.DataFormatCheck);
+    }
+
+    [Fact]
+    public void MergeAndValidate_DefersVeriWedgeWhenVendorDfcFails()
+    {
+        var scraped = new DataFormatCheckResult
+        {
+            Overall = OverallPassFail.Fail,
+            Standard = "GS1 Application Data Format",
+            Rows =
+            [
+                new DataFormatCheckRow
+                {
+                    Name = "AI (01) GTIN-14",
+                    Data = "09506000134352",
+                    Check = "FAIL",
+                },
+            ],
+        };
+        var html = new DmstHtmlReport
+        {
+            ParseSucceeded = true,
+            SourceFilePath = FixturePath,
+            HtmlSourceFileName = Path.GetFileName(FixturePath),
+            HtmlDecodedData = "https://id.gs1.org/01/09506000134352",
+            ScrapedDataFormatCheck = scraped,
+        };
+
+        VerificationRecord merged = DmstReportValidator.MergeAndValidate(
+            new VerificationRecord { Symbology = "QR Code" }, html);
+
+        Assert.Null(merged.VccsDigitalLinkValidation);
     }
 
     // ══ MergeAndValidate — fractional grade × threshold boundary ════════════════

@@ -26,6 +26,28 @@ public sealed class RfidValidator
         => _gcpValidator = gcpValidator;
 
     /// <summary>
+    /// Determines whether the native TruCheck GS1 parser supplied a usable
+    /// validation result for the record and, when it did, whether it failed.
+    ///
+    /// Only the verbatim Data Format Check scraped from the correlated TruCheck
+    /// HTML is authoritative here. Barcode quality grades and application-pass
+    /// values must not be used as a proxy for GS1 parser availability.
+    /// </summary>
+    public static TruCheckValidationAssessment AssessTruCheckValidation(
+        VerificationRecord barcodeRecord)
+    {
+        ArgumentNullException.ThrowIfNull(barcodeRecord);
+
+        DataFormatCheckResult? dfc = barcodeRecord.HtmlDataFormatCheck;
+        bool usable = dfc is { Rows.Count: > 0 } &&
+            dfc.Overall is OverallPassFail.Pass or OverallPassFail.Fail;
+
+        return new TruCheckValidationAssessment(
+            Usable: usable,
+            Failed: usable && dfc!.Overall == OverallPassFail.Fail);
+    }
+
+    /// <summary>
     /// Produce a <see cref="RfidValidationResult"/> from the raw RFID reads and the
     /// barcode record that triggered the scan.
     /// </summary>
@@ -330,4 +352,16 @@ public sealed class RfidValidator
             .Replace('\x1D', '|')
             .Replace("<F1>", "|", StringComparison.OrdinalIgnoreCase)
             .Replace("<GS>", "|", StringComparison.OrdinalIgnoreCase);
+}
+
+/// <summary>
+/// Native TruCheck GS1 parser state used to choose the VeriWedge fallback path.
+/// </summary>
+public readonly record struct TruCheckValidationAssessment(bool Usable, bool Failed)
+{
+    /// <summary>
+    /// VeriWedge is used only when native TruCheck validation is unavailable or
+    /// when its usable validation result failed.
+    /// </summary>
+    public bool RequiresVeriWedge => !Usable || Failed;
 }
