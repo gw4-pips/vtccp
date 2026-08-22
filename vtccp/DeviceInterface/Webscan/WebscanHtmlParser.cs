@@ -2,6 +2,7 @@ namespace DeviceInterface.Webscan;
 
 using System.Globalization;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using ExcelEngine.Models;
 
@@ -76,17 +77,18 @@ public static partial class WebscanHtmlParser
             if (validationError is not null)
                 return Failure(rawHtml, sourcePath, validationError);
 
-            string? imageReference = FindImageReference(rawHtml);
-            string? imagePath = imageReference is null
-                ? null
-                : Path.GetFullPath(Path.Combine(
-                    Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? string.Empty,
-                    imageReference));
+            (string? imagePath, WebscanImageProvenance imageProvenance,
+                string? imageMimeType, string? imageBase64) =
+                ResolveSourceImage(rawHtml, sourcePath);
+            DataFormatCheckResult? dataFormatCheck = ExtractDataFormatCheck(rawHtml);
 
             return new WebscanHtmlReport
             {
                 SourceFilePath = sourcePath,
                 SourceImagePath = imagePath,
+                SourceImageProvenance = imageProvenance,
+                SourceImageMimeType = imageMimeType,
+                SourceImageBase64 = imageBase64,
                 RawHtml = rawHtml,
                 ParseSucceeded = true,
                 VerifiedDisplay = verified,
@@ -122,6 +124,7 @@ public static partial class WebscanHtmlParser
                 NominalXDim = Get(values, "Nominal X Dim"),
                 ContrastUniformity = Get(values, "Contrast Uniformity"),
                 QualityParameters = quality,
+                DataFormatCheck = dataFormatCheck,
             };
         }
         catch (Exception ex)
@@ -268,16 +271,278 @@ public static partial class WebscanHtmlParser
         return null;
     }
 
+    private static (string? Path, WebscanImageProvenance Provenance,
+        string? MimeType, string? Base64) ResolveSourceImage(string html, string sourcePath)
+    {
+        string directory = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? string.Empty;
+        string? imageReference = FindImageReference(html);
+        if (imageReference is not null)
+        {
+            if (TryResolveReportLocalImagePath(
+                    directory, imageReference, out string candidate) &&
+                TryReadImage(candidate, out string mimeType, out string base64))
+                return (candidate, WebscanImageProvenance.EmbeddedHtml,
+                    mimeType, base64);
+        }
+
+        foreach (string candidate in SiblingImageCandidates(sourcePath))
+        {
+            if (TryResolveReportLocalImagePath(directory, candidate, out string localCandidate) &&
+                TryReadImage(localCandidate, out string mimeType, out string base64))
+                return (localCandidate, WebscanImageProvenance.SiblingExport, mimeType, base64);
+        }
+
+        return (null, WebscanImageProvenance.None, null, null);
+    }
+
     private static string? FindImageReference(string html)
     {
         foreach (Match match in ImageRegex().Matches(html))
         {
-            string? alt = match.Groups["alt"].Value;
+            string alt = match.Groups["alt"].Value;
             string src = WebUtility.HtmlDecode(match.Groups["src"].Value).Trim();
             if (alt.Contains("Symbol", StringComparison.OrdinalIgnoreCase))
                 return src;
         }
         return null;
+    }
+
+    private static bool TryResolveReportLocalImagePath(
+        string reportDirectory,
+        string imageReference,
+        out string imagePath)
+    {
+        imagePath = string.Empty;
+        if (string.IsNullOrWhiteSpace(imageReference) || Path.IsPathRooted(imageReference))
+            return false;
+
+        try
+        {
+            string fullDirectory = Path.GetFullPath(reportDirectory);
+            string candidate = Path.GetFullPath(Path.Combine(fullDirectory, imageReference));
+            string relative = Path.GetRelativePath(fullDirectory, candidate);
+            if (Path.IsPathRooted(relative) ||
+                relative.Equals("..", StringComparison.Ordinal) ||
+                relative.StartsWith(".." + Path.DirectorySeparatorChar,
+                    StringComparison.Ordinal) ||
+                relative.StartsWith(".." + Path.AltDirectorySeparatorChar,
+                    StringComparison.Ordinal) ||
+                ContainsSymbolicLink(fullDirectory, relative))
+            {
+                return false;
+            }
+
+            imagePath = candidate;
+            return true;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    private static bool ContainsSymbolicLink(string fullDirectory, string relativePath)
+    {
+        var current = new DirectoryInfo(fullDirectory);
+        if (current.LinkTarget is not null) return true;
+
+        string[] segments = relativePath.Split(
+            [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
+            StringSplitOptions.RemoveEmptyEntries);
+        for (int index = 0; index < segments.Length; index++)
+        {
+            string currentPath = Path.Combine(
+                current.FullName,
+                Path.Combine(segments.Take(index + 1).ToArray()));
+            if (index == segments.Length - 1)
+            {
+                if (new FileInfo(currentPath).LinkTarget is not null)
+                    return true;
+            }
+            else if (new DirectoryInfo(currentPath).LinkTarget is not null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static IEnumerable<string> SiblingImageCandidates(string sourcePath)
+    {
+        string directory = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? string.Empty;
+        string stem = Path.GetFileNameWithoutExtension(sourcePath);
+        string[] extensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"];
+
+        foreach (string extension in extensions)
+            yield return stem + ".Image1" + extension;
+
+        // Webscan sanitizes the HTML export name differently from the image
+        // export. For example:
+        //   Report._1787402227622.html
+        //   Report.Image1_1787402227622.jpg
+        int separator = stem.LastIndexOf("._", StringComparison.Ordinal);
+        if (separator > 0 && separator + 2 < stem.Length)
+        {
+            string prefix = stem[..separator];
+            string suffix = stem[(separator + 1)..]; // includes the underscore
+            foreach (string extension in extensions)
+                yield return prefix + ".Image1" + suffix + extension;
+        }
+    }
+
+    private static bool TryReadImage(string path, out string mimeType, out string base64)
+    {
+        mimeType = string.Empty;
+        base64 = string.Empty;
+        try
+        {
+            if (!File.Exists(path)) return false;
+            byte[] bytes = File.ReadAllBytes(path);
+            mimeType = DetectImageMimeType(bytes);
+            if (mimeType.Length == 0) return false;
+            base64 = Convert.ToBase64String(bytes);
+            return true;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    private static string DetectImageMimeType(byte[] bytes)
+    {
+        if (bytes.Length >= 3 &&
+            bytes[0] == 0xff && bytes[1] == 0xd8 && bytes[2] == 0xff)
+            return "image/jpeg";
+        if (bytes.Length >= 8 &&
+            bytes.AsSpan(0, 8).SequenceEqual(
+                new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }))
+            return "image/png";
+        if (bytes.Length >= 6 &&
+            (Encoding.ASCII.GetString(bytes, 0, 6) == "GIF87a" ||
+             Encoding.ASCII.GetString(bytes, 0, 6) == "GIF89a"))
+            return "image/gif";
+        if (bytes.Length >= 2 && bytes[0] == 0x42 && bytes[1] == 0x4d)
+            return "image/bmp";
+        if (bytes.Length >= 12 &&
+            Encoding.ASCII.GetString(bytes, 0, 4) == "RIFF" &&
+            Encoding.ASCII.GetString(bytes, 8, 4) == "WEBP")
+            return "image/webp";
+        return string.Empty;
+    }
+
+    private static DataFormatCheckResult? ExtractDataFormatCheck(string html)
+    {
+        foreach (Match tableMatch in TableRegex().Matches(html))
+        {
+            string table = tableMatch.Value;
+            if (!CleanText(table).Contains("Data Format Check",
+                    StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            string? standard = null;
+            OverallPassFail overall = OverallPassFail.NotApplicable;
+            foreach (Match header in TableHeaderRegex().Matches(table))
+            {
+                string text = CleanText(header.Groups["body"].Value);
+                if (text.Contains("Data Format Check", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                Match outcome = DfcOutcomeRegex().Match(text);
+                if (outcome.Success)
+                {
+                    (standard, overall) = ParseDfcOutcome(text, outcome);
+                    break;
+                }
+            }
+
+            // Some Webscan versions use one dedicated <td> rather than a table
+            // header for the outcome. Only accept a single-cell table row here:
+            // a three-column data row can contain arbitrary literal colons and
+            // PASS/FAIL text, none of which is an overall verifier outcome.
+            if (overall == OverallPassFail.NotApplicable)
+            {
+                foreach (Match rowMatch in RowRegex().Matches(table))
+                {
+                    string rowMarkup = rowMatch.Groups["body"].Value;
+                    if (rowMarkup.Contains("<th", StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    MatchCollection cells = CellRegex().Matches(rowMarkup);
+                    if (cells.Count != 1) continue;
+                    string text = CleanText(cells[0].Groups["body"].Value);
+                    Match outcome = DfcOutcomeRegex().Match(text);
+                    if (!outcome.Success) continue;
+
+                    (standard, overall) = ParseDfcOutcome(text, outcome);
+                    break;
+                }
+            }
+
+            var rows = new List<DataFormatCheckRow>();
+            foreach (Match rowMatch in RowRegex().Matches(table))
+            {
+                string rowMarkup = rowMatch.Groups["body"].Value;
+                if (rowMarkup.Contains("<th", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                MatchCollection cells = CellRegex().Matches(rowMarkup);
+                if (cells.Count < 3) continue;
+                string name = CleanText(cells[0].Groups["body"].Value);
+                string data = CleanText(cells[1].Groups["body"].Value);
+                string check = CleanText(cells[2].Groups["body"].Value);
+                if (name.Equals("Name", StringComparison.OrdinalIgnoreCase) &&
+                    data.Equals("Data", StringComparison.OrdinalIgnoreCase) &&
+                    check.Equals("Check", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (name.Length > 0)
+                    rows.Add(new DataFormatCheckRow
+                    {
+                        Name = name,
+                        Data = data,
+                        Check = check,
+                    });
+            }
+
+            return new DataFormatCheckResult
+            {
+                Standard = standard,
+                Overall = overall,
+                Rows = rows,
+            };
+        }
+
+        return null;
+    }
+
+    private static (string Standard, OverallPassFail Overall) ParseDfcOutcome(
+        string text,
+        Match outcome)
+        => (
+            CleanDfcStandard(text[..outcome.Groups["colon"].Index]),
+            outcome.Groups["outcome"].Value.Equals(
+                "PASS", StringComparison.OrdinalIgnoreCase)
+                ? OverallPassFail.Pass
+                : OverallPassFail.Fail);
+
+    private static string CleanDfcStandard(string value)
+    {
+        string trimmed = value.Trim();
+        foreach (string marker in new[] { "GS1", "HIBCC", "ISO " })
+        {
+            int markerIndex = trimmed.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (markerIndex >= 0)
+                return trimmed[markerIndex..].Trim();
+        }
+        return trimmed;
     }
 
     private static DateTime? ParseVerifiedDate(string? display)
@@ -360,6 +625,18 @@ public static partial class WebscanHtmlParser
     [GeneratedRegex(@"<img\b[^>]*src\s*=\s*[""'](?<src>[^""']+)[""'][^>]*alt\s*=\s*[""'](?<alt>[^""']*)[""'][^>]*>",
         RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex ImageRegex();
+
+    [GeneratedRegex(@"<table\b[^>]*>.*?</table\s*>",
+        RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex TableRegex();
+
+    [GeneratedRegex(@"<th\b[^>]*>(?<body>.*?)</th\s*>",
+        RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex TableHeaderRegex();
+
+    [GeneratedRegex(@"(?<standard>[A-Za-z][^:\r\n]{0,120}?)(?<colon>:)\s*(?<outcome>PASS|FAIL)\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex DfcOutcomeRegex();
 
     [GeneratedRegex(@"<h2\b[^>]*>(?<body>.*?)</h2\s*>",
         RegexOptions.Singleline | RegexOptions.IgnoreCase)]

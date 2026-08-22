@@ -3046,3 +3046,19 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **Assistant:** Added atomic Webscan acceptance admission and shutdown draining so callbacks admitted before invalidation finish before session-owned writers close, while late callbacks are rejected. Added a deterministic delayed-acceptance regression test that simulates an RFID wait, confirms the drain blocks closure, and verifies no late work can be admitted. Bumped the app to version 1.5.65. The WPF app build completed with zero errors and all 186 DeviceInterface tests passed.
 
 **Assistant:** Rechecked Task 196. The focused Webscan suite passed all 5 tests after restoring the NuGet cache, including the delayed-acceptance shutdown drain. The real Windows USB Webscan TruCheck plus RFID acceptance test is not runnable in this Linux environment, so it was proposed as follow-up Task 197 rather than claimed as completed.
+
+---
+
+**`2026-08-22 — 15:21`**
+
+**User:** Assigned Task 200 to preserve native Webscan GS1 DataMatrix Data Format Check evidence and correlate the separately exported Image1 barcode image into VCCS reports without changing the raw Webscan HTML, PDF, or image.
+
+**Assistant:** Completed the Webscan evidence import. Native DFC rows, standard, and explicit outcome are preserved without recomputation; valid embedded images are preferred and deterministic Image1 siblings are safely correlated as a separate export with MIME-aware Base64 data; VCCS normal and parser-comparison layouts disclose the image provenance and render the native DFC. Added source-integrity, correlation, DFC, report, traversal, and explicit-outcome regression coverage, bumped VtccpApp to 1.5.66, and verified 190 passing DeviceInterface tests plus a successful Windows-targeted VtccpApp build. Proposed follow-up Task 201 to validate the mapping against a captured Webscan export containing the vendor's native DFC markup.
+
+---
+
+**`2026-08-22 — afternoon`**
+
+**User:** Asked how to return to the main Agent after landing in a subagent dialog.
+
+**Assistant:** Explained that the usual route is the back arrow or close button on the subagent panel, then selecting the parent conversation from the Agent chat/history list. If those controls are not visible, reopening the original Agent conversation from the workspace sidebar returns to the main chat; this conversation can also continue here.

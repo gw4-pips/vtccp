@@ -14,6 +14,9 @@ public sealed class WebscanHtmlReport
     public string SourceFilePath { get; init; } = string.Empty;
     public string SourceFileName => Path.GetFileName(SourceFilePath);
     public string? SourceImagePath { get; init; }
+    public WebscanImageProvenance SourceImageProvenance { get; init; }
+    public string? SourceImageMimeType { get; init; }
+    public string? SourceImageBase64 { get; init; }
     public string RawHtml { get; init; } = string.Empty;
     public bool ParseSucceeded { get; init; }
     public string? ParseError { get; init; }
@@ -62,6 +65,13 @@ public sealed class WebscanHtmlReport
     /// corresponding VerificationRecord property. No values are recomputed.
     /// </summary>
     public IReadOnlyList<WebscanQualityParameter> QualityParameters { get; init; } = [];
+
+    /// <summary>
+    /// Native Data Format Check evidence copied from the Webscan export. The
+    /// outcome is only populated when the export states PASS or FAIL; it is
+    /// never recomputed from decoded data or row values.
+    /// </summary>
+    public DataFormatCheckResult? DataFormatCheck { get; init; }
 
     public VerificationRecord ToVerificationRecord()
     {
@@ -121,6 +131,7 @@ public sealed class WebscanHtmlReport
             ImagePolarity = WebscanHtmlParser.MapImagePolarity(ImagePolarity),
             NominalXDim_2D = ParseNominalXDim(NominalXDim),
             ContrastUniformity = ContrastUniformity,
+            DataFormatCheck = DataFormatCheck,
             UEC_Percent = uec?.MeasuredPercent,
             UEC_Grade = uec?.Grade,
             SC_Percent = sc?.MeasuredPercent,
@@ -151,8 +162,15 @@ public sealed class WebscanHtmlReport
             HtmlWavelength = WavelengthDisplay,
             HtmlLighting = Lighting,
             HtmlFormalGrade = FormalGrade,
+            HtmlBarcodeImageBase64 = SourceImageBase64,
+            HtmlBarcodeImageProvenance = SourceImageProvenance.ToString(),
+            HtmlBarcodeImageMimeType = SourceImageMimeType,
+            HtmlDataFormatCheck = DataFormatCheck,
             DataSourceExceptions =
-                "Webscan:USB HTML export; values are literal report fields",
+                "Webscan:USB HTML export; values are literal report fields" +
+                (DataFormatCheck is not null
+                    ? "; DataFormatCheck:Webscan HTML native table"
+                    : string.Empty),
         };
     }
 
@@ -175,6 +193,13 @@ public sealed class WebscanHtmlReport
             ? result
             : null;
     }
+}
+
+public enum WebscanImageProvenance
+{
+    None,
+    EmbeddedHtml,
+    SiblingExport,
 }
 
 public sealed class WebscanQualityParameter

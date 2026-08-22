@@ -213,6 +213,52 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_SiblingExportImageKeepsNativeDfcAndExplicitProvenance()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlSourceFileName = "webscan-export.html",
+            HtmlVerifiedString = "Sat 22-Aug-2026 08:31:50 AM",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlBarcodeImageBase64 = "iVBORw0KGgo=",
+            HtmlBarcodeImageMimeType = "image/png",
+            HtmlBarcodeImageProvenance = "SiblingExport",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Fail,
+                Standard = "GS1 Application Data Format",
+                Rows =
+                [
+                    new DataFormatCheckRow
+                    {
+                        Name = "AI (21) Serial",
+                        Data = "72803282009",
+                        Check = "FAIL",
+                    },
+                ],
+            },
+            VeriWedgeValidationUsed = true,
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.1",
+                Detail = "Parsed GS1 AI data: (21)72803282009",
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("data:image/png;base64,iVBORw0KGgo=", report, StringComparison.Ordinal);
+        Assert.Contains("Image1 sibling export; not embedded in the HTML", report,
+            StringComparison.Ordinal);
+        Assert.Contains("Native standard: GS1 Application Data Format", report,
+            StringComparison.Ordinal);
+        Assert.Contains("AI (21) Serial", report, StringComparison.Ordinal);
+        Assert.Contains("OVERALL: FAIL", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_TagDetectedWithoutReaderLockResult_RendersUnknownLockStatus()
     {
         var record = new VerificationRecord

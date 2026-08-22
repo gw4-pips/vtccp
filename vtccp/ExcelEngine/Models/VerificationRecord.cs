@@ -658,6 +658,15 @@ public sealed record class VerificationRecord
     public string? HtmlLinearLighting { get; init; }
     public string? HtmlLinearFormalGrade { get; init; }
     public string? HtmlBarcodeImageBase64 { get; init; }
+    /// <summary>
+    /// Source of <see cref="HtmlBarcodeImageBase64"/>: an image referenced by the
+    /// HTML ("EmbeddedHtml") or the separately exported Image1 sibling
+    /// ("SiblingExport"). This is report provenance, not a claim that the image
+    /// bytes were embedded in the HTML.
+    /// </summary>
+    public string? HtmlBarcodeImageProvenance { get; init; }
+    /// <summary>Media type of the correlated barcode image, when available.</summary>
+    public string? HtmlBarcodeImageMimeType { get; init; }
 
     /// <summary>
     /// Data Format Check table scraped verbatim from the correlated HTML artifact.
