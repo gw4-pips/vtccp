@@ -678,3 +678,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Supplied three canonical report crops and asked for the VeriWedge parser half to move left and gain room, a rule to shorten the BSE Batch/Lot description, and a human-readable no-tag RFID result.
 
 **Assistant [2026-08-22]:** Reopened the report task. Shifted the shared dual-parser divider about 0.5in left so the VeriWedge header, Field column, and data rows move together and gain a 57% panel share. Added a BSE-only description-rule table with `Batch or Lot Num.` for AI (10), rendered `NoTag` as `No Tag Detected` in the RFID validation result, added regression coverage, and verified a Letter PDF render, 193 tests, and the Windows solution build.
+
+---
+
+**User [2026-08-22]:** Asked for the current status after the multi-element GS1 report task was merged.
+
+**Assistant [2026-08-22]:** Confirmed that the report changes are merged in commit `1932703`, the working tree is clean, and the canonical shared template now widens the VeriWedge GS1 parser panel and wraps long values. Reported that the current Linux test rerun is blocked by existing ExcelEngine package/reference errors, while unrelated web artifact workflows are failing from ports already in use. Noted that a Windows/render pass remains the relevant final verification.
