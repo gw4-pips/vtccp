@@ -379,6 +379,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Shared a Visual Studio screenshot where the solution shows 10 projects but only nine are visible, with `ExcelEngine` still selected.
+
+**Assistant [2026-08-22]:** Explained that `VtccpApp` is the tenth project below the visible portion of Solution Explorer and that `ExcelEngine` remains the current startup project.
+
+---
+
 **User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
 
 **Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
