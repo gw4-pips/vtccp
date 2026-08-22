@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.47";
+    public const string ReportVersion = "v1.5.44";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -115,7 +115,14 @@ public static class VccsHtmlReportGenerator
             .Replace("{{SLOT_RFID_ROWS}}",      BuildRfidRows(r))
             .Replace("{{SLOT_BARCODE_DETAIL}}", BuildBarcodeDetailSection(r))
             .Replace("{{FOOTER_VERSION}}",      ReportVersion)
+            .Replace("{{APP_VERSION}}",         GetApplicationVersion())
             .Replace("{{FOOTER_GENERATED}}",    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+    }
+
+    private static string GetApplicationVersion()
+    {
+        Version? version = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version;
+        return version is null ? "unknown" : $"v{version.ToString(3)}";
     }
 
     /// <summary>
@@ -383,14 +390,11 @@ public static class VccsHtmlReportGenerator
 
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         bool is1DOnly  = r.Is1D && !multiMode;
-        string resultLabel = IsVeriWedgeFallbackUsed(r)
-            ? "RFID Cross-Validation Result"
-            : "RFID Validation Result";
 
         void ResultRow(string label, string value)
         {
             sb.Append($"          <tr class=\"{rowCls}\">\n");
-            sb.Append($"            <td class=\"rfid-result-label\">{H(label)}</td>\n");
+            sb.Append($"            <td>{H(label)}</td>\n");
             sb.Append($"            <td>{value}</td>\n");
             sb.Append($"          </tr>\n");
         }
@@ -403,7 +407,7 @@ public static class VccsHtmlReportGenerator
                 "Fail" => "Fail &#x2014; GTIN mismatch",
                 var s  => H(s ?? "\u2014"),
             };
-            ResultRow($"{r.LinearSymbology} {resultLabel}", linVal);
+            ResultRow($"{r.LinearSymbology} RFID Cross-Validation Result", linVal);
 
             string twoDSym = string.IsNullOrWhiteSpace(r.Symbology) ? "2D" : r.Symbology;
             string twoDVal = r.RfidStatus switch
@@ -412,7 +416,7 @@ public static class VccsHtmlReportGenerator
                 "Fail" => BuildMismatch2DLabel(r.RfidMismatchDetail),
                 var s  => H(s ?? "\u2014"),
             };
-            ResultRow($"{twoDSym} {resultLabel}", twoDVal);
+            ResultRow($"{twoDSym} RFID Cross-Validation Result", twoDVal);
         }
         else
         {
@@ -426,7 +430,7 @@ public static class VccsHtmlReportGenerator
                 "Fail"               => BuildMismatch2DLabel(r.RfidMismatchDetail),
                 var s                => H(s ?? "\u2014"),
             };
-            ResultRow($"{symName} {resultLabel}", singleVal);
+            ResultRow($"{symName} RFID Cross-Validation Result", singleVal);
         }
 
         return sb.ToString();
@@ -438,10 +442,10 @@ public static class VccsHtmlReportGenerator
         string? img2D      = hasHtml ? r.HtmlBarcodeImageBase64 : null;
         bool multiMode    = !string.IsNullOrWhiteSpace(r.LinearSymbology);
         DataFormatCheckResult? htmlDfc = hasHtml ? r.HtmlDataFormatCheck : null;
-        bool veriWedgeFallbackUsed = IsVeriWedgeFallbackUsed(r);
-        bool useElementStringLayout = veriWedgeFallbackUsed &&
-            IsElementStringValidation(r.VccsDigitalLinkValidation);
-        bool useParserComparisonLayout = veriWedgeFallbackUsed;
+        bool useElementStringLayout = IsElementStringValidation(r.VccsDigitalLinkValidation);
+        bool useParserComparisonLayout =
+            useElementStringLayout ||
+            r.VccsDigitalLinkValidation?.Status is not null and not DigitalLinkValidationStatus.NotApplicable;
         string? nativeDigitalLinkSupportNote = useParserComparisonLayout && !useElementStringLayout
             ? BuildNativeDigitalLinkSupportNote(r, htmlDfc, r.VccsDigitalLinkValidation)
             : null;
@@ -484,8 +488,7 @@ public static class VccsHtmlReportGenerator
         else
         {
             AppendVendorDataFormatCheck(sb, htmlDfc, hasHtml);
-            if (veriWedgeFallbackUsed)
-                AppendVccsDigitalLinkValidation(sb, r.VccsDigitalLinkValidation);
+            AppendVccsDigitalLinkValidation(sb, r.VccsDigitalLinkValidation);
         }
 
         sb.Append("        </td>\n");
@@ -514,13 +517,6 @@ public static class VccsHtmlReportGenerator
             validation?.Source,
             DigitalLinkValidationResult.VccsElementStringSource,
             StringComparison.Ordinal);
-
-    private static bool IsVeriWedgeFallbackUsed(VerificationRecord record)
-        => record.HtmlDataFormatCheck?.Overall != OverallPassFail.Pass &&
-           record.VccsDigitalLinkValidation?.Status is
-               DigitalLinkValidationStatus.Valid or
-               DigitalLinkValidationStatus.Invalid or
-               DigitalLinkValidationStatus.Unavailable;
 
     private static string? BuildNativeDigitalLinkSupportNote(
         VerificationRecord record,

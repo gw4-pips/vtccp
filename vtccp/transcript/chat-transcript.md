@@ -109,6 +109,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-21]:** Reported that the parsing section was broken, directed a return to report version 1.5.44 and its supporting app version, and requested that the app version be added beside the report version in the footer.
+
+**Assistant [2026-08-21]:** Restored the report generator, parser layout, validator, related tests, and application version to the v1.5.44 / 1.5.60 baseline. Added a dynamic app-version footer value beside the report version. The restored test suite and Windows build pass.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.

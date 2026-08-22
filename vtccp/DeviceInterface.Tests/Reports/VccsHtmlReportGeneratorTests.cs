@@ -30,6 +30,7 @@ public sealed class VccsHtmlReportGeneratorTests
 
         Assert.Contains(realFileName, report, StringComparison.Ordinal);
         Assert.DoesNotContain("_http.html", report, StringComparison.Ordinal);
+        Assert.Contains("App v", report, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -469,9 +470,9 @@ public sealed class VccsHtmlReportGeneratorTests
             HtmlDecodedData = "https://id.gs1.org/01/09506000134352/21/72803288707",
             HtmlDataFormatCheck = new DataFormatCheckResult
             {
-                Overall = OverallPassFail.Fail,
+                Overall = OverallPassFail.Pass,
                 Rows = [new DataFormatCheckRow
-                    { Name = "Verifier GS1 row", Data = "vendor data", Check = "FAIL" }],
+                    { Name = "Verifier GS1 row", Data = "vendor data", Check = "PASS" }],
             },
             VccsDigitalLinkValidation = new DigitalLinkValidationResult
             {
@@ -561,10 +562,10 @@ public sealed class VccsHtmlReportGeneratorTests
             DataFormatCheckSetting = "GS1",
             HtmlDataFormatCheck = new DataFormatCheckResult
             {
-                Overall = OverallPassFail.Fail,
+                Overall = OverallPassFail.Pass,
                 Rows =
                 [
-                    new DataFormatCheckRow { Name = "AI (01) GTIN-14", Data = "09506000134352", Check = "FAIL" },
+                    new DataFormatCheckRow { Name = "AI (01) GTIN-14", Data = "09506000134352", Check = "PASS" },
                     new DataFormatCheckRow { Name = "AI (10) LOT", Data = "LOT-12", Check = "PASS" },
                     new DataFormatCheckRow { Name = "AI (17) EXP", Data = "250101", Check = "PASS" },
                     new DataFormatCheckRow { Name = "AI (21) SN", Data = "72803288707", Check = "PASS" },
@@ -596,7 +597,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("AI (17) EXP", report, StringComparison.Ordinal);
         Assert.Contains("AI (21) SN", report, StringComparison.Ordinal);
         Assert.Contains("AI (20) VARIANT", report, StringComparison.Ordinal);
-        Assert.Contains("OVERALL: FAIL", report, StringComparison.Ordinal);
+        Assert.Contains("OVERALL: PASS", report, StringComparison.Ordinal);
         Assert.Contains("<td colspan=\"3\" class=\"dual-overall-cell\">", report,
             StringComparison.Ordinal);
         Assert.Contains("AI (10) Batch or Lot Number", report, StringComparison.Ordinal);
@@ -611,13 +612,13 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("grid-template-columns: 19.48% 80.52%", report, StringComparison.Ordinal);
         Assert.Contains(".barcode-image-column {\n    width: 19.48%", report, StringComparison.Ordinal);
         Assert.Contains(".barcode-dfc-column {\n    width: 80.52%", report, StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-left-field  { width: 17.35%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-left-field  { width: 17%; }", report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-left-data   { width: 25.55%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-left-data   { width: 25%; }", report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-right-field { width: 17.35%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-right-field { width: 17%; }", report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-right-data  { width: 25.55%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-right-data  { width: 25%; }", report,
             StringComparison.Ordinal);
         Assert.Contains(".dfc-dual-table .dual-subhead th {\n    background: #dbe5f1; font-size: 6.5pt;",
             report, StringComparison.Ordinal);
@@ -626,47 +627,6 @@ public sealed class VccsHtmlReportGeneratorTests
             StringComparison.Ordinal);
         Assert.DoesNotContain("GS1 Syntax Engine 1.4.0", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Native TruCheck Data Format Check", report,
-            StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void Generate_TruCheckPassUsesRegularRfidValidationLabel()
-    {
-        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
-        {
-            Symbology = "GS1 DataMatrix",
-            RfidStatus = "Pass",
-            HtmlDataFormatCheck = new DataFormatCheckResult
-            {
-                Overall = OverallPassFail.Pass,
-                Rows =
-                [
-                    new DataFormatCheckRow
-                    {
-                        Name = "AI (01) GTIN-14",
-                        Data = "09506000134352",
-                        Check = "PASS",
-                    },
-                ],
-            },
-            VccsDigitalLinkValidation = new DigitalLinkValidationResult
-            {
-                Status = DigitalLinkValidationStatus.Valid,
-                Source = DigitalLinkValidationResult.VccsElementStringSource,
-            },
-        });
-
-        Assert.Contains(
-            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Validation Result</td>",
-            report,
-            StringComparison.Ordinal);
-        Assert.DoesNotContain(
-            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Cross-Validation Result</td>",
-            report,
-            StringComparison.Ordinal);
-        Assert.DoesNotContain("<table class=\"dfc-dual-table\">", report,
-            StringComparison.Ordinal);
-        Assert.Contains("Native TruCheck Data Format Check", report,
             StringComparison.Ordinal);
     }
 
@@ -797,43 +757,6 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_RfidValidationResultUsesOneLineLabelAndAlignedDualParserColumns()
-    {
-        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
-        {
-            Symbology = "GS1 DataMatrix",
-            ApplicationPass = "Pass",
-            RfidStatus = "Fail",
-            HtmlDataFormatCheck = new DataFormatCheckResult
-            {
-                Overall = OverallPassFail.Fail,
-            },
-            VccsDigitalLinkValidation = new DigitalLinkValidationResult
-            {
-                Status = DigitalLinkValidationStatus.Valid,
-                Source = DigitalLinkValidationResult.VccsElementStringSource,
-            },
-        });
-
-        Assert.Contains(
-            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Cross-Validation Result</td>",
-            report,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            ".rfid-table .rfid-result-label { white-space: nowrap;",
-            report,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            ".dfc-dual-table col.dual-divider     { width: 0%; }",
-            report,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            ".dfc-dual-table col.dual-right-field { width: 17.35%; }",
-            report,
-            StringComparison.Ordinal);
-    }
-
-    [Fact]
     public void Generate_RfidGcpNotFound_IsNotReportedAsInvalid()
     {
         string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
@@ -865,7 +788,7 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_DoesNotRenderVeriWedgePanelWhenItWasNotUsed()
+    public void Generate_LabelsDigitalLinkNotApplicable()
     {
         var record = new VerificationRecord
         {
@@ -879,8 +802,8 @@ public sealed class VccsHtmlReportGeneratorTests
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.DoesNotContain("NOT APPLICABLE", report, StringComparison.Ordinal);
-        Assert.DoesNotContain("Decoded verifier data is not a GS1 Digital Link URI.", report,
+        Assert.Contains("NOT APPLICABLE", report, StringComparison.Ordinal);
+        Assert.Contains("Decoded verifier data is not a GS1 Digital Link URI.", report,
             StringComparison.Ordinal);
     }
 
@@ -949,7 +872,7 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_RfidFailureWithoutVeriWedge_UsesRegularValidationLabel()
+    public void Generate_RfidFailure_UsesExplicitCrossValidationLabel()
     {
         string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
         {
@@ -959,7 +882,7 @@ public sealed class VccsHtmlReportGeneratorTests
         });
 
         Assert.Contains(
-            "QR Code RFID Validation Result",
+            "QR Code RFID Cross-Validation Result",
             report,
             StringComparison.Ordinal);
     }

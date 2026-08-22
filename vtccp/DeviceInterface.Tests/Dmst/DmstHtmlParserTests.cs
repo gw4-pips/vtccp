@@ -689,10 +689,6 @@ public sealed class DmstHtmlParserTests
         VerificationRecord merged = DmstReportValidator.MergeAndValidate(record, html);
 
         Assert.Null(merged.DataFormatCheck);
-        Assert.NotNull(merged.VccsDigitalLinkValidation);
-        Assert.NotEqual(
-            DigitalLinkValidationStatus.NotApplicable,
-            merged.VccsDigitalLinkValidation!.Status);
     }
 
     [Fact]
@@ -728,7 +724,7 @@ public sealed class DmstHtmlParserTests
     }
 
     [Fact]
-    public void MergeAndValidate_SkipsVeriWedgeWhenVendorDfcPasses()
+    public void MergeAndValidate_PreservesVendorDfcWhenVccsDigitalLinkValidationIsAdded()
     {
         var scraped = new DataFormatCheckResult
         {
@@ -768,43 +764,8 @@ public sealed class DmstHtmlParserTests
 
         Assert.Same(scraped, merged.DataFormatCheck);
         Assert.Same(scraped, merged.HtmlDataFormatCheck);
-        Assert.Null(merged.VccsDigitalLinkValidation);
-        Assert.NotSame(localLegacyDfc, merged.DataFormatCheck);
-    }
-
-    [Fact]
-    public void MergeAndValidate_UsesVeriWedgeWhenVendorDfcFails()
-    {
-        var scraped = new DataFormatCheckResult
-        {
-            Overall = OverallPassFail.Fail,
-            Standard = "GS1 Application Data Format",
-            Rows =
-            [
-                new DataFormatCheckRow
-                {
-                    Name = "AI (01) GTIN-14",
-                    Data = "09506000134352",
-                    Check = "FAIL",
-                },
-            ],
-        };
-        var html = new DmstHtmlReport
-        {
-            ParseSucceeded = true,
-            SourceFilePath = FixturePath,
-            HtmlSourceFileName = Path.GetFileName(FixturePath),
-            HtmlDecodedData = "https://id.gs1.org/01/09506000134352",
-            ScrapedDataFormatCheck = scraped,
-        };
-
-        VerificationRecord merged = DmstReportValidator.MergeAndValidate(
-            new VerificationRecord { Symbology = "QR Code" }, html);
-
         Assert.NotNull(merged.VccsDigitalLinkValidation);
-        Assert.NotEqual(
-            DigitalLinkValidationStatus.NotApplicable,
-            merged.VccsDigitalLinkValidation!.Status);
+        Assert.NotSame(localLegacyDfc, merged.DataFormatCheck);
     }
 
     // ══ MergeAndValidate — fractional grade × threshold boundary ════════════════

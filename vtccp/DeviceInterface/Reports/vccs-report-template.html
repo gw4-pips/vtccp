@@ -18,7 +18,8 @@
     {{REPORT_NAME}}        — DM TC HTML filename (HTML-escaped)
     {{REPORT_DATETIME}}    — raw "Verified:" string from DM TC HTML header (HTML-escaped)
     {{RFID_ADJ}}           — "EPC" or "UHF"
-    {{FOOTER_VERSION}}     — report format version, e.g. "v1.5.11"
+    {{FOOTER_VERSION}}     — report format version, e.g. "v1.5.44"
+    {{APP_VERSION}}        — running application version, e.g. "v1.5.60"
     {{FOOTER_GENERATED}}   — "yyyy-MM-dd HH:mm:ss"
 
   SLOT list (replaced with generated HTML blocks):
@@ -225,10 +226,9 @@
     border-bottom: 1px solid #aaa;
     padding: 2.5pt 4pt 2pt;
   }
-  .rfid-table .lbl-col { width: 220pt; }
-  .rfid-table .rfid-result-label { white-space: nowrap; font-size: 8.5pt; }
-  /* The expanded Field column keeps “GS1 DataMatrix RFID Cross-Validation Result” on
-     one line while the wider page preserves ample value-column width. */
+  .rfid-table .lbl-col { width: 178pt; }
+  /* The fixed Field column holds its original width; every bit of the wider
+     page is consequently available to the Value column. */
   .row-hi          td { background: #f0f7ff; }
   .row-result-pass td { background:#d4edda; color:#155724; font-weight:bold; }
   .row-result-fail td { background:#f8d7da; color:#721c24; font-weight:bold; }
@@ -294,17 +294,19 @@
     break-inside: avoid; page-break-inside: avoid;
   }
    /*
-       Each parser owns half of the DFC area. The center cell carries only the
-       divider rule; it must not create a visible gutter before the VeriWedge
-       header or Field column.
+      Each parser owns 49% of the DFC area (the 2% center divider is shared).
+      With the barcode image held at 1.50in, the wider page gives each parser
+      block approximately 0.10in more live width.  Explicit columns also make
+      the right parser header and Field start at exactly the same inset as the
+      corresponding DataMan elements.
    */
-    .dfc-dual-table col.dual-left-field  { width: 17.35%; }
-    .dfc-dual-table col.dual-left-data   { width: 25.55%; }
-    .dfc-dual-table col.dual-left-check  { width: 7.10%; }
-    .dfc-dual-table col.dual-divider     { width: 0%; }
-    .dfc-dual-table col.dual-right-field { width: 17.35%; }
-    .dfc-dual-table col.dual-right-data  { width: 25.55%; }
-    .dfc-dual-table col.dual-right-check { width: 7.10%; }
+   .dfc-dual-table col.dual-left-field  { width: 17%; }
+   .dfc-dual-table col.dual-left-data   { width: 25%; }
+   .dfc-dual-table col.dual-left-check  { width: 7%; }
+   .dfc-dual-table col.dual-divider     { width: 2%; }
+   .dfc-dual-table col.dual-right-field { width: 17%; }
+   .dfc-dual-table col.dual-right-data  { width: 25%; }
+   .dfc-dual-table col.dual-right-check { width: 7%; }
   .dfc-dual-table th {
     background: #e8eef5; border-bottom: 1px solid #aaa;
     padding: 2pt 3pt; text-align: left; font-size: 7.5pt;
@@ -520,6 +522,7 @@
   <div class="footer">
     <div class="fl">
       VCCS <em>RFID VeriWedge&#x2122; PowerPro</em> Validation Report {{FOOTER_VERSION}}
+      <span>&nbsp;&#x2014;&nbsp; App {{APP_VERSION}}</span>
       <span>&nbsp;&#x2014;&nbsp; Generated {{FOOTER_GENERATED}}</span>
     </div>
     <div>Verification Command &amp; Control System (VCCS)</div>
