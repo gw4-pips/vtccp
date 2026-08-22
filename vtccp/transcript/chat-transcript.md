@@ -525,6 +525,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Confirmed Git reported “all conflicts fixed” and “still merging,” with only the seven approved Webscan/report files staged; solution files remained unstaged and local folders remained untracked.
+
+**Assistant [2026-08-22]:** Confirmed the state was safe to conclude and instructed the user to run `git commit --no-edit`, explicitly warning not to run `git add .` so local solution and hardware/report folders would remain excluded.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
