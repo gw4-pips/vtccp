@@ -708,3 +708,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Supplied a report crop and clarified that only the VeriWedge Field/Data horizontal boundary should move right enough to fit the two currently displayed wider field names, with no general future-name widening.
 
 **Assistant [2026-08-22]:** Shifted only the VeriWedge Field/Data split from 17%/33% to 18%/32%, moving the Data start by approximately 0.077 inch while leaving the Check column and all other report geometry unchanged. Updated the focused width assertions, bumped the application version to 1.5.74, and synchronized the change to GitHub. The Linux test run remained blocked before execution by existing ExcelEngine NPOI/OfficeOpenXml reference errors.
+
+---
+
+**User [2026-08-22]:** Asked to repeat the same isolated adjustment and move the VeriWedge Data column another 0.10 inch to the right, then push the change.
+
+**Assistant [2026-08-22]:** Increased the fixed VeriWedge Field allocation from 18% to 19.3% and reduced Data from 32% to 30.7%, moving the Data start another approximately 0.10 inch while preserving the 7% Check column and all other geometry. Updated the width assertions, bumped the application version to 1.5.75, and pushed commit `0b160e7`; local and both primary GitHub refs were verified equal.
