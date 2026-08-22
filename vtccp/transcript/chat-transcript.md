@@ -501,6 +501,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Confirmed Visual Studio was closed.
+
+**Assistant [2026-08-22]:** Confirmed GitHub now contains the verified Webscan update and instructed the user to run `git pull --no-rebase origin main` from `C:\dev\vtccp`, because the Windows branch already contains two local commits ahead of its previous remote tip.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
