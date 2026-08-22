@@ -491,6 +491,15 @@ public sealed record class VerificationRecord
     // Populated after the RFID scan window closes. Null on all fields when RFID
     // is not configured (RfidComPort empty) or when the scan is skipped.
 
+    /// <summary>
+    /// Whether an RFID reader was connected and available for this barcode scan.
+    /// This is deliberately separate from <see cref="RfidStatus"/>: a connected
+    /// reader can produce a <c>NoTag</c> result, while an unavailable reader has
+    /// no RFID result at all. Null is retained for records created before this
+    /// field existed; current session records always set it explicitly.
+    /// </summary>
+    public bool? RfidReaderConnected { get; init; }
+
     /// <summary>Raw EPC hex string from the selected tag, e.g. "30342A7CC844C7D0F36A0676".</summary>
     public string? RfidEpcHex { get; init; }
 

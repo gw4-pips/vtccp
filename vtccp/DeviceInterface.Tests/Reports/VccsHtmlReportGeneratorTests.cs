@@ -825,8 +825,9 @@ public sealed class VccsHtmlReportGeneratorTests
     {
         string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
         {
-            Symbology = "GS1 DataMatrix",
-            RfidStatus = "NoTag",
+            Symbology          = "GS1 DataMatrix",
+            RfidReaderConnected = true,
+            RfidStatus         = "NoTag",
         });
 
         Assert.Contains(
@@ -855,8 +856,9 @@ public sealed class VccsHtmlReportGeneratorTests
         const string epcSentinel = "RFID_VALUE_MUST_NOT_RENDER";
         string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
         {
-            Symbology = "GS1 DataMatrix",
-            RfidStatus = status,
+            Symbology          = "GS1 DataMatrix",
+            RfidReaderConnected = false,
+            RfidStatus         = status,
             RfidEpcHex = epcSentinel,
             RfidEpcTagUri = "urn:epc:tag:sgtin-96:1.0612345.012345.1",
             RfidGtin14 = epcSentinel,
@@ -875,6 +877,39 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("<div class=\"report-section report-section-rfid\">", report,
             StringComparison.Ordinal);
         Assert.Contains("Barcode Verification Capture Unavailable", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_ConnectedReaderWithNoData_RendersExpandedRfidValidation()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology          = "GS1 DataMatrix",
+            RfidReaderConnected = true,
+            RfidStatus         = "NoTag",
+        });
+
+        Assert.Contains("<table class=\"rfid-table\">", report, StringComparison.Ordinal);
+        Assert.Contains(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("<td>No Tag Detected</td>", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("No data: reader not activated", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_DisconnectedReaderOverridesNoDataStatusAndStaysCompact()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology          = "GS1 DataMatrix",
+            RfidReaderConnected = false,
+            RfidStatus         = "NoTag",
+        });
+
+        Assert.DoesNotContain("<table class=\"rfid-table\">", report, StringComparison.Ordinal);
+        Assert.Contains("No data: reader not activated", report, StringComparison.Ordinal);
     }
 
     [Fact]

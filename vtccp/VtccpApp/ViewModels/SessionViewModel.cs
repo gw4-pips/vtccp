@@ -1477,6 +1477,7 @@ public sealed class SessionViewModel : ViewModelBase
         // Awaiting here means the RFID result lands in the same Excel row as the
         // barcode grade — no row-update pass needed later.
         // Non-fatal: an RFID error never blocks barcode record acceptance.
+        bool rfidReaderConnected = _rfidCoordinator is not null && IsRfidConnected;
         RfidValidationResult? rfidResult = null;
         if (_rfidCoordinator is { } rfidCoord)
         {
@@ -1487,6 +1488,10 @@ public sealed class SessionViewModel : ViewModelBase
             }
             catch { /* RFID failure must never block record acceptance */ }
         }
+
+        // Preserve scanner participation even when the scan window returns no
+        // result. Report presentation must not infer it from RfidStatus alone.
+        record = record with { RfidReaderConnected = rfidReaderConnected };
 
         if (rfidResult is not null)
         {

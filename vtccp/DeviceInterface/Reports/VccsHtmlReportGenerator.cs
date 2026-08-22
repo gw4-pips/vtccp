@@ -290,8 +290,15 @@ public static class VccsHtmlReportGenerator
     }
 
     private static bool IsRfidReaderInactive(VerificationRecord r)
-        => string.IsNullOrWhiteSpace(r.RfidStatus) ||
-           string.Equals(r.RfidStatus, "Skipped", StringComparison.Ordinal);
+    {
+        // Current records carry reader participation explicitly. Keep the
+        // status-based fallback for older records that predate this field.
+        if (r.RfidReaderConnected.HasValue)
+            return !r.RfidReaderConnected.Value;
+
+        return string.IsNullOrWhiteSpace(r.RfidStatus) ||
+               string.Equals(r.RfidStatus, "Skipped", StringComparison.Ordinal);
+    }
 
     private static string BuildRfidTable(VerificationRecord r)
     {

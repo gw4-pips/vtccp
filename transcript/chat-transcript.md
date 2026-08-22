@@ -3070,3 +3070,9 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Assigned the RFID report-state refinement: shift only the dual-parser divider, distinguish an inactive reader from an active `NoTag` scan, collapse the inactive RFID table while preserving normal document flow and page-intact report sections, retain the Batch/Lot wrapping contract, update versions, and add focused coverage.
 
 **Assistant:** Completed the VCCS report refinement. The divider now sits 28% into its existing gap; inactive/null-or-skipped RFID records show the exact header-only no-data suffix with no table or RFID values; active `NoTag` records retain the existing table. Report sections now avoid splitting while the page grows in normal flow. The report version is 1.5.52 and the desktop app is 1.5.73. Focused generator tests passed 46/46, and active/inactive samples were rendered to PDF for visual confirmation.
+
+---
+
+**User:** Assigned Task 206: keep RFID Validation visible when a connected reader finds no tag.
+
+**Assistant:** Added explicit per-record RFID reader-connection state so a connected ASR-P35U remains visibly active even when it returns no tag data. The VCCS report now uses that state rather than inferring activity solely from the RFID result; older records retain the existing status-based behavior. Added focused coverage for connected no-tag versus disconnected no-data records, bumped the report to v1.5.54 and the app to 1.5.78, and verified the focused report suite (48/48), full DeviceInterface suite (199/199), and Windows-targeted Release build (0 errors).
