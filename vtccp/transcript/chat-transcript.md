@@ -403,6 +403,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Shared Device Manager showing `USB Serial Device (COM4)` alongside an unrelated Intel management port on `COM3`.
+
+**Assistant [2026-08-22]:** Identified that VTCCP was using the persisted `COM3` fallback while the reader interface is `COM4`; instructed the user to select `COM4` manually and connect without changing reader settings.
+
+---
+
 **User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
 
 **Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
