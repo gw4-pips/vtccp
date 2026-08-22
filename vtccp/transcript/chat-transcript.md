@@ -474,3 +474,15 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Asked about the Visual Studio save prompt shown when pulling the repository.
 
 **Assistant [2026-08-22]:** Advised choosing Don’t Save unless the solution was intentionally edited, because the prompt only concerns the unsaved `VTCCP.sln` state. Directed the user to reopen `VtccpWindows.sln` and set `VtccpApp` as the startup project.
+
+---
+
+**User [2026-08-22]:** Reported that after pulling, the Windows app still showed v1.5.65 and was concerned the earlier wrong Visual Studio solution window may have caused a problem.
+
+**Assistant [2026-08-22]:** Explained that v1.5.65 most likely indicates an older compiled binary or a different branch/repository path, not corruption. Noted that the merged application project is v1.5.66, while the later report v1.5.47 correction is local-only until committed and pushed. Recommended verifying the checkout before rebuilding.
+
+---
+
+**User [2026-08-22]:** Reported that after pulling, the running Windows app still shows v1.5.65 and expressed concern that the earlier wrong-solution window may have caused a problem.
+
+**Assistant [2026-08-22]:** Explained that v1.5.65 most likely indicates an older compiled app or a pull from a different branch/repository path, not corruption. Recommended verifying the checkout and then rebuilding the correct `VtccpWindows.sln` / `VtccpApp` path before considering any destructive Git operation.
