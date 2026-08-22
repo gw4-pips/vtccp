@@ -1,0 +1,1013 @@
+﻿{
+    "GeneratedAt":  "2026-08-22T06:46:41.7571894-04:00",
+    "Computer":  "GW4-T470S-WIN10",
+    "User":  "gw4",
+    "DevRoot":  "C:\\dev",
+    "Tools":  {
+                  "ComputerName":  "GW4-T470S-WIN10",
+                  "UserName":  "gw4",
+                  "PowerShellVersion":  "5.1.19041.6456",
+                  "Is64BitOperatingSystem":  true,
+                  "Is64BitProcess":  true,
+                  "Commands":  [
+                                   {
+                                       "Name":  "git",
+                                       "Available":  true,
+                                       "Path":  "C:\\Program Files\\Git\\cmd\\git.exe",
+                                       "Version":  "git version 2.53.0.windows.2",
+                                       "Details":  [
+                                                       "git version 2.53.0.windows.2"
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "gh",
+                                       "Available":  false,
+                                       "Path":  null,
+                                       "Version":  null,
+                                       "Details":  [
+
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "dotnet",
+                                       "Available":  true,
+                                       "Path":  "C:\\Program Files\\dotnet\\dotnet.exe",
+                                       "Version":  "10.0.303",
+                                       "Details":  [
+                                                       "10.0.303"
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "msbuild",
+                                       "Available":  false,
+                                       "Path":  null,
+                                       "Version":  null,
+                                       "Details":  [
+
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "devenv",
+                                       "Available":  false,
+                                       "Path":  null,
+                                       "Version":  null,
+                                       "Details":  [
+
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "vswhere",
+                                       "Available":  false,
+                                       "Path":  null,
+                                       "Version":  null,
+                                       "Details":  [
+
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "powershell",
+                                       "Available":  true,
+                                       "Path":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                                       "Version":  "5.1.19041.6456",
+                                       "Details":  [
+                                                       "5.1.19041.6456"
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "pwsh",
+                                       "Available":  false,
+                                       "Path":  null,
+                                       "Version":  null,
+                                       "Details":  [
+
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "node",
+                                       "Available":  false,
+                                       "Path":  null,
+                                       "Version":  null,
+                                       "Details":  [
+
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "npm",
+                                       "Available":  false,
+                                       "Path":  null,
+                                       "Version":  null,
+                                       "Details":  [
+
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "pnpm",
+                                       "Available":  false,
+                                       "Path":  null,
+                                       "Version":  null,
+                                       "Details":  [
+
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "python",
+                                       "Available":  true,
+                                       "Path":  "C:\\Windows\\system32\\python",
+                                       "Version":  "ERROR: Cannot run a document in the middle of a pipeline: C:\\Windows\\system32\\python.",
+                                       "Details":  [
+                                                       "ERROR: Cannot run a document in the middle of a pipeline: C:\\Windows\\system32\\python."
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "py",
+                                       "Available":  true,
+                                       "Path":  "C:\\Users\\GW4\\AppData\\Local\\Microsoft\\WindowsApps\\py.exe",
+                                       "Version":  "Python 3.14.6",
+                                       "Details":  [
+                                                       "Python 3.14.6"
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "7z",
+                                       "Available":  false,
+                                       "Path":  null,
+                                       "Version":  null,
+                                       "Details":  [
+
+                                                   ]
+                                   },
+                                   {
+                                       "Name":  "java",
+                                       "Available":  false,
+                                       "Path":  null,
+                                       "Version":  null,
+                                       "Details":  [
+
+                                                   ]
+                                   }
+                               ],
+                  "DotNet":  {
+                                 "Available":  true,
+                                 "Command":  {
+                                                 "Name":  "dotnet",
+                                                 "Available":  true,
+                                                 "Path":  "C:\\Program Files\\dotnet\\dotnet.exe",
+                                                 "Version":  "10.0.303",
+                                                 "Details":  [
+                                                                 "10.0.303"
+                                                             ]
+                                             },
+                                 "Sdks":  [
+                                              "10.0.303 [C:\\Program Files\\dotnet\\sdk]"
+                                          ],
+                                 "Runtimes":  [
+                                                  "Microsoft.AspNetCore.App 8.0.30 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]",
+                                                  "Microsoft.AspNetCore.App 10.0.11 [C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App]",
+                                                  "Microsoft.NETCore.App 8.0.30 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]",
+                                                  "Microsoft.NETCore.App 10.0.11 [C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App]",
+                                                  "Microsoft.WindowsDesktop.App 8.0.30 [C:\\Program Files\\dotnet\\shared\\Microsoft.WindowsDesktop.App]",
+                                                  "Microsoft.WindowsDesktop.App 10.0.11 [C:\\Program Files\\dotnet\\shared\\Microsoft.WindowsDesktop.App]"
+                                              ]
+                             },
+                  "VisualStudio":  {
+                                       "Available":  true,
+                                       "VsWherePath":  "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe",
+                                       "Installations":  [
+                                                             {
+                                                                 "InstallationPath":  null,
+                                                                 "InstallationName":  null,
+                                                                 "ProductId":  null,
+                                                                 "CatalogVersion":  null,
+                                                                 "IsComplete":  null,
+                                                                 "IsLaunchable":  null,
+                                                                 "ParseError":  "Cannot bind argument to parameter \u0027Object\u0027 because it is null.",
+                                                                 "RawOutput":  [
+                                                                                   "[",
+                                                                                   "  {",
+                                                                                   "    \"instanceId\": \"8fcdbb8c\",",
+                                                                                   "    \"installDate\": \"2026-03-27T11:30:34Z\",",
+                                                                                   "    \"installationName\": \"VisualStudio/18.8.3+12105.206\",",
+                                                                                   "    \"installationPath\": \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\",",
+                                                                                   "    \"installationVersion\": \"18.8.12105.206\",",
+                                                                                   "    \"productId\": \"Microsoft.VisualStudio.Product.Community\",",
+                                                                                   "    \"productPath\": \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\Common7\\\\IDE\\\\devenv.exe\",",
+                                                                                   "    \"state\": 4294967295,",
+                                                                                   "    \"isComplete\": true,",
+                                                                                   "    \"isLaunchable\": true,",
+                                                                                   "    \"isPrerelease\": false,",
+                                                                                   "    \"isRebootRequired\": false,",
+                                                                                   "    \"displayName\": \"Visual Studio Community 2026\",",
+                                                                                   "    \"description\": \"Everything you need to build modern apps - free for you, built for impact.\",",
+                                                                                   "    \"channelId\": \"VisualStudio.18.Release\",",
+                                                                                   "    \"channelUri\": \"https://aka.ms/vs/18/stable/channel\",",
+                                                                                   "    \"enginePath\": \"C:\\\\Program Files (x86)\\\\Microsoft Visual Studio\\\\Installer\\\\resources\\\\app\\\\ServiceHub\\\\Services\\\\Microsoft.VisualStudio.Setup.Service\",",
+                                                                                   "    \"expirationDate\": \"2026-11-03T17:00:00+00:00\",",
+                                                                                   "    \"installedChannelId\": \"VisualStudio.18.Release\",",
+                                                                                   "    \"installedChannelUri\": \"https://aka.ms/vs/18/stable/channel\",",
+                                                                                   "    \"releaseNotes\": \"https://docs.microsoft.com/en-us/visualstudio/releases/18/release-notes-v18.8#18.8.3\",",
+                                                                                   "    \"resolvedInstallationPath\": \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\",",
+                                                                                   "    \"retirementDate\": \"2027-02-01T17:00:00+00:00\",",
+                                                                                   "    \"thirdPartyNotices\": \"https://go.microsoft.com/fwlink/?LinkId=661480\",",
+                                                                                   "    \"updateDate\": \"2026-08-14T13:12:32.1474912Z\",",
+                                                                                   "    \"catalog\": {",
+                                                                                   "      \"buildBranch\": \"oobstable\",",
+                                                                                   "      \"buildVersion\": \"18.8.12105.206\",",
+                                                                                   "      \"featureReleaseMonth\": \"07\",",
+                                                                                   "      \"featureReleaseYear\": \"2026\",",
+                                                                                   "      \"id\": \"VisualStudio/18.8.3+12105.206\",",
+                                                                                   "      \"includeBuildVersionInDisplayVersion\": \"False\",",
+                                                                                   "      \"localBuild\": \"build-lab\",",
+                                                                                   "      \"manifestName\": \"VisualStudio\",",
+                                                                                   "      \"manifestType\": \"installer\",",
+                                                                                   "      \"productDisplayVersion\": \"18.8.3\",",
+                                                                                   "      \"productLine\": \"Dev18\",",
+                                                                                   "      \"productLineVersion\": \"18\",",
+                                                                                   "      \"productMilestone\": \"RTW\",",
+                                                                                   "      \"productMilestoneIsPreRelease\": \"False\",",
+                                                                                   "      \"productName\": \"Visual Studio\",",
+                                                                                   "      \"productPatchVersion\": \"3\",",
+                                                                                   "      \"productPreReleaseMilestoneSuffix\": \"1.0\",",
+                                                                                   "      \"productRelease\": \"RTW\",",
+                                                                                   "      \"productSemanticVersion\": \"18.8.3+12105.206\",",
+                                                                                   "      \"requiredEngineVersion\": \"4.8.60.55523\"",
+                                                                                   "    },",
+                                                                                   "    \"properties\": {",
+                                                                                   "      \"appLocalWPF\": \"false\",",
+                                                                                   "      \"campaignId\": \"2500:6bb2ad7a4b0349ab8c60a40753a644bb\",",
+                                                                                   "      \"channelManifestId\": \"VisualStudio.18.Release/18.8.3+12105.206\",",
+                                                                                   "      \"includeRecommended\": \"1\",",
+                                                                                   "      \"nickname\": \"\",",
+                                                                                   "      \"setupEngineFilePath\": \"C:\\\\Program Files (x86)\\\\Microsoft Visual Studio\\\\Installer\\\\setup.exe\"",
+                                                                                   "    }",
+                                                                                   "  }",
+                                                                                   "]"
+                                                                               ]
+                                                             }
+                                                         ],
+                                       "RawDetails":  [
+                                                          "[",
+                                                          "  {",
+                                                          "    \"instanceId\": \"8fcdbb8c\",",
+                                                          "    \"installDate\": \"2026-03-27T11:30:34Z\",",
+                                                          "    \"installationName\": \"VisualStudio/18.8.3+12105.206\",",
+                                                          "    \"installationPath\": \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\",",
+                                                          "    \"installationVersion\": \"18.8.12105.206\",",
+                                                          "    \"productId\": \"Microsoft.VisualStudio.Product.Community\",",
+                                                          "    \"productPath\": \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\\\\Common7\\\\IDE\\\\devenv.exe\",",
+                                                          "    \"state\": 4294967295,",
+                                                          "    \"isComplete\": true,",
+                                                          "    \"isLaunchable\": true,",
+                                                          "    \"isPrerelease\": false,",
+                                                          "    \"isRebootRequired\": false,",
+                                                          "    \"displayName\": \"Visual Studio Community 2026\",",
+                                                          "    \"description\": \"Everything you need to build modern apps - free for you, built for impact.\",",
+                                                          "    \"channelId\": \"VisualStudio.18.Release\",",
+                                                          "    \"channelUri\": \"https://aka.ms/vs/18/stable/channel\",",
+                                                          "    \"enginePath\": \"C:\\\\Program Files (x86)\\\\Microsoft Visual Studio\\\\Installer\\\\resources\\\\app\\\\ServiceHub\\\\Services\\\\Microsoft.VisualStudio.Setup.Service\",",
+                                                          "    \"expirationDate\": \"2026-11-03T17:00:00+00:00\",",
+                                                          "    \"installedChannelId\": \"VisualStudio.18.Release\",",
+                                                          "    \"installedChannelUri\": \"https://aka.ms/vs/18/stable/channel\",",
+                                                          "    \"releaseNotes\": \"https://docs.microsoft.com/en-us/visualstudio/releases/18/release-notes-v18.8#18.8.3\",",
+                                                          "    \"resolvedInstallationPath\": \"C:\\\\Program Files\\\\Microsoft Visual Studio\\\\18\\\\Community\",",
+                                                          "    \"retirementDate\": \"2027-02-01T17:00:00+00:00\",",
+                                                          "    \"thirdPartyNotices\": \"https://go.microsoft.com/fwlink/?LinkId=661480\",",
+                                                          "    \"updateDate\": \"2026-08-14T13:12:32.1474912Z\",",
+                                                          "    \"catalog\": {",
+                                                          "      \"buildBranch\": \"oobstable\",",
+                                                          "      \"buildVersion\": \"18.8.12105.206\",",
+                                                          "      \"featureReleaseMonth\": \"07\",",
+                                                          "      \"featureReleaseYear\": \"2026\",",
+                                                          "      \"id\": \"VisualStudio/18.8.3+12105.206\",",
+                                                          "      \"includeBuildVersionInDisplayVersion\": \"False\",",
+                                                          "      \"localBuild\": \"build-lab\",",
+                                                          "      \"manifestName\": \"VisualStudio\",",
+                                                          "      \"manifestType\": \"installer\",",
+                                                          "      \"productDisplayVersion\": \"18.8.3\",",
+                                                          "      \"productLine\": \"Dev18\",",
+                                                          "      \"productLineVersion\": \"18\",",
+                                                          "      \"productMilestone\": \"RTW\",",
+                                                          "      \"productMilestoneIsPreRelease\": \"False\",",
+                                                          "      \"productName\": \"Visual Studio\",",
+                                                          "      \"productPatchVersion\": \"3\",",
+                                                          "      \"productPreReleaseMilestoneSuffix\": \"1.0\",",
+                                                          "      \"productRelease\": \"RTW\",",
+                                                          "      \"productSemanticVersion\": \"18.8.3+12105.206\",",
+                                                          "      \"requiredEngineVersion\": \"4.8.60.55523\"",
+                                                          "    },",
+                                                          "    \"properties\": {",
+                                                          "      \"appLocalWPF\": \"false\",",
+                                                          "      \"campaignId\": \"2500:6bb2ad7a4b0349ab8c60a40753a644bb\",",
+                                                          "      \"channelManifestId\": \"VisualStudio.18.Release/18.8.3+12105.206\",",
+                                                          "      \"includeRecommended\": \"1\",",
+                                                          "      \"nickname\": \"\",",
+                                                          "      \"setupEngineFilePath\": \"C:\\\\Program Files (x86)\\\\Microsoft Visual Studio\\\\Installer\\\\setup.exe\"",
+                                                          "    }",
+                                                          "  }",
+                                                          "]"
+                                                      ]
+                                   },
+                  "InstalledPrograms":  [
+                                            {
+                                                "DisplayName":  "ClickOnce Bootstrapper Package for Microsoft .NET Framework",
+                                                "DisplayVersion":  "4.8.09256",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{BDF8C840-5B9A-4D9B-9BCA-CE4163973563}"
+                                            },
+                                            {
+                                                "DisplayName":  "Cognex DataMan Software v25.3.1",
+                                                "DisplayVersion":  "25.3.1",
+                                                "Publisher":  "Cognex",
+                                                "InstallLocation":  "C:\\Program Files (x86)\\Cognex\\DataMan\\DataMan Software v25.3.1",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{CFD1DF35-39C4-49CD-9F89-E99887CEFA00}"
+                                            },
+                                            {
+                                                "DisplayName":  "Cognex DataMan Software v26.1.0",
+                                                "DisplayVersion":  "26.1.0",
+                                                "Publisher":  "Cognex",
+                                                "InstallLocation":  "C:\\Program Files (x86)\\Cognex\\DataMan\\DataMan Software v26.1.0",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{4FEF5F0C-1636-4A8F-823A-0D2F88B59D5E}"
+                                            },
+                                            {
+                                                "DisplayName":  "Cognex DataMan Software v5.7.10",
+                                                "DisplayVersion":  "5.7.10",
+                                                "Publisher":  "Cognex",
+                                                "InstallLocation":  "C:\\Program Files (x86)\\Cognex\\DataMan\\DataMan Software v5.7.10",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{22A6BAB1-D7A3-4806-A666-84AB8EC03C02}"
+                                            },
+                                            {
+                                                "DisplayName":  "Cognex DataMan Software v5.7.7_SR5",
+                                                "DisplayVersion":  "5.7.7_SR5",
+                                                "Publisher":  "Cognex",
+                                                "InstallLocation":  "C:\\Program Files (x86)\\Cognex\\DataMan\\DataMan Software v5.7.7_SR5",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{4F06FDBE-9269-448A-A63D-A6ABA4815970}"
+                                            },
+                                            {
+                                                "DisplayName":  "Entity Framework 6.5.0 Tools  for Visual Studio 2022",
+                                                "DisplayVersion":  "6.5.0.0",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{8CE8E247-ABBC-421E-B5C2-F0E486B1E3AE}"
+                                            },
+                                            {
+                                                "DisplayName":  "Git",
+                                                "DisplayVersion":  "2.53.0.2",
+                                                "Publisher":  "The Git Development Community",
+                                                "InstallLocation":  "C:\\Program Files\\Git\\",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Git_is1"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET 10.0 Templates 10.0.303 x64",
+                                                "DisplayVersion":  "40.11.49675",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{9C290FB6-B8A1-4CC4-A8F0-FC82D272B797}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET 8.0 Templates 8.0.424 (x64)",
+                                                "DisplayVersion":  "32.15.49180",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{FAD9A9EC-B00A-47DB-9B75-8A06F578AFE6}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET AppHost Pack - 10.0.11 (x64)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{67273AA3-5D20-482A-872C-47EFA891DDE4}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET AppHost Pack - 10.0.11 (x64_arm64)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{B52D2996-66D4-488A-AFE7-6201258CFA7A}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET AppHost Pack - 10.0.11 (x64_x86)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{B8911B32-A96A-41E8-B831-014A7D38C5FF}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET AppHost Pack - 8.0.30 (x64)",
+                                                "DisplayVersion":  "64.120.56788",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C9B58AF0-898B-404B-9F29-6291546CF573}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET AppHost Pack - 8.0.30 (x64_arm64)",
+                                                "DisplayVersion":  "64.120.56788",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{2AD69AB3-85BC-4412-81DB-B8DD9EFD4479}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET AppHost Pack - 8.0.30 (x64_x86)",
+                                                "DisplayVersion":  "64.120.56788",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{FBE5906D-3151-41B1-A70F-8FA7D9914C0A}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Framework 4.7.2 Targeting Pack",
+                                                "DisplayVersion":  "4.7.03062",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{1784A8CD-F7FE-47E2-A87D-1F31E7242D0D}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Framework 4.7.2 Targeting Pack (ENU)",
+                                                "DisplayVersion":  "4.7.03062",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{B517DBD3-B542-4FC8-9957-FFB2C3E65D1D}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Framework 4.8 SDK",
+                                                "DisplayVersion":  "4.8.03928",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{949C0535-171C-480F-9CF4-D25C9E60FE88}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Framework 4.8 Targeting Pack",
+                                                "DisplayVersion":  "4.8.03761",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{BAAF5851-0759-422D-A1E9-90061B597188}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Framework 4.8 Targeting Pack (ENU)",
+                                                "DisplayVersion":  "4.8.03761",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{A4EA9EE5-7CFF-4C5F-B159-B9B4E5D2BDE2}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Framework Cumulative Intellisense Pack for Visual Studio (ENU)",
+                                                "DisplayVersion":  "4.8.09037",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{1A9C3A1A-566B-4CFA-8B27-71FC623963BE}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Host - 10.0.11 (x64)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{E1510730-5A34-4EF3-B865-84351D8BF1BA}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Host - 10.0.11 (x86)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{3294662B-7F31-4682-87C8-11C20EFC16B2}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Host FX Resolver - 10.0.11 (x64)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{208D3FC0-B592-4221-8E53-6B21621E9951}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Host FX Resolver - 10.0.11 (x86)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F257F19C-D6EB-422B-B698-8C0F85E279A6}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Runtime - 10.0.11 (x64)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0B4F3EF1-06F1-46E4-B662-A33DECC02141}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Runtime - 10.0.11 (x86)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{00DF1FF7-77D5-475D-9067-0D048B5798BF}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Runtime - 8.0.30 (x64)",
+                                                "DisplayVersion":  "64.120.56788",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{D629906C-1E1C-4728-AB21-81690B4F435C}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Runtime - 8.0.30 (x86)",
+                                                "DisplayVersion":  "64.120.56788",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{D1F317A1-32CC-4B0F-BED8-5045BE928A8E}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET SDK 10.0.303 (x64) from Visual Studio",
+                                                "DisplayVersion":  "40.11.49675",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0F76B280-0831-4828-B3FF-2630BBB1475A}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Standard Targeting Pack - 2.1.0 (x64)",
+                                                "DisplayVersion":  "24.0.28113",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{A7036CFB-B403-4598-85FF-D397ABB88173}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Targeting Pack - 10.0.11 (x64)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{650B7271-FAD6-4F67-AC87-1FB7710B7052}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Targeting Pack - 10.0.11 (x86)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C686CFE3-4D46-48A8-A71C-6842B7D1CC75}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Targeting Pack - 8.0.30 (x64)",
+                                                "DisplayVersion":  "64.120.56788",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{76151ED2-6BDA-4B58-A67E-ACE218AB0BC8}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Targeting Pack - 8.0.30 (x86)",
+                                                "DisplayVersion":  "64.120.56788",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{AAD9DC98-3D70-44BF-B538-AF31311D81D9}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft .NET Toolset 10.0.303 (x64)",
+                                                "DisplayVersion":  "40.11.49675",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{A2E6C546-7574-4DC6-A788-14BD341AAE6F}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft ASP.NET Core 8.0.30 Shared Framework (x64)",
+                                                "DisplayVersion":  "8.0.30.26373",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{A081A51B-E62A-39B8-913E-BADD8740D7C5}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft ASP.NET Core 8.0.30 Shared Framework (x86)",
+                                                "DisplayVersion":  "8.0.30.26373",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{98AA17D7-FF83-3C11-B247-5AD82E63F6AE}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft ASP.NET Core 8.0.30 Targeting Pack (x64)",
+                                                "DisplayVersion":  "8.0.30.26373",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{4676037F-A125-366E-8962-748F38488C5A}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft ASP.NET Core 8.0.30 Targeting Pack (x86)",
+                                                "DisplayVersion":  "8.0.30.26373",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{39C430F6-17EF-3A36-A6E3-2597A1C97541}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft ASP.NET Core Runtime - 10.0.11 (x64)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{D19D8645-F221-43D0-A970-27189E7E4CC8}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft ASP.NET Core Runtime - 10.0.11 (x86)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{7412067E-F000-4675-92FA-FB85D937CA1D}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft ASP.NET Core Targeting Pack - 10.0.11 (x64)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{82DCDF80-EB72-4E2C-97EE-C00AA909CE43}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft ASP.NET Core Targeting Pack - 10.0.11 (x86)",
+                                                "DisplayVersion":  "80.44.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{335429D7-81EA-46C7-B7F7-C748649AEF2F}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft Edge WebView2 Runtime",
+                                                "DisplayVersion":  "151.0.4129.93",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Microsoft EdgeWebView"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft Visual Studio Installer",
+                                                "DisplayVersion":  "4.9.50.62957",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "\"C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\"",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{6F320B93-EE3C-4826-85E0-ADF79F8D4C61}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft Visual Studio Setup Configuration",
+                                                "DisplayVersion":  "4.8.41.48107",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{4F91293C-541D-4561-BD33-C0342F993E96}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft Visual Studio Setup WMI Provider",
+                                                "DisplayVersion":  "4.8.41.48107",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{7A59C3E4-C4CB-452B-BA0F-C8738F3C9392}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Sdk.Android.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "36.1.43",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C088949A-CFA4-448B-8AA6-0BA76AABEA01}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Sdk.iOS.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "255.225.10284",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{D4280C99-476A-4CFC-A18D-857B1815E4F7}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Sdk.MacCatalyst.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "255.225.10284",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{9FC46D70-C960-4F56-A22E-0A80CA07463B}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Sdk.macOS.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "255.225.10284",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{AD499CE8-FC92-480D-A20E-2651BF623C9D}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Sdk.Maui.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "10.0.20",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C27752E8-63F8-4634-BCF3-0E1C889117D6}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Sdk.tvOS.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "255.225.10284",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{E7604F0E-79BD-4291-812D-BAB5A313A97D}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Workload.Emscripten.Current.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "81.188.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{6C16CC31-7C13-4F8E-B039-9D339D90975B}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Workload.Emscripten.net6.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "81.188.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{AD5D3A6E-0650-4D0C-9372-AFE3634820ED}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Workload.Emscripten.net7.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "81.188.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{F459A776-E491-45BF-A98E-5987F67ADFA3}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Workload.Emscripten.net8.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "81.188.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{3B25D8F0-1315-4ABE-A797-CEB7DE7BC2A5}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Workload.Emscripten.net9.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "81.188.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{50BCA544-04E6-4687-A53D-002A9A57EC7C}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Workload.Mono.Toolchain.Current.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "81.188.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{C5EA5550-2438-4616-9565-1D0F18C4D579}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Workload.Mono.Toolchain.net6.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "81.188.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{E9D8E262-1D78-43DE-A7E2-2E4896761361}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Workload.Mono.Toolchain.net7.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "81.188.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{5C4FDB16-466D-499F-81F1-488E17443885}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Workload.Mono.Toolchain.net8.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "81.188.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{5045A27F-31C3-4CE6-A5B5-0E8037600433}"
+                                            },
+                                            {
+                                                "DisplayName":  "Microsoft.NET.Workload.Mono.Toolchain.net9.Manifest-10.0.100 (x64)",
+                                                "DisplayVersion":  "81.188.56884",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{BAAE16EA-F179-4BE5-9F93-E1A23E22F1C5}"
+                                            },
+                                            {
+                                                "DisplayName":  "TruCheck",
+                                                "DisplayVersion":  "3.3.74",
+                                                "Publisher":  "Webscan Inc",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0E9FF972-26A7-45CE-A57E-DD90E542F0F7}"
+                                            },
+                                            {
+                                                "DisplayName":  "Visual Studio Community 2026",
+                                                "DisplayVersion":  "18.8.3",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "C:\\Program Files\\Microsoft Visual Studio\\18\\Community",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\8fcdbb8c"
+                                            },
+                                            {
+                                                "DisplayName":  "vs_githubprotocolhandlermsi",
+                                                "DisplayVersion":  "18.8.11829",
+                                                "Publisher":  "Microsoft Corporation",
+                                                "InstallLocation":  "",
+                                                "UninstallKey":  "Microsoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACHINE\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{341BADD2-E3F5-4A8B-8294-40FB6655EC33}"
+                                            }
+                                        ],
+                  "PathEntries":  [
+                                      "C:\\Windows\\system32",
+                                      "C:\\Windows",
+                                      "C:\\Windows\\System32\\Wbem",
+                                      "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\",
+                                      "C:\\Windows\\System32\\OpenSSH\\",
+                                      "C:\\Program Files\\Git\\cmd",
+                                      "C:\\Program Files\\dotnet\\",
+                                      "C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin64",
+                                      "C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin64\\vs2013",
+                                      "C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin64\\vs2015",
+                                      "C:\\Program Files (x86)\\Common Files\\Acronis\\SnapAPI\\",
+                                      "C:\\Program Files (x86)\\Common Files\\Acronis\\VirtualFile\\",
+                                      "C:\\Program Files (x86)\\Common Files\\Acronis\\VirtualFile64\\",
+                                      "C:\\Program Files (x86)\\Common Files\\Acronis\\FileProtector\\",
+                                      "C:\\Program Files (x86)\\Common Files\\Acronis\\FileProtector64\\",
+                                      "C:\\Users\\GW4\\AppData\\Local\\Microsoft\\WindowsApps",
+                                      "C:\\Users\\GW4\\.dotnet\\tools",
+                                      "C:\\Users\\GW4\\AppData\\Local\\Python\\bin",
+                                      "C:\\Program Files\\Wireshark"
+                                  ]
+              },
+    "Repositories":  [
+                         {
+                             "Name":  "gs1-digital-link-resolver",
+                             "Path":  "C:\\dev\\gs1-digital-link-resolver",
+                             "Exists":  true,
+                             "GitRoot":  "C:/dev/gs1-digital-link-resolver",
+                             "Branch":  "main",
+                             "Status":  [
+                                            "## main...origin/main",
+                                            "?? tools/rfid-wedge/AsReaderP3xU.dll",
+                                            "?? tools/rfid-wedge/AsReaderP3xU_Demo.exe",
+                                            "?? tools/rfid-wedge/AsReaderP3xU_Demo.exe.Config",
+                                            "?? tools/rfid-wedge/FirmwareFile/",
+                                            "?? tools/rfid-wedge/TagLog.csv",
+                                            "?? tools/rfid-wedge/__pycache__/",
+                                            "?? tools/rfid-wedge/debug.log",
+                                            "?? tools/rfid-wedge/debug.log.1",
+                                            "?? tools/rfid-wedge/rfid_wedge_config.json"
+                                        ],
+                             "Remotes":  [
+                                             "origin\thttps://github.com/gw4-pips/gs1-digital-link-resolver.git (fetch)",
+                                             "origin\thttps://github.com/gw4-pips/gs1-digital-link-resolver.git (push)"
+                                         ]
+                         },
+                         {
+                             "Name":  "vtccp",
+                             "Path":  "C:\\dev\\vtccp",
+                             "Exists":  false,
+                             "GitRoot":  null,
+                             "Branch":  null,
+                             "Status":  [
+
+                                        ],
+                             "Remotes":  [
+
+                                         ]
+                         }
+                     ],
+    "SdkCandidates":  [
+                          {
+                              "FullName":  "C:\\dev\\gs1-digital-link-resolver\\tools\\rfid-wedge\\AsReaderP3xU.dll",
+                              "Length":  93184,
+                              "LastWriteTime":  "\/Date(1786148070143)\/"
+                          },
+                          {
+                              "FullName":  "C:\\Users\\GW4\\Downloads\\AsReader_P35U_SDK_cs_1_3_0\\AsReader_P35U_SDK_c#_1_3_0\\AsReaderP3xU.dll",
+                              "Length":  93184,
+                              "LastWriteTime":  "\/Date(1786148070143)\/"
+                          },
+                          {
+                              "FullName":  "C:\\Users\\GW4\\Downloads\\Sample_AsReader-P35U_cs_1_3_0(1)\\Sample_AsReader-P35U_c#_1_3_0\\AsReaderP3xU_Demo\\bin\\Release\\AsReaderP3xU.dll",
+                              "Length":  93184,
+                              "LastWriteTime":  "\/Date(1786376893509)\/"
+                          }
+                      ],
+    "ExpectedPaths":  [
+                          {
+                              "Path":  "C:\\dev\\vtccp",
+                              "Exists":  false
+                          },
+                          {
+                              "Path":  "C:\\dev\\vtccp\\vtccp",
+                              "Exists":  false
+                          },
+                          {
+                              "Path":  "C:\\dev\\vtccp\\vtccp\\VTCCP.sln",
+                              "Exists":  false
+                          },
+                          {
+                              "Path":  "C:\\dev\\vtccp\\lib\\asreader-p3xu-sdk-1.3.0\\AsReaderP3xU.dll",
+                              "Exists":  false
+                          },
+                          {
+                              "Path":  "Q:\\VendorDOC\\AsReader (Asterisk)\\AsReader_P35U_SDK_cs_1_3_0\\AsReader_P35U_SDK_c#_1_3_0\\AsReaderP3xU.dll",
+                              "Exists":  false
+                          }
+                      ],
+    "Devices":  {
+                    "PnpPorts":  [
+                                     {
+                                         "Status":  "OK",
+                                         "Class":  "Ports",
+                                         "FriendlyName":  "Intel(R) Active Management Technology - SOL (COM3)",
+                                         "InstanceId":  "PCI\\VEN_8086\u0026DEV_9D3D\u0026SUBSYS_224B17AA\u0026REV_21\\3\u002611583659\u00260\u0026B3",
+                                         "ProblemCode":  null
+                                     },
+                                     {
+                                         "Status":  "OK",
+                                         "Class":  "Ports",
+                                         "FriendlyName":  "USB Serial Device (COM4)",
+                                         "InstanceId":  "USB\\VID_339C\u0026PID_271B\\647D06EC0B35",
+                                         "ProblemCode":  null
+                                     }
+                                 ],
+                    "PnpUsb":  [
+                                   {
+                                       "Status":  "OK",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "USB Root Hub (USB 3.0)",
+                                       "InstanceId":  "USB\\ROOT_HUB30\\7\u002614D56D8E\u00260\u00260",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "OK",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "USB Composite Device",
+                                       "InstanceId":  "USB\\VID_046D\u0026PID_C52B\\5\u0026396546A\u00260\u00262",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "Error",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "Unknown USB Device (Invalid Configuration Descriptor)",
+                                       "InstanceId":  "USB\\VID_0000\u0026PID_0006\\5\u0026396546A\u00260\u00268",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "Unknown",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "Unknown USB Device (Device Descriptor Request Failed)",
+                                       "InstanceId":  "USB\\VID_0000\u0026PID_0002\\8\u002638E8F219\u00260\u00261",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "OK",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "Intel(R) USB 3.0 eXtensible Host Controller - 1.0 (Microsoft)",
+                                       "InstanceId":  "PCI\\VEN_8086\u0026DEV_9D2F\u0026SUBSYS_224B17AA\u0026REV_21\\3\u002611583659\u00260\u0026A0",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "OK",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "Intel(R) USB 3.1 eXtensible Host Controller - 1.10 (Microsoft)",
+                                       "InstanceId":  "PCI\\VEN_8086\u0026DEV_15C1\u0026SUBSYS_11112222\u0026REV_01\\6\u002636CB01CF\u00260\u0026001000E0",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "Unknown",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "USB Mass Storage Device",
+                                       "InstanceId":  "USB\\VID_ABCD\u0026PID_1234\\027",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "Unknown",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "USB Mass Storage Device",
+                                       "InstanceId":  "USB\\VID_ABCD\u0026PID_1234\\717",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "OK",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "Realtek USB 3.0 Card Reader",
+                                       "InstanceId":  "USB\\VID_0BDA\u0026PID_0316\\20120501030900000",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "Unknown",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "USB Mass Storage Device",
+                                       "InstanceId":  "USB\\VID_13FD\u0026PID_3940\\20202020202020202020202020202020",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "OK",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "USB Root Hub (USB 3.0)",
+                                       "InstanceId":  "USB\\ROOT_HUB30\\4\u00261D223D8F\u00260\u00260",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "Unknown",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "USB Mass Storage Device",
+                                       "InstanceId":  "USB\\VID_ABCD\u0026PID_1234\\1507270716330486050009",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "Unknown",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "Generic USB Hub",
+                                       "InstanceId":  "USB\\VID_0424\u0026PID_2512\\5\u0026396546A\u00260\u00264",
+                                       "ProblemCode":  null
+                                   },
+                                   {
+                                       "Status":  "Unknown",
+                                       "Class":  "USB",
+                                       "FriendlyName":  "USB Composite Device",
+                                       "InstanceId":  "USB\\VID_5986\u0026PID_111C\\200901010001",
+                                       "ProblemCode":  null
+                                   }
+                               ],
+                    "SerialPorts":  [
+                                        {
+                                            "DeviceID":  "COM3",
+                                            "Name":  "Intel(R) Active Management Technology - SOL (COM3)",
+                                            "Description":  "Intel(R) Active Management Technology - SOL",
+                                            "Status":  "OK",
+                                            "PNPDeviceID":  "PCI\\VEN_8086\u0026DEV_9D3D\u0026SUBSYS_224B17AA\u0026REV_21\\3\u002611583659\u00260\u0026B3"
+                                        },
+                                        {
+                                            "DeviceID":  "COM4",
+                                            "Name":  "USB Serial Device (COM4)",
+                                            "Description":  "USB Serial Device",
+                                            "Status":  "OK",
+                                            "PNPDeviceID":  "USB\\VID_339C\u0026PID_271B\\647D06EC0B35"
+                                        }
+                                    ]
+                }
+}

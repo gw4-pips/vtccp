@@ -193,6 +193,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Supplied the corrected audit JSON and Markdown pair and asked whether the prior two report sets should be deleted.
+
+**Assistant [2026-08-22]:** Advised keeping the current pair until one clean rerun because it still contains a nonfatal Visual Studio metadata parse error. Fixed the remaining PowerShell null-metadata issue, preserved the current pair as the baseline, and deferred deletion of older sets until the rerun is clean.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.

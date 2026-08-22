@@ -23,7 +23,7 @@ function Invoke-CapturedCommand {
 
 function Get-OptionalPropertyValue {
     param(
-        [Parameter(Mandatory = $true)]
+        [AllowNull()]
         [object] $Object,
 
         [Parameter(Mandatory = $true)]
@@ -135,6 +135,9 @@ function Get-VisualStudioInventory {
     try {
         $parsed = ($raw -join "`n") | ConvertFrom-Json
         foreach ($item in @($parsed)) {
+            if ($null -eq $item) {
+                continue
+            }
             $catalogInfo = Get-OptionalPropertyValue -Object $item -Name "catalogInfo"
             $installations += [pscustomobject]@{
                 InstallationPath = Get-OptionalPropertyValue -Object $item -Name "installationPath"
