@@ -70,3 +70,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-21]:** For GCP output, use `Invalid (8)` without an equals sign, while valid remains `Valid (=7)`.
 
 **Assistant [2026-08-21]:** Updated the report formatting and regression coverage so valid GCP results use `Valid (=N)` and invalid results use `Invalid (N)`.
+
+---
+
+**User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
+
+**Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.

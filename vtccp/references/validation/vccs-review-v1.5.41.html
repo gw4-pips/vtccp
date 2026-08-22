@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<!--
+  VCCS RFID VeriWedge™ PowerPro Validation Report — HTML template (v23 design)
+  =========================================================================
+  This file is an EmbeddedResource loaded at runtime by VccsHtmlReportGenerator.
+  ALL visual changes (CSS, layout, section structure) belong here.
+  C# only replaces {{TOKEN}} and {{SLOT_*}} markers with live data.
+
+  TOKEN list (simple string replacements):
+    <div class="logo-name">VCCS</div><div class="logo-sub">RFID VeriWedge&#x2122; PowerPro</div>      — <img> tag (base64 PNG) or text fallback
+    PIPS   — <img> tag (base64 PNG) or text fallback
+    DM475-866D76         — device model/name string
+    1A2134PP482281         — device serial number
+    6.1.16_tc9             — firmware version
+    badge-pass    — badge-pass / badge-fail / badge-warn
+    &#x2713; RFID MATCHED     — e.g. "&#x2713; RFID MATCHED" (raw HTML, not escaped)
+    TruCheck Barcode Verification Results Summary     — "TruCheck Barcode Verification Results Summary" (HTML-escaped)
+    vccs-review-multimode.html        — DM TC HTML filename (HTML-escaped)
+    Sat 22-Aug-2026 09:15:27(850ms) PM    — raw "Verified:" string from DM TC HTML header (HTML-escaped)
+    EPC           — "EPC" or "UHF"
+    v1.5.41     — report format version, e.g. "v1.5.11"
+    2026-08-22 00:59:52   — "yyyy-MM-dd HH:mm:ss"
+
+  SLOT list (replaced with generated HTML blocks):
+              <tr data-vccs-symbol-group="true">
+            <td style="font-size:8pt;">EAN-13</td>
+            <td colspan="2" style="font-family:Consolas,monospace;">00696114704318</td>
+          </tr>
+          <tr data-vccs-symbol-group="true">
+            <td style="font-size:8pt;">GS1 DataMatrix</td>
+            <td colspan="2" style="font-family:Consolas,monospace;">(01)00696114704318(10)LOT-12(17)250101(21)72803288707</td>
+          </tr>
+   — one or two <tr> rows for the summary table tbody
+              <tr>
+            <td>EAN-13</td>
+            <td>ISO 15416:2024</td>
+            <td>4.0 (A)</td>
+            <td>06</td>
+            <td>660</td>
+            <td>Diffuse</td>
+            <td>4.0/06/660/Diffuse</td>
+          </tr>
+          <tr>
+            <td>GS1 DataMatrix</td>
+            <td>ISO 15415:2024</td>
+            <td>4.0 (A)</td>
+            <td>16</td>
+            <td>660</td>
+            <td>45Q</td>
+            <td>4.0/16/660/45Q</td>
+          </tr>
+    — one or two <tr> rows for the grades table tbody
+              <tr>
+            <td>Tag Detected / Lock Status</td>
+            <td>Yes &#x2014; Unknown <span style="color:#555;font-size:8pt;">(Permalocked / Locked / Unlocked / Unknown)</span></td>
+          </tr>
+          <tr class="row-hi">
+            <td>TID (Chip Identity)</td>
+            <td style="font-family:Consolas,monospace;">E28011912000914C</td>
+          </tr>
+          <tr class="row-hi">
+            <td>EPC Encoding Scheme / GCP Length</td>
+            <td><span style="font-family:Consolas,monospace;">SGTIN-96</span> &#x2014; Valid (=7)<em class="gcp-inline-note"> &ndash; from official GS1 GCP prefix table as of 2026-05-03</em></td>
+          </tr>
+          <tr class="row-hi">
+            <td>EPC Hex</td>
+            <td style="font-family:Consolas,monospace;">30342A7CC844C7D0F36A0683</td>
+          </tr>
+          <tr class="row-hi">
+            <td>EPC Tag URI</td>
+            <td style="font-family:Consolas,monospace;font-size:8pt;">urn:epc:tag:sgtin-96:1.0696114.070431.72803288707</td>
+          </tr>
+          <tr class="row-hi">
+            <td>GTIN-14</td>
+            <td style="font-family:Consolas,monospace;">00696114704318</td>
+          </tr>
+          <tr class="row-hi">
+            <td>Serial Number</td>
+            <td style="font-family:Consolas,monospace;">72803288707</td>
+          </tr>
+          <tr class="row-result-pass">
+            <td>EAN-13 RFID Cross-Validation Result</td>
+            <td>Pass &#x2014; EPC data matches barcode GTIN</td>
+          </tr>
+          <tr class="row-result-pass">
+            <td>GS1 DataMatrix RFID Cross-Validation Result</td>
+            <td>Pass &#x2014; EPC data matches barcode GTIN and Serial Number</td>
+          </tr>
+     — all <tr> rows for the RFID table tbody
+        <div class="barcode-detail-section">
+      <div class="sec-sub-hdr trucheck-barcode-hdr barcode-detail-header barcode-dual-header"><span class="barcode-header-image-title">TruCheck Barcode Image</span><span class="barcode-header-dfc-title"><span class="detail-separator">|</span> Data Format Check (DFC) &#x2014; GS1 Element String</span></div>
+      <table class="barcode-detail-grid"><tbody><tr>
+        <td class="barcode-image-column">
+          <img class="barcode-image" src="data:image/jpeg;base64,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" alt="TruCheck Barcode Image"/>
+        </td>
+        <td class="barcode-dfc-column">
+          <div class="dfc-accordion-section dfc-dual-block">
+            <table class="dfc-dual-table">
+              <colgroup><col class="dual-left-field"><col class="dual-left-data"><col class="dual-left-check"><col class="dual-divider"><col class="dual-right-field"><col class="dual-right-data"><col class="dual-right-check"></colgroup>
+              <thead><tr class="dual-subhead"><th colspan="3">DataMan TruCheck GS1 Parser</th><th class="dual-divider"></th><th colspan="3">VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. 1.4.0)</th></tr>
+              <tr><th>Field</th><th>Data</th><th>Check</th><th class="dual-divider"></th><th>Field</th><th>Data</th><th>Check</th></tr></thead>
+              <tbody>
+                <tr><td>AI (01) GTIN-14</td><td class="dual-data">00696114704318</td><td class="dual-check pass-fg">PASS</td><td class="dual-divider"></td><td>AI (01) GTIN</td><td class="dual-data">00696114704318</td><td class="dual-check pass-fg">PASS</td></tr>
+                <tr><td>AI (10) LOT</td><td class="dual-data">LOT-12</td><td class="dual-check pass-fg">PASS</td><td class="dual-divider"></td><td>AI (10) Batch or Lot Number</td><td class="dual-data">LOT-12</td><td class="dual-check pass-fg">PASS</td></tr>
+                <tr><td>AI (17) EXP</td><td class="dual-data">250101</td><td class="dual-check pass-fg">PASS</td><td class="dual-divider"></td><td>AI (17) Expiration Date</td><td class="dual-data">250101</td><td class="dual-check pass-fg">PASS</td></tr>
+                <tr><td>AI (21) SERIAL</td><td class="dual-data">72803288707</td><td class="dual-check pass-fg">PASS</td><td class="dual-divider"></td><td>AI (21) Serial Number</td><td class="dual-data">72803288707</td><td class="dual-check pass-fg">PASS</td></tr>
+                <tr><td></td><td class="dual-data"></td><td class="dual-check "></td><td class="dual-divider"></td><td>GS1 Element String</td><td class="dual-data parser-element-string-data">(01)00696114704318<wbr>(10)LOT-12<wbr>(17)250101<wbr>(21)72803288707<wbr></td><td class="dual-check pass-fg">PASS</td></tr>
+                <tr class="dual-overall"><td colspan="3" class="dual-overall-cell"><span class="overall-pill pill-pass">OVERALL: PASS</span></td><td class="dual-divider"></td><td colspan="3" class="dual-overall-cell"><span class="overall-pill pill-pass">OVERALL: PASS</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr></tbody></table>
+    </div>
+ — combined TruCheck barcode image + Data Format Check
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>VCCS RFID VeriWedge™ PowerPro Validation Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  table th, table td { vertical-align: middle; }
+
+  body {
+    background: #888;
+    font-family: Arial, sans-serif;
+    font-size: 9pt;
+    padding: 24px;
+  }
+
+  .page {
+    width: 8.5in; height: 11in; overflow: hidden; background: white;
+    margin: 0 auto; padding: 0.25in 0.4in 0.5in 0.4in;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    display: flex; flex-direction: column;
+  }
+
+  /* ── HEADER ─────────────────────────────────────────── */
+  .header {
+    background: #edf1f7; border-bottom: 2px solid #1a3a6b;
+    padding: 6pt 0 0 0; display: flex; flex-direction: column;
+    gap: 0; margin-bottom: 0;
+  }
+  .header-row {
+    display: flex; flex-direction: row;
+    align-items: stretch; gap: 0;
+  }
+  .header-copyright {
+    font-size: 7pt; color: #000;
+    padding: 2pt 8pt 3pt 10pt; /* left edge aligned with VCCS logo */
+  }
+  .logo-box {
+    width: 72pt; min-width: 72pt;
+    padding: 3pt 0 3pt 10pt;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .logo-box .logo-name { font-size: 12pt; font-weight: bold; letter-spacing: 1pt; }
+  .logo-box .logo-sub  { font-size: 7pt; color: #6c757d; }
+  .header-meta {
+    /*
+      Keep the title centered at its original header position. Its smaller,
+      fixed box releases width to this device-data column rather than shifting
+      the title toward the company logo.
+    */
+    flex: 0 0 145pt; min-width: 0; padding: 0 8pt;
+    display: flex; flex-direction: column; justify-content: center; gap: 2pt;
+  }
+  .header-meta .dt  { font-size: 8pt; color: #6c757d; }
+  .header-meta .dev { font-size: 9pt; font-weight: bold; }
+  .header-meta .ln  { font-size: 8pt; }
+  .header-title {
+    flex: 0 0 185pt; text-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6pt;
+    /* Preserves the former title center while holding the company logo right. */
+    margin-right: auto;
+  }
+  .header-title h1 { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
+  .rfid-badge {
+    display: inline-block; font-size: 9pt; font-weight: bold;
+    padding: 3pt 10pt; border: 1px solid;
+  }
+  .badge-pass { background:#d4edda; color:#155724; border-color:#155724; }
+  .badge-fail { background:#f8d7da; color:#721c24; border-color:#721c24; }
+  .badge-warn { background:#fff3cd; color:#856404; border-color:#856404; }
+  .company-box {
+    width: 72pt; min-width: 72pt;
+    padding: 3pt 10pt 3pt 0; font-size: 7pt; color: #6c757d;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── CONTENT ─────────────────────────────────────────── */
+  .content { flex: 1; margin-top: 6pt; display: flex; flex-direction: column; gap: 4pt; }
+
+  .sec-hdr {
+    background: #1a3a6b; color: white;
+    font-size: 10pt; font-weight: bold; padding: 3pt 6pt;
+  }
+  /* Barcode summary banner — original slightly lighter blue. */
+  .barcode-sec-hdr {
+    background: #2c5296; color: white;
+  }
+  .sec-sub-hdr {
+    background: #1a3a6b; color: white;
+    font-size: 8pt; font-weight: bold; padding: 3pt 6pt;
+  }
+  /* The three TruCheck barcode headers share the original medium blue. The
+     two lower barcode headers also share a fixed banner height. */
+  .trucheck-barcode-hdr {
+    background: #2c5296; color: white;
+    height: 17pt; box-sizing: border-box;
+    display: flex; align-items: center;
+    padding: 0 6pt;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .trucheck-barcode-hdr .trucheck-header-title { font-weight: bold; }
+  .trucheck-barcode-hdr.barcode-dual-header {
+    /* Keep the barcode image at its former 1.50in physical width.  The
+       recovered 0.20in page width therefore belongs entirely to DFC. */
+    display: grid; grid-template-columns: 19.48% 80.52%; padding: 0;
+  }
+  .barcode-dual-header .barcode-header-image-title {
+    padding-left: 6pt; font-weight: bold;
+  }
+  .barcode-dual-header .barcode-header-dfc-title {
+    min-width: 0; overflow: hidden; white-space: nowrap; font-weight: bold;
+  }
+  .barcode-dual-header .detail-separator {
+    padding: 0 4pt 0 0;
+  }
+  /* Inline annotation appended to a section sub-header — inherits banner colour */
+  .sec-note { font-size: 7.5pt; font-weight: normal; }
+  .sec-sub-hdr-gap { margin-top: 6pt; }
+
+  /* ── BARCODE SUMMARY TABLE ───────────────────────────── */
+  .sum-table {
+    width: 100%; border-collapse: collapse; table-layout: fixed;
+    border: 2px solid #1a3a6b; font-size: 9pt;
+  }
+  .sum-table th {
+    background: white; border-bottom: 1px solid #999; border-right: 1px solid #999;
+    padding: 3pt 4pt; text-align: left; font-size: 8pt; font-weight: bold;
+  }
+  /* Application Standard column divider: intentionally heavier than the
+     1px rules between Symbology and Encoded Data. */
+  .sum-table th:nth-child(2) { border-right: 1.5px solid #999; }
+  .sum-table th.app-settings-hdr {
+    border-left: 1.5px solid #999;
+    border-bottom: 1.5px solid #999;
+  }
+  .sum-table th:last-child { border-right: none; }
+  .sum-table td {
+    border-bottom: 1px solid #aaa;
+    padding: 2.5pt 4pt 2pt;
+    white-space: nowrap; overflow: hidden;
+  }
+  .sum-table td:not(:last-child) { border-right: 1px solid #aaa; }
+  /* Applies only to symbol rows; metadata rows use colspan="2" and must not
+     acquire a divider at the right edge of their merged cell. */
+  .sum-table tbody td:nth-child(2):not([colspan]) {
+    border-right: 1.5px solid #aaa;
+  }
+  .sum-table tr:last-child td { border-bottom: none; }
+  /* Navy separator above Report Name row — 1px matches the exterior border weight;
+     navy colour beats #aaa in border-collapse with equal width + style. */
+  /* 1px navy wins over 1px #aaa in border-collapse (equal width, colour tie-break) */
+  .sum-table tr.sum-meta-start td { border-top: 1px solid #1a3a6b; }
+  .sum-table .meta-lbl { color: #000; font-size: 8pt; font-weight: bold; }
+
+  /* Session-level TruCheck settings: App Std. / DFC / Aperture. */
+  .sum-table th.app-settings-hdr {
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .sum-table th.app-settings-hdr {
+    font-size: 8pt;
+  }
+  .app-settings-values {
+    font-weight: normal;
+  }
+
+  /* ── BARCODE GRADES TABLE ────────────────────────────── */
+  .grades-table {
+    width: 100%; border-collapse: collapse; table-layout: fixed;
+    border: 2px solid #1a3a6b; font-size: 8pt;
+  }
+  .grades-table th {
+    border-bottom: 1px solid #999; border-right: 1px solid #999;
+    padding: 3pt 4pt; text-align: center; font-weight: bold; background: white;
+  }
+  .grades-table th:last-child { border-right: none; }
+  .grades-table td {
+    border-right: 1px solid #aaa;
+    padding: 2.5pt 4pt 2pt; text-align: center;
+    white-space: nowrap; overflow: hidden;
+  }
+  .grades-table td:last-child { border-right: none; }
+  .grades-table tr:not(:last-child) td { border-bottom: 1px solid #aaa; }
+
+  /* ── RFID TABLE ──────────────────────────────────────── */
+  .rfid-table {
+    width: 100%; border-collapse: collapse;
+    border: 2px solid #1a3a6b; font-size: 9pt;
+  }
+  .rfid-table th {
+    background: #e8eef5; border-bottom: 1px solid #aaa;
+    padding: 3pt 4pt; text-align: left; font-size: 8pt;
+  }
+  .rfid-table td {
+    border-bottom: 1px solid #aaa;
+    padding: 2.5pt 4pt 2pt;
+  }
+  .rfid-table .lbl-col { width: 178pt; }
+  /* The fixed Field column holds its original width; every bit of the wider
+     page is consequently available to the Value column. */
+  .row-hi          td { background: #f0f7ff; }
+  .row-result-pass td { background:#d4edda; color:#155724; font-weight:bold; }
+  .row-result-fail td { background:#f8d7da; color:#721c24; font-weight:bold; }
+  .row-result-warn td { background:#fff3cd; color:#856404; font-weight:bold; }
+  .rfid-table tr:last-child td { border-bottom: none; }
+
+  .gcp-inline-note { font-size: 7.5pt; font-style: italic; }
+
+  /* ── TRUCHECK BARCODE IMAGE + DATA FORMAT CHECK ─────── */
+  .barcode-detail-header .detail-separator { padding: 0 4pt; }
+  .barcode-detail-grid {
+    width: 100%; border-collapse: collapse; table-layout: fixed;
+    border: 2px solid #1a3a6b; border-top: none;
+    min-height: 86pt;
+  }
+  .barcode-image-column {
+    width: 19.48%; padding: 8pt; vertical-align: middle; text-align: left;
+  }
+  .barcode-dfc-column {
+    width: 80.52%; border-left: 2px solid #1a3a6b; vertical-align: top;
+  }
+  .barcode-image {
+    display: block; max-width: 100%; max-height: 1.35in;
+    object-fit: contain; object-position: left center; margin: 0;
+  }
+  .barcode-image-pair {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    table-layout: fixed;
+  }
+  .barcode-image-item { width: 50%; padding-right: 6pt; text-align: left; vertical-align: top; }
+  .barcode-image-label {
+    font-size: 7pt; color: #6c757d; font-style: italic; margin-bottom: 2pt;
+  }
+  .img-placeholder {
+    background: #f5f5f5; border: 1px dashed #aaa;
+    display: inline-block; padding: 18pt 32pt; color: #888; font-size: 8pt;
+  }
+
+  /* ── DATA FORMAT CHECK ───────────────────────────────── */
+  .dfc-table {
+    width: 100%; border-collapse: collapse;
+    border: none; font-size: 8pt;
+  }
+  .dfc-table th {
+    background: #e8eef5; border-bottom: 1px solid #aaa;
+    padding: 3pt 4pt; text-align: left;
+  }
+  .dfc-table td { border-bottom: 1px solid #aaa; padding: 2.5pt 4pt 2pt; }
+  .dfc-table .chk { width: 50pt; font-weight: bold; }
+  .dfc-table tr:last-child td { border-bottom: none; }
+  .pass-fg { color: #155724; }
+  .fail-fg { color: #721c24; }
+
+  /* Element String verifier/parser comparison. Field is intentionally shared
+     by both result columns; the vertical rule is the midpoint divider. */
+  .dfc-dual-block {
+    break-inside: avoid; page-break-inside: avoid;
+    width: 100%;
+  }
+   .dfc-dual-table {
+     width: 100%; border-collapse: collapse; table-layout: fixed;
+    border: none; font-size: 7.5pt;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+   /*
+      Each parser owns 49% of the DFC area (the 2% center divider is shared).
+      With the barcode image held at 1.50in, the wider page gives each parser
+      block approximately 0.10in more live width.  Explicit columns also make
+      the right parser header and Field start at exactly the same inset as the
+      corresponding DataMan elements.
+   */
+   .dfc-dual-table col.dual-left-field  { width: 17%; }
+   .dfc-dual-table col.dual-left-data   { width: 25%; }
+   .dfc-dual-table col.dual-left-check  { width: 7%; }
+   .dfc-dual-table col.dual-divider     { width: 2%; }
+   .dfc-dual-table col.dual-right-field { width: 17%; }
+   .dfc-dual-table col.dual-right-data  { width: 25%; }
+   .dfc-dual-table col.dual-right-check { width: 7%; }
+  .dfc-dual-table th {
+    background: #e8eef5; border-bottom: 1px solid #aaa;
+    padding: 2pt 3pt; text-align: left; font-size: 7.5pt;
+  }
+  .dfc-dual-table td {
+    border-bottom: 1px solid #aaa; padding: 1.75pt 3pt;
+    vertical-align: top; line-height: 1.05;
+  }
+   .dfc-dual-table th:nth-child(1),
+   .dfc-dual-table td:nth-child(1),
+   .dfc-dual-table th:nth-child(5),
+   .dfc-dual-table td:nth-child(5) {
+     white-space: nowrap;
+   }
+   .dfc-dual-table th:nth-child(2),
+   .dfc-dual-table td:nth-child(2),
+   .dfc-dual-table th:nth-child(6),
+   .dfc-dual-table td:nth-child(6) {
+     width: auto;
+   }
+  .dfc-dual-table .dual-divider {
+    border-left: 2px solid #1a3a6b;
+    padding: 0 !important;
+  }
+  .dfc-dual-table .dual-check {
+    font-weight: bold; white-space: nowrap;
+  }
+  .dfc-dual-table .dual-overall td {
+    border-bottom: none; padding-top: 3pt; padding-bottom: 3pt;
+    font-weight: bold; white-space: nowrap;
+  }
+  .dfc-dual-table .dual-subhead th {
+    background: #dbe5f1; font-size: 6.5pt; font-weight: bold;
+    padding-top: 2.5pt; padding-bottom: 2.5pt;
+    white-space: nowrap;
+  }
+  .dfc-dual-table .dual-overall-cell {
+    text-align: center; vertical-align: middle;
+  }
+  .dfc-dual-table .dual-overall .dual-divider {
+    border-left: 2px solid #1a3a6b;
+  }
+   .dfc-dual-table .dual-native-note {
+      margin-top: 2pt; color: #000; font-size: 6.5pt; font-style: italic;
+      font-weight: normal; line-height: 1.15; overflow-wrap: anywhere;
+    }
+  .dfc-dual-table .overall-pill {
+    font-size: 7.5pt; padding: 1.5pt 3pt;
+  }
+  .dfc-dual-table .dual-data {
+    overflow-wrap: anywhere;
+  }
+   .dfc-dual-table .parser-element-string-data {
+     line-height: 1.35; overflow-wrap: normal; word-break: normal;
+   }
+  .dfc-accordion-section {
+    break-inside: avoid; page-break-inside: avoid;
+    margin: 0;
+  }
+   .dfc-accordion-section + .dfc-accordion-section {
+     margin-top: 5pt;
+   }
+
+  .overall-pill {
+    display: inline-block; font-size: 8pt; font-weight: bold;
+    padding: 3pt 8pt; border: 1px solid;
+  }
+  .barcode-dfc-footer { padding: 4pt; text-align: right; }
+  .pill-pass { background:#d4edda; color:#155724; border-color:#155724; }
+  .pill-fail { background:#f8d7da; color:#721c24; border-color:#721c24; }
+  .pill-native-limitation { background:#f8d7da; color:#000; border-color:#000; }
+  .pill-warn { background:#fff3cd; color:#856404; border-color:#856404; }
+  .cf::after { content:""; display:table; clear:both; }
+
+  /* Keep Webscan-style report components together when rendered to PDF. */
+  .barcode-detail-section,
+  .barcode-detail-header,
+  .barcode-detail-grid,
+  .dfc-table,
+  .barcode-dfc-footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────── */
+  .footer {
+    border-top: 1px solid #ccc; padding-top: 4pt; margin-top: 8pt;
+    display: flex; justify-content: space-between;
+    font-size: 7pt; color: #6c757d;
+  }
+  .footer .fl { font-weight: bold; color: #222; }
+  .footer .fl span { font-weight: normal; color: #6c757d; }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .page { box-shadow: none; margin: 0; width: 100%; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── HEADER ─────────────────────────────────────────────── -->
+  <div class="header">
+    <div class="header-row">
+      <div class="logo-box" style="padding:3pt 2pt;">
+        <div class="logo-name">VCCS</div><div class="logo-sub">RFID VeriWedge&#x2122; PowerPro</div>
+      </div>
+      <div class="header-meta">
+        <div class="dev">Device: DM475-866D76</div>
+        <div class="ln">Serial: 1A2134PP482281</div>
+        <div class="ln">Firmware: 6.1.16_tc9</div>
+      </div>
+      <div class="header-title">
+        <h1>VCCS <em>RFID VeriWedge&#x2122; PowerPro</em><br>Barcode-to-RFID Validation Report</h1>
+        <span class="rfid-badge badge-pass">&#x2713; RFID MATCHED</span>
+      </div>
+      <div class="company-box" style="display:flex;align-items:center;justify-content:center;padding:2pt 4pt;">
+        PIPS
+      </div>
+    </div>
+    <div class="header-copyright">
+      www.vccs.llc &mdash; &copy; Copyright 2026 All rights reserved.&nbsp;
+      VCCS <em>RFID VeriWedge&#x2122;</em> is a product of Verifier Calibration &amp; Conformance Solutions, LLC
+    </div>
+  </div>
+
+  <!-- ── CONTENT ────────────────────────────────────────────── -->
+  <div class="content">
+
+    <!-- ① Barcode Verification Results Summary -->
+    <div>
+      <div class="sec-hdr barcode-sec-hdr">TruCheck Barcode Verification Results Summary<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
+      <table class="sum-table">
+        <colgroup>
+          <!-- Fixed left boundary matches the Grades table.  The recovered page
+               width is shared by Encoded Data and the right-side report area. -->
+          <col style="width:18.2%">
+          <col style="width:14.5%">
+          <col style="width:67.3%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Symbology</th>
+            <th>Encoded Data</th>
+            <th class="app-settings-hdr"><span class="app-settings-label">Application Std. / Data Format Check / Aperture:</span> <span class="app-settings-values">— / None / —</span></th>
+          </tr>
+        </thead>
+        <tbody>
+                    <tr data-vccs-symbol-group="true">
+            <td style="font-size:8pt;">EAN-13</td>
+            <td colspan="2" style="font-family:Consolas,monospace;">00696114704318</td>
+          </tr>
+          <tr data-vccs-symbol-group="true">
+            <td style="font-size:8pt;">GS1 DataMatrix</td>
+            <td colspan="2" style="font-family:Consolas,monospace;">(01)00696114704318(10)LOT-12(17)250101(21)72803288707</td>
+          </tr>
+
+          <tr class="sum-meta-start">
+            <td class="meta-lbl">TruCheck Report Name</td>
+            <td colspan="2">vccs-review-multimode.html</td>
+          </tr>
+          <tr>
+            <td class="meta-lbl">Report Date/Time</td>
+            <td colspan="2">Sat 22-Aug-2026 09:15:27(850ms) PM</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades</span><span class="sec-note"> &#x2014; <em>Only fields present in the associated HTML report are shown</em></span></div>
+      <table class="grades-table">
+        <colgroup>
+          <!-- Symbology stays fixed at the Summary table boundary.  The
+               remaining columns share the recovered width proportionally. -->
+          <col style="width:18.2%">
+          <col style="width:13.7%">
+          <col style="width:10.4%">
+          <col style="width:11.3%">
+          <col style="width:19.6%">
+          <col style="width:11.9%">
+          <col style="width:14.9%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Symbology</th>
+            <th>Standard</th>
+            <th>Grade</th>
+            <th>Aperture (mil)</th>
+            <th>Wavelength (nm)</th>
+            <th>Lighting</th>
+            <th>Formal Grade</th>
+          </tr>
+        </thead>
+        <tbody>
+                    <tr>
+            <td>EAN-13</td>
+            <td>ISO 15416:2024</td>
+            <td>4.0 (A)</td>
+            <td>06</td>
+            <td>660</td>
+            <td>Diffuse</td>
+            <td>4.0/06/660/Diffuse</td>
+          </tr>
+          <tr>
+            <td>GS1 DataMatrix</td>
+            <td>ISO 15415:2024</td>
+            <td>4.0 (A)</td>
+            <td>16</td>
+            <td>660</td>
+            <td>45Q</td>
+            <td>4.0/16/660/45Q</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ② VCCS RFID VeriWedge™ PowerPro RFID Validation Summary -->
+    <div>
+      <div class="sec-hdr">VCCS <em>RFID VeriWedge&#x2122; PowerPro</em> EPC RFID Validation Summary</div>
+      <table class="rfid-table">
+        <thead>
+          <tr><th class="lbl-col">Field</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+                    <tr>
+            <td>Tag Detected / Lock Status</td>
+            <td>Yes &#x2014; Unknown <span style="color:#555;font-size:8pt;">(Permalocked / Locked / Unlocked / Unknown)</span></td>
+          </tr>
+          <tr class="row-hi">
+            <td>TID (Chip Identity)</td>
+            <td style="font-family:Consolas,monospace;">E28011912000914C</td>
+          </tr>
+          <tr class="row-hi">
+            <td>EPC Encoding Scheme / GCP Length</td>
+            <td><span style="font-family:Consolas,monospace;">SGTIN-96</span> &#x2014; Valid (=7)<em class="gcp-inline-note"> &ndash; from official GS1 GCP prefix table as of 2026-05-03</em></td>
+          </tr>
+          <tr class="row-hi">
+            <td>EPC Hex</td>
+            <td style="font-family:Consolas,monospace;">30342A7CC844C7D0F36A0683</td>
+          </tr>
+          <tr class="row-hi">
+            <td>EPC Tag URI</td>
+            <td style="font-family:Consolas,monospace;font-size:8pt;">urn:epc:tag:sgtin-96:1.0696114.070431.72803288707</td>
+          </tr>
+          <tr class="row-hi">
+            <td>GTIN-14</td>
+            <td style="font-family:Consolas,monospace;">00696114704318</td>
+          </tr>
+          <tr class="row-hi">
+            <td>Serial Number</td>
+            <td style="font-family:Consolas,monospace;">72803288707</td>
+          </tr>
+          <tr class="row-result-pass">
+            <td>EAN-13 RFID Cross-Validation Result</td>
+            <td>Pass &#x2014; EPC data matches barcode GTIN</td>
+          </tr>
+          <tr class="row-result-pass">
+            <td>GS1 DataMatrix RFID Cross-Validation Result</td>
+            <td>Pass &#x2014; EPC data matches barcode GTIN and Serial Number</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ③ TruCheck Barcode Image + Data Format Check -->
+        <div class="barcode-detail-section">
+      <div class="sec-sub-hdr trucheck-barcode-hdr barcode-detail-header barcode-dual-header"><span class="barcode-header-image-title">TruCheck Barcode Image</span><span class="barcode-header-dfc-title"><span class="detail-separator">|</span> Data Format Check (DFC) &#x2014; GS1 Element String</span></div>
+      <table class="barcode-detail-grid"><tbody><tr>
+        <td class="barcode-image-column">
+          <img class="barcode-image" src="data:image/jpeg;base64,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" alt="TruCheck Barcode Image"/>
+        </td>
+        <td class="barcode-dfc-column">
+          <div class="dfc-accordion-section dfc-dual-block">
+            <table class="dfc-dual-table">
+              <colgroup><col class="dual-left-field"><col class="dual-left-data"><col class="dual-left-check"><col class="dual-divider"><col class="dual-right-field"><col class="dual-right-data"><col class="dual-right-check"></colgroup>
+              <thead><tr class="dual-subhead"><th colspan="3">DataMan TruCheck GS1 Parser</th><th class="dual-divider"></th><th colspan="3">VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. 1.4.0)</th></tr>
+              <tr><th>Field</th><th>Data</th><th>Check</th><th class="dual-divider"></th><th>Field</th><th>Data</th><th>Check</th></tr></thead>
+              <tbody>
+                <tr><td>AI (01) GTIN-14</td><td class="dual-data">00696114704318</td><td class="dual-check pass-fg">PASS</td><td class="dual-divider"></td><td>AI (01) GTIN</td><td class="dual-data">00696114704318</td><td class="dual-check pass-fg">PASS</td></tr>
+                <tr><td>AI (10) LOT</td><td class="dual-data">LOT-12</td><td class="dual-check pass-fg">PASS</td><td class="dual-divider"></td><td>AI (10) Batch or Lot Number</td><td class="dual-data">LOT-12</td><td class="dual-check pass-fg">PASS</td></tr>
+                <tr><td>AI (17) EXP</td><td class="dual-data">250101</td><td class="dual-check pass-fg">PASS</td><td class="dual-divider"></td><td>AI (17) Expiration Date</td><td class="dual-data">250101</td><td class="dual-check pass-fg">PASS</td></tr>
+                <tr><td>AI (21) SERIAL</td><td class="dual-data">72803288707</td><td class="dual-check pass-fg">PASS</td><td class="dual-divider"></td><td>AI (21) Serial Number</td><td class="dual-data">72803288707</td><td class="dual-check pass-fg">PASS</td></tr>
+                <tr><td></td><td class="dual-data"></td><td class="dual-check "></td><td class="dual-divider"></td><td>GS1 Element String</td><td class="dual-data parser-element-string-data">(01)00696114704318<wbr>(10)LOT-12<wbr>(17)250101<wbr>(21)72803288707<wbr></td><td class="dual-check pass-fg">PASS</td></tr>
+                <tr class="dual-overall"><td colspan="3" class="dual-overall-cell"><span class="overall-pill pill-pass">OVERALL: PASS</span></td><td class="dual-divider"></td><td colspan="3" class="dual-overall-cell"><span class="overall-pill pill-pass">OVERALL: PASS</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </td>
+      </tr></tbody></table>
+    </div>
+
+
+  </div><!-- /content -->
+
+  <!-- ── FOOTER ─────────────────────────────────────────────── -->
+  <div class="footer">
+    <div class="fl">
+      VCCS <em>RFID VeriWedge&#x2122; PowerPro</em> Validation Report v1.5.41
+      <span>&nbsp;&#x2014;&nbsp; Generated 2026-08-22 00:59:52</span>
+    </div>
+    <div>Verification Command &amp; Control System (VCCS)</div>
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>
