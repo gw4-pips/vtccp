@@ -44,3 +44,4 @@
 - [GS1 parser report layout](gs1-parser-report-layout.md) — parser is independent of DataMan fields; Digital Link URI leads and canonical Element String ends the parser block
 - [Native Digital Link compatibility](native-digital-link-compatibility.md) — distinguish native parser limitations from RFID mismatches; annotate proven unsupported versions without altering source data
 - [GCP validation status semantics](gcp-status-semantics.md) — NOT FOUND is distinct from Invalid; show the EPC partition’s encoded length with the result
+- [TruCheck RFID validation policy](trucheck-rfid-validation-policy.md) — a passing GS1 DataMatrix suppresses redundant RFID validation and its report section

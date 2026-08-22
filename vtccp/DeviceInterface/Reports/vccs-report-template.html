@@ -17,14 +17,13 @@
     {{SECTION1_TITLE}}     — "TruCheck Barcode Verification Results Summary" (HTML-escaped)
     {{REPORT_NAME}}        — DM TC HTML filename (HTML-escaped)
     {{REPORT_DATETIME}}    — raw "Verified:" string from DM TC HTML header (HTML-escaped)
-    {{RFID_ADJ}}           — "EPC" or "UHF"
     {{FOOTER_VERSION}}     — report format version, e.g. "v1.5.11"
     {{FOOTER_GENERATED}}   — "yyyy-MM-dd HH:mm:ss"
 
   SLOT list (replaced with generated HTML blocks):
     {{SLOT_SYMBOL_ROWS}}   — one or two <tr> rows for the summary table tbody
     {{SLOT_GRADE_ROWS}}    — one or two <tr> rows for the grades table tbody
-    {{SLOT_RFID_ROWS}}     — all <tr> rows for the RFID table tbody
+    {{SLOT_RFID_SECTION}}  — RFID validation summary, or empty after a passing GS1 TruCheck result
     {{SLOT_BARCODE_DETAIL}} — combined TruCheck barcode image + Data Format Check
 -->
 <html lang="en">
@@ -97,6 +96,7 @@
   .badge-pass { background:#d4edda; color:#155724; border-color:#155724; }
   .badge-fail { background:#f8d7da; color:#721c24; border-color:#721c24; }
   .badge-warn { background:#fff3cd; color:#856404; border-color:#856404; }
+  .badge-hidden { display:none; }
   .company-box {
     width: 72pt; min-width: 72pt;
     padding: 3pt 10pt 3pt 0; font-size: 7pt; color: #6c757d;
@@ -225,9 +225,10 @@
     border-bottom: 1px solid #aaa;
     padding: 2.5pt 4pt 2pt;
   }
-  .rfid-table .lbl-col { width: 178pt; }
-  /* The fixed Field column holds its original width; every bit of the wider
-     page is consequently available to the Value column. */
+  .rfid-table .lbl-col { width: 220pt; }
+  .rfid-table .rfid-result-label { white-space: nowrap; font-size: 8.5pt; }
+  /* The expanded Field column keeps “GS1 DataMatrix RFID Validation Result” on
+     one line while the wider page preserves ample value-column width. */
   .row-hi          td { background: #f0f7ff; }
   .row-result-pass td { background:#d4edda; color:#155724; font-weight:bold; }
   .row-result-fail td { background:#f8d7da; color:#721c24; font-weight:bold; }
@@ -293,19 +294,17 @@
     break-inside: avoid; page-break-inside: avoid;
   }
    /*
-      Each parser owns 49% of the DFC area (the 2% center divider is shared).
-      With the barcode image held at 1.50in, the wider page gives each parser
-      block approximately 0.10in more live width.  Explicit columns also make
-      the right parser header and Field start at exactly the same inset as the
-      corresponding DataMan elements.
+       Each parser owns half of the DFC area. The center cell carries only the
+       divider rule; it must not create a visible gutter before the VeriWedge
+       header or Field column.
    */
-   .dfc-dual-table col.dual-left-field  { width: 17%; }
-   .dfc-dual-table col.dual-left-data   { width: 25%; }
-   .dfc-dual-table col.dual-left-check  { width: 7%; }
-   .dfc-dual-table col.dual-divider     { width: 2%; }
-   .dfc-dual-table col.dual-right-field { width: 17%; }
-   .dfc-dual-table col.dual-right-data  { width: 25%; }
-   .dfc-dual-table col.dual-right-check { width: 7%; }
+    .dfc-dual-table col.dual-left-field  { width: 17.35%; }
+    .dfc-dual-table col.dual-left-data   { width: 25.55%; }
+    .dfc-dual-table col.dual-left-check  { width: 7.10%; }
+    .dfc-dual-table col.dual-divider     { width: 0%; }
+    .dfc-dual-table col.dual-right-field { width: 17.35%; }
+    .dfc-dual-table col.dual-right-data  { width: 25.55%; }
+    .dfc-dual-table col.dual-right-check { width: 7.10%; }
   .dfc-dual-table th {
     background: #e8eef5; border-bottom: 1px solid #aaa;
     padding: 2pt 3pt; text-align: left; font-size: 7.5pt;
@@ -500,17 +499,7 @@
     </div>
 
     <!-- ② VCCS RFID VeriWedge™ PowerPro RFID Validation Summary -->
-    <div>
-      <div class="sec-hdr">VCCS <em>RFID VeriWedge&#x2122; PowerPro</em> {{RFID_ADJ}} RFID Validation Summary</div>
-      <table class="rfid-table">
-        <thead>
-          <tr><th class="lbl-col">Field</th><th>Value</th></tr>
-        </thead>
-        <tbody>
-          {{SLOT_RFID_ROWS}}
-        </tbody>
-      </table>
-    </div>
+    {{SLOT_RFID_SECTION}}
 
     <!-- ③ TruCheck Barcode Image + Data Format Check -->
     {{SLOT_BARCODE_DETAIL}}

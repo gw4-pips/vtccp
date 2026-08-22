@@ -611,13 +611,13 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("grid-template-columns: 19.48% 80.52%", report, StringComparison.Ordinal);
         Assert.Contains(".barcode-image-column {\n    width: 19.48%", report, StringComparison.Ordinal);
         Assert.Contains(".barcode-dfc-column {\n    width: 80.52%", report, StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-left-field  { width: 17%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-left-field  { width: 17.35%; }", report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-left-data   { width: 25%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-left-data   { width: 25.55%; }", report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-right-field { width: 17%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-right-field { width: 17.35%; }", report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-right-data  { width: 25%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-right-data  { width: 25.55%; }", report,
             StringComparison.Ordinal);
         Assert.Contains(".dfc-dual-table .dual-subhead th {\n    background: #dbe5f1; font-size: 6.5pt;",
             report, StringComparison.Ordinal);
@@ -756,6 +756,56 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_TruCheckPassedGs1DataMatrixOmitsRfidValidationSection()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            ApplicationPass = "Pass",
+            RfidStatus = "Pass",
+        });
+
+        Assert.DoesNotContain(
+            "<div class=\"sec-hdr\">VCCS <em>RFID VeriWedge&#x2122; PowerPro</em>",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("class=\"rfid-badge badge-hidden\"", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("class=\"rfid-badge badge-pass\"", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_RfidValidationResultUsesOneLineLabelAndAlignedDualParserColumns()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            ApplicationPass = "Fail (Quality)",
+            RfidStatus = "Fail",
+        });
+
+        Assert.Contains(
+            "<td class=\"rfid-result-label\">GS1 DataMatrix RFID Validation Result</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".rfid-table .rfid-result-label { white-space: nowrap;",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".dfc-dual-table col.dual-divider     { width: 0%; }",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".dfc-dual-table col.dual-right-field { width: 17.35%; }",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_RfidGcpNotFound_IsNotReportedAsInvalid()
     {
         string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
@@ -871,7 +921,7 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_RfidFailure_UsesExplicitCrossValidationLabel()
+    public void Generate_RfidFailure_UsesExplicitValidationLabel()
     {
         string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
         {
@@ -881,7 +931,7 @@ public sealed class VccsHtmlReportGeneratorTests
         });
 
         Assert.Contains(
-            "QR Code RFID Cross-Validation Result",
+            "QR Code RFID Validation Result",
             report,
             StringComparison.Ordinal);
     }

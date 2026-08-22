@@ -15,6 +15,7 @@
 using System.Text;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using DeviceInterface.Rfid;
 using ExcelEngine.Models;
 
 namespace DeviceInterface.Reports;
@@ -27,7 +28,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.44";
+    public const string ReportVersion = "v1.5.45";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -65,7 +66,10 @@ public static class VccsHtmlReportGenerator
             : H(r.CompanyName ?? "Company Logo");
 
         // ── badge ─────────────────────────────────────────────────────────
-        (string badgeCls, string badgeTxt) = r.RfidStatus switch
+        bool suppressRfidCrossValidation = RfidCrossValidationPolicy.HasPassedTruCheckGs1Validation(r);
+        (string badgeCls, string badgeTxt) = suppressRfidCrossValidation
+            ? ("badge-hidden", string.Empty)
+            : r.RfidStatus switch
         {
             "Pass"                 => ("badge-pass", "&#x2713; RFID MATCHED"),
             "Fail"                 => ("badge-fail", "&#x2717; RFID MISMATCH"),
@@ -111,8 +115,7 @@ public static class VccsHtmlReportGenerator
             .Replace("{{REPORT_NAME}}",         reportName)
             .Replace("{{REPORT_DATETIME}}",     reportDateTime)
             .Replace("{{SLOT_GRADE_ROWS}}",     BuildGradeRows(r))
-            .Replace("{{RFID_ADJ}}",            rfidAdj)
-            .Replace("{{SLOT_RFID_ROWS}}",      BuildRfidRows(r))
+            .Replace("{{SLOT_RFID_SECTION}}",   BuildRfidSection(r, rfidAdj))
             .Replace("{{SLOT_BARCODE_DETAIL}}", BuildBarcodeDetailSection(r))
             .Replace("{{FOOTER_VERSION}}",      ReportVersion)
             .Replace("{{FOOTER_GENERATED}}",    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
@@ -146,6 +149,24 @@ public static class VccsHtmlReportGenerator
     }
 
     // ── Slot builders ───────────────────────────────────────────────────────
+
+    private static string BuildRfidSection(VerificationRecord r, string rfidAdj)
+    {
+        if (RfidCrossValidationPolicy.HasPassedTruCheckGs1Validation(r))
+            return string.Empty;
+
+        return "    <div>\n" +
+               $"      <div class=\"sec-hdr\">VCCS <em>RFID VeriWedge&#x2122; PowerPro</em> {H(rfidAdj)} RFID Validation Summary</div>\n" +
+               "      <table class=\"rfid-table\">\n" +
+               "        <thead>\n" +
+               "          <tr><th class=\"lbl-col\">Field</th><th>Value</th></tr>\n" +
+               "        </thead>\n" +
+               "        <tbody>\n" +
+               BuildRfidRows(r) +
+               "        </tbody>\n" +
+               "      </table>\n" +
+               "    </div>\n";
+    }
 
     private static string BuildSymbolRows(VerificationRecord r)
     {
@@ -387,7 +408,7 @@ public static class VccsHtmlReportGenerator
         void ResultRow(string label, string value)
         {
             sb.Append($"          <tr class=\"{rowCls}\">\n");
-            sb.Append($"            <td>{H(label)}</td>\n");
+            sb.Append($"            <td class=\"rfid-result-label\">{H(label)}</td>\n");
             sb.Append($"            <td>{value}</td>\n");
             sb.Append($"          </tr>\n");
         }
@@ -400,7 +421,7 @@ public static class VccsHtmlReportGenerator
                 "Fail" => "Fail &#x2014; GTIN mismatch",
                 var s  => H(s ?? "\u2014"),
             };
-            ResultRow($"{r.LinearSymbology} RFID Cross-Validation Result", linVal);
+            ResultRow($"{r.LinearSymbology} RFID Validation Result", linVal);
 
             string twoDSym = string.IsNullOrWhiteSpace(r.Symbology) ? "2D" : r.Symbology;
             string twoDVal = r.RfidStatus switch
@@ -409,7 +430,7 @@ public static class VccsHtmlReportGenerator
                 "Fail" => BuildMismatch2DLabel(r.RfidMismatchDetail),
                 var s  => H(s ?? "\u2014"),
             };
-            ResultRow($"{twoDSym} RFID Cross-Validation Result", twoDVal);
+            ResultRow($"{twoDSym} RFID Validation Result", twoDVal);
         }
         else
         {
@@ -423,7 +444,7 @@ public static class VccsHtmlReportGenerator
                 "Fail"               => BuildMismatch2DLabel(r.RfidMismatchDetail),
                 var s                => H(s ?? "\u2014"),
             };
-            ResultRow($"{symName} RFID Cross-Validation Result", singleVal);
+            ResultRow($"{symName} RFID Validation Result", singleVal);
         }
 
         return sb.ToString();
