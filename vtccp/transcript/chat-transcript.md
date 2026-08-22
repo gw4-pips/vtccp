@@ -271,6 +271,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Showed that `C:\dev\vtccp` currently contains only `lib` and `TC-829 VeriWedge Dev Reports`.
+
+**Assistant [2026-08-22]:** Identified it as a non-empty staging folder rather than a confirmed Git checkout, advised preserving both folders, and recommended checking for a hidden `.git` directory before renaming the folder and cloning the repository.
+
+---
+
 **User [2026-08-22]:** Shared the GitHub Desktop start screen showing `gw4-pips/vtccp` in the repository list.
 
 **Assistant [2026-08-22]:** Confirmed GitHub Desktop already recognizes the local VTCCP repository and instructed the user to open that entry rather than clone or create another copy.
