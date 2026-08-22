@@ -1294,30 +1294,32 @@ public sealed class SessionViewModel : ViewModelBase
             VerifierResultLine = $"Record {_recordCount + 1}: {record.Symbology} — {preGrade}{preNum}{preOcr}";
         }
 
-        // ── GS1 parser selection ──────────────────────────────────────────────
-        // RFID capture is independent of the barcode grade. The VeriWedge GS1
-        // parser is only a fallback/comparison path when the native TruCheck DFC
-        // is unavailable or reports a failure; native-only results are never
-        // labelled as cross-validation.
+        // ── GS1 parser results ────────────────────────────────────────────────
+        // RFID capture is independent of the barcode grade. Keep the VeriWedge
+        // parser result available for the dual parser report block whenever the
+        // decoded data is GS1-applicable. Whether the RFID row says Validation
+        // or Cross-Validation is decided separately from the presence of this
+        // comparison panel.
         TruCheckValidationAssessment truCheck =
             RfidValidator.AssessTruCheckValidation(record);
-        DigitalLinkValidationResult? veriWedgeValidation = null;
-        if (truCheck.RequiresVeriWedge)
+        string? gs1Input = record.HtmlDecodedData ?? record.DecodedData;
+        DigitalLinkValidationResult? veriWedgeValidation =
+            VccsDigitalLinkValidationService.Validate(gs1Input);
+        if (veriWedgeValidation.Status == DigitalLinkValidationStatus.NotApplicable &&
+            VccsDigitalLinkValidationService.LooksLikeGs1ElementString(gs1Input))
         {
-            string? gs1Input = record.HtmlDecodedData ?? record.DecodedData;
-            veriWedgeValidation = VccsDigitalLinkValidationService.Validate(gs1Input);
-            if (veriWedgeValidation.Status == DigitalLinkValidationStatus.NotApplicable &&
-                VccsDigitalLinkValidationService.LooksLikeGs1ElementString(gs1Input))
-            {
-                veriWedgeValidation =
-                    VccsDigitalLinkValidationService.ValidateElementString(gs1Input);
-            }
+            veriWedgeValidation =
+                VccsDigitalLinkValidationService.ValidateElementString(gs1Input);
         }
+        bool veriWedgeParserUsed = veriWedgeValidation.Status is
+            DigitalLinkValidationStatus.Valid or
+            DigitalLinkValidationStatus.Invalid or
+            DigitalLinkValidationStatus.Unavailable;
         record = record with
         {
             TruCheckValidationUsable = truCheck.Usable,
             TruCheckValidationFailed = truCheck.Failed,
-            VeriWedgeValidationUsed = truCheck.RequiresVeriWedge,
+            VeriWedgeValidationUsed = veriWedgeParserUsed,
             VccsDigitalLinkValidation = veriWedgeValidation,
         };
 

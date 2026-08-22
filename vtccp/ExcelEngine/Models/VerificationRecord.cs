@@ -686,9 +686,10 @@ public sealed record class VerificationRecord
     public bool TruCheckValidationFailed { get; init; }
 
     /// <summary>
-    /// True only when VeriWedge's GS1 parser was selected as the fallback or
-    /// comparison path because native TruCheck validation was unavailable or
-    /// failed. This controls Cross-Validation wording in the PDF report.
+    /// True when VeriWedge produced a reportable GS1 parser result for the
+    /// dual-parser report block. This does not by itself mean Cross-Validation:
+    /// the report label also requires native TruCheck validation to be
+    /// unavailable or failed.
     /// </summary>
     public bool? VeriWedgeValidationUsed { get; init; }
 

@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.45";
+    public const string ReportVersion = "v1.5.46";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -522,7 +522,7 @@ public static class VccsHtmlReportGenerator
 
     private static bool IsVeriWedgeValidationUsed(VerificationRecord record)
         // Saved records created before explicit provenance retain their
-        // populated parser result as evidence that the fallback was used.
+        // populated parser result as evidence that the comparison panel exists.
         // New records always set VeriWedgeValidationUsed, which takes priority.
         => record.VeriWedgeValidationUsed ??
            record.VccsDigitalLinkValidation is not null;

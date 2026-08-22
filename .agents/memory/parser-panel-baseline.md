@@ -19,3 +19,14 @@ baseline layout unless the user explicitly approves a new rendered result.
 **Approved exception:** The user approved moving only the VeriWedge parser
 header and Field-column text flush left inside their existing parser half.
 Keep the baseline column widths and center divider unchanged.
+
+**Structural rule:** For GS1-applicable scans, retain both TruCheck and
+VeriWedge parser blocks regardless of whether TruCheck passes. The RFID result
+label is independent: use Cross-Validation only when TruCheck cannot confirm
+or fails and VeriWedge is needed as the fallback/comparison path.
+
+**Why:** A visible dual-parser panel is the accepted report structure, not
+evidence that the RFID result itself must be called Cross-Validation.
+
+**How to apply:** Never gate the right-hand parser block on the RFID result
+label or the native TruCheck pass state.

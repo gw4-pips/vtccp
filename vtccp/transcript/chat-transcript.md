@@ -139,6 +139,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-21]:** Reported that the correct Validation result was shown but the dual parser blocks disappeared. Clarified that nothing structural should differ in the parser blocks.
+
+**Assistant [2026-08-21]:** Identified that VeriWedge result generation had been incorrectly gated on a TruCheck fallback condition. Restored generation of the dual-parser result for GS1-applicable scans while retaining Validation as the label when TruCheck confirms the encoding.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.
