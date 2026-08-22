@@ -38,6 +38,21 @@ remote server already has the current commit.
 **How to apply:** After the final automatic push, fetch the tracked `main` branch
 from each configured GitHub remote before treating divergence output as final.
 
+## Imported and merge commit verification
+
+Some Replit-imported or merged commits can reach the local branch without
+running the root post-commit hook. A current local version can therefore be
+absent from GitHub even though the hook is installed and works for ordinary
+commits.
+
+**Why:** The hook status log may lag the local branch after a non-standard
+commit path, leaving a Windows `git pull` on an older application build.
+
+**How to apply:** When a workstation reports an older build, fetch only
+`origin main` and compare the remote `VtccpApp.csproj` version with local HEAD.
+If they differ, reconcile any remote-only equivalent commits, publish the
+approved local branch, then fetch again and verify the remote version.
+
 ## Remote hygiene
 Task-agent sessions leave temporary `subrepl-*` SSH remotes and matching local
 branches. Do not run `git fetch --all`: it contacts those SSH remotes and can
