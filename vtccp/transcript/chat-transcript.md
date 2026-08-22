@@ -367,6 +367,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Questioned whether the nested `C:\dev\vtccp\vtccp` folder shown in Explorer was incorrect.
+
+**Assistant [2026-08-22]:** Explained that the outer folder is the Git repository root and the inner folder is the Windows application/source solution, so the nesting is expected rather than a duplicate clone.
+
+---
+
 **User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
 
 **Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
