@@ -51,3 +51,10 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User:** All VeriWedge work is Manual mode. A DMST filename cannot be relied on to contain date/time; the HTML `Verified:` time is always available. Use filename time only when present, otherwise use `Verified:`, with no time offsets.
 
 **Assistant:** Corrected the Manual-mode correlation and report clock rule. HTML reports with no filename timestamp are now accepted through their `Verified:` header. When present, the real filename timestamp remains first choice; otherwise the raw HTML `Verified:` text is preserved exactly for the report and used without UTC/local conversion. The generated PDF filename follows the same source-time precedence. Report v1.5.11, app v1.5.18; all 104 DeviceInterface tests pass.
+
+
+---
+
+**User [2026-08-21]:** Continue the current task to widen the VCCS report layout.
+
+**Assistant [2026-08-21]:** Validated the pending layout update: the report now uses wider 0.4-inch side margins, preserves the barcode image width while expanding the Data Format Check area, uses fixed dual-parser column proportions, and bumps the report/application versions. The DeviceInterface test suite passes all 161 tests and the diff has no whitespace errors.

@@ -341,8 +341,8 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains("table-layout: fixed;", report, StringComparison.Ordinal);
-        Assert.Contains("<col style=\"width:18.7%\">", report, StringComparison.Ordinal);
-        Assert.Contains("<col style=\"width:13.6%\">", report, StringComparison.Ordinal);
+        Assert.Contains("<col style=\"width:18.2%\">", report, StringComparison.Ordinal);
+        Assert.Contains("<col style=\"width:14.5%\">", report, StringComparison.Ordinal);
         Assert.Contains(
             "<th class=\"app-settings-hdr\"><span class=\"app-settings-label\">Application Std. / Data Format Check / Aperture:</span> <span class=\"app-settings-values\">Custom / GS1 / User Set</span></th>",
             report,
@@ -603,10 +603,24 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("AI (17) Expiration Date", report, StringComparison.Ordinal);
         Assert.Contains("AI (20) Variant", report, StringComparison.Ordinal);
         Assert.Contains("parser-element-string-data", report, StringComparison.Ordinal);
-        Assert.Contains("table-layout: auto", report, StringComparison.Ordinal);
+        Assert.Contains("table-layout: fixed", report, StringComparison.Ordinal);
         Assert.Contains("white-space: nowrap", report, StringComparison.Ordinal);
         Assert.Contains("break-inside: avoid", report, StringComparison.Ordinal);
         Assert.Contains("page-break-inside: avoid", report, StringComparison.Ordinal);
+        Assert.Contains("padding: 0.25in 0.4in 0.5in 0.4in", report, StringComparison.Ordinal);
+        Assert.Contains("grid-template-columns: 19.48% 80.52%", report, StringComparison.Ordinal);
+        Assert.Contains(".barcode-image-column {\n    width: 19.48%", report, StringComparison.Ordinal);
+        Assert.Contains(".barcode-dfc-column {\n    width: 80.52%", report, StringComparison.Ordinal);
+        Assert.Contains(".dfc-dual-table col.dual-left-field  { width: 17%; }", report,
+            StringComparison.Ordinal);
+        Assert.Contains(".dfc-dual-table col.dual-left-data   { width: 25%; }", report,
+            StringComparison.Ordinal);
+        Assert.Contains(".dfc-dual-table col.dual-right-field { width: 17%; }", report,
+            StringComparison.Ordinal);
+        Assert.Contains(".dfc-dual-table col.dual-right-data  { width: 25%; }", report,
+            StringComparison.Ordinal);
+        Assert.Contains(".dfc-dual-table .dual-subhead th {\n    background: #dbe5f1; font-size: 6.5pt;",
+            report, StringComparison.Ordinal);
         Assert.DoesNotContain("<th>Source</th>", report, StringComparison.Ordinal);
         Assert.DoesNotContain("VCCS / GS1 Element String syntax validation", report,
             StringComparison.Ordinal);

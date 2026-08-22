@@ -45,7 +45,7 @@
 
   .page {
     width: 8.5in; height: 11in; overflow: hidden; background: white;
-    margin: 0 auto; padding: 0.25in 0.5in 0.5in 0.5in;
+    margin: 0 auto; padding: 0.25in 0.4in 0.5in 0.4in;
     box-shadow: 0 4px 24px rgba(0,0,0,0.4);
     display: flex; flex-direction: column;
   }
@@ -130,7 +130,9 @@
   }
   .trucheck-barcode-hdr .trucheck-header-title { font-weight: bold; }
   .trucheck-barcode-hdr.barcode-dual-header {
-    display: grid; grid-template-columns: 20% 80%; padding: 0;
+    /* Keep the barcode image at its former 1.50in physical width.  The
+       recovered 0.20in page width therefore belongs entirely to DFC. */
+    display: grid; grid-template-columns: 19.48% 80.52%; padding: 0;
   }
   .barcode-dual-header .barcode-header-image-title {
     padding-left: 6pt; font-weight: bold;
@@ -224,6 +226,8 @@
     padding: 2.5pt 4pt 2pt;
   }
   .rfid-table .lbl-col { width: 178pt; }
+  /* The fixed Field column holds its original width; every bit of the wider
+     page is consequently available to the Value column. */
   .row-hi          td { background: #f0f7ff; }
   .row-result-pass td { background:#d4edda; color:#155724; font-weight:bold; }
   .row-result-fail td { background:#f8d7da; color:#721c24; font-weight:bold; }
@@ -240,10 +244,10 @@
     min-height: 86pt;
   }
   .barcode-image-column {
-    width: 20%; padding: 8pt; vertical-align: middle; text-align: left;
+    width: 19.48%; padding: 8pt; vertical-align: middle; text-align: left;
   }
   .barcode-dfc-column {
-    width: 80%; border-left: 2px solid #1a3a6b; vertical-align: top;
+    width: 80.52%; border-left: 2px solid #1a3a6b; vertical-align: top;
   }
   .barcode-image {
     display: block; max-width: 100%; max-height: 1.35in;
@@ -284,16 +288,23 @@
     width: 100%;
   }
    .dfc-dual-table {
-     width: 100%; border-collapse: collapse; table-layout: auto;
+     width: 100%; border-collapse: collapse; table-layout: fixed;
     border: none; font-size: 7.5pt;
     break-inside: avoid; page-break-inside: avoid;
   }
-   .dfc-dual-table col.dual-left-field { }
-   .dfc-dual-table col.dual-left-data { }
-   .dfc-dual-table col.dual-left-check { width: 7%; }
-  .dfc-dual-table col.dual-divider { width: 2%; }
-   .dfc-dual-table col.dual-right-field { }
-   .dfc-dual-table col.dual-right-data { }
+   /*
+      Each parser owns 49% of the DFC area (the 2% center divider is shared).
+      With the barcode image held at 1.50in, the wider page gives each parser
+      block approximately 0.10in more live width.  Explicit columns also make
+      the right parser header and Field start at exactly the same inset as the
+      corresponding DataMan elements.
+   */
+   .dfc-dual-table col.dual-left-field  { width: 17%; }
+   .dfc-dual-table col.dual-left-data   { width: 25%; }
+   .dfc-dual-table col.dual-left-check  { width: 7%; }
+   .dfc-dual-table col.dual-divider     { width: 2%; }
+   .dfc-dual-table col.dual-right-field { width: 17%; }
+   .dfc-dual-table col.dual-right-data  { width: 25%; }
    .dfc-dual-table col.dual-right-check { width: 7%; }
   .dfc-dual-table th {
     background: #e8eef5; border-bottom: 1px solid #aaa;
@@ -317,7 +328,7 @@
    }
   .dfc-dual-table .dual-divider {
     border-left: 2px solid #1a3a6b;
-    padding-left: 3pt;
+    padding: 0 !important;
   }
   .dfc-dual-table .dual-check {
     font-weight: bold; white-space: nowrap;
@@ -327,8 +338,9 @@
     font-weight: bold; white-space: nowrap;
   }
   .dfc-dual-table .dual-subhead th {
-    background: #dbe5f1; font-size: 7.5pt; font-weight: bold;
+    background: #dbe5f1; font-size: 6.5pt; font-weight: bold;
     padding-top: 2.5pt; padding-bottom: 2.5pt;
+    white-space: nowrap;
   }
   .dfc-dual-table .dual-overall-cell {
     text-align: center; vertical-align: middle;
@@ -431,10 +443,11 @@
       <div class="sec-hdr barcode-sec-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
       <table class="sum-table">
         <colgroup>
-          <!-- Matches the Grade table's fixed Symbology + Standard boundary. -->
-          <col style="width:18.7%">
-          <col style="width:13.6%">
-          <col style="width:67.7%">
+          <!-- Fixed left boundary matches the Grades table.  The recovered page
+               width is shared by Encoded Data and the right-side report area. -->
+          <col style="width:18.2%">
+          <col style="width:14.5%">
+          <col style="width:67.3%">
         </colgroup>
         <thead>
           <tr>
@@ -459,13 +472,14 @@
       <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades</span><span class="sec-note"> &#x2014; <em>Only fields present in the associated HTML report are shown</em></span></div>
       <table class="grades-table">
         <colgroup>
-          <!-- Proportions taken from the approved reference snip; total = 100%. -->
-          <col style="width:18.7%">
-          <col style="width:13.6%">
-          <col style="width:10.3%">
-          <col style="width:11.2%">
-          <col style="width:19.5%">
-          <col style="width:11.8%">
+          <!-- Symbology stays fixed at the Summary table boundary.  The
+               remaining columns share the recovered width proportionally. -->
+          <col style="width:18.2%">
+          <col style="width:13.7%">
+          <col style="width:10.4%">
+          <col style="width:11.3%">
+          <col style="width:19.6%">
+          <col style="width:11.9%">
           <col style="width:14.9%">
         </colgroup>
         <thead>
