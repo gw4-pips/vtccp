@@ -581,6 +581,10 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 **Assistant [2026-08-22]:** Confirmed that the solution edits are protected and that the untracked SDK/report directories were not included or removed; requested one final status check before aligning the Windows `main` branch to GitHub.
 
+**User [2026-08-22]:** Confirmed that the stash removed the solution-file modifications from the working tree and that only the three untracked local SDK/report directories remain.
+
+**Assistant [2026-08-22]:** Confirmed that the Windows local commits are protected on `windows-local-before-sync`, the solution edits are protected in the stash, and it is now safe to move only `main` to the published GitHub history.
+
 ---
 
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
