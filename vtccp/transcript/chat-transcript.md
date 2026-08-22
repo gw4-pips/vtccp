@@ -385,6 +385,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Right-clicked a project in Solution Explorer but did not see “Set as Startup Project.”
+
+**Assistant [2026-08-22]:** Identified from the screenshot that `DeviceInterface.Tests`, not `VtccpApp`, was selected; explained that the test-project context menu therefore does not contain the application startup command.
+
+---
+
 **User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
 
 **Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
