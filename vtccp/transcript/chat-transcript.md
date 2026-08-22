@@ -585,6 +585,10 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 **Assistant [2026-08-22]:** Confirmed that the Windows local commits are protected on `windows-local-before-sync`, the solution edits are protected in the stash, and it is now safe to move only `main` to the published GitHub history.
 
+**User [2026-08-22]:** Ran `git reset --hard origin/main` successfully; Windows reported `HEAD is now at d3c4d93 Document imported commit sync verification`.
+
+**Assistant [2026-08-22]:** Confirmed that Windows `main` is now aligned to the published 1.5.68 history and that the protected local commits, stash, and untracked directories remain separate.
+
 ---
 
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
