@@ -555,6 +555,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Supplied a Visual Studio screenshot showing that the Windows pull completed with conflicts and that a merge is in progress.
+
+**Assistant [2026-08-22]:** Explained that the issue is a Git history conflict rather than a build failure, warned not to commit the conflict, and asked whether the Windows checkout contained unpublished work. The user was unsure, so the safe next step is to abort only the interrupted merge before inspecting the Windows branch.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
