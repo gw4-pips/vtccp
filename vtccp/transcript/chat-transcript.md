@@ -391,6 +391,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Shared the Solution Explorer search result where `VtccpApp` appeared as a folder-like item under `DeviceInterface.Tests`, not as an application project.
+
+**Assistant [2026-08-22]:** Corrected the earlier guidance: `VTCCP.sln` is the library/test solution and does not include the real app project. The Windows application is included in the separate `VtccpWindows.sln`.
+
+---
+
 **User [2026-08-22]:** Ran the verifier commands but saw no report output and showed a prior continuation prompt interrupted with Ctrl+C.
 
 **Assistant [2026-08-22]:** Noted that the final command had not returned a new PowerShell prompt, so the captured `-RunBuild` verifier was likely still running silently; advised waiting or interrupting once, then retrying without `-RunBuild`.
