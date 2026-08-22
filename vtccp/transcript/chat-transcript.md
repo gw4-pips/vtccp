@@ -340,3 +340,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Successfully assigned the source and target variables and created the target folder, but the destination DLL was absent when hashing it.
 
 **Assistant [2026-08-22]:** Confirmed no source was deleted or moved and switched to explicit source/destination file-path checks and an explicit destination filename.
+
+---
+
+**User [2026-08-22]:** Shared the current Explorer path showing the DLL under `C:\dev\vtccp\lib\lib\asreader-p3xu-sdk-1.3.0`, one `lib` level deeper than the verifier expects.
+
+**Assistant [2026-08-22]:** Identified the extra nested `lib` directory and instructed the user to copy the DLL to `C:\dev\vtccp\lib\asreader-p3xu-sdk-1.3.0`, leaving the extra copy untouched until verification succeeds.
