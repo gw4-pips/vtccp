@@ -181,6 +181,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Shared a Windows development log from the resolver's `tools\rfid-wedge` directory and asked whether it was better evidence.
+
+**Assistant [2026-08-22]:** Confirmed that the log proves the resolver checkout and ASR P35U DLL are present, Python.NET can load the DLL, and firmware-version methods are exposed. Clarified that it is not the environment audit output and instructed the user to run the audit without moving the DLL yet.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.
