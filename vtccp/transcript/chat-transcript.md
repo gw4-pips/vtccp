@@ -483,6 +483,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Asked whether Replit Git and the Windows local machine can be monitored more routinely so stale pulls and mismatched builds are caught earlier.
+
+**Assistant [2026-08-22]:** Agreed to use explicit sync checkpoints: fetch only the primary GitHub remote, compare local and remote commit ancestry, verify application and report versions, and distinguish Replit, GitHub, and Windows states before giving pull/rebuild instructions. Clarified that continuous background monitoring is not possible between conversation turns.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
