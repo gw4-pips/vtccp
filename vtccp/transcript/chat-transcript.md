@@ -636,3 +636,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Corrected the parser-header request: the DataMan/Webscan side was already correct. The required canonical VeriWedge header includes `— GS1 Barcode Syntax Engine (v. …)`; the two titles are intentionally different.
 
 **Assistant [2026-08-22]:** Acknowledged the incorrect interpretation, restored the exact canonical VeriWedge header, and verified that the active report generator is byte-for-byte unchanged from the published parser-layout source. No application or report-version change is required.
+
+---
+
+**User [2026-08-22]:** Asked whether the project is still synchronized with Git.
+
+**Assistant [2026-08-22]:** Confirmed that local `main`, `origin/main`, and `github/main` all point to the same commit, with a clean working tree and zero divergence.
