@@ -531,14 +531,21 @@ public sealed record class VerificationRecord
     public int? RfidScanWindowMs { get; init; }
 
     /// <summary>
-    /// True = GCP registered in GS1 table; false = not found; null = GCP check not run.
+    /// Legacy Boolean projection of the GCP lookup: true = valid; false = a found
+    /// prefix has an incompatible encoded length; null = not checked or not found.
     /// </summary>
     public bool? RfidGcpValid { get; init; }
 
     /// <summary>
+    /// Explicit GCP lookup outcome: "Valid", "Invalid", "NotFound", or "NotChecked".
+    /// This prevents an absent prefix-table entry from being reported as invalid.
+    /// </summary>
+    public string? RfidGcpStatus { get; init; }
+
+    /// <summary>
     /// Length of the GCP as encoded in the EPC (number of digits allocated to the GCP
     /// in the SGTIN partition table: 6–12 digits).  Null when not decoded or no tag.
-    /// Displayed on the PDF report as "Valid (N)" or "Invalid (N)".
+    /// Displayed on the PDF report as "Valid (=N)", "Invalid (=N)", or "NOT FOUND (=N)".
     /// </summary>
     public int? RfidGcpLength { get; init; }
 

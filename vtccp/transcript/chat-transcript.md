@@ -58,3 +58,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-21]:** Continue the current task to widen the VCCS report layout.
 
 **Assistant [2026-08-21]:** Validated the pending layout update: the report now uses wider 0.4-inch side margins, preserves the barcode image width while expanding the Data Format Check area, uses fixed dual-parser column proportions, and bumps the report/application versions. The DeviceInterface test suite passes all 161 tests and the diff has no whitespace errors.
+
+---
+
+**User [2026-08-21]:** Is there a push coming? What about the GCP and Syntax Engine updates?
+
+**Assistant [2026-08-21]:** Confirmed the layout commits had already been pushed through the post-commit hook. Updated the GS1 Syntax Engine from 1.4.0 to verified release 1.4.1 assets, replaced the bundled GCP table with the supplied June 3, 2026 table, and separated GCP results into Valid, Invalid, and NOT FOUND. The report now receives the encoded GCP length from the EPC partition, so a valid 7-digit prefix renders as “Valid (=7)”. All 167 DeviceInterface tests and the Windows-targeted VtccpApp build pass.

@@ -21,19 +21,38 @@ public sealed class GcpValidator
 
     /// <summary>
     /// Validate the Company Prefix from a parsed EPC against the GS1 GCP registry.
-    /// Returns true if the prefix is found in the registry with the correct declared GCP length.
-    /// Returns false if not found or if the partition-implied length disagrees with the registry.
-    /// Returns null if the parsed EPC does not contain GCP information (unknown scheme).
+    /// A missing registry entry is deliberately distinct from a found prefix whose
+    /// registered length disagrees with the EPC partition.
     /// </summary>
-    public bool? Validate(ParsedEpc epc)
+    public GcpValidationStatus Validate(ParsedEpc epc)
     {
         if (epc.CompanyPrefix is null || epc.Partition is null)
+            return GcpValidationStatus.NotChecked;
+
+        int? claimedLength = GetEncodedGcpLength(epc);
+        if (!claimedLength.HasValue)
+            return GcpValidationStatus.NotChecked;
+
+        if (!_table.TryLookup(epc.CompanyPrefix, out int registeredLength))
+            return GcpValidationStatus.NotFound;
+
+        return registeredLength == claimedLength.Value
+            ? GcpValidationStatus.Valid
+            : GcpValidationStatus.Invalid;
+    }
+
+    /// <summary>
+    /// Returns the GCP digit length encoded by an SGTIN partition, independent of
+    /// whether a GCP lookup table is available.
+    /// </summary>
+    public static int? GetEncodedGcpLength(ParsedEpc? epc)
+    {
+        if (epc?.Partition is not int partition)
             return null;
 
-        int claimedLength = GetGcpLengthFromPartition(epc.Scheme, epc.Partition.Value);
-        if (claimedLength < 0) return null;
-
-        return _table.IsValidGcp(epc.CompanyPrefix, claimedLength);
+        return GetGcpLengthFromPartition(epc.Scheme, partition) is int length and >= 0
+            ? length
+            : null;
     }
 
     /// <summary>

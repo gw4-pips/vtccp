@@ -1327,6 +1327,8 @@ public sealed class SessionViewModel : ViewModelBase
                 RfidMismatchDetail = rfidResult.MismatchDetail,
                 RfidScanWindowMs   = rfidResult.ScanWindowMs,
                 RfidGcpValid       = rfidResult.GcpValid,
+                RfidGcpStatus      = rfidResult.GcpStatus.ToString(),
+                RfidGcpLength      = GcpValidator.GetEncodedGcpLength(rfidResult.ParsedEpc),
                 RfidGcpTableDate   = gcpTableDate,
             };
 

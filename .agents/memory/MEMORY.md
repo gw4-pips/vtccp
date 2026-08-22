@@ -43,3 +43,4 @@
 - [TruCheck settings provenance](trucheck-settings-provenance.md) — Application Standard is not HTML-published; snapshot live settings after every result and never infer them
 - [GS1 parser report layout](gs1-parser-report-layout.md) — parser is independent of DataMan fields; Digital Link URI leads and canonical Element String ends the parser block
 - [Native Digital Link compatibility](native-digital-link-compatibility.md) — distinguish native parser limitations from RFID mismatches; annotate proven unsupported versions without altering source data
+- [GCP validation status semantics](gcp-status-semantics.md) — NOT FOUND is distinct from Invalid; show the EPC partition’s encoded length with the result

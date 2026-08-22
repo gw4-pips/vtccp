@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.41";
+    public const string ReportVersion = "v1.5.42";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -308,11 +308,18 @@ public static class VccsHtmlReportGenerator
         string schemePart = tagDetected ? (epcScheme ?? "\u2014") : "N/A";
 
         string gcpLenPart = r.RfidGcpLength.HasValue ? $" (={r.RfidGcpLength.Value})" : string.Empty;
-        string gcpDisplay = r.RfidGcpValid switch
+        string gcpDisplay = r.RfidGcpStatus switch
         {
-            true  => $"Valid{gcpLenPart}",
-            false => $"Invalid{gcpLenPart}",
-            null  => "\u2014",
+            "Valid" => $"Valid{gcpLenPart}",
+            "Invalid" => $"Invalid{gcpLenPart}",
+            "NotFound" => $"NOT FOUND{gcpLenPart}",
+            "NotChecked" => "\u2014",
+            _ => r.RfidGcpValid switch
+            {
+                true  => $"Valid{gcpLenPart}",
+                false => $"Invalid{gcpLenPart}",
+                null  => "\u2014",
+            },
         };
         string gcpNote = !string.IsNullOrWhiteSpace(r.RfidGcpTableDate)
             ? $"<em class=\"gcp-inline-note\"> &ndash; from official GS1 GCP prefix table as of {H(r.RfidGcpTableDate)}</em>"

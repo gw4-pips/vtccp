@@ -2,12 +2,23 @@
 
 | Item | Value |
 |---|---|
-| **Pinned version** | 1.4.0 |
-| **Published** | 2026-05-18 |
-| **Downloaded** | 2026-05-18 |
-| **Next check due** | 2026-06-18 |
+| **Pinned version** | 1.4.1 |
+| **Published** | 2026-05-28 |
+| **Downloaded** | 2026-08-21 |
+| **Next check due** | 2026-09-21 |
 | **Source** | https://github.com/gs1/gs1-syntax-engine/releases |
 | **License** | Apache 2.0 |
+
+## Verified release archives
+
+The following SHA-256 values were verified against the public 1.4.1 GitHub
+release before the bundled files were replaced:
+
+| Archive | SHA-256 |
+|---|---|
+| `gs1encoders-windows-dotnet-lib.zip` | `3858d4defc2eff67d22e6c991df8020083aebe0815e0b9704df71ef28b59bf53` |
+| `gs1encoders-windows-libs-x64.zip` | `2b96ad1e04c28c7c4e9c1cebae6660b63a7c997162191e3a41b2f6410d90971a` |
+| `gs1encoders-windows-libs-x86.zip` | `4e54d43723f324ec3e1050801b7358f01d23ec66502a789f9d1da86daaf5b19d` |
 
 ## Files included
 
@@ -62,7 +73,7 @@ For a WPF/C# project:
 Check for new releases at: https://github.com/gs1/gs1-syntax-engine/releases
 
 Steps:
-1. Compare the latest release tag against `1.4.0` (current pin above).
+1. Compare the latest release tag against `1.4.1` (current pin above).
 2. If newer: read the release notes. If the C# API surface changed,
    update `src/GS1Encoder.cs` and check for breaking changes against any
    VTCCP code that calls it.

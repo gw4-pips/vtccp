@@ -756,6 +756,21 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_RfidGcpNotFound_IsNotReportedAsInvalid()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = "Pass",
+            RfidGcpStatus = "NotFound",
+            RfidGcpLength = 7,
+        });
+
+        Assert.Contains("NOT FOUND (=7)", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Invalid (=7)", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_LabelsDigitalLinkNotApplicable()
     {
         var record = new VerificationRecord

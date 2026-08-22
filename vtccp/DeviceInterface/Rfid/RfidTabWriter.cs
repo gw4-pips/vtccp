@@ -101,9 +101,15 @@ public sealed class RfidTabWriter
         _adapter.WriteString(row, RfidTabSchema.ColSerialMatch,
             serialComparable ? (result.SerialMatches ? "TRUE" : "FALSE") : "N/A");
 
-        // L — GCP valid
+        // L — GCP registry outcome
         _adapter.WriteString(row, RfidTabSchema.ColGcpValid,
-            result.GcpValid.HasValue ? (result.GcpValid.Value ? "TRUE" : "FALSE") : "N/A");
+            result.GcpStatus switch
+            {
+                GcpValidationStatus.Valid => "VALID",
+                GcpValidationStatus.Invalid => "INVALID",
+                GcpValidationStatus.NotFound => "NOT FOUND",
+                _ => "N/A",
+            });
 
         // M — Validation status
         _adapter.WriteString(row, RfidTabSchema.ColValidationStatus, result.Status.ToString());

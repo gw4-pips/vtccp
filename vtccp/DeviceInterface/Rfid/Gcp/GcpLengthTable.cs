@@ -5,8 +5,8 @@ namespace DeviceInterface.Rfid.Gcp;
 /// <summary>
 /// In-memory lookup table built from the GS1 GCP Prefix Format List XML file.
 ///
-/// XML format (confirmed 2026-07-12 from current.xml 2026-05-03):
-///   &lt;GCPPrefixFormatList date="2026-05-03T11:05:58.612Z"&gt;
+/// XML format (bundled seed table dated 2026-06-03):
+///   &lt;GCPPrefixFormatList date="2026-06-03T11:14:42.028Z"&gt;
 ///     &lt;entry prefix="000000" gcpLength="7" /&gt;
 ///     ...
 ///   &lt;/GCPPrefixFormatList&gt;

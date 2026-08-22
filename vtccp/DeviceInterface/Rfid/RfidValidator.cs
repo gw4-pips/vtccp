@@ -20,7 +20,7 @@ public sealed class RfidValidator
     private readonly GcpValidator? _gcpValidator;
 
     /// <param name="gcpValidator">
-    /// Optional GCP validator. When null, GCP validation is skipped (GcpValid = null in result).
+    /// Optional GCP validator. When null, GCP validation is skipped.
     /// </param>
     public RfidValidator(GcpValidator? gcpValidator = null)
         => _gcpValidator = gcpValidator;
@@ -76,7 +76,8 @@ public sealed class RfidValidator
         string? barcodeSerial = ExtractAi21(barcodeRecord.DecodedData);
 
         // ── GCP validation ─────────────────────────────────────────────────────
-        bool? gcpValid = _gcpValidator?.Validate(parsedEpc);
+        GcpValidationStatus gcpStatus = _gcpValidator?.Validate(parsedEpc)
+            ?? GcpValidationStatus.NotChecked;
 
         // ── Compare GTIN-14 ────────────────────────────────────────────────────
         string rfidGtin14 = parsedEpc.Gtin14!;
@@ -102,7 +103,7 @@ public sealed class RfidValidator
             mismatches.Add($"Serial:RFID={rfidSerial},BC={barcodeSerial}");
 
         // GCP registration status is informational — matching GTIN and Serial is
-        // sufficient for a PASS.  GcpValid is retained on the result for display.
+        // sufficient for a PASS. GCP status is retained on the result for display.
 
         // ── Determine overall status ───────────────────────────────────────────
         bool pass = gtin14Match
@@ -122,7 +123,7 @@ public sealed class RfidValidator
             BarcodeGtin14   = barcodeGtin14,
             RfidSerial      = rfidSerial,
             BarcodeSerial   = barcodeSerial,
-            GcpValid        = gcpValid,
+            GcpStatus       = gcpStatus,
             ScanWindowMs    = scanWindowMs,
             MismatchDetail  = mismatches.Count > 0 ? string.Join(";", mismatches) : null,
         };

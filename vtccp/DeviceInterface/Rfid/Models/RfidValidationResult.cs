@@ -25,6 +25,22 @@ public enum RfidValidationStatus
     MultipleTagsDetected = 5,
 }
 
+/// <summary>Outcome of looking up an EPC's encoded GS1 Company Prefix.</summary>
+public enum GcpValidationStatus
+{
+    /// <summary>No GCP result is available because the check was not applicable or not run.</summary>
+    NotChecked = 0,
+
+    /// <summary>The prefix exists in the GS1 table and its registered length matches the EPC partition.</summary>
+    Valid = 1,
+
+    /// <summary>The prefix exists in the GS1 table but its registered length disagrees with the EPC partition.</summary>
+    Invalid = 2,
+
+    /// <summary>The prefix does not exist in the loaded GS1 table.</summary>
+    NotFound = 3,
+}
+
 /// <summary>
 /// Complete result of one RFID cross-validation cycle, bound to the barcode
 /// VerificationRecord that triggered the paired RFID scan.
@@ -72,8 +88,20 @@ public sealed record RfidValidationResult
 
     // ── GCP validation ──────────────────────────────────────────────────────────
 
-    /// <summary>True if the Company Prefix in the EPC is registered in the GS1 GCP table.</summary>
-    public bool? GcpValid { get; init; }
+    /// <summary>Explicit GS1 Company Prefix lookup outcome.</summary>
+    public GcpValidationStatus GcpStatus { get; init; } = GcpValidationStatus.NotChecked;
+
+    /// <summary>
+    /// Legacy Boolean projection of <see cref="GcpStatus"/>.
+    /// True means valid, false means a found prefix had an incompatible encoded length,
+    /// and null means not checked or not found.
+    /// </summary>
+    public bool? GcpValid => GcpStatus switch
+    {
+        GcpValidationStatus.Valid => true,
+        GcpValidationStatus.Invalid => false,
+        _ => null,
+    };
 
     // ── Timing ──────────────────────────────────────────────────────────────────
 
