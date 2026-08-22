@@ -265,6 +265,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Shared the GitHub Desktop clone dialog showing `C:\dev\vtccp\` and the warning that the folder contains files.
+
+**Assistant [2026-08-22]:** Explained that GitHub Desktop is refusing to clone over the existing non-empty folder, not requesting a deeper `vtccp` source directory. Advised canceling and checking whether `C:\dev\vtccp` is already a Git repository before choosing a path.
+
+---
+
 **User [2026-08-22]:** Shared the GitHub Desktop start screen showing `gw4-pips/vtccp` in the repository list.
 
 **Assistant [2026-08-22]:** Confirmed GitHub Desktop already recognizes the local VTCCP repository and instructed the user to open that entry rather than clone or create another copy.
