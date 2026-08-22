@@ -716,9 +716,9 @@ public sealed class VccsHtmlReportGeneratorTests
             StringComparison.Ordinal);
         Assert.Contains(".dfc-dual-table col.dual-left-check  { width: 6%; }", report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-right-field { width: 17%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-right-field { width: 18%; }", report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table col.dual-right-data  { width: 33%; }", report,
+        Assert.Contains(".dfc-dual-table col.dual-right-data  { width: 32%; }", report,
             StringComparison.Ordinal);
         Assert.Contains(".dfc-dual-table .dual-subhead th {\n    background: #dbe5f1; font-size: 6.5pt;",
             report, StringComparison.Ordinal);
