@@ -346,3 +346,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Shared the current Explorer path showing the DLL under `C:\dev\vtccp\lib\lib\asreader-p3xu-sdk-1.3.0`, one `lib` level deeper than the verifier expects.
 
 **Assistant [2026-08-22]:** Identified the extra nested `lib` directory and instructed the user to copy the DLL to `C:\dev\vtccp\lib\asreader-p3xu-sdk-1.3.0`, leaving the extra copy untouched until verification succeeds.
+
+---
+
+**User [2026-08-22]:** Shared a screenshot confirming `AsReaderP3xU.dll` is now under `C:\dev\vtccp\lib\asreader-p3xu-sdk-1.3.0`.
+
+**Assistant [2026-08-22]:** Confirmed the DLL is in the expected path and noted that only the setup verifier/build remains to confirm the environment.
