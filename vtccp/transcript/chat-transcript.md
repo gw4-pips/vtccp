@@ -609,6 +609,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Reported that the VeriWedge parser header was incomplete compared with the DataMan parser header and specified that there should be no difference between the two.
+
+**Assistant [2026-08-22]:** Re-checked the canonical DM/TC layout. The intentional difference is preserved: the native side uses `[source] TruCheck GS1 Parser`, while the VeriWedge side uses `VeriWedge GS1 Parser — GS1 Barcode Syntax Engine (v. …)`. No left-side or layout change is being made.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
@@ -624,3 +630,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Reported that after pulling, the running Windows app still shows v1.5.65 and expressed concern that the earlier wrong-solution window may have caused a problem.
 
 **Assistant [2026-08-22]:** Explained that v1.5.65 most likely indicates an older compiled app or a pull from a different branch/repository path, not corruption. Recommended verifying the checkout and then rebuilding the correct `VtccpWindows.sln` / `VtccpApp` path before considering any destructive Git operation.
+
+---
+
+**User [2026-08-22]:** Corrected the parser-header request: the DataMan/Webscan side was already correct. The required canonical VeriWedge header includes `— GS1 Barcode Syntax Engine (v. …)`; the two titles are intentionally different.
+
+**Assistant [2026-08-22]:** Acknowledged the incorrect interpretation, restored the exact canonical VeriWedge header, and verified that the active report generator is byte-for-byte unchanged from the published parser-layout source. No application or report-version change is required.
