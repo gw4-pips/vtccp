@@ -438,3 +438,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Noted that the preexisting job templates did not come over to the new Windows setup and said they would create new entries because the old templates were DataMan-specific.
 
 **Assistant [2026-08-22]:** Reviewed the current template and Webscan session behavior to provide a Webscan-specific template checklist, including the fact that Webscan mode does not require a DataMan device profile.
+
+---
+
+**User [2026-08-22]:** Reported that the Start Session button does not go live and supplied a screenshot showing the Webscan template selected, COM4 connected, Manual Trigger selected, and no Device Profile selected.
+
+**Assistant [2026-08-22]:** Confirmed from the current session-launch rules that Manual Trigger requires a DataMan device profile, while Webscan HTML (USB) requires only the job template. Advised selecting Webscan HTML (USB); clarified that Webscan starts a file-watching import session rather than a live camera view.
