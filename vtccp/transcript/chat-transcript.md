@@ -569,6 +569,10 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 **Assistant [2026-08-22]:** Confirmed that the Windows checkout contains local work that must be preserved, warned against reset, clean, or another pull, and requested the list of the five local-only commits before selecting a safe synchronization path.
 
+**User [2026-08-22]:** Listed the five Windows-only commits: two merge commits, the Webscan DFC evidence commit, the Windows RFID SDK setup verification commit, and the Webscan shutdown verification commit.
+
+**Assistant [2026-08-22]:** Identified the safe recovery path: preserve the five commits on a backup branch, stash the two modified solution files, leave the untracked SDK/report directories untouched, and only then consider aligning `main` to the published GitHub branch.
+
 ---
 
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
