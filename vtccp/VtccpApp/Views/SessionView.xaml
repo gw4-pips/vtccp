@@ -135,6 +135,13 @@
                              VerticalAlignment="Center"
                              Margin="0,0,10,0" />
 
+                <!-- Webscan USB file export -->
+                <RadioButton Content="Webscan HTML (USB)"
+                             IsChecked="{Binding IsWebscanMode, Mode=OneWay}"
+                             Command="{Binding SetWebscanCommand}"
+                             VerticalAlignment="Center"
+                             Margin="0,0,10,0" />
+
                 <!-- Push port hint -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
                             Visibility="{Binding IsPushAvailable,
@@ -156,9 +163,13 @@
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsPushAvailable}" Value="False">
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsPushMode}" Value="True" />
+                                        <Condition Binding="{Binding IsPushAvailable}" Value="False" />
+                                    </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
+                                </MultiDataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBlock.Style>
@@ -404,6 +415,16 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
+
+                        <!-- Webscan import failure remains visible while a session runs. -->
+                        <TextBlock Text="{Binding WebscanImportError}"
+                                   FontSize="13"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Left"
+                                   Foreground="#C0392B"
+                                   Visibility="{Binding HasWebscanImportError,
+                                       Converter={StaticResource BoolToVisibility}}" />
 
                         <!-- Waiting hint — bottom-right, visible only while session is running -->
                         <TextBlock Text="{Binding WaitingMessage}"

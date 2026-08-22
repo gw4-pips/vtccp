@@ -118,12 +118,46 @@ operation and do not set it for a Webscan run.
 ### Webscan result path
 
 Webscan TruChecks use a separate result path from the DataMan DMST/HTTP
-integration. This repository does not assume that path is HTTP, DMST, or the
-DataMan `HttpEventSubscriber`. After the USB preflight passes, use the
-Webscan-specific result/export workflow supplied for that installation; keep
-the raw Webscan output and the VTCCP session output together for review. Do
-not alter firmware, trigger type, reader settings, or the USB driver during
-this test.
+integration. The confirmed TC-829 workflow is a local **Webscan HTML export**:
+
+- The verifier is USB-connected. It has no TCP target, and VTCCP does not call
+  `HttpEventSubscriber`, DMCC, or DataMan SDK code for a Webscan session.
+- Webscan writes one `Webscan TruCheck™ USB Verification Report` HTML file and
+  its sibling symbol image to:
+
+  ```text
+  C:\dev\vtccp\TC-829 VeriWedge Dev Reports
+  ```
+
+- In VTCCP, select a job template, choose **Webscan HTML (USB)** in Session
+  Launcher, and start the session. A DataMan device profile is not required in
+  this mode.
+- Run the controlled verification from the Webscan software. When its new HTML
+  report appears in the directory, VTCCP imports the literal report cells and
+  appends one verification record to the active session workbook.
+- VTCCP does not trigger the Webscan verifier, calculate grades, rewrite the
+  report, delete the source HTML, or alter the sibling image. Keep the original
+  HTML, image, and optional native PDF in that directory as the raw verifier
+  evidence for the scan.
+
+The controlled TC-829 report used to verify this contract has these literal
+anchors: software `3.03.74`, serial `TC-829-0213-021`, DataMatrix,
+ISO15415:2011, overall grade `A (4.0)`, aperture `08`, wavelength `660`, and
+19 ISO15415 quality rows (including separate 3a Modulation and 3b Reflectance
+Margin rows). It is covered by the VTCCP parser tests.
+
+#### Limits and recovery
+
+- This adapter accepts only new `.html` reports with the Webscan TruCheck title.
+  PDF and `.xls` exports are evidence files, not live-import inputs.
+- The report must finish writing before it can be imported. A failed parse is
+  shown in the session status and leaves the source file untouched; correct the
+  Webscan export and run another verification rather than editing the raw file.
+- The watcher ignores duplicate file-system events for an unchanged export. If
+  a report was created while VTCCP was not running, preserve it and create a
+  fresh controlled verification after starting the Webscan session.
+- Do not alter firmware, trigger type, reader settings, or the USB driver
+  during this test.
 
 Use a different repository list:
 

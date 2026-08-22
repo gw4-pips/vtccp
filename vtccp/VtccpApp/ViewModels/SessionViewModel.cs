@@ -13,6 +13,7 @@ using DeviceInterface.Rfid;
 using DeviceInterface.Rfid.Gcp;
 using DeviceInterface.Rfid.Models;
 using DeviceInterface.Validation;
+using DeviceInterface.Webscan;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
 using ExcelEngine.Session;
@@ -39,7 +40,7 @@ public sealed class SessionViewModel : ViewModelBase
 
     // ── Scan mode ─────────────────────────────────────────────────────────────
 
-    public enum ScanMode { Manual, AutoPoll, Push }
+    public enum ScanMode { Manual, AutoPoll, Push, Webscan }
 
     // ── Dependencies ──────────────────────────────────────────────────────────
 
@@ -51,6 +52,12 @@ public sealed class SessionViewModel : ViewModelBase
 
     private DeviceSession?                              _deviceSession;
     private DeviceInterface.Dmst.HttpEventSubscriber?  _pushHttpSubscriber;
+    private WebscanHtmlFileAdapter?                     _webscanHtmlAdapter;
+    private EventHandler<VerificationRecord>?           _webscanRecordHandler;
+    private EventHandler<string>?                       _webscanParseFailedHandler;
+    private int                                         _webscanSessionGeneration;
+    private readonly object                             _webscanAcceptLock = new();
+    private readonly HashSet<Task>                      _webscanAcceptTasks = [];
     private readonly System.Threading.SemaphoreSlim    _pushTruCheckSettingsGate = new(1, 1);
     private SessionManager?                             _sessionMgr;
     private System.Threading.CancellationTokenSource? _pollCts;
@@ -85,6 +92,7 @@ public sealed class SessionViewModel : ViewModelBase
     // ── Scan result display ───────────────────────────────────────────────────
     private string  _verifierResultLine = string.Empty;
     private string? _rfidResultLine;
+    private string? _webscanImportError;
 
     // ── Session output directory ───────────────────────────────────────────────
     // Captured at OnStartAsync so fire-and-forget report generators have the path
@@ -159,7 +167,7 @@ public sealed class SessionViewModel : ViewModelBase
             // Auto-select the best mode for the newly chosen device:
             //   • If the device has a push port → Push mode
             //   • Otherwise fall back to Manual (never leave mode on Push when unavailable)
-            if (!IsRunning)
+            if (!IsRunning && _scanMode != ScanMode.Webscan)
                 ActiveScanMode = value?.DmstListenPort > 0 ? ScanMode.Push : ScanMode.Manual;
         }
     }
@@ -185,6 +193,7 @@ public sealed class SessionViewModel : ViewModelBase
             OnPropertyChanged(nameof(IsManualMode));
             OnPropertyChanged(nameof(IsAutoPollMode));
             OnPropertyChanged(nameof(IsPushMode));
+            OnPropertyChanged(nameof(IsWebscanMode));
             OnPropertyChanged(nameof(ShowTriggerButton));
             RelayCommand.Refresh();
         }
@@ -193,6 +202,7 @@ public sealed class SessionViewModel : ViewModelBase
     public bool IsManualMode     => _scanMode == ScanMode.Manual;
     public bool IsAutoPollMode   => _scanMode == ScanMode.AutoPoll;
     public bool IsPushMode       => _scanMode == ScanMode.Push;
+    public bool IsWebscanMode    => _scanMode == ScanMode.Webscan;
 
     /// <summary>True in Manual and Push modes — both support a software trigger.</summary>
     public bool ShowTriggerButton => _scanMode is ScanMode.Manual or ScanMode.Push;
@@ -256,6 +266,14 @@ public sealed class SessionViewModel : ViewModelBase
         get => _rfidResultLine;
         private set { Set(ref _rfidResultLine, value); OnPropertyChanged(nameof(HasRfidResult)); }
     }
+
+    public string? WebscanImportError
+    {
+        get => _webscanImportError;
+        private set { Set(ref _webscanImportError, value); OnPropertyChanged(nameof(HasWebscanImportError)); }
+    }
+
+    public bool HasWebscanImportError => !string.IsNullOrWhiteSpace(_webscanImportError);
 
     /// <summary>True when a scan result is ready to display.</summary>
     public bool HasScanResult => !string.IsNullOrEmpty(_verifierResultLine);
@@ -333,6 +351,7 @@ public sealed class SessionViewModel : ViewModelBase
     public RelayCommand SetManualCommand        { get; }
     public RelayCommand SetAutoPollCommand      { get; }
     public RelayCommand SetPushCommand          { get; }
+    public RelayCommand SetWebscanCommand       { get; }
     public RelayCommand ReadSupplementalCommand  { get; }
     public RelayCommand WriteSupplementalCommand { get; }
     public RelayCommand OpenLiveFeedCommand      { get; }
@@ -348,7 +367,8 @@ public sealed class SessionViewModel : ViewModelBase
         _history = history;
 
         StartCommand   = new RelayCommand(async () => await OnStartAsync(),
-            () => !IsRunning && SelectedDevice is not null && SelectedTemplate is not null);
+            () => !IsRunning && SelectedTemplate is not null &&
+                  (_scanMode == ScanMode.Webscan || SelectedDevice is not null));
         StopCommand    = new RelayCommand(async () => await OnStopAsync(),
             () => IsRunning);
         TriggerCommand = new RelayCommand(async () => await OnTriggerAsync(),
@@ -357,6 +377,7 @@ public sealed class SessionViewModel : ViewModelBase
         SetManualCommand   = new RelayCommand(() => ActiveScanMode = ScanMode.Manual,   () => !IsRunning);
         SetAutoPollCommand = new RelayCommand(() => ActiveScanMode = ScanMode.AutoPoll, () => !IsRunning);
         SetPushCommand     = new RelayCommand(() => ActiveScanMode = ScanMode.Push,     () => !IsRunning && IsPushAvailable);
+        SetWebscanCommand  = new RelayCommand(() => ActiveScanMode = ScanMode.Webscan,  () => !IsRunning);
 
         ReadSupplementalCommand  = new RelayCommand(
             async () => await OnReadSupplementalAsync(),
@@ -431,15 +452,19 @@ public sealed class SessionViewModel : ViewModelBase
 
     private async Task OnStartAsync()
     {
-        if (SelectedDevice is null || SelectedTemplate is null) return;
+        var selectedTemplate = SelectedTemplate;
+        var selectedDevice = SelectedDevice;
+        if (selectedTemplate is null ||
+            (_scanMode != ScanMode.Webscan && selectedDevice is null))
+            return;
 
-        string outputDir = !string.IsNullOrWhiteSpace(SelectedTemplate.OutputDirectory)
-            ? SelectedTemplate.OutputDirectory
+        string outputDir = !string.IsNullOrWhiteSpace(selectedTemplate.OutputDirectory)
+            ? selectedTemplate.OutputDirectory
             : _repo.Settings.DefaultOutputDirectory;
         _sessionOutputDir = outputDir;   // captured for hybrid report generation
         _sessionId        = DateTime.Now.ToString("yyyyMMdd-HHmmss");
 
-        SessionState state = SelectedTemplate.ToSessionState(outputDir);
+        SessionState state = selectedTemplate.ToSessionState(outputDir);
         if (!string.IsNullOrWhiteSpace(OperatorOverride))
             state.OperatorId = OperatorOverride.Trim();
 
@@ -457,7 +482,14 @@ public sealed class SessionViewModel : ViewModelBase
 
         try
         {
-            if (_scanMode == ScanMode.Push)
+            if (_scanMode == ScanMode.Webscan)
+            {
+                // Webscan TruCheck is USB-connected. The independent HTML
+                // adapter is started after the Excel session opens below so a
+                // newly-created report can never race a closed record writer.
+                StatusMessage = "Preparing Webscan HTML import…";
+            }
+            else if (_scanMode == ScanMode.Push)
             {
                 // Push mode: subscribe directly to the device's HTTP event channel on
                 // port 44444.  No SDK connection is opened so DMST can remain fully
@@ -470,12 +502,12 @@ public sealed class SessionViewModel : ViewModelBase
                 // manage the push destination and broke whenever DMST was closed or
                 // CONFIG.DEFAULT was issued.
                 StatusMessage = "Subscribing to device push channel…";
-                var cfg = SelectedDevice.ToDeviceConfig();
+                var cfg = selectedDevice!.ToDeviceConfig();
                 var ctx = new VerificationRecord
                 {
                     Symbology       = string.Empty,
                     DeviceSerial    = string.Empty,
-                    DeviceName      = SelectedDevice.Name,
+                    DeviceName      = selectedDevice.Name,
                     FirmwareVersion = string.Empty,
                     OperatorId      = state.OperatorId  ?? string.Empty,
                     JobName         = state.JobName      ?? string.Empty,
@@ -517,7 +549,7 @@ public sealed class SessionViewModel : ViewModelBase
             {
                 // Manual / AutoPoll: open DMCC connection (requires DMST to be closed).
                 StatusMessage = "Connecting to device…";
-                var cfg = SelectedDevice.ToDeviceConfig();
+                var cfg = selectedDevice!.ToDeviceConfig();
                 _deviceSession = new DeviceSession(cfg, _xmlMap);
                 await _deviceSession.ConnectAsync();
 
@@ -534,6 +566,22 @@ public sealed class SessionViewModel : ViewModelBase
             _history.ClearHistory();
             _recordCount = 0; OnPropertyChanged(nameof(RecordCount));
             IsRunning    = true;
+
+            if (_scanMode == ScanMode.Webscan)
+            {
+                int generation = System.Threading.Interlocked.Increment(
+                    ref _webscanSessionGeneration);
+                _webscanHtmlAdapter = new WebscanHtmlFileAdapter();
+                _webscanRecordHandler = (_, record) => OnWebscanRecord(generation, record);
+                _webscanParseFailedHandler = (_, message) =>
+                    OnWebscanParseFailed(generation, message);
+                _webscanHtmlAdapter.RecordParsed += _webscanRecordHandler;
+                _webscanHtmlAdapter.ParseFailed += _webscanParseFailedHandler;
+                WebscanImportError = null;
+                _webscanHtmlAdapter.Start();
+                System.Diagnostics.Debug.WriteLine(
+                    $"[VTCCP-WEBSCAN] HTML watcher started: '{_webscanHtmlAdapter.WatchDirectory}'");
+            }
 
             // ── RFID coordinator (optional) ───────────────────────────────────
             // Runs when the reader is connected via the Session Launcher RFID panel.
@@ -646,10 +694,12 @@ public sealed class SessionViewModel : ViewModelBase
             string modeLabel = _scanMode switch
             {
                 ScanMode.AutoPoll => $"Auto-Poll ({_autoPollIntervalMs} ms)",
-                ScanMode.Push     => $"Push (DMST) — port {SelectedDevice.DmstListenPort}",
+                ScanMode.Push     => $"Push (DMST) — port {selectedDevice?.DmstListenPort ?? 0}",
+                ScanMode.Webscan  => $"Webscan HTML (USB) — {WebscanHtmlFileAdapter.ConfiguredReportDirectory}",
                 _                 => "Manual Trigger",
             };
-            StatusMessage = $"Session active — {SelectedDevice.Name} / {SelectedTemplate.Name}  [{modeLabel}]{triggerNote}";
+            string deviceLabel = selectedDevice?.Name ?? "Webscan TruCheck";
+            StatusMessage = $"Session active — {deviceLabel} / {selectedTemplate.Name}  [{modeLabel}]{triggerNote}";
 
             if (_scanMode == ScanMode.AutoPoll)
                 _ = RunAutoPollLoopAsync(_pollCts.Token);
@@ -672,6 +722,7 @@ public sealed class SessionViewModel : ViewModelBase
             await _pushHttpSubscriber.StopAsync();
             _pushHttpSubscriber = null;
         }
+        await QuiesceWebscanAsync();
 
         // ── Step 2: drain in-flight AcceptRecordAsync calls (max 2 s) ────────
         // OnPushRecord posts AcceptRecordAsync via fire-and-forget Dispatcher.InvokeAsync.
@@ -1234,6 +1285,73 @@ public sealed class SessionViewModel : ViewModelBase
         });
     }
 
+    // ── Webscan USB HTML callback ────────────────────────────────────────────
+
+    /// <summary>
+    /// Called by the Webscan file adapter when a complete local HTML export
+    /// arrives. This deliberately bypasses all DataMan HTTP/DMCC enrichment.
+    /// </summary>
+    private void OnWebscanRecord(int generation, VerificationRecord record)
+    {
+        Task acceptanceTask;
+        lock (_webscanAcceptLock)
+        {
+            if (generation != _webscanSessionGeneration || !IsRunning)
+                return;
+
+            System.Threading.Interlocked.Increment(ref _pendingAccept);
+            acceptanceTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await Application.Current.Dispatcher.InvokeAsync(
+                        () => generation == _webscanSessionGeneration && IsRunning
+                            ? AcceptWebscanRecordAsync(record)
+                            : Task.CompletedTask).Task.Unwrap();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[VTCCP-WEBSCAN] record acceptance failed: {ex.Message}");
+                }
+                finally
+                {
+                    System.Threading.Interlocked.Decrement(ref _pendingAccept);
+                }
+            });
+            _webscanAcceptTasks.Add(acceptanceTask);
+        }
+
+        _ = acceptanceTask.ContinueWith(completed =>
+        {
+            lock (_webscanAcceptLock)
+                _webscanAcceptTasks.Remove(completed);
+        }, TaskScheduler.Default);
+    }
+
+    private async Task AcceptWebscanRecordAsync(VerificationRecord record)
+    {
+        WebscanImportError = null;
+        await AcceptRecordInnerAsync(record);
+    }
+
+    private void OnWebscanParseFailed(int generation, string message)
+    {
+        if (generation != System.Threading.Volatile.Read(ref _webscanSessionGeneration) ||
+            !IsRunning)
+            return;
+
+        _ = Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            if (generation == System.Threading.Volatile.Read(ref _webscanSessionGeneration) &&
+                IsRunning)
+            {
+                WebscanImportError = $"Webscan import failed: {message}";
+                StatusMessage = WebscanImportError;
+            }
+        });
+    }
+
     // ── Shared record acceptance ──────────────────────────────────────────────
 
     /// <summary>
@@ -1781,6 +1899,10 @@ public sealed class SessionViewModel : ViewModelBase
 
     private async Task CleanupAsync()
     {
+        // Cleanup also serves application-exit and startup-failure paths, which
+        // bypass the Stop button's normal drain.
+        await QuiesceWebscanAsync();
+
         if (_deviceSession is not null)
         {
             await _deviceSession.DisposeAsync();
@@ -1807,6 +1929,51 @@ public sealed class SessionViewModel : ViewModelBase
         _sessionMgr = null;
         _pollCts?.Dispose();
         _pollCts = null;
+    }
+
+    /// <summary>
+    /// Invalidates Webscan callbacks and waits for both file imports and record
+    /// acceptance before any session-owned writer can be disposed. This is
+    /// shared by Stop, application exit, and startup-failure cleanup.
+    /// </summary>
+    private async Task QuiesceWebscanAsync()
+    {
+        WebscanHtmlFileAdapter? adapter;
+        EventHandler<VerificationRecord>? recordHandler;
+        EventHandler<string>? parseFailedHandler;
+        Task[] acceptanceTasks;
+
+        lock (_webscanAcceptLock)
+        {
+            _webscanSessionGeneration++;
+            adapter = _webscanHtmlAdapter;
+            recordHandler = _webscanRecordHandler;
+            parseFailedHandler = _webscanParseFailedHandler;
+            _webscanHtmlAdapter = null;
+            _webscanRecordHandler = null;
+            _webscanParseFailedHandler = null;
+            acceptanceTasks = _webscanAcceptTasks.ToArray();
+        }
+
+        if (adapter is not null)
+        {
+            if (recordHandler is not null)
+                adapter.RecordParsed -= recordHandler;
+            if (parseFailedHandler is not null)
+                adapter.ParseFailed -= parseFailedHandler;
+            await adapter.StopAsync();
+            adapter.Dispose();
+        }
+
+        try
+        {
+            await Task.WhenAll(acceptanceTasks);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[VTCCP-WEBSCAN] acceptance drain failed: {ex.Message}");
+        }
     }
 
 }

@@ -3022,3 +3022,17 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked to complete the fallback-selection work so VeriWedge is used only when native TruCheck validation is unavailable or fails, and reports call it Cross-Validation only when that fallback was actually used.
 
 **Assistant:** Added explicit native-TruCheck usable/failed and VeriWedge-used provenance to scan records. Native selection now follows only the correlated TruCheck Data Format Check, never a barcode grade or application status; XML/HTML parsing no longer invokes VeriWedge early. RFID capture remains independent of this parser selection. The report uses “RFID Validation Result” for native-only cases and “RFID Cross-Validation Result” only for real fallback cases. Added regression coverage for native pass, native failure, unavailable native validation with VeriWedge, and failed native validation with VeriWedge; bumped the report to v1.5.47 and app to 1.5.64. The full Release solution build succeeded with zero errors, and all 178 DeviceInterface tests passed.
+
+**User:** Assigned the work to bring Webscan TruCheck verification results into VTCCP without DataMan assumptions, including confirming the installation’s real export mechanism, preserving a controlled raw result, connecting a dedicated importer or adapter to the record flow, and documenting the procedure.
+
+**Assistant:** Inspected the Webscan evidence and the VTCCP record flow. The available evidence indicates a local Webscan Excel/Data Capture workflow rather than DataMan HTTP: a Webscan Data Capture workbook with its VBA project, a separate Webscan HTML/XSLT report set, and the documented real-time workbook behavior. I need one current controlled TC-829 output file to verify the installation’s actual row format before implementing the source-specific importer.
+
+**User:** Declined the upload request, then supplied a controlled TC-829 Webscan HTML report, native PDF, captured image, and the report directory `C:\dev\vtccp\TC-829 VeriWedge Dev Reports`.
+
+**Assistant:** Confirmed the controlled evidence as a one-page native Webscan report with a sibling image and literal report values: Webscan software 3.03.74, TC-829-0213-021, DataMatrix, ISO15415:2011, grade A (4.0), and the quality-parameter rows. The implementation boundary is a dedicated Webscan HTML parser/file watcher rooted at the supplied directory, preserving source files and mapping only literal Webscan cells into the existing VerificationRecord event flow; it will not reuse DataMan HTTP or calculate verifier values.
+
+**Assistant:** Completed the dedicated Webscan HTML import path. It watches the confirmed local export directory, preserves the raw HTML and sibling image, rejects incomplete reports, maps literal Webscan result cells into the existing verification-record flow, and does not use DataMan HTTP, DMCC, or SDK assumptions. Session shutdown now waits for any admitted Webscan record before closing the workbook. The app build and all 185 DeviceInterface tests passed.
+
+**User:** Said the next priority is to make Git solid on this laptop and establish a consistent development environment across three Windows 10/11 systems used for Claude/Replit project work.
+
+**Assistant:** Confirmed that the current Webscan task will be closed first, then the Windows Git environment will be standardized across the three machines.
