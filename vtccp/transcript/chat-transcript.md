@@ -226,3 +226,11 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Corrected the TC-829 transport assumption: all Webscan TruChecks are USB-connected devices and must not be treated as network-addressable.
 
 **Assistant [2026-08-22]:** Removed the incorrect TCP preflight and documented the USB connection model as canonical. The home check now inventories the local Windows USB device only and keeps the controlled validation on the existing DMS-linked workflow.
+
+---
+
+**User [2026-08-22]:** Clarified that the DMST/HTTP result path is DataMan-only and that Webscan TruChecks use separate result paths.
+
+**Assistant [2026-08-22]:** Made the separation canonical in the runbook, code documentation, and project memory. The DataMan HTTP capture is now explicitly DataMan-only, and the Webscan procedure no longer assumes DMST, HTTP, or the DataMan subscriber.
+
+**Assistant [2026-08-22]:** Proposed the next focused work item: identify the actual Webscan result/export interface from a controlled scan, preserve its raw evidence, and connect it through a dedicated adapter rather than the DataMan path.

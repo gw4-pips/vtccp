@@ -5,6 +5,10 @@ description: How TC verification results reach VTCCP — the only working path o
 
 ## The only path for TC verification results
 
+This document is DataMan/DMST-specific. Do not apply its device HTTP stream,
+port, or subscriber assumptions to Webscan TruChecks; Webscan devices are
+USB-connected and have a separate result path.
+
 Port 44444 multiplexes DMCC (raw TCP) and HTTP on the same port. The device distinguishes by opening bytes.
 
 `XmlResultArrived` on the SDK connection ONLY fires when the device is in Presentation mode (TRIGGER.TYPE=1, autonomous self-scanning). For any externally-triggered scan (DMST Verify button, physical reader button, raw TCP TRIGGER), results go to the HTTP channel ONLY — the SDK connection is deaf.

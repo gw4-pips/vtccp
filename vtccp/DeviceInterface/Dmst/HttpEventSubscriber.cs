@@ -6,9 +6,11 @@ using System.Xml.Linq;
 using ExcelEngine.Models;
 
 /// <summary>
-/// Subscribes to the device's HTTP event stream on port 44444 and receives
-/// push results directly — no DMST installation, no DataMan Network Client,
-/// no filesystem dependency.
+/// DataMan-only subscriber for the verifier's HTTP event stream on port 44444.
+/// It receives DataMan push results directly — no DMST installation, no
+/// DataMan Network Client, and no filesystem dependency. This is not the
+/// Webscan TruCheck transport; Webscan devices are USB-connected and use a
+/// separate result path.
 ///
 /// ── Protocol (confirmed from Wireshark 2026-05-25) ───────────────────────
 ///

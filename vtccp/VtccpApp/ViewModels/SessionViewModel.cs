@@ -483,6 +483,8 @@ public sealed class SessionViewModel : ViewModelBase
                     CompanyName     = state.CompanyName  ?? string.Empty,
                     LogoPath        = state.LogoPath,
                 };
+                // This Push subscriber is the DataMan HTTP path. Webscan
+                // TruChecks are USB-connected and use a separate result path.
                 _pushHttpSubscriber = new DeviceInterface.Dmst.HttpEventSubscriber(
                     cfg.Host,
                     cfg.Port,

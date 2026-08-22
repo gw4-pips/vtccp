@@ -97,28 +97,33 @@ in Device Manager. The validation tests exercise the bundled GS1 1.4.1 engine
 against a known Digital Link, a GS1 Element String, and invalid input on Windows.
 The script writes a timestamped JSON and Markdown result pair to `reports`.
 
-### Capture one controlled device result
+### DataMan-only HTTP evidence capture
 
-To preserve source evidence for one bench run through the existing DMS-linked
-workflow, set this process-only environment variable before launching the built
-app from that same PowerShell window:
+The following capture option belongs only to the DataMan verifier's existing
+DMST/HTTP integration. It is not a Webscan result path and must not be used to
+infer one. To preserve DataMan source evidence for a bench run, set this
+process-only environment variable before launching the built app:
 
 ```powershell
 $env:VTCCP_HTTP_CAPTURE_DIR = "$env:USERPROFILE\Documents\VTCCP-Diagnostic\TC-829"
 & "C:\dev\vtccp\vtccp\VtccpApp\bin\Release\net8.0-windows10.0.18362.0\VtccpApp.exe"
 ```
 
-This does not change the USB-connected TC-829. For each normal verification result, VTCCP
-writes a paired `pcm_report.html`, `codes.xml`, and decoded `push.xml` file to
-the chosen folder. Treat these files as scan evidence: they can contain the
-decoded barcode data and should not be committed to Git. Leave the variable
-unset for normal operation.
+For each DataMan HTTP verification result, VTCCP writes a paired
+`pcm_report.html`, `codes.xml`, and decoded `push.xml` file to the chosen
+folder. Treat these files as scan evidence: they can contain decoded barcode
+data and should not be committed to Git. Leave the variable unset for normal
+operation and do not set it for a Webscan run.
 
-For the first controlled test, keep DMS connected to the USB TC-829, use the
-existing DMS-linked VTCCP workflow, and scan one known GS1 Digital Link or GS1
-Element String. The preflight reports, captured trio, and session output
-together are the evidence to return for review. Do not alter firmware, trigger
-type, reader settings, or the USB driver during this test.
+### Webscan result path
+
+Webscan TruChecks use a separate result path from the DataMan DMST/HTTP
+integration. This repository does not assume that path is HTTP, DMST, or the
+DataMan `HttpEventSubscriber`. After the USB preflight passes, use the
+Webscan-specific result/export workflow supplied for that installation; keep
+the raw Webscan output and the VTCCP session output together for review. Do
+not alter firmware, trigger type, reader settings, or the USB driver during
+this test.
 
 Use a different repository list:
 
