@@ -577,6 +577,10 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 **Assistant [2026-08-22]:** Confirmed that the five Windows-only commits are preserved and requested the next preservation step for the two modified solution files, without touching the untracked SDK or report directories.
 
+**User [2026-08-22]:** Stashed the modified `VTCCP.sln` and `VtccpWindows.sln` successfully under the message `Windows local solution edits before GitHub sync`.
+
+**Assistant [2026-08-22]:** Confirmed that the solution edits are protected and that the untracked SDK/report directories were not included or removed; requested one final status check before aligning the Windows `main` branch to GitHub.
+
 ---
 
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
