@@ -47,3 +47,4 @@
 - [RFID cross-validation semantics](rfid-cross-validation-semantics.md) — VeriWedge is the GS1 parser fallback/comparison path, not a generic RFID step to suppress after a TruCheck pass
 - [Parser-panel baseline](parser-panel-baseline.md) — the user-confirmed v1.5.44 PDF parser layout is canonical; visually verify any future parser-panel change before delivery
 - [Webscan TruCheck transport](webscan-trucheck-transport.md) — all Webscan TruChecks are USB-connected; never request or probe a network address
+- [VCCS report normal-flow sizing](vccs-report-normal-flow-sizing.md) — physical page height constraints can strand the footer on a blank PDF page; let the report grow naturally

@@ -3062,3 +3062,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked how to return to the main Agent after landing in a subagent dialog.
 
 **Assistant:** Explained that the usual route is the back arrow or close button on the subagent panel, then selecting the parent conversation from the Agent chat/history list. If those controls are not visible, reopening the original Agent conversation from the workspace sidebar returns to the main chat; this conversation can also continue here.
+
+---
+
+**`2026-08-22 — evening`**
+
+**User:** Assigned the RFID report-state refinement: shift only the dual-parser divider, distinguish an inactive reader from an active `NoTag` scan, collapse the inactive RFID table while preserving normal document flow and page-intact report sections, retain the Batch/Lot wrapping contract, update versions, and add focused coverage.
+
+**Assistant:** Completed the VCCS report refinement. The divider now sits 28% into its existing gap; inactive/null-or-skipped RFID records show the exact header-only no-data suffix with no table or RFID values; active `NoTag` records retain the existing table. Report sections now avoid splitting while the page grows in normal flow. The report version is 1.5.52 and the desktop app is 1.5.73. Focused generator tests passed 46/46, and active/inactive samples were rendered to PDF for visual confirmation.

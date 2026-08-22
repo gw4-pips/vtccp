@@ -26,7 +26,7 @@
   SLOT list (replaced with generated HTML blocks):
     {{SLOT_SYMBOL_ROWS}}   — one or two <tr> rows for the summary table tbody
     {{SLOT_GRADE_ROWS}}    — one or two <tr> rows for the grades table tbody
-    {{SLOT_RFID_ROWS}}     — all <tr> rows for the RFID table tbody
+    {{SLOT_RFID_TABLE}}    — complete RFID table for active reader outcomes, or empty
     {{SLOT_BARCODE_DETAIL}} — combined TruCheck barcode image + Data Format Check
 -->
 <html lang="en">
@@ -46,7 +46,7 @@
   }
 
   .page {
-    width: 8.5in; height: 11in; overflow: hidden; background: white;
+    width: 8.5in; background: white;
     margin: 0 auto; padding: 0.25in 0.4in 0.5in 0.4in;
     box-shadow: 0 4px 24px rgba(0,0,0,0.4);
     display: flex; flex-direction: column;
@@ -148,6 +148,17 @@
   /* Inline annotation appended to a section sub-header — inherits banner colour */
   .sec-note { font-size: 7.5pt; font-weight: normal; }
   .sec-sub-hdr-gap { margin-top: 6pt; }
+
+  /*
+     Keep report sections and their existing blocks together by default. A
+     future intentionally splittable section can opt out with the modifier
+     class rather than weakening the default for the canonical report.
+  */
+  .report-section:not(.report-section--splittable),
+  .report-block:not(.report-block--splittable) {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 
   /* ── BARCODE SUMMARY TABLE ───────────────────────────── */
   .sum-table {
@@ -341,18 +352,34 @@
    .dfc-dual-table td:nth-child(1),
    .dfc-dual-table td:nth-child(5) {
      white-space: normal;
+     min-width: 0;
      overflow-wrap: anywhere;
    }
    .dfc-dual-table th:nth-child(2),
    .dfc-dual-table td:nth-child(2),
    .dfc-dual-table th:nth-child(6),
    .dfc-dual-table td:nth-child(6) {
+     min-width: 0;
      width: auto;
    }
   .dfc-dual-table .dual-divider {
-    border-left: 2px solid #1a3a6b;
+     position: relative;
+     border-left: none;
     padding: 0 !important;
   }
+   /*
+      The divider keeps its dedicated 2% column. Move only the stroke inside
+      that existing gap, leaving every parser column boundary unchanged.
+   */
+   .dfc-dual-table .dual-divider::before {
+     content: "";
+     position: absolute;
+     left: 28%;
+     top: 0;
+     bottom: 0;
+     width: 2px;
+     background: #1a3a6b;
+   }
   .dfc-dual-table .dual-check {
     font-weight: bold; white-space: nowrap;
   }
@@ -368,9 +395,10 @@
   .dfc-dual-table .dual-overall-cell {
     text-align: center; vertical-align: middle;
   }
-  .dfc-dual-table .dual-overall .dual-divider {
-    border-left: 2px solid #1a3a6b;
-  }
+   .dfc-dual-table .dual-overall .dual-divider::before {
+     top: 0;
+     bottom: 0;
+   }
    .dfc-dual-table .dual-native-note {
       margin-top: 2pt; color: #000; font-size: 6.5pt; font-style: italic;
       font-weight: normal; line-height: 1.15; overflow-wrap: anywhere;
@@ -462,9 +490,10 @@
   <div class="content">
 
     <!-- ① Barcode Verification Results Summary -->
-    <div>
-      <div class="sec-hdr barcode-sec-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
-      <table class="sum-table">
+    <div class="report-section report-section-summary">
+      <div class="report-block">
+        <div class="sec-hdr barcode-sec-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
+        <table class="sum-table">
         <colgroup>
           <!-- Fixed left boundary matches the Grades table.  The recovered page
                width is shared by Encoded Data and the right-side report area. -->
@@ -490,10 +519,12 @@
             <td colspan="2">{{REPORT_DATETIME}}</td>
           </tr>
         </tbody>
-      </table>
+        </table>
+      </div>
 
-      <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades</span><span class="sec-note"> &#x2014; <em>Only fields present in the associated HTML report are shown</em></span></div>
-      <table class="grades-table">
+      <div class="report-block">
+        <div class="sec-sub-hdr trucheck-barcode-hdr" style="margin-top:-2px"><span class="trucheck-header-title">TruCheck Barcode Verification Grades</span><span class="sec-note"> &#x2014; <em>Only fields present in the associated HTML report are shown</em></span></div>
+        <table class="grades-table">
         <colgroup>
           <!-- Symbology stays fixed at the Summary table boundary.  The
                remaining columns share the recovered width proportionally. -->
@@ -519,20 +550,14 @@
         <tbody>
           {{SLOT_GRADE_ROWS}}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
 
     <!-- ② VCCS RFID VeriWedge™ PowerPro RFID Validation Summary -->
-    <div>
-      <div class="sec-hdr">VCCS <em>RFID VeriWedge&#x2122; PowerPro</em> {{RFID_ADJ}} RFID Validation Summary</div>
-      <table class="rfid-table">
-        <thead>
-          <tr><th class="lbl-col">Field</th><th>Value</th></tr>
-        </thead>
-        <tbody>
-          {{SLOT_RFID_ROWS}}
-        </tbody>
-      </table>
+    <div class="report-section report-section-rfid">
+      <div class="sec-hdr">VCCS <em>RFID VeriWedge&#x2122; PowerPro</em> {{RFID_ADJ}} RFID Validation Summary{{RFID_SECTION_NOTE}}</div>
+      {{SLOT_RFID_TABLE}}
     </div>
 
     <!-- ③ TruCheck Barcode Image + Data Format Check -->

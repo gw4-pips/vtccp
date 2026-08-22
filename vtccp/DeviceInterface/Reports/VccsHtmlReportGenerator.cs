@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.51";
+    public const string ReportVersion = "v1.5.52";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -116,7 +116,10 @@ public static class VccsHtmlReportGenerator
             .Replace("{{REPORT_DATETIME}}",     reportDateTime)
             .Replace("{{SLOT_GRADE_ROWS}}",     BuildGradeRows(r))
             .Replace("{{RFID_ADJ}}",            rfidAdj)
-            .Replace("{{SLOT_RFID_ROWS}}",      BuildRfidRows(r))
+            .Replace("{{RFID_SECTION_NOTE}}",   IsRfidReaderInactive(r)
+                ? " (No data: reader not activated)."
+                : string.Empty)
+            .Replace("{{SLOT_RFID_TABLE}}",     BuildRfidTable(r))
             .Replace("{{SLOT_BARCODE_DETAIL}}", BuildBarcodeDetailSection(r))
             .Replace("{{FOOTER_VERSION}}",      ReportVersion)
             .Replace("{{APP_VERSION}}",         GetApplicationVersion())
@@ -284,6 +287,25 @@ public static class VccsHtmlReportGenerator
         sb.Append($"            <td>{Display(lighting)}</td>\n");
         sb.Append($"            <td>{Display(formal)}</td>\n");
         sb.Append($"          </tr>\n");
+    }
+
+    private static bool IsRfidReaderInactive(VerificationRecord r)
+        => string.IsNullOrWhiteSpace(r.RfidStatus) ||
+           string.Equals(r.RfidStatus, "Skipped", StringComparison.Ordinal);
+
+    private static string BuildRfidTable(VerificationRecord r)
+    {
+        if (IsRfidReaderInactive(r))
+            return string.Empty;
+
+        return "      <table class=\"rfid-table\">\n" +
+               "        <thead>\n" +
+               "          <tr><th class=\"lbl-col\">Field</th><th>Value</th></tr>\n" +
+               "        </thead>\n" +
+               "        <tbody>\n" +
+               BuildRfidRows(r) +
+               "        </tbody>\n" +
+               "      </table>\n";
     }
 
     private static string BuildRfidRows(VerificationRecord r)

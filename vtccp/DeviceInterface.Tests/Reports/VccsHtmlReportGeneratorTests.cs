@@ -807,7 +807,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains(".sum-table td[colspan=\"2\"] {\n    white-space: normal;\n    overflow-wrap: anywhere;",
             report,
             StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table td:nth-child(1),\n   .dfc-dual-table td:nth-child(5) {\n     white-space: normal;\n     overflow-wrap: anywhere;",
+        Assert.Contains(".dfc-dual-table td:nth-child(1),\n   .dfc-dual-table td:nth-child(5) {\n     white-space: normal;\n     min-width: 0;\n     overflow-wrap: anywhere;",
             report,
             StringComparison.Ordinal);
         Assert.Contains("overflow-wrap: anywhere; word-break: normal;", report, StringComparison.Ordinal);
@@ -834,7 +834,113 @@ public sealed class VccsHtmlReportGeneratorTests
             "<td>No Tag Detected</td>",
             report,
             StringComparison.Ordinal);
+        Assert.Contains("<table class=\"rfid-table\">", report, StringComparison.Ordinal);
+        Assert.Contains("<tr><th class=\"lbl-col\">Field</th><th>Value</th></tr>", report,
+            StringComparison.Ordinal);
         Assert.DoesNotContain("<td>NoTag</td>", report, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Skipped")]
+    public void Generate_InactiveRfidReader_RendersHeaderOnlyAndNoReservedTable(string? status)
+    {
+        const string epcSentinel = "RFID_VALUE_MUST_NOT_RENDER";
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = status,
+            RfidEpcHex = epcSentinel,
+            RfidEpcTagUri = "urn:epc:tag:sgtin-96:1.0612345.012345.1",
+            RfidGtin14 = epcSentinel,
+            RfidSerial = epcSentinel,
+            RfidTid = epcSentinel,
+        });
+
+        Assert.Contains(
+            "VCCS <em>RFID VeriWedge&#x2122; PowerPro</em> EPC RFID Validation Summary (No data: reader not activated).",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("<table class=\"rfid-table\">", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("<tr><th class=\"lbl-col\">Field</th><th>Value</th></tr>", report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(epcSentinel, report, StringComparison.Ordinal);
+        Assert.Contains("<div class=\"report-section report-section-rfid\">", report,
+            StringComparison.Ordinal);
+        Assert.Contains("Barcode Verification Capture Unavailable", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_RfidSectionsUseNormalFlowAndDefaultPageIntactRules()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidStatus = null,
+        });
+
+        Assert.Contains("width: 8.5in; background: white;", report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("height: 11in", report, StringComparison.Ordinal);
+        Assert.Contains(
+            ".report-section:not(.report-section--splittable),\n  .report-block:not(.report-block--splittable) {\n    break-inside: avoid;\n    page-break-inside: avoid;",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(".report-section--splittable", report, StringComparison.Ordinal);
+        Assert.Contains("<div class=\"report-section report-section-summary\">", report,
+            StringComparison.Ordinal);
+        Assert.Contains("<div class=\"report-section report-section-rfid\">", report,
+            StringComparison.Ordinal);
+        Assert.Contains("<div class=\"barcode-detail-section\">", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("<tbody>\n          \n        </tbody>", report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_DualParserDividerMovesWithinExistingGapAndBatchLabelCanWrap()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verifier-output.html",
+            HtmlVerifiedString = "Mon 18-Aug-2026 08:04:21 PM",
+            HtmlDecodedData = "(01)00850010224367(17)271004(10)CU26E02",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Rows =
+                [
+                    new DataFormatCheckRow
+                    {
+                        Name = "AI (10) Batch or Lot Number",
+                        Data = "CU26E02",
+                        Check = "PASS",
+                    },
+                ],
+            },
+            DataFormatCheckSetting = "GS1",
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Source = DigitalLinkValidationResult.VccsElementStringSource,
+                Detail = "Parsed GS1 AI data: (01)00850010224367(17)271004(10)CU26E02",
+            },
+            VeriWedgeValidationUsed = true,
+        });
+
+        Assert.Contains("left: 28%;", report, StringComparison.Ordinal);
+        Assert.Contains(".dfc-dual-table .dual-divider::before", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("border-left: 2px solid #1a3a6b;\n     padding: 0 !important;",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("<td class=\"dual-right-field\">AI (10) Batch or Lot Num.</td>",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".dfc-dual-table td:nth-child(1),\n   .dfc-dual-table td:nth-child(5) {\n     white-space: normal;\n     min-width: 0;\n     overflow-wrap: anywhere;",
+            report,
+            StringComparison.Ordinal);
     }
 
     [Fact]
