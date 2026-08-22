@@ -175,6 +175,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Asked what to look for in the Replit project tree and exactly what to do with the audit-tool folder.
+
+**Assistant [2026-08-22]:** Explained that `dev-environment-tools` is a top-level folder alongside `artifacts`, `scripts`, and `vtccp`; instructed the user to download it, place it as `C:\dev\dev-environment-tools` beside the resolver checkout, run the audit, and return the Markdown report.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.
