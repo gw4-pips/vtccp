@@ -292,3 +292,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Renamed the original `C:\dev\vtccp` folder to staging and started cloning the repository.
 
 **Assistant [2026-08-22]:** Confirmed that the clone should finish at `C:\dev\vtccp` while the preserved files remain in `C:\dev\vtccp-staging`.
+
+---
+
+**User [2026-08-22]:** Confirmed the clone completed and shared the `C:\dev\vtccp` directory listing.
+
+**Assistant [2026-08-22]:** Verified that the full repository checkout is present at `C:\dev\vtccp`, with the application source under `C:\dev\vtccp\vtccp` and the staging folder kept separate.

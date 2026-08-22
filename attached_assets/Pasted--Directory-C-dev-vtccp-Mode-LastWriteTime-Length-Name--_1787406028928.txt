@@ -1,0 +1,38 @@
+   Directory: C:\dev\vtccp
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/22/2026   9:37 AM                .agents
+d-----         8/22/2026   9:37 AM                .githooks
+d-----         8/22/2026   9:37 AM                artifacts
+d-----         8/22/2026   9:37 AM                attached_assets
+d-----         8/22/2026   9:37 AM                dev-environment-tools
+d-----         8/22/2026   9:37 AM                lib
+d-----         8/22/2026   9:37 AM                references
+d-----         8/22/2026   9:37 AM                scripts
+d-----         8/22/2026   9:37 AM                transcript
+d-----         8/22/2026   9:37 AM                vtccp
+-a----         8/22/2026   9:37 AM            860 .gitignore
+-a----         8/22/2026   9:37 AM             58 .npmrc
+-a----         8/22/2026   9:37 AM           1002 .replit
+-a----         8/22/2026   9:37 AM            206 .replitignore
+-a----         8/22/2026   9:37 AM         222660 comms_guide.txt
+-a----         8/22/2026   9:37 AM          27925 CPIPM-Project-Outline-v1.0.docx
+-a----         8/22/2026   9:37 AM          89859 dmst_manual.txt
+-a----         8/22/2026   9:37 AM            102 main.py
+-a----         8/22/2026   9:37 AM            650 package.json
+-a----         8/22/2026   9:37 AM         225917 pnpm-lock.yaml
+-a----         8/22/2026   9:37 AM           6736 pnpm-workspace.yaml
+-a----         8/22/2026   9:37 AM              0 prefix
+-a----         8/22/2026   9:37 AM          23407 push-script-v137-viewer.html
+-a----         8/22/2026   9:37 AM          92911 push-script-viewer.html
+-a----         8/22/2026   9:37 AM            149 pyproject.toml
+-a----         8/22/2026   9:37 AM          13035 replit.md
+-a----         8/22/2026   9:37 AM            692 tsconfig.base.json
+-a----         8/22/2026   9:37 AM            252 tsconfig.json
+-a----         8/22/2026   9:37 AM          20265 vccs-report-samples.zip
+-a----         8/22/2026   9:37 AM          14152 vtccp-synthesis-docs.zip
+-a----         8/22/2026   9:37 AM          11099 VTCCP_Description.docx
+-a----         8/22/2026   9:37 AM          15476 VTCCP_Phase1_Tasks.docx
+-a----         8/22/2026   9:37 AM              0 ZIP
