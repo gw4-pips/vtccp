@@ -651,6 +651,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Reported that `TruCheck Barcode Verification Grades— Only fields present in the associated HTML report are shown` is missing the intended space before the em dash, asked whether the DM template fix should have carried over, and requested a report and plan without execution.
+
+**Assistant [2026-08-22]:** Inspected the active template and its history. Confirmed that the approved layout placed a literal trailing space inside the title span before the em dash; a later refactor moved the space to the adjacent note span, which can be trimmed by the PDF renderer. Proposed a focused follow-up to restore the canonical spacing, add an exact heading regression assertion, bump report/application versions, and verify the Windows build and tests. No application files were changed.
+
+---
+
 **User [2026-08-22]:** Thanked the assistant for clarifying that abbreviated Git commit IDs use the first characters rather than the last characters of the full hash.
 
 **Assistant [2026-08-22]:** Confirmed that Git short IDs use the first characters of the full commit hash.
