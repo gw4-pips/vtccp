@@ -205,6 +205,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Confirmed that a script may be used to verify the new VTCCP folder and the laptop environment.
+
+**Assistant [2026-08-22]:** Added a read-only VTCCP setup verifier that checks the checkout, solution, Visual Studio/MSBuild, .NET, ASR DLL placement and SHA-256 match, Git state, and optional build status. It only writes timestamped reports and never changes setup files.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.

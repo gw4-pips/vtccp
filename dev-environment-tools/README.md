@@ -62,6 +62,21 @@ Repositories, vendor DLLs, WebView2 loader files, and wkhtmltopdf:
 .\Find-RepoAndSdkDependencies.ps1 -DevRoot C:\dev
 ```
 
+Verify the VTCCP checkout and ASR SDK placement without changing anything:
+
+```powershell
+.\Confirm-VtccpSetup.ps1 -DevRoot C:\dev
+```
+
+After the repository and SDK DLL are in place, optionally run a build check:
+
+```powershell
+.\Confirm-VtccpSetup.ps1 -DevRoot C:\dev -RunBuild
+```
+
+This verifier never installs, moves, deletes, or overwrites files. The optional
+build can create normal `bin` and `obj` build outputs.
+
 Use a different repository list:
 
 ```powershell
