@@ -310,3 +310,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Typed the displayed PowerShell prompt text `PS C:\dev\vtccp\dev-environment-tools>` as a command.
 
 **Assistant [2026-08-22]:** Clarified that the prompt text is displayed by PowerShell and should not be typed; only the script command should be entered.
+
+---
+
+**User [2026-08-22]:** Ran the setup verifier successfully; all environment checks passed except the expected ASR DLL was missing from the clone, while the source DLL in Downloads was found with the expected hash.
+
+**Assistant [2026-08-22]:** Identified the missing vendor DLL as the only setup failure and instructed the user to copy it into the repository's expected SDK folder while preserving the original Downloads copy, then rerun verification.
