@@ -1,0 +1,32 @@
+PS C:\dev\dev-environment-tools> .\Invoke-DevEnvironmentAudit.ps1 -DevRoot C:\dev
+>> cd C:\dev\dev-environment-tools
+>> Set-ExecutionPolicy -Scope Process Bypass
+Audit complete.
+JSON: C:\dev\dev-environment-tools\reports\dev-environment-audit-20260822-064641.json
+Markdown: C:\dev\dev-environment-tools\reports\dev-environment-audit-20260822-064641.md
+PS C:\dev\dev-environment-tools> .\Invoke-DevEnvironmentAudit.ps1 -DevRoot C:\dev
+>> cd C:\dev\dev-environment-tools
+>> Set-ExecutionPolicy -Scope Process Bypass
+Audit complete.
+JSON: C:\dev\dev-environment-tools\reports\dev-environment-audit-20260822-065040.json
+Markdown: C:\dev\dev-environment-tools\reports\dev-environment-audit-20260822-065040.md
+PS C:\dev\dev-environment-tools> .\Confirm-VtccpSetup.ps1 -DevRoot C:\dev
+>> cd C:\dev\dev-environment-tools
+>> Set-ExecutionPolicy -Scope Process Bypass
+
+VTCCP setup verification: FAIL
+[PASS] Development root: C:\dev
+[PASS] VTCCP repository folder: C:\dev\vtccp
+[FAIL] VTCCP Git checkout: C:\dev\vtccp is not a Git checkout
+[FAIL] VTCCP solution: C:\dev\vtccp\vtccp\VTCCP.sln is missing
+[PASS] .NET SDK: 10.0.303
+[PASS] Visual Studio: Visual Studio Community 2026 at C:\Program Files\Microsoft Visual Studio\18\Community
+[PASS] MSBuild: C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe
+[PASS] VTCCP ASR DLL: C:\dev\vtccp\lib\asreader-p3xu-sdk-1.3.0\AsReaderP3xU.dll (SHA256 ACBA6831F23279D9C592BF19D390CDE94B08459C4FA47B5E3C8AD452D92FEC50)
+[PASS] ASR SDK source copy: C:\Users\GW4\Downloads\AsReader_P35U_SDK_cs_1_3_0\AsReader_P35U_SDK_c#_1_3_0\AsReaderP3xU.dll (SHA256 ACBA6831F23279D9C592BF19D390CDE94B08459C4FA47B5E3C8AD452D92FEC50)
+[PASS] ASR DLL hash match: project copy matches the selected source
+[WARN] VTCCP build: not run; use -RunBuild after the DLL is in place
+
+JSON: C:\dev\dev-environment-tools\reports\vtccp-setup-20260822-070649.json
+Markdown: C:\dev\dev-environment-tools\reports\vtccp-setup-20260822-070649.md
+PS C:\dev\dev-environment-tools>
