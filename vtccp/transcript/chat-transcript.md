@@ -744,3 +744,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Supplied a Webscan QR verification export, symbol image, and application screenshot after VTCCP rejected the HTML because it lacked an Average Grade (AG) quality row. Confirmed approval to correct the import while preserving Webscan's native Data Format FAIL result.
 
 **Assistant [2026-08-22]:** Confirmed the Webscan report has an A (4.0) print-verification grade and all 15 available ISO15415 quality rows marked PASS, while separately reporting a native GS1 Data Format FAIL for “Application Header is Expected.” Updated the importer so an absent AG row no longer rejects a report that has a literal overall grade; AG remains blank and the Webscan DFC failure is retained exactly as reported. Added a regression test against the supplied QR HTML, updated the report format to v1.5.54 and application version to 1.5.78, and recorded that Linux test execution is blocked before running by pre-existing missing ExcelEngine NPOI/OfficeOpenXml references.
+
+---
+
+**User [2026-08-22]:** Confirmed that task #207 is for their real-device validation and asked for an explanation of the acceptance criteria for EAN/UPC, DM, GS1DM, QR, and GS1QR, noting that GS1QR may not have enough evidence yet.
+
+**Assistant [2026-08-22]:** Explained that task #207 is cancelled rather than completed, while #206 is the merged code change. Distinguished a valid importable verifier report from a passing verification result. Identified that Webscan currently applies 2D-specific UEC/SC/DECODE requirements to every symbology, that Webscan EAN/UPC mapping is not defined, that DataMan has only partial multi-mode EAN/UPC support, and that GS1QR needs a real report with native application-format evidence before its policy can be defined. Recommended preserving print grade, native Data Format outcome, and missing fields as separate source-backed states.
