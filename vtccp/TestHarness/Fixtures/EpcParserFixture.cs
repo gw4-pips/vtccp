@@ -337,8 +337,8 @@ public static class EpcParserFixture
                     Partition     = 5,    // L=7
                 };
 
-                bool? result  = validator.Validate(matchEpc);
-                bool i1       = result == true;
+                GcpValidationStatus result = validator.Validate(matchEpc);
+                bool i1       = result == GcpValidationStatus.Valid;
 
                 // ValidateRaw: the 7-char GCP should validate correctly
                 bool i2 = validator.ValidateRaw("0061234");
@@ -379,8 +379,8 @@ public static class EpcParserFixture
                     Partition     = 5,    // L=7, but this prefix is registered as length 6
                 };
 
-                bool? result = validator.Validate(mismatchEpc);
-                bool j1      = result == false;
+                GcpValidationStatus result = validator.Validate(mismatchEpc);
+                bool j1      = result == GcpValidationStatus.Invalid;
 
                 // ValidateRaw confirms: "030001" (6-char) should be valid as a 6-char GCP
                 bool j2 = validator.ValidateRaw("030001");
