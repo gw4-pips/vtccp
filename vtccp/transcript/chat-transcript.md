@@ -456,3 +456,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Asked whether the merged Webscan changes should now be rebuilt and tested.
 
 **Assistant [2026-08-22]:** Ran the focused Webscan and report regression suite with 190 passing tests, rebuilt the Windows solution with 0 errors and 6 pre-existing warnings, confirmed application version 1.5.66, and verified the workspace was clean.
+
+---
+
+**User [2026-08-22]:** Asked whether the generated report revision had been incremented along with the application version.
+
+**Assistant [2026-08-22]:** Found that the application was v1.5.66 but the VCCS report generator was still v1.5.46. Incremented the report revision to v1.5.47 and re-ran the 190-test suite plus Windows solution build; both remained clean with 0 errors.
