@@ -245,6 +245,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Asked which Git application to launch on the Windows laptop.
+
+**Assistant [2026-08-22]:** Recommended GitHub Desktop for repository housekeeping, using `C:\dev\vtccp` as the repository root; Visual Studio Community is the separate application for opening and building `C:\dev\vtccp\vtccp\VTCCP.sln`.
+
+---
+
 **User [2026-08-22]:** Asked why task 194 had been running for 13 minutes.
 
 **Assistant [2026-08-22]:** Confirmed task 194 completed and merged into main. Its six-file change clarified the Webscan/DataMan transport boundary; task 195 was proposed separately to prevent delayed Webscan writes after session closure.
