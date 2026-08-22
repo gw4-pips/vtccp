@@ -334,3 +334,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Pasted the multiline PowerShell block in reverse order again, causing `-Algorithm` and `-LiteralPath` to be interpreted as standalone commands.
 
 **Assistant [2026-08-22]:** Switched to four independent one-line commands to avoid multiline paste-order issues.
+
+---
+
+**User [2026-08-22]:** Successfully assigned the source and target variables and created the target folder, but the destination DLL was absent when hashing it.
+
+**Assistant [2026-08-22]:** Confirmed no source was deleted or moved and switched to explicit source/destination file-path checks and an explicit destination filename.
