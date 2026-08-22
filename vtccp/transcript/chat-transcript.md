@@ -462,3 +462,15 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Asked whether the generated report revision had been incremented along with the application version.
 
 **Assistant [2026-08-22]:** Found that the application was v1.5.66 but the VCCS report generator was still v1.5.46. Incremented the report revision to v1.5.47 and re-ran the 190-test suite plus Windows solution build; both remained clean with 0 errors.
+
+---
+
+**User [2026-08-22]:** Reported that Visual Studio displayed a “Save changes to the following items?” prompt for `VTCCP.sln*` after selecting Git pull.
+
+**Assistant [2026-08-22]:** Explained that the prompt is Visual Studio’s unsaved-solution warning, not a Git merge conflict. Noted that the screenshot shows `ExcelEngine` selected as startup and advised preserving the correct `VtccpWindows.sln` / `VtccpApp` startup path.
+
+---
+
+**User [2026-08-22]:** Asked about the Visual Studio save prompt shown when pulling the repository.
+
+**Assistant [2026-08-22]:** Advised choosing Don’t Save unless the solution was intentionally edited, because the prompt only concerns the unsaved `VTCCP.sln` state. Directed the user to reopen `VtccpWindows.sln` and set `VtccpApp` as the startup project.
