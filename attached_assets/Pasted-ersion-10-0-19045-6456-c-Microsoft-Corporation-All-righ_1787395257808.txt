@@ -1,0 +1,476 @@
+ersion 10.0.19045.6456]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Windows\system32>cd C:\dev\gs1-digital-link-resolver\tools\rfid-wedge
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>dir
+ Volume in drive C has no label.
+ Volume Serial Number is 8A63-85B2
+
+ Directory of C:\dev\gs1-digital-link-resolver\tools\rfid-wedge
+
+08/10/2026  07:16 AM    <DIR>          .
+08/10/2026  07:16 AM    <DIR>          ..
+08/07/2026  08:14 PM            93,184 AsReaderP3xU.dll
+08/08/2026  11:33 AM            40,147 AsReader_P35U_TID_Defect_Report.docx
+08/08/2026  08:41 AM             8,071 ASREADER_TID_DEFECT.md
+08/07/2026  08:28 PM             2,468 build_exe.bat
+08/08/2026  02:26 PM             6,932 config.py
+08/10/2026  11:38 AM           258,441 debug.log
+08/10/2026  07:16 AM           512,005 debug.log.1
+08/08/2026  01:39 PM             7,374 decoder.py
+08/08/2026  11:33 AM             1,222 injector.py
+08/08/2026  11:33 AM               482 LICENSE.txt
+08/08/2026  06:41 PM           105,910 main.py
+08/08/2026  06:41 PM            46,824 reader.py
+08/07/2026  08:28 PM             4,326 README.md
+08/08/2026  09:25 AM                81 requirements.txt
+08/10/2026  10:24 AM             1,840 rfid_wedge_config.json
+08/10/2026  10:25 AM            24,473 TagLog.csv
+08/08/2026  02:26 PM    <DIR>          tests
+08/07/2026  11:15 PM             4,690 test_config_buzzer.py
+08/07/2026  08:28 PM             3,026 test_d2xx.py
+08/07/2026  08:28 PM             1,785 test_serial.py
+08/08/2026  06:42 PM    <DIR>          __pycache__
+              19 File(s)      1,123,281 bytes
+               4 Dir(s)  305,847,255,040 bytes free
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>python -c "import clr; clr.AddReference('AsReaderP3xU'); from AsReaderP3xU import AsReader; print([m for m in dir(AsReader) if any(x in m.lower() for x in ['fw','firm','reboot','update','flash'])])"
+['GetFwVersion', 'GetRFIDFwVersion']
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>python -c "import zipfile; zipfile.ZipFile('path\\to\\Sample_AsReader-P35U_cs_1_3_0.zip').extract('Sample_AsReader-P35U_c#_1_3_0/AsReaderP3xU_Demo/bin/Release/AsReaderP3xU_Demo.exe', '.')"
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import zipfile; zipfile.ZipFile('path\\to\\Sample_AsReader-P35U_cs_1_3_0.zip').extract('Sample_AsReader-P35U_c#_1_3_0/AsReaderP3xU_Demo/bin/Release/AsReaderP3xU_Demo.exe', '.')
+                    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\GW4\AppData\Local\Python\pythoncore-3.14-64\Lib\zipfile\__init__.py", line 1462, in __init__
+    self.fp = io.open(file, filemode)
+              ~~~~~~~^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'path\\to\\Sample_AsReader-P35U_cs_1_3_0.zip'
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>dir
+ Volume in drive C has no label.
+ Volume Serial Number is 8A63-85B2
+
+ Directory of C:\dev\gs1-digital-link-resolver\tools\rfid-wedge
+
+08/10/2026  07:16 AM    <DIR>          .
+08/10/2026  07:16 AM    <DIR>          ..
+08/07/2026  08:14 PM            93,184 AsReaderP3xU.dll
+08/08/2026  11:33 AM            40,147 AsReader_P35U_TID_Defect_Report.docx
+08/08/2026  08:41 AM             8,071 ASREADER_TID_DEFECT.md
+08/07/2026  08:28 PM             2,468 build_exe.bat
+08/08/2026  02:26 PM             6,932 config.py
+08/10/2026  11:38 AM           258,441 debug.log
+08/10/2026  07:16 AM           512,005 debug.log.1
+08/08/2026  01:39 PM             7,374 decoder.py
+08/08/2026  11:33 AM             1,222 injector.py
+08/08/2026  11:33 AM               482 LICENSE.txt
+08/08/2026  06:41 PM           105,910 main.py
+08/08/2026  06:41 PM            46,824 reader.py
+08/07/2026  08:28 PM             4,326 README.md
+08/08/2026  09:25 AM                81 requirements.txt
+08/10/2026  10:24 AM             1,840 rfid_wedge_config.json
+08/10/2026  10:25 AM            24,473 TagLog.csv
+08/08/2026  02:26 PM    <DIR>          tests
+08/07/2026  11:15 PM             4,690 test_config_buzzer.py
+08/07/2026  08:28 PM             3,026 test_d2xx.py
+08/07/2026  08:28 PM             1,785 test_serial.py
+08/08/2026  06:42 PM    <DIR>          __pycache__
+              19 File(s)      1,123,281 bytes
+               4 Dir(s)  306,048,348,160 bytes free
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>AsReaderP3xU_Demo.exe
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>AsReaderP3xU_Demo.exe
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>AsReaderP3xU_Demo.exe
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>cd C:\dev\gs1-digital-link-resolver\tools\rfid-wedge
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>python main.py
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>AsReaderP3xU_Demo.exe
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>git pull
+remote: Enumerating objects: 360, done.
+remote: Counting objects: 100% (360/360), done.
+remote: Compressing objects: 100% (140/140), done.
+remote: Total 326 (delta 183), reused 317 (delta 174), pack-reused 0 (from 0)
+Receiving objects: 100% (326/326), 5.69 MiB | 6.16 MiB/s, done.
+Resolving deltas: 100% (183/183), completed with 20 local objects.
+From https://github.com/gw4-pips/gs1-digital-link-resolver
+   b2fe37b..f53a84e  main       -> origin/main
+Updating b2fe37b..f53a84e
+Fast-forward
+ .agents/agent_assets_metadata.toml                 |    7 +
+ .agents/memory/MEMORY.md                           |    1 +
+ .agents/memory/asreader-p35u-sdk.md                |   18 +-
+ .agents/memory/asreader-tub-opportunity.md         |   26 +
+ .../docs/book-interstitial-preview-cokesbury.html  |  231 +
+ .../api-server/docs/book-interstitial-preview.html |  230 +
+ artifacts/api-server/src/lib/interstitial.ts       |  406 ++
+ artifacts/api-server/src/routes/index.ts           |    5 +
+ artifacts/api-server/src/routes/resolve.ts         |    6 +
+ artifacts/api-server/src/routes/tools.ts           |   80 +-
+ artifacts/api-server/static/book-cover-source.png  |  Bin 0 -> 259394 bytes
+ .../static/logos/9781640659650-cover.jpg           |  Bin 0 -> 92175 bytes
+ .../static/logos/9781791045050-cover.jpg           |  Bin 0 -> 321124 bytes
+ .../static/logos/abingdon-press-logo.png           |  Bin 5455 -> 4318 bytes
+ .../static/logos/cokesbury-logo-with-tagline.png   |  Bin 0 -> 18390 bytes
+ .../api-server/static/logos/cokesbury-logo.png     |  Bin 56214 -> 18390 bytes
+ artifacts/api-server/static/logos/umph-logo.png    |  Bin 45575 -> 47205 bytes
+ .../ASR-053W_Users_Manual_EN_1786324806665.pdf     |  Bin 0 -> 2615991 bytes
+ .../ASR-0x3W_Command_Guide_1786324806665.htm       |  364 ++
+ ...uide_-_ASR-0x3W_Command_Guide_1786324806665.htm | 1757 +++++++
+ ...uide_-_ASR-0x3W_Command_Guide_1786324806664.htm | 5158 ++++++++++++++++++++
+ ...ng_in_Life,_Serving_in_Failth_1786333795507.png |  Bin 0 -> 4318 bytes
+ ...th_ASR-0x3W_ASR-P351N_-_ASR-0_1786324806665.htm |  568 +++
+ ...Sample_ASR-033W_053W_P351N_cs_1786324806665.zip |  Bin 0 -> 756495 bytes
+ attached_assets/UMPHLogo_1786330356062.png         |  Bin 0 -> 47205 bytes
+ ...xample_Page_with_M2DiR_for_RB_1786335568556.pdf |  Bin 0 -> 25740 bytes
+ .../buttonAbingdonPress_1786330356062.png          |  Bin 0 -> 8575 bytes
+ attached_assets/buttonCokesbury_1786330356062.png  |  Bin 0 -> 18390 bytes
+ attached_assets/image_1786334750113.png            |  Bin 0 -> 60668 bytes
+ attached_assets/image_1786336745312.png            |  Bin 0 -> 79737 bytes
+ attached_assets/image_1786336892377.png            |  Bin 0 -> 33104 bytes
+ attached_assets/image_1786337275731.png            |  Bin 0 -> 51728 bytes
+ attached_assets/image_1786337428011.png            |  Bin 0 -> 46501 bytes
+ attached_assets/image_1786337523107.png            |  Bin 0 -> 40541 bytes
+ attached_assets/image_1786337701001.png            |  Bin 0 -> 36655 bytes
+ attached_assets/image_1786377107721.png            |  Bin 0 -> 143226 bytes
+ attached_assets/image_1786377343116.png            |  Bin 0 -> 212566 bytes
+ attached_assets/image_1786378270178.png            |  Bin 0 -> 293745 bytes
+ attached_assets/image_1786378681114.png            |  Bin 0 -> 295002 bytes
+ attached_assets/image_1786379056367.png            |  Bin 0 -> 287263 bytes
+ attached_assets/image_1786379259890.png            |  Bin 0 -> 279708 bytes
+ ...26-08-10-register-abingdon-message-of-jesus.sql |  233 +
+ .../2026-08-10-register-cokesbury-nrsvue-bible.sql |  209 +
+ .../db/migrations/2026-08-10-add-book-columns.sql  |   55 +
+ .../2026-08-10-UMPH-2D-in-Retail-with-My2DiR.pdf   |  Bin 0 -> 25740 bytes
+ lib/db/src/schema.ts                               |   17 +
+ tools/rfid-tub/HANDOFF.md                          |  320 ++
+ tools/rfid-tub/sdk/asr-053w/README.md              |   97 +
+ .../sdk/asr-053w/docs/ASR-053W_Users_Manual_EN.pdf |  Bin 0 -> 2615991 bytes
+ .../sdk/asr-053w/docs/Command_Guide_Index.htm      |  364 ++
+ .../sdk/asr-053w/docs/Command_Guide_MQTT_JSON.htm  | 1757 +++++++
+ .../sdk/asr-053w/docs/Command_Guide_TCP.htm        | 5158 ++++++++++++++++++++
+ .../rfid-tub/sdk/asr-053w/docs/How_to_Connect.htm  |  568 +++
+ tools/rfid-tub/sdk/asr-053w/sample-cs/ASR-033W.sln |   25 +
+ .../asr-053w/sample-cs/AsReader033W_Demo.csproj    |   31 +
+ .../sdk/asr-053w/sample-cs/ClassMqttClient.cs      |  111 +
+ .../sdk/asr-053w/sample-cs/ClassTCPClient.cs       |  273 ++
+ tools/rfid-tub/sdk/asr-053w/sample-cs/Const.cs     |   54 +
+ tools/rfid-tub/sdk/asr-053w/sample-cs/Device.cs    |  384 ++
+ .../asr-053w/sample-cs/DoubleBufferDataGridView.cs |   30 +
+ .../sample-cs/DoubleBufferDataGridView.resx        |  123 +
+ .../sdk/asr-053w/sample-cs/DoubleBufferListView.cs |   30 +
+ .../sdk/asr-053w/sample-cs/Form1.Designer.cs       | 1284 +++++
+ tools/rfid-tub/sdk/asr-053w/sample-cs/Form1.cs     |  827 ++++
+ tools/rfid-tub/sdk/asr-053w/sample-cs/Form1.resx   | 1714 +++++++
+ tools/rfid-tub/sdk/asr-053w/sample-cs/Handler.cs   |  490 ++
+ tools/rfid-tub/sdk/asr-053w/sample-cs/Program.cs   |   17 +
+ .../sample-cs/Properties/Resources.Designer.cs     |   63 +
+ .../asr-053w/sample-cs/Properties/Resources.resx   |  120 +
+ .../asr-053w/sample-cs/changelog/Changelog_CN.txt  |    0
+ .../asr-053w/sample-cs/changelog/Changelog_EN.txt  |    0
+ .../asr-053w/sample-cs/changelog/Changelog_JP.txt  |    0
+ .../AsReader033W_Demo.AssemblyInfo.cs              |   25 +
+ .../AsReader033W_Demo.GlobalUsings.g.cs            |   10 +
+ .../AsReader033W_Demo.AssemblyInfo.cs              |   25 +
+ .../AsReader033W_Demo.GlobalUsings.g.cs            |   10 +
+ tools/rfid-wedge/FIRMWARE_LOG.md                   |   56 +
+ tools/rfid-wedge/main.py                           |   10 +-
+ tools/rfid-wedge/reader.py                         |   74 +-
+ 79 files changed, 23400 insertions(+), 21 deletions(-)
+ create mode 100644 .agents/memory/asreader-tub-opportunity.md
+ create mode 100644 artifacts/api-server/docs/book-interstitial-preview-cokesbury.html
+ create mode 100644 artifacts/api-server/docs/book-interstitial-preview.html
+ create mode 100644 artifacts/api-server/static/book-cover-source.png
+ create mode 100644 artifacts/api-server/static/logos/9781640659650-cover.jpg
+ create mode 100644 artifacts/api-server/static/logos/9781791045050-cover.jpg
+ create mode 100644 artifacts/api-server/static/logos/cokesbury-logo-with-tagline.png
+ create mode 100644 attached_assets/ASR-053W_Users_Manual_EN_1786324806665.pdf
+ create mode 100644 attached_assets/ASR-0x3W_Command_Guide_1786324806665.htm
+ create mode 100644 attached_assets/ASR-0x3W_MQTT_JSON_Command_Guide_-_ASR-0x3W_Command_Guide_1786324806665.htm
+ create mode 100644 attached_assets/ASR-0x3W_TCP_Command_Guide_-_ASR-0x3W_Command_Guide_1786324806664.htm
+ create mode 100644 attached_assets/Abingdon_Logo_-Growing_in_Life,_Serving_in_Failth_1786333795507.png
+ create mode 100644 attached_assets/How_to_Connect_and_Communicate_with_ASR-0x3W_ASR-P351N_-_ASR-0_1786324806665.htm
+ create mode 100644 attached_assets/Sample_ASR-033W_053W_P351N_cs_1786324806665.zip
+ create mode 100644 attached_assets/UMPHLogo_1786330356062.png
+ create mode 100644 attached_assets/UMPH_2D_in_Retail_Example_Page_with_M2DiR_for_RB_1786335568556.pdf
+ create mode 100644 attached_assets/buttonAbingdonPress_1786330356062.png
+ create mode 100644 attached_assets/buttonCokesbury_1786330356062.png
+ create mode 100644 attached_assets/image_1786334750113.png
+ create mode 100644 attached_assets/image_1786336745312.png
+ create mode 100644 attached_assets/image_1786336892377.png
+ create mode 100644 attached_assets/image_1786337275731.png
+ create mode 100644 attached_assets/image_1786337428011.png
+ create mode 100644 attached_assets/image_1786337523107.png
+ create mode 100644 attached_assets/image_1786337701001.png
+ create mode 100644 attached_assets/image_1786377107721.png
+ create mode 100644 attached_assets/image_1786377343116.png
+ create mode 100644 attached_assets/image_1786378270178.png
+ create mode 100644 attached_assets/image_1786378681114.png
+ create mode 100644 attached_assets/image_1786379056367.png
+ create mode 100644 attached_assets/image_1786379259890.png
+ create mode 100644 docs/resolver/db/fixtures/2026-08-10-register-abingdon-message-of-jesus.sql
+ create mode 100644 docs/resolver/db/fixtures/2026-08-10-register-cokesbury-nrsvue-bible.sql
+ create mode 100644 docs/resolver/db/migrations/2026-08-10-add-book-columns.sql
+ create mode 100644 docs/resolver/presentations/2026-08-10-UMPH-2D-in-Retail-with-My2DiR.pdf
+ create mode 100644 tools/rfid-tub/HANDOFF.md
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/README.md
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/docs/ASR-053W_Users_Manual_EN.pdf
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/docs/Command_Guide_Index.htm
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/docs/Command_Guide_MQTT_JSON.htm
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/docs/Command_Guide_TCP.htm
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/docs/How_to_Connect.htm
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/ASR-033W.sln
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/AsReader033W_Demo.csproj
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/ClassMqttClient.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/ClassTCPClient.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/Const.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/Device.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/DoubleBufferDataGridView.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/DoubleBufferDataGridView.resx
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/DoubleBufferListView.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/Form1.Designer.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/Form1.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/Form1.resx
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/Handler.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/Program.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/Properties/Resources.Designer.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/Properties/Resources.resx
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/changelog/Changelog_CN.txt
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/changelog/Changelog_EN.txt
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/changelog/Changelog_JP.txt
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/obj/Debug/net8.0-windows/AsReader033W_Demo.AssemblyInfo.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/obj/Debug/net8.0-windows/AsReader033W_Demo.GlobalUsings.g.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/obj/Release/net8.0-windows/AsReader033W_Demo.AssemblyInfo.cs
+ create mode 100644 tools/rfid-tub/sdk/asr-053w/sample-cs/obj/Release/net8.0-windows/AsReader033W_Demo.GlobalUsings.g.cs
+ create mode 100644 tools/rfid-wedge/FIRMWARE_LOG.md
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>python main.py
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>python main.py
+
+C:\dev\gs1-digital-link-resolver\tools\rfid-wedge>powershell
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Try the new cross-platform PowerShell https://aka.ms/pscore6
+
+PS C:\dev\gs1-digital-link-resolver\tools\rfid-wedge> cd..
+PS C:\dev\gs1-digital-link-resolver\tools> cd..
+PS C:\dev\gs1-digital-link-resolver> cd..
+PS C:\dev> dir
+
+
+    Directory: C:\dev
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----          8/8/2026   2:26 PM                gs1-digital-link-resolver
+
+
+PS C:\dev> cd
+PS C:\dev> dir
+
+
+    Directory: C:\dev
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/22/2026   6:37 AM                dev-environment-tools
+d-----          8/8/2026   2:26 PM                gs1-digital-link-resolver
+
+
+PS C:\dev> Set-ExecutionPolicy -Scope Process Bypass
+>> cd C:\dev\dev-environment-tools
+>> .\Invoke-DevEnvironmentAudit.ps1 -DevRoot C:\dev
+.\Invoke-DevEnvironmentAudit.ps1 : The term '.\Invoke-DevEnvironmentAudit.ps1' is not recognized as the name of a
+cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify
+that the path is correct and try again.
+At line:3 char:1
++ .\Invoke-DevEnvironmentAudit.ps1 -DevRoot C:\dev
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (.\Invoke-DevEnvironmentAudit.ps1:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS C:\dev\dev-environment-tools> Set-ExecutionPolicy -Scope Process Bypass
+>> cd C:\dev\dev-environment-tools
+>> .\Invoke-DevEnvironmentAudit.ps1 -DevRoot C:\dev
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayVersion' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:169 char:17
++                 $matches += [pscustomobject]@{
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\DevEnvironment.Common.ps1:157 char:13
++             $displayName = $item.DisplayName
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'InstallationName' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\Invoke-DevEnvironmentAudit.ps1:80 char:18
++     $md.Add("- $($installation.InstallationName) | $($installation.Ca ...
++                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'CatalogVersion' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\Invoke-DevEnvironmentAudit.ps1:80 char:54
++ ... stallation.InstallationName) | $($installation.CatalogVersion) | $($i ...
++                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+The property 'InstallationPath' cannot be found on this object. Verify that the property exists.
+At C:\dev\dev-environment-tools\Invoke-DevEnvironmentAudit.ps1:80 char:88
++ ... $($installation.CatalogVersion) | $($installation.InstallationPath)")
++                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+Audit complete.
+JSON: C:\dev\dev-environment-tools\reports\dev-environment-audit-20260822-064009.json
+Markdown: C:\dev\dev-environment-tools\reports\dev-environment-audit-20260822-064009.md
+PS C:\dev\dev-environment-tools>
