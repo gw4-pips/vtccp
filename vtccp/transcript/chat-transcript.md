@@ -690,3 +690,9 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Asked to resolve the Git synchronization issues.
 
 **Assistant [2026-08-22]:** Fetched only the primary `origin` and `github` remotes, confirmed local `main` contained three commits absent from GitHub and no remote-only commits, pushed them with a normal non-force push, removed four stale task-agent remotes, refreshed both primary tracking refs, and confirmed local `main`, `origin/main`, and `github/main` all match at `b004b61`.
+
+---
+
+**User [2026-08-22]:** Asked for the current commit because the Windows workstation still showed build 1.5.72.
+
+**Assistant [2026-08-22]:** Confirmed that merged commit `65bce58` contains application version 1.5.73, found two local commits absent from GitHub, pushed them normally, refreshed both primary tracking refs, and confirmed local `main`, `origin/main`, and `github/main` all match at `65bce58`.
