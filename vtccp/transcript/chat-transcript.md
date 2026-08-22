@@ -163,6 +163,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Reported being at the laptop with a TC-829 OPTIMA +Plus and ASR P35U connected for record TC-829-0213-021.
+
+**Assistant [2026-08-22]:** Recorded the live test setup and stated readiness to work from the actual Webscan TruCheck output and paired RFID result one variable at a time.
+
+---
+
 **User [2026-08-22]:** Confirm the widened report stays readable in the Windows PDF renderer.
 
 **Assistant [2026-08-22]:** Generated and preserved a current v1.5.41 multi-mode review fixture plus a documented renderer check. A preserved one-page Windows Edge PDF shows the widened layout, barcode image, dual parser columns, borders, and footer aligned without clipping; the current source fixture confirms the final fixed-column proportions. A fresh current-version Windows render remains pending because this workspace is Linux-only.
