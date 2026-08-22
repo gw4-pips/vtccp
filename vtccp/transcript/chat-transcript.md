@@ -251,6 +251,14 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Started installing GitHub Desktop on the Windows laptop.
+
+**Assistant [2026-08-22]:** Confirmed the next setup step is to add `C:\dev\vtccp` as the local repository root, not the nested `C:\dev\vtccp\vtccp` source directory.
+
+**Assistant [2026-08-22]:** Clarified that the task #196 merge lock is isolated to the Replit workspace and does not affect installing or opening GitHub Desktop on the Windows laptop.
+
+---
+
 **User [2026-08-22]:** Asked why task 194 had been running for 13 minutes.
 
 **Assistant [2026-08-22]:** Confirmed task 194 completed and merged into main. Its six-file change clarified the Webscan/DataMan transport boundary; task 195 was proposed separately to prevent delayed Webscan writes after session closure.
