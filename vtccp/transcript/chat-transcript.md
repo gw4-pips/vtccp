@@ -519,6 +519,12 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 
 ---
 
+**User [2026-08-22]:** Reported that the pull left the seven Webscan/report files staged, the two Visual Studio solution files locally modified, and the SDK/report folders untracked; the branch still showed ahead 2, behind 1.
+
+**Assistant [2026-08-22]:** Interpreted the output as the GitHub update being applied but the merge commit not yet finalized. Instructed the user not to add, reset, clean, or rebuild, and to run the read-only `git status` command for the full merge state.
+
+---
+
 **User [2026-08-22]:** Reported that the version-check command failed because it was run from `C:\dev\vtccp\dev-environment-tools`, and requested smaller troubleshooting steps.
 
 **Assistant [2026-08-22]:** Clarified that the path error was caused by the current directory, not repository damage. Instructed the user to run only `cd C:\dev\vtccp` first and confirm the prompt changes before issuing another command.
