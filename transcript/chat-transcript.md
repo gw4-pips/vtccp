@@ -3181,3 +3181,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Assigned Task 220 to restore concatenated Webscan imports without weakening multi-symbol identity matching.
 
 **Assistant:** Restored parsing for older imports made from concatenated standalone HTML documents, preserved the existing Symbol N multi-report path and identity-based 2D selection, added regression coverage for the two-report shape, and bumped the application version to 1.5.90. Validation remains blocked by the repository's existing missing NPOI/EPPlus build references.
+
+**User:** Requested that every DFC section use one consistent shell, avoid detached continuation headers, keep row geometry consistent, and place a fixed bottom footer with right-justified page numbering.
+
+**Assistant:** Unified the multi-symbol DFC section shell, prevented section splitting, normalized DFC row sizing and overflow, added a repeated fixed footer with page numbering markup, removed a duplicate HTML slot token that was expanding every section twice, added three-symbol regression coverage, and pushed commit 90ab291 with remote application version 1.5.91. The focused report suite passed 51 tests; the full suite still has two unrelated pre-existing Webscan fixture/assertion failures.
