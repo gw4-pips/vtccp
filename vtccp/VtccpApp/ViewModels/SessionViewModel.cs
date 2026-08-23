@@ -1456,6 +1456,14 @@ public sealed class SessionViewModel : ViewModelBase
         DigitalLinkValidationResult? veriWedgeValidation =
             VccsDigitalLinkValidationService.Validate(gs1Input);
         if (veriWedgeValidation.Status == DigitalLinkValidationStatus.NotApplicable &&
+            VccsDigitalLinkValidationService.BuildLinearElementString(
+                record.HtmlSymbology ?? record.Symbology,
+                gs1Input) is { } linearElementString)
+        {
+            veriWedgeValidation =
+                VccsDigitalLinkValidationService.ValidateElementString(linearElementString);
+        }
+        if (veriWedgeValidation.Status == DigitalLinkValidationStatus.NotApplicable &&
             VccsDigitalLinkValidationService.LooksLikeGs1ElementString(gs1Input))
         {
             veriWedgeValidation =

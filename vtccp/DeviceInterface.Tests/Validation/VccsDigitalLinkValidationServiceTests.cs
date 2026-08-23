@@ -89,6 +89,33 @@ public sealed class VccsDigitalLinkValidationServiceTests
         Assert.Null(result.EngineVersion);
     }
 
+    [Theory]
+    [InlineData("UPCA", "696114704318", "(01)00696114704318")]
+    [InlineData("EAN-13", "0696114704318", "(01)00696114704318")]
+    public void BuildLinearElementString_UsesOnlySupportedNativeLinearForms(
+        string symbology,
+        string decodedData,
+        string expected)
+    {
+        Assert.Equal(expected,
+            VccsDigitalLinkValidationService.BuildLinearElementString(
+                symbology,
+                decodedData));
+    }
+
+    [Theory]
+    [InlineData("EAN-8", "12345670")]
+    [InlineData("UPC-E", "01234565")]
+    [InlineData("UPC-A", "696114704318+12")]
+    public void BuildLinearElementString_LeavesUnconfirmedFormsUnchanged(
+        string symbology,
+        string decodedData)
+    {
+        Assert.Null(VccsDigitalLinkValidationService.BuildLinearElementString(
+            symbology,
+            decodedData));
+    }
+
     [Fact]
     public void Validate_MissingNativeRuntime_IsExplicitlyUnavailable()
     {

@@ -84,6 +84,37 @@ public static class VccsDigitalLinkValidationService
                value.StartsWith("]d2", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Builds the GS1 AI (01) input needed to validate a standalone UPC-A or
+    /// EAN-13 payload. These linear symbols carry the GTIN digits directly,
+    /// unlike a GS1 DataMatrix or Digital Link payload.
+    ///
+    /// EAN-8, UPC-E, and add-on-bearing values intentionally return null until
+    /// native verifier captures establish their exact handling.
+    /// </summary>
+    public static string? BuildLinearElementString(
+        string? symbology,
+        string? decodedData)
+    {
+        string symbol = new string((symbology ?? string.Empty)
+            .Where(char.IsLetterOrDigit)
+            .ToArray())
+            .ToUpperInvariant();
+        string data = decodedData?.Trim() ?? string.Empty;
+
+        if (data.Length == 0 || data.Any(ch => !char.IsDigit(ch)))
+            return null;
+
+        string? gtin14 = symbol switch
+        {
+            "UPCA" when data.Length == 12 => "00" + data,
+            "EAN13" when data.Length == 13 => "0" + data,
+            _ => null,
+        };
+
+        return gtin14 is null ? null : $"(01){gtin14}";
+    }
+
     private static DigitalLinkValidationResult ValidateWithEngine(
         string gs1Data,
         IGs1DigitalLinkSyntaxEngine engine,

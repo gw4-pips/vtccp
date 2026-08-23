@@ -15,3 +15,14 @@ GTIN-only payload.
 **How to apply:** A standalone linear report may have one verifier symbol and
 grade row because that is the evidence shape, but it must retain the normal
 GS1 parser comparison behavior and native DFC handling.
+
+For RFID comparison only, UPC-A is represented as GTIN-14 with two leading
+zeroes and EAN-13 with one leading zero. Keep EAN-8, UPC-E, and 2/5-digit
+add-ons unresolved until native verifier captures establish their behavior.
+
+**Why:** Equal GS1 identities can have different native barcode and EPC
+representations; treating the literal lengths as a mismatch gives a false
+RFID failure.
+
+**How to apply:** Normalize only the explicitly supported linear forms for
+comparison; never replace the native verifier values shown in the report.

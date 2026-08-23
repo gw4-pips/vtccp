@@ -1,6 +1,7 @@
 namespace DeviceInterface.Tests.Webscan;
 
 using DeviceInterface.Reports;
+using DeviceInterface.Validation;
 using DeviceInterface.Webscan;
 using ExcelEngine.Models;
 using Xunit;
@@ -96,6 +97,42 @@ public sealed class WebscanHtmlParserTests
         Assert.Equal(GradeLetterValue.A, record.OverallGrade?.LetterGrade);
         Assert.Same(report.DataFormatCheck, record.DataFormatCheck);
         Assert.Equal("SiblingExport", record.HtmlBarcodeImageProvenance);
+    }
+
+    [Fact]
+    public void ControlledTc829UpcaHtml_RendersDualGs1ParserAndMatchedRfidResult()
+    {
+        string sourcePath = GetUpcaReportPath();
+        WebscanHtmlReport parsed = WebscanHtmlParser.ParseFile(sourcePath);
+        VerificationRecord record = parsed.ToVerificationRecord() with
+        {
+            RfidStatus = "Pass",
+            RfidGtin14 = "00696114704318",
+            RfidSerial = "72803288694",
+            RfidTagLockStatus = "PermaLocked",
+            TruCheckValidationUsable = true,
+            TruCheckValidationFailed = false,
+            VeriWedgeValidationUsed = true,
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Source = DigitalLinkValidationResult.VccsElementStringSource,
+                EngineVersion = "GS1 Barcode Syntax Engine 1.4.1",
+                Detail = "Parsed GS1 AI data: (01)00696114704318",
+            },
+        };
+
+        string html = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("&#x2713; RFID MATCHED", html, StringComparison.Ordinal);
+        Assert.Contains("UPCA RFID Validation Result", html, StringComparison.Ordinal);
+        Assert.Contains("Pass &#x2014; EPC data matches barcode GTIN", html,
+            StringComparison.Ordinal);
+        Assert.Contains("Webscan TruCheck GS1 Parser", html, StringComparison.Ordinal);
+        Assert.Contains("VeriWedge GS1 Parser", html, StringComparison.Ordinal);
+        Assert.Contains("(01)00696114704318", html, StringComparison.Ordinal);
+        Assert.Contains("OVERALL: PASS", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("RFID MISMATCH", html, StringComparison.Ordinal);
     }
 
     [Fact]

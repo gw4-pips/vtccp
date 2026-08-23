@@ -94,8 +94,11 @@ public sealed class RfidValidator
         }
 
         // ── Extract barcode GS1 fields ─────────────────────────────────────────
-        string? barcodeGtin14 = ExtractAi01(barcodeRecord.DecodedData);
-        string? barcodeSerial = ExtractAi21(barcodeRecord.DecodedData);
+        string? barcodeData = barcodeRecord.HtmlDecodedData ?? barcodeRecord.DecodedData;
+        string? barcodeSymbology = barcodeRecord.HtmlSymbology ?? barcodeRecord.Symbology;
+        string? barcodeGtin14 = ExtractAi01(barcodeData) ??
+            NormalizeLinearGtin14(barcodeSymbology, barcodeData);
+        string? barcodeSerial = ExtractAi21(barcodeData);
 
         // ── GCP validation ─────────────────────────────────────────────────────
         GcpValidationStatus gcpStatus = _gcpValidator?.Validate(parsedEpc)
@@ -172,6 +175,32 @@ public sealed class RfidValidator
         if (IsDigitalLinkUrl(payload))
             return ExtractDlAi(payload, "01");
         return FindFixedLengthAi(payload, "01", 14);
+    }
+
+    /// <summary>
+    /// Converts only standalone UPC-A and EAN-13 payloads to GTIN-14.
+    /// UPC-A requires two leading zeroes; EAN-13 requires one. EAN-8,
+    /// UPC-E, and values containing add-ons are deliberately not normalized.
+    /// </summary>
+    public static string? NormalizeLinearGtin14(
+        string? symbology,
+        string? decodedData)
+    {
+        string symbol = new string((symbology ?? string.Empty)
+            .Where(char.IsLetterOrDigit)
+            .ToArray())
+            .ToUpperInvariant();
+        string data = decodedData?.Trim() ?? string.Empty;
+
+        if (data.Length == 0 || data.Any(ch => !char.IsDigit(ch)))
+            return null;
+
+        return symbol switch
+        {
+            "UPCA" when data.Length == 12 => "00" + data,
+            "EAN13" when data.Length == 13 => "0" + data,
+            _ => null,
+        };
     }
 
     /// <summary>

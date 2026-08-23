@@ -1,4 +1,5 @@
 using DeviceInterface.Rfid;
+using DeviceInterface.Rfid.Models;
 using ExcelEngine.Models;
 using Xunit;
 
@@ -80,5 +81,76 @@ public sealed class RfidValidatorTests
         const string data = "<F1>01006961147042882172803282009<GS>10LOT-42";
 
         Assert.Equal("72803282009", RfidValidator.ExtractAi21(data));
+    }
+
+    [Theory]
+    [InlineData("UPCA", "696114704318", "00696114704318")]
+    [InlineData("UPC-A", "696114704318", "00696114704318")]
+    [InlineData("EAN13", "0696114704318", "00696114704318")]
+    [InlineData("EAN-13", "0696114704318", "00696114704318")]
+    public void NormalizeLinearGtin14_UsesRequiredPadding(
+        string symbology,
+        string decodedData,
+        string expected)
+    {
+        Assert.Equal(expected,
+            RfidValidator.NormalizeLinearGtin14(symbology, decodedData));
+    }
+
+    [Theory]
+    [InlineData("EAN8", "12345670")]
+    [InlineData("UPCE", "01234565")]
+    [InlineData("UPCA", "696114704318+12")]
+    [InlineData("EAN13", "0696114704318+12345")]
+    public void NormalizeLinearGtin14_LeavesUnconfirmedFormsUnchanged(
+        string symbology,
+        string decodedData)
+    {
+        Assert.Null(RfidValidator.NormalizeLinearGtin14(symbology, decodedData));
+    }
+
+    [Theory]
+    [InlineData("UPCA", "696114704318")]
+    [InlineData("EAN13", "0696114704318")]
+    public void Validate_EquivalentLinearGtinAndEpcGtin14_ReturnsPass(
+        string symbology,
+        string decodedData)
+    {
+        var result = new RfidValidator().Validate(
+            [new EpcReadResult
+            {
+                EpcBytes = Convert.FromHexString("30342A7CC844C7D0F36A0676"),
+            }],
+            new VerificationRecord
+            {
+                Symbology = symbology,
+                DecodedData = decodedData,
+            },
+            scanWindowMs: 1000);
+
+        Assert.Equal(RfidValidationStatus.Pass, result.Status);
+        Assert.Equal("00696114704318", result.RfidGtin14);
+        Assert.Equal("00696114704318", result.BarcodeGtin14);
+        Assert.Null(result.MismatchDetail);
+    }
+
+    [Fact]
+    public void Validate_TrueLinearGtinMismatchStillReturnsFail()
+    {
+        var result = new RfidValidator().Validate(
+            [new EpcReadResult
+            {
+                EpcBytes = Convert.FromHexString("30342A7CC844C7D0F36A0676"),
+            }],
+            new VerificationRecord
+            {
+                Symbology = "UPCA",
+                DecodedData = "036000291452",
+            },
+            scanWindowMs: 1000);
+
+        Assert.Equal(RfidValidationStatus.Fail, result.Status);
+        Assert.Contains("GTIN14:RFID=00696114704318,BC=00036000291452",
+            result.MismatchDetail);
     }
 }
