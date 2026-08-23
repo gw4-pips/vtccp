@@ -3092,3 +3092,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Confirmed the required protocol: commit, push, confirm.
 
 **Assistant:** Recorded “Commit, Push, Confirm” as a project rule. Going forward, completed code changes will be committed, pushed to the primary GitHub `origin/main`, verified by remote SHA, and explicitly confirmed without waiting for a reminder. The current report change already follows that protocol.
+
+**User:** Supplied a real TC-829 UPC-A Webscan HTML export and sibling barcode image after the application reported no VeriWedge report.
+
+**Assistant:** Determined that the native linear Webscan export was complete but rejected by a 2D-only completeness gate. Updated the parser to accept the linear `ANSI/ISO` grade structure, five-cell linear quality rows, `UPCA` classification, native linear Data Format Check, and the export's sibling-image naming pattern. Added the real UPC-A capture as regression coverage and bumped the app to version 1.5.81. Focused Webscan tests passed 9/9; the full suite ran 196/197, with one unrelated existing PDF CSS baseline assertion failing on `height: 11in`.
