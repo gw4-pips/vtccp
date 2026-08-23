@@ -27,6 +27,39 @@ public static partial class WebscanHtmlParser
         => ParseInternal(rawHtml, sourcePath, 1);
 
     /// <summary>
+    /// Counts readable sibling images for the first report ordinals. This is a
+    /// readiness hint only; the HTML parser remains authoritative about which
+    /// image belongs to each native report.
+    /// </summary>
+    public static int CountAvailableSiblingImages(string sourcePath, int maxOrdinal)
+    {
+        if (string.IsNullOrWhiteSpace(sourcePath) || maxOrdinal < 1)
+            return 0;
+
+        int available = 0;
+        for (int ordinal = 1; ordinal <= maxOrdinal; ordinal++)
+        {
+            bool found = false;
+            foreach (string candidate in SiblingImageCandidates(sourcePath, ordinal))
+            {
+                string directory =
+                    Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? string.Empty;
+                if (TryResolveReportLocalImagePath(directory, candidate, out string localPath) &&
+                    TryReadImage(localPath, out _, out _))
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found)
+                available++;
+        }
+
+        return available;
+    }
+
+    /// <summary>
     /// Parses a Webscan export containing two or more independent symbol reports.
     /// The native reports remain separate and retain their ordinal/image
     /// provenance. Exactly one linear plus one supported 2D report is projected

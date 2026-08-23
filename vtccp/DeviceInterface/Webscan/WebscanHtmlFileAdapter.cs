@@ -1,6 +1,7 @@
 namespace DeviceInterface.Webscan;
 
 using ExcelEngine.Models;
+using System.Text.RegularExpressions;
 
 /// <summary>
 /// File-export adapter for Webscan TruCheck.
@@ -11,6 +12,10 @@ using ExcelEngine.Models;
 /// </summary>
 public sealed class WebscanHtmlFileAdapter : IDisposable
 {
+    private const int SidecarWaitAttempts = 20;
+    private const int SidecarWaitMilliseconds = 100;
+    private const int SidecarHintedWaitMilliseconds = 25;
+
     public const string ConfiguredReportDirectory =
         @"C:\dev\vtccp\TC-829 VeriWedge Dev Reports";
 
@@ -19,6 +24,8 @@ public sealed class WebscanHtmlFileAdapter : IDisposable
     private readonly HashSet<string> _processing =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, FileFingerprint> _imported =
+        new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, HashSet<string>> _sidecarHints =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<Task> _inFlight = [];
     private FileSystemWatcher? _watcher;
@@ -48,7 +55,7 @@ public sealed class WebscanHtmlFileAdapter : IDisposable
             _accepting = true;
         }
 
-        _watcher = new FileSystemWatcher(_watchDirectory, "*.html")
+        _watcher = new FileSystemWatcher(_watchDirectory, "*.*")
         {
             NotifyFilter = NotifyFilters.FileName |
                            NotifyFilters.LastWrite |
@@ -114,6 +121,7 @@ public sealed class WebscanHtmlFileAdapter : IDisposable
 
         string fullPath = Path.GetFullPath(sourcePath);
         string rawHtml = await ReadStableTextAsync(fullPath, cancellationToken);
+        await WaitForExpectedSidecarImagesAsync(fullPath, rawHtml, cancellationToken);
         VerificationRecord record;
         if (rawHtml.Contains("Symbol 2 Verification Report",
                 StringComparison.OrdinalIgnoreCase))
@@ -145,6 +153,27 @@ public sealed class WebscanHtmlFileAdapter : IDisposable
     private void OnFileChanged(object sender, FileSystemEventArgs args)
     {
         string fullPath = Path.GetFullPath(args.FullPath);
+        if (IsSidecarImage(fullPath))
+        {
+            lock (_lock)
+            {
+                if (!_sidecarHints.TryGetValue(
+                        Path.GetDirectoryName(fullPath) ?? string.Empty,
+                        out HashSet<string>? paths))
+                {
+                    paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    _sidecarHints[Path.GetDirectoryName(fullPath) ?? string.Empty] = paths;
+                }
+
+                paths.Add(fullPath);
+            }
+
+            return;
+        }
+
+        if (!fullPath.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+            return;
+
         FileFingerprint? fingerprint = TryGetFingerprint(fullPath);
         Task? task;
         lock (_lock)
@@ -169,6 +198,58 @@ public sealed class WebscanHtmlFileAdapter : IDisposable
             }, TaskScheduler.Default);
         }
     }
+
+    private async Task WaitForExpectedSidecarImagesAsync(
+        string sourcePath,
+        string rawHtml,
+        CancellationToken cancellationToken)
+    {
+        int expectedImages = Regex.Matches(
+                rawHtml,
+                @"Symbol\s+\d+\s+Verification\s+Report",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+            .Count;
+        if (expectedImages < 2)
+            return;
+
+        for (int attempt = 0; attempt < SidecarWaitAttempts; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            int availableImages = WebscanHtmlParser.CountAvailableSiblingImages(
+                sourcePath,
+                expectedImages);
+            int hintedImages = CountSidecarHints(sourcePath);
+            if (availableImages >= expectedImages)
+                return;
+
+            if (attempt + 1 < SidecarWaitAttempts)
+            {
+                int delay = hintedImages > 0
+                    ? SidecarHintedWaitMilliseconds
+                    : SidecarWaitMilliseconds;
+                await Task.Delay(delay, cancellationToken);
+            }
+        }
+    }
+
+    private int CountSidecarHints(string sourcePath)
+    {
+        string directory = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? string.Empty;
+        lock (_lock)
+        {
+            return _sidecarHints.TryGetValue(directory, out HashSet<string>? paths)
+                ? paths.Count(path => File.Exists(path))
+                : 0;
+        }
+    }
+
+    private static bool IsSidecarImage(string path)
+        => path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+           path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+           path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+           path.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
+           path.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase) ||
+           path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase);
 
     private async Task ProcessFileAsync(string sourcePath, CancellationToken cancellationToken)
     {

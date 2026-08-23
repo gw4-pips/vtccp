@@ -3158,6 +3158,10 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **Assistant:** Explained that the Windows app watches the configured Webscan folder for HTML creation/change events, reads the stable HTML, resolves its referenced/derived sibling images, and ignores Webscan PDFs, VW PDFs, and XLSX files. Explained that PDF processing would add timing, file-lock, matching, parser/dependency, memory, and result-latency complexity while mainly providing independent audit/layout confirmation rather than authoritative structured data.
 
+**User:** Requested bounded JPG readiness handling so sidecars that arrive before or after the HTML can be counted as a hint and waited for, while keeping the HTML authoritative. The user agreed that Webscan PDF processing should remain optional and outside normal verification.
+
+**Assistant:** Added JPG sidecar observation and bounded multi-symbol readiness polling. JPGs never create verification records; observed sidecars tighten polling, all expected readable images are required before import, and missing images still time out without blocking indefinitely. Added ordering/delay/count tests, bumped the app version to 1.5.88, and verified the Windows-targeted build plus focused tests.
+
 **User:** Asked to confirm three-symbol qualification against a real Webscan export by adding a captured fixture with sibling images and extending the Webscan parser tests without changing qualification policy.
 
 **Assistant:** Added a three-symbol Webscan HTML fixture with three sibling JPEGs, expanded parser coverage for native fields, image association, quality tables, Data Format Check results, and qualified/rejected identity reasons, and fixed the existing decoded-data property typo that blocked compilation. The focused three-symbol test passed; the broader Webscan suite retains two pre-existing failures.

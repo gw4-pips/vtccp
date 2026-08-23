@@ -371,6 +371,137 @@ public sealed class WebscanHtmlParserTests
     }
 
     [Fact]
+    public void SiblingImageCount_IsZeroBeforeImagesAndCompleteAfterImagesArrive()
+    {
+        string sourcePath = GetThreeSymbolReportPath();
+        string tempDirectory = Path.Combine(
+            Path.GetTempPath(),
+            "vtccp-webscan-" + Guid.NewGuid());
+        Directory.CreateDirectory(tempDirectory);
+        string copyPath = Path.Combine(tempDirectory, Path.GetFileName(sourcePath));
+
+        try
+        {
+            File.Copy(sourcePath, copyPath);
+            Assert.Equal(
+                0,
+                WebscanHtmlParser.CountAvailableSiblingImages(copyPath, maxOrdinal: 3));
+
+            WebscanHtmlMultiSymbolReport sourceReport =
+                WebscanHtmlParser.ParseMultiSymbol(
+                    File.ReadAllText(sourcePath),
+                    sourcePath);
+            foreach (WebscanHtmlReport report in sourceReport.SymbolReports)
+            {
+                string imagePath = report.SourceImagePath
+                    ?? throw new InvalidOperationException("Fixture image path is missing.");
+                File.Copy(
+                    imagePath,
+                    Path.Combine(tempDirectory, Path.GetFileName(imagePath)));
+            }
+
+            Assert.Equal(
+                3,
+                WebscanHtmlParser.CountAvailableSiblingImages(copyPath, maxOrdinal: 3));
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task FileAdapter_WaitsForDelayedMultiSymbolSidecars()
+    {
+        string sourcePath = GetThreeSymbolReportPath();
+        string rawHtml = File.ReadAllText(sourcePath);
+        WebscanHtmlMultiSymbolReport sourceReport =
+            WebscanHtmlParser.ParseMultiSymbol(rawHtml, sourcePath);
+        string tempDirectory = Path.Combine(
+            Path.GetTempPath(),
+            "vtccp-webscan-" + Guid.NewGuid());
+        Directory.CreateDirectory(tempDirectory);
+        string copyPath = Path.Combine(tempDirectory, Path.GetFileName(sourcePath));
+
+        try
+        {
+            File.WriteAllText(copyPath, rawHtml);
+            using var adapter = new WebscanHtmlFileAdapter(tempDirectory);
+            Task<VerificationRecord> importTask = adapter.ImportFileAsync(copyPath);
+
+            await Task.Delay(150);
+            foreach (WebscanHtmlReport report in sourceReport.SymbolReports)
+            {
+                string imagePath = report.SourceImagePath
+                    ?? throw new InvalidOperationException("Fixture image path is missing.");
+                File.Copy(
+                    imagePath,
+                    Path.Combine(tempDirectory, Path.GetFileName(imagePath)));
+            }
+
+            VerificationRecord imported = await importTask;
+            Assert.Equal(3, imported.MultiSymbolReports.Count);
+            Assert.All(
+                imported.MultiSymbolReports,
+                report => Assert.Equal("SiblingExport", report.SourceImageProvenance));
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task FileAdapter_JpgsBeforeHtml_EmitsOneRecordAfterHtmlArrives()
+    {
+        string sourcePath = GetThreeSymbolReportPath();
+        string rawHtml = File.ReadAllText(sourcePath);
+        WebscanHtmlMultiSymbolReport sourceReport =
+            WebscanHtmlParser.ParseMultiSymbol(rawHtml, sourcePath);
+        string tempDirectory = Path.Combine(
+            Path.GetTempPath(),
+            "vtccp-webscan-" + Guid.NewGuid());
+        Directory.CreateDirectory(tempDirectory);
+        string copyPath = Path.Combine(tempDirectory, Path.GetFileName(sourcePath));
+
+        try
+        {
+            using var adapter = new WebscanHtmlFileAdapter(tempDirectory);
+            var records = new List<VerificationRecord>();
+            var recordParsed = new TaskCompletionSource<VerificationRecord>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            adapter.RecordParsed += (_, record) =>
+            {
+                records.Add(record);
+                recordParsed.TrySetResult(record);
+            };
+            adapter.Start();
+
+            foreach (WebscanHtmlReport report in sourceReport.SymbolReports)
+            {
+                string imagePath = report.SourceImagePath
+                    ?? throw new InvalidOperationException("Fixture image path is missing.");
+                File.Copy(
+                    imagePath,
+                    Path.Combine(tempDirectory, Path.GetFileName(imagePath)));
+            }
+
+            await Task.Delay(100);
+            File.WriteAllText(copyPath, rawHtml);
+
+            VerificationRecord imported = await recordParsed.Task.WaitAsync(
+                TimeSpan.FromSeconds(5));
+            Assert.Single(records);
+            Assert.Same(imported, records[0]);
+            Assert.Equal(3, imported.MultiSymbolReports.Count);
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
     public void NativeDfcAndSiblingImage_AreMappedAndRenderedWithoutMutatingEvidence()
     {
         string fixturePath = GetControlledReportPath();
