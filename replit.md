@@ -4,6 +4,20 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
+## Canonical VTCCP delivery
+
+For VTCCP changes, “done” means **Build → Push → Confirm**, in that order:
+
+```bash
+bash scripts/build-push-confirm.sh
+```
+
+The command builds the Windows-targeted application, refuses to deliver an
+uncommitted tree, pushes the exact local `HEAD`, fetches `origin/main`, and
+fails unless GitHub resolves to the same commit. It also prints the application
+version confirmed on GitHub. Do not report a VTCCP build as delivered until this
+command completes successfully.
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces
