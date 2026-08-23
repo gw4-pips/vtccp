@@ -3162,6 +3162,10 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **Assistant:** Added JPG sidecar observation and bounded multi-symbol readiness polling. JPGs never create verification records; observed sidecars tighten polling, all expected readable images are required before import, and missing images still time out without blocking indefinitely. Added ordering/delay/count tests, bumped the app version to 1.5.88, and verified the Windows-targeted build plus focused tests.
 
+**User:** Supplied a second three-symbol test after the higher-power RFID read and identified issues with the top qualification badge, incomplete grade rows, column geometry, RFID row coloring/semantics, and the merged two-image/one-DFC parser section.
+
+**Assistant:** Inspected the rendered one-page PDF and source logic. Confirmed the top rejection comes from treating every distinct native GTIN as a hard multi-symbol conflict; the three summary rows are present, but the grades builder still renders only the linear plus primary 2D rows; the RFID table colors every row from the composite failure; and the barcode detail builder still renders only primary 2D plus linear image/DFC content. Awaiting confirmation of the qualified RFID policy before changing these report behaviors.
+
 **User:** Asked to confirm three-symbol qualification against a real Webscan export by adding a captured fixture with sibling images and extending the Webscan parser tests without changing qualification policy.
 
 **Assistant:** Added a three-symbol Webscan HTML fixture with three sibling JPEGs, expanded parser coverage for native fields, image association, quality tables, Data Format Check results, and qualified/rejected identity reasons, and fixed the existing decoded-data property typo that blocked compilation. The focused three-symbol test passed; the broader Webscan suite retains two pre-existing failures.
