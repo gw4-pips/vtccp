@@ -26,3 +26,18 @@ RFID failure.
 
 **How to apply:** Normalize only the explicitly supported linear forms for
 comparison; never replace the native verifier values shown in the report.
+
+The archived GS1 Barcode Engine contains the authoritative zero-compression
+inverse cases for UPC-E expansion in `src/c-lib/ean.c`: a sixth compressed digit
+of 0–2 expands as `Nabf0000cdeC`, 3 as `Nabc00000deC`, 4 as
+`Nabcd00000eC`, and 5–9 as `Nabcde0000fC`, where `N` is the number system and
+`C` is the unchanged check digit. Its implementation is explicitly written
+for number-system 0, so number-system 1 still needs standards/native-capture
+verification before production use.
+
+**Why:** UPC-E is zero-suppression, not a simple left-padding operation; the
+expansion branch depends on the sixth compressed digit.
+
+**How to apply:** Accept the 8-digit HRI as `NabcdefC`, expand to UPC-A,
+validate that the expanded UPC-A check digit equals `C`, then normalize UPC-A
+to GTIN-14 for RFID comparison. EAN-8 to EAN-13 is five leading zeroes.
