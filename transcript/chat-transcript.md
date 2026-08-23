@@ -3189,3 +3189,5 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Reviewed the v1.5.63/app v1.5.91 PDF and reported that the first DM still lacks the dual parser block, the qualification explanation should not be in the verification summary, and page numbering renders as 0 of 0.
 
 **Assistant:** Confirmed from the rendered PDF that the first DM keeps only native DFC, the second DM receives the dual parser, and UPC receives native DFC. The shell/pagination change did not correct parser-to-symbol assignment; Chromium PDF CSS counters also render as 0 of 0 because the print renderer does not provide page totals through counter(page)/counter(pages).
+
+**Assistant:** Explained that v1.5.63 changed only the DFC shell/pagination and did not change the parser assignment predicate, which still follows record-level HTML identity and therefore selects the second Data Matrix. Confirmed the qualification explanation is independently injected into the summary and should be removed from that location, and that Edge/WebView2 PrintToPdf CSS counters do not provide page totals, producing 0 of 0.
