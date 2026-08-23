@@ -75,30 +75,70 @@ public static partial class WebscanHtmlParser
         try
         {
             MatchCollection headers = SymbolReportHeaderRegex().Matches(rawHtml);
-            if (headers.Count < 2)
+            if (headers.Count >= 2)
+            {
+                int firstStart = headers[0].Index;
+                string sharedHeader = rawHtml[..firstStart];
+                var reports = new List<WebscanHtmlReport>(headers.Count);
+                for (int index = 0; index < headers.Count; index++)
+                {
+                    int start = headers[index].Index;
+                    int length = index + 1 < headers.Count
+                        ? headers[index + 1].Index - start
+                        : rawHtml.Length - start;
+                    string segment = rawHtml.Substring(start, length);
+                    // The shared Webscan header contains the timestamp, software
+                    // version, and serial number; prepend it so the normal
+                    // single-report parser remains the canonical field mapper.
+                    reports.Add(ParseInternal(
+                        sharedHeader + segment,
+                        sourcePath,
+                        index + 1));
+                }
+
+                return BuildCompositeReport(rawHtml, sourcePath, reports);
+            }
+
+            MatchCollection documents = HtmlDocumentStartRegex().Matches(rawHtml);
+            if (documents.Count < 2)
                 return WebscanHtmlCompositeReport.Failure(
                     rawHtml,
                     sourcePath,
                     "Webscan multi-symbol report must contain at least two symbol reports.");
 
-            int firstStart = headers[0].Index;
-            string sharedHeader = rawHtml[..firstStart];
-            var reports = new List<WebscanHtmlReport>(headers.Count);
-            for (int index = 0; index < headers.Count; index++)
+            // Older Webscan imports concatenate complete standalone HTML
+            // exports instead of adding Symbol N headings. Split only at
+            // document boundaries so each native report retains its own
+            // summary, quality rows, and source-order ordinal.
+            var concatenatedReports = new List<WebscanHtmlReport>(documents.Count);
+            for (int index = 0; index < documents.Count; index++)
             {
-                int start = headers[index].Index;
-                int length = index + 1 < headers.Count
-                    ? headers[index + 1].Index - start
+                int start = documents[index].Index;
+                int length = index + 1 < documents.Count
+                    ? documents[index + 1].Index - start
                     : rawHtml.Length - start;
                 string segment = rawHtml.Substring(start, length);
-                // The shared Webscan header contains the timestamp, software
-                // version, and serial number; prepend it so the normal
-                // single-report parser remains the canonical field mapper.
-                reports.Add(ParseInternal(
-                    sharedHeader + segment,
-                    sourcePath,
-                    index + 1));
+                concatenatedReports.Add(ParseInternal(segment, sourcePath, index + 1));
             }
+
+            return BuildCompositeReport(rawHtml, sourcePath, concatenatedReports);
+        }
+        catch (Exception ex)
+        {
+            return WebscanHtmlCompositeReport.Failure(rawHtml, sourcePath, ex.Message);
+        }
+    }
+
+    private static WebscanHtmlCompositeReport BuildCompositeReport(
+        string rawHtml,
+        string sourcePath,
+        IReadOnlyList<WebscanHtmlReport> reports)
+    {
+        if (reports.Count < 2)
+            return WebscanHtmlCompositeReport.Failure(
+                rawHtml,
+                sourcePath,
+                "Webscan multi-symbol report must contain at least two symbol reports.");
 
             if (reports.Any(r => !r.ParseSucceeded))
             {
@@ -115,6 +155,12 @@ public static partial class WebscanHtmlParser
                 r => r.Symbology is not null &&
                      MapSymbologyFamily(r.Symbology) is
                          SymbologyFamily.DataMatrix or SymbologyFamily.QRCode).ToArray();
+        if (linearReports.Length == 0 || twoDReports.Length == 0)
+            return WebscanHtmlCompositeReport.Failure(
+                rawHtml,
+                sourcePath,
+                "Webscan multi-symbol report must contain at least one supported linear symbol and one supported 2D symbol.");
+
             return new WebscanHtmlCompositeReport
             {
                 SourceFilePath = sourcePath,
@@ -124,11 +170,6 @@ public static partial class WebscanHtmlParser
                 LinearReport = linearReports[0],
                 TwoDReport = twoDReports[0],
             };
-        }
-        catch (Exception ex)
-        {
-            return WebscanHtmlCompositeReport.Failure(rawHtml, sourcePath, ex.Message);
-        }
     }
 
     /// <summary>
@@ -814,6 +855,10 @@ public static partial class WebscanHtmlParser
     [GeneratedRegex(@"<h1\b[^>]*>\s*Symbol\s+(?<number>\d+)\s+Verification\s+Report\s*</h1\s*>",
         RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex SymbolReportHeaderRegex();
+
+    [GeneratedRegex(@"<html\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex HtmlDocumentStartRegex();
 
     [GeneratedRegex(@"(?<letter>[A-F])\s*\((?<numeric>\d+(?:\.\d+)?)\)",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]

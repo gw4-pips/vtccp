@@ -3177,3 +3177,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked to confirm three-symbol qualification against a real Webscan export by adding a captured fixture with sibling images and extending the Webscan parser tests without changing qualification policy.
 
 **Assistant:** Added a three-symbol Webscan HTML fixture with three sibling JPEGs, expanded parser coverage for native fields, image association, quality tables, Data Format Check results, and qualified/rejected identity reasons, and fixed the existing decoded-data property typo that blocked compilation. The focused three-symbol test passed; the broader Webscan suite retains two pre-existing failures.
+
+**User:** Assigned Task 220 to restore concatenated Webscan imports without weakening multi-symbol identity matching.
+
+**Assistant:** Restored parsing for older imports made from concatenated standalone HTML documents, preserved the existing Symbol N multi-report path and identity-based 2D selection, added regression coverage for the two-report shape, and bumped the application version to 1.5.90. Validation remains blocked by the repository's existing missing NPOI/EPPlus build references.

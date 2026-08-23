@@ -110,6 +110,7 @@ public sealed class WebscanHtmlParserTests
         WebscanHtmlMultiSymbolReport composite = WebscanHtmlParser.ParseMultiSymbol(raw, twoDPath);
 
         Assert.True(composite.ParseSucceeded, composite.ParseError);
+        Assert.Equal(2, composite.SymbolReports.Count);
         Assert.Equal(SymbologyFamily.Linear1D,
             WebscanHtmlParser.MapSymbologyFamily(composite.LinearReport!.Symbology!));
         Assert.Equal(SymbologyFamily.QRCode,
