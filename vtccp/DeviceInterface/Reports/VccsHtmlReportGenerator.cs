@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.59";
+    public const string ReportVersion = "v1.5.60";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -175,8 +175,14 @@ public static class VccsHtmlReportGenerator
             return UnavailableSymbolRow(r);
 
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
+        bool compositeMode = !string.IsNullOrWhiteSpace(r.CompositeOverallStatus);
         int renderedGroups = 0;
         var sb = new StringBuilder();
+        if (compositeMode && renderedGroups < MaxRenderedSymbolGroups)
+        {
+            AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData);
+            renderedGroups++;
+        }
         if (multiMode && renderedGroups < MaxRenderedSymbolGroups)
         {
             AppendSymbolRow(sb, r.LinearSymbology!, r.LinearDecodedData);

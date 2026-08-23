@@ -1463,6 +1463,35 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_CompositeRendersTwoDBeforeLinear()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            LinearSymbology = "UPCA",
+            LinearDecodedData = "696114704288",
+            HtmlSymbology = "GS1 DataMatrix",
+            HtmlDecodedData = "]d20106961147042882",
+            CompositeOverallStatus = "Pass",
+            HtmlSourceFileName = "composite.html",
+            HtmlVerifiedString = "Sun 23-Aug-2026 06:27:00 AM",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        int twoDIndex = report.IndexOf(
+            "<td style=\"font-size:8pt;\">GS1 DataMatrix</td>",
+            StringComparison.Ordinal);
+        int linearIndex = report.IndexOf(
+            "<td style=\"font-size:8pt;\">UPCA</td>",
+            StringComparison.Ordinal);
+
+        Assert.True(twoDIndex >= 0);
+        Assert.True(linearIndex > twoDIndex);
+    }
+
+    [Fact]
     public void ExcelMappers_WriteExactLocalHtmlBasenameOnlyForCorrelatedReports()
     {
         const string fileName = "_F1_01006961147042882172803282009_2026-08-18_20-04-21-314.html";
