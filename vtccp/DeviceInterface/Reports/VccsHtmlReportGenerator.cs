@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.60";
+    public const string ReportVersion = "v1.5.61";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -65,20 +65,32 @@ public static class VccsHtmlReportGenerator
             : H(r.CompanyName ?? "Company Logo");
 
         // ── badge ─────────────────────────────────────────────────────────
-        string? overallStatus = r.CompositeOverallStatus ?? r.RfidStatus;
-        (string badgeCls, string badgeTxt) = r.CompositeOverallStatus switch
+        string? overallStatus = r.MultiSymbolQualificationStatus switch
         {
-            "Pass" => ("badge-pass", "&#x2713; COMPOSITE VERIFIED"),
-            "Fail" => ("badge-fail", "&#x2717; COMPOSITE FAILED"),
-            _ => overallStatus switch
+            nameof(MultiSymbolQualificationStatus.Qualified) or
+            nameof(MultiSymbolQualificationStatus.Verified) => "Pass",
+            nameof(MultiSymbolQualificationStatus.Rejected) => "Fail",
+            _ => r.CompositeOverallStatus ?? r.RfidStatus,
+        };
+        (string badgeCls, string badgeTxt) = r.MultiSymbolQualificationStatus switch
+        {
+            nameof(MultiSymbolQualificationStatus.Qualified) or
+            nameof(MultiSymbolQualificationStatus.Verified) => ("badge-pass", "&#x2713; MULTI-SYMBOL QUALIFIED"),
+            nameof(MultiSymbolQualificationStatus.Rejected) => ("badge-fail", "&#x2717; MULTI-SYMBOL REJECTED"),
+            _ => r.CompositeOverallStatus switch
             {
-                "Pass"                 => ("badge-pass", "&#x2713; RFID MATCHED"),
-                "Fail"                 => ("badge-fail", "&#x2717; RFID MISMATCH"),
-                "NoTag"                => ("badge-warn", "&#x26a0; NO RFID TAG DETECTED"),
-                "MultipleTagsDetected" => ("badge-warn", "&#x26a0; MULTIPLE TAGS"),
-                "Skipped"              => ("badge-warn", "&#x2014; RFID SKIPPED"),
-                null or ""             => ("badge-warn", "&#x2014; NO RFID DATA"),
-                var s                  => ("badge-warn", H(s.ToUpperInvariant())),
+                "Pass" => ("badge-pass", "&#x2713; DUAL-SYMBOLOGY VERIFIED"),
+                "Fail" => ("badge-fail", "&#x2717; DUAL-SYMBOLOGY FAILED"),
+                _ => overallStatus switch
+                {
+                    "Pass"                 => ("badge-pass", "&#x2713; RFID MATCHED"),
+                    "Fail"                 => ("badge-fail", "&#x2717; RFID MISMATCH"),
+                    "NoTag"                => ("badge-warn", "&#x26a0; NO RFID TAG DETECTED"),
+                    "MultipleTagsDetected" => ("badge-warn", "&#x26a0; MULTIPLE TAGS"),
+                    "Skipped"              => ("badge-warn", "&#x2014; RFID SKIPPED"),
+                    null or ""             => ("badge-warn", "&#x2014; NO RFID DATA"),
+                    var s                  => ("badge-warn", H(s.ToUpperInvariant())),
+                },
             },
         };
 
@@ -175,11 +187,19 @@ public static class VccsHtmlReportGenerator
             return UnavailableSymbolRow(r);
 
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
-        bool compositeMode = r.IsWebscanComposite;
+        bool multiSymbolMode = r.IsDualSymbologyReport || r.MultiSymbolReports.Count > 0;
         int renderedGroups = 0;
         var sb = new StringBuilder();
-        if (compositeMode && renderedGroups < MaxRenderedSymbolGroups)
+        if (multiSymbolMode && r.MultiSymbolReports.Count > 0)
         {
+            foreach (NativeWebscanReportSummary symbol in r.MultiSymbolReports.OrderBy(s => s.Ordinal))
+                AppendSymbolRow(sb, symbol.Symbology ?? "\u2014", symbol.DecodedData);
+            renderedGroups = r.MultiSymbolReports.Count;
+        }
+        else if (r.IsDualSymbologyReport)
+        {
+            // Compatibility projection for records created before the native
+            // report collection was added: dual-symbology remains 2D first.
             AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData);
             renderedGroups++;
         }
@@ -191,6 +211,17 @@ public static class VccsHtmlReportGenerator
         if (renderedGroups < MaxRenderedSymbolGroups)
         {
             AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData);
+        }
+        if (r.MultiSymbolReports.Count > 2)
+        {
+            string status = r.MultiSymbolQualificationStatus ?? "Unverified";
+            string reasons = r.MultiSymbolQualificationReasons.Count == 0
+                ? "RFID identity comparison pending"
+                : string.Join("; ", r.MultiSymbolQualificationReasons);
+            sb.Append($"          <tr data-vccs-multi-symbol-qualification=\"true\">\n");
+            sb.Append($"            <td style=\"font-size:8pt;\">Multi-Symbol Qualification</td>\n");
+            sb.Append($"            <td colspan=\"2\">{H(status)} — {H(reasons)}</td>\n");
+            sb.Append($"          </tr>\n");
         }
         return sb.ToString();
     }

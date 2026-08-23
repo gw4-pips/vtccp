@@ -223,7 +223,7 @@ public sealed class WebscanHtmlReport
                 : match is false
                     ? $"GTIN-14 mismatch: linear {linearGtin ?? "unavailable"}, 2D {twoDGtin ?? "unavailable"}"
                     : "GTIN-14 comparison unavailable",
-            DataSourceExceptions = primary.DataSourceExceptions + "; Webscan composite: linear + 2D native reports",
+            DataSourceExceptions = primary.DataSourceExceptions + "; Webscan dual-symbology: linear + 2D native reports",
         };
     }
 
@@ -271,69 +271,150 @@ public sealed class WebscanHtmlReport
 }
 
 /// <summary>
-/// One Webscan HTML export containing the two reports that belong to one
-/// multi-symbol verification event.
+/// One Webscan HTML export containing the native reports belonging to one
+/// multi-symbol verification event. A two-symbol linear-plus-2D instance is
+/// specifically a dual-symbology report; it is not a GS1 Composite Component.
 /// </summary>
-public sealed class WebscanHtmlCompositeReport
+public class WebscanHtmlCompositeReport
 {
     public string SourceFilePath { get; init; } = string.Empty;
     public string RawHtml { get; init; } = string.Empty;
     public bool ParseSucceeded { get; init; }
     public string? ParseError { get; init; }
+    /// <summary>Every structurally valid native report, in source order.</summary>
+    public IReadOnlyList<WebscanHtmlReport> SymbolReports { get; init; } = [];
     public WebscanHtmlReport? LinearReport { get; init; }
     public WebscanHtmlReport? TwoDReport { get; init; }
 
-    public VerificationRecord ToVerificationRecord()
+    public MultiSymbolQualification Qualify(string? rfidGtin14)
     {
-        if (!ParseSucceeded || LinearReport is null || TwoDReport is null)
-            throw new InvalidOperationException(
-                ParseError ?? "Webscan composite report did not parse.");
+        var evidence = SymbolReports.Select((report, index) =>
+            new MultiSymbolIdentityEvidence
+            {
+                Ordinal = index + 1,
+                Symbology = report.Symbology,
+                Family = WebscanHtmlParser.MapSymbologyFamily(report.Symbology ?? string.Empty).ToString(),
+                Gtin14 = ExtractIdentityGtin(report),
+            }).ToArray();
+        var reasons = new List<string>();
+        var unsupported = evidence.Where(e => e.Family == SymbologyFamily.Unknown.ToString()).ToArray();
+        var missing = evidence.Where(e => e.Gtin14 is null).ToArray();
+        var gtins = evidence.Where(e => e.Gtin14 is not null).Select(e => e.Gtin14!).Distinct().ToArray();
+        bool duplicateFamily = evidence.GroupBy(e => e.Family)
+            .Any(g => g.Key != SymbologyFamily.Linear1D.ToString() &&
+                      g.Key != SymbologyFamily.Unknown.ToString() && g.Count() > 1);
 
-        VerificationRecord twoD = TwoDReport.ToVerificationRecord();
-        VerificationRecord linear = LinearReport.ToVerificationRecord();
+        if (unsupported.Length > 0)
+            reasons.Add($"unsupported symbols: {string.Join(", ", unsupported.Select(e => $"#{e.Ordinal} {e.Symbology}"))}");
+        if (missing.Length > 0)
+            reasons.Add($"missing GTIN-14 (AI (01) or linear identity): {string.Join(", ", missing.Select(e => $"symbol #{e.Ordinal}"))}");
+        if (gtins.Length > 1)
+            reasons.Add($"GTIN mismatch: {string.Join(", ", gtins)}");
+        if (duplicateFamily)
+            reasons.Add("same-family conflict: more than one recognized 2D symbol family member");
+        if (rfidGtin14 is null)
+            reasons.Add("RFID GTIN unavailable");
+        else if (gtins.Length == 1 && rfidGtin14 != gtins[0])
+            reasons.Add($"RFID GTIN mismatch: RFID {rfidGtin14}, symbols {gtins[0]}");
 
-        return twoD with
+        MultiSymbolQualificationStatus status =
+            unsupported.Length > 0 || gtins.Length > 1 ||
+            (rfidGtin14 is not null && gtins.Length == 1 && rfidGtin14 != gtins[0])
+                ? MultiSymbolQualificationStatus.Rejected
+                : missing.Length > 0 || duplicateFamily || rfidGtin14 is null
+                    ? MultiSymbolQualificationStatus.Unverified
+                    : MultiSymbolQualificationStatus.Qualified;
+        if (reasons.Count == 0) reasons.Add("all recognized symbol identities agree with RFID EPC");
+        return new MultiSymbolQualification
         {
-            IsWebscanComposite = true,
-            LinearSymbology = linear.Symbology,
-            LinearDecodedData = linear.DecodedData,
-            LinearOverallGrade = linear.OverallGrade,
-            LinearFormalGrade = linear.FormalGrade,
-            LinearAperture = linear.Aperture,
-            LinearWavelength = linear.Wavelength,
-            LinearLighting = linear.Lighting,
-            LinearStandard = linear.Standard,
-            LinearJpegImageBase64 = linear.HtmlBarcodeImageBase64,
-            LinearDataFormatCheck = linear.HtmlDataFormatCheck,
-            LinearQualityParameters = linear.HtmlQualityParameters,
-            HtmlQualityParameters = twoD.HtmlQualityParameters,
-            LinearGtin14 = RfidValidator.NormalizeLinearGtin14(
-                linear.Symbology, linear.DecodedData),
-            LinearTwoDMatch = RfidValidator.NormalizeLinearGtin14(
-                                  linear.Symbology, linear.DecodedData) is { } linearGtin &&
-                              RfidValidator.ExtractAi01(twoD.DecodedData) is { } twoDGtin &&
-                              linearGtin == twoDGtin,
-            BarcodeSymbolAgreement =
-                RfidValidator.NormalizeLinearGtin14(linear.Symbology, linear.DecodedData) is { } lg &&
-                RfidValidator.ExtractAi01(twoD.DecodedData) is { } dg
-                    ? lg == dg ? "Pass" : "Fail"
-                    : "Incomplete",
-            BarcodeSymbolAgreementDetail =
-                $"2D GTIN-14: {RfidValidator.ExtractAi01(twoD.DecodedData) ?? "missing"}; " +
-                $"linear GTIN-14: {RfidValidator.NormalizeLinearGtin14(linear.Symbology, linear.DecodedData) ?? "missing"}",
-            HtmlLinearStandard = linear.HtmlStandard,
-            HtmlLinearGradeDisplay = linear.HtmlOverallGradeDisplay,
-            HtmlLinearAperture = linear.HtmlAperture,
-            HtmlLinearWavelength = linear.HtmlWavelength,
-            // The linear Webscan summary's sixth cell is Notes; the legacy
-            // multi-mode report slot is named HtmlLinearLighting.
-            HtmlLinearLighting = linear.HtmlNotes ?? linear.HtmlLighting,
-            HtmlLinearFormalGrade = linear.HtmlFormalGrade,
-            IsStandaloneLinear = false,
-            DataSourceExceptions =
-                $"{twoD.DataSourceExceptions}; Webscan composite: one linear + one 2D report",
+            Status = status,
+            Reasons = reasons,
+            Symbols = evidence,
+            MatchingSymbols = rfidGtin14 is null ? [] : evidence.Where(e => e.Gtin14 == rfidGtin14).Select(e => e.Ordinal).ToArray(),
+            MismatchingSymbols = rfidGtin14 is null ? [] : evidence.Where(e => e.Gtin14 is not null && e.Gtin14 != rfidGtin14).Select(e => e.Ordinal).ToArray(),
         };
     }
+
+    private static string? ExtractIdentityGtin(WebscanHtmlReport report)
+    {
+        if (WebscanHtmlParser.MapSymbologyFamily(report.Symbology ?? string.Empty) == SymbologyFamily.Linear1D)
+            return RfidValidator.NormalizeLinearGtin14(report.Symbology, report.Data);
+        return RfidValidator.ExtractAi01(report.Data);
+    }
+
+    public VerificationRecord ToVerificationRecord()
+    {
+        if (!ParseSucceeded || SymbolReports.Count < 2)
+            throw new InvalidOperationException(
+                ParseError ?? "Webscan multi-symbol report did not parse.");
+
+        WebscanHtmlReport primaryReport = TwoDReport ?? SymbolReports[0];
+        VerificationRecord primary = primaryReport.ToVerificationRecord();
+        VerificationRecord? linear = LinearReport?.ToVerificationRecord();
+        bool isDualSymbology = LinearReport is not null && TwoDReport is not null &&
+                               SymbolReports.Count == 2;
+
+        return primary with
+        {
+            IsWebscanComposite = isDualSymbology,
+            MultiSymbolReports = SymbolReports.Select((report, index) =>
+                ToNativeSummary(report, index + 1)).ToArray(),
+            MultiSymbolQualificationStatus = Qualify(null).Status.ToString(),
+            MultiSymbolQualificationReasons = Qualify(null).Reasons,
+            LinearSymbology = linear?.Symbology,
+            LinearDecodedData = linear?.DecodedData,
+            LinearOverallGrade = linear?.OverallGrade,
+            LinearFormalGrade = linear?.FormalGrade,
+            LinearAperture = linear?.Aperture,
+            LinearWavelength = linear?.Wavelength,
+            LinearLighting = linear?.Lighting,
+            LinearStandard = linear?.Standard,
+            LinearJpegImageBase64 = linear?.HtmlBarcodeImageBase64,
+            LinearDataFormatCheck = linear?.HtmlDataFormatCheck,
+            LinearQualityParameters = linear?.HtmlQualityParameters ?? [],
+            HtmlQualityParameters = primary.HtmlQualityParameters,
+            LinearGtin14 = linear is null ? null : RfidValidator.NormalizeLinearGtin14(
+                linear.Symbology, linear.DecodedData),
+            LinearTwoDMatch = linear is null || TwoDReport is null ? null :
+                RfidValidator.NormalizeLinearGtin14(linear.Symbology, linear.DecodedData) is { } linearGtin &&
+                RfidValidator.ExtractAi01(primary.DecodedData) is { } twoDGtin &&
+                linearGtin == twoDGtin,
+            BarcodeSymbolAgreementDetail =
+                $"2D GTIN-14: {RfidValidator.ExtractAi01(primary.Data) ?? "missing"}; " +
+                $"linear GTIN-14: {(linear is null ? "missing" : RfidValidator.NormalizeLinearGtin14(linear.Symbology, linear.DecodedData) ?? "missing")}",
+            HtmlLinearStandard = linear?.HtmlStandard,
+            HtmlLinearGradeDisplay = linear?.HtmlOverallGradeDisplay,
+            HtmlLinearAperture = linear?.HtmlAperture,
+            HtmlLinearWavelength = linear?.HtmlWavelength,
+            // The linear Webscan summary's sixth cell is Notes; the legacy
+            // multi-mode report slot is named HtmlLinearLighting.
+            HtmlLinearLighting = linear?.HtmlNotes ?? linear?.HtmlLighting,
+            HtmlLinearFormalGrade = linear?.HtmlFormalGrade,
+            IsStandaloneLinear = false,
+            DataSourceExceptions =
+                $"{primary.DataSourceExceptions}; Webscan multi-symbol: {SymbolReports.Count} independent native reports",
+        };
+    }
+
+    private static NativeWebscanReportSummary ToNativeSummary(
+        WebscanHtmlReport report,
+        int ordinal)
+        => new()
+        {
+            Ordinal = ordinal,
+            Symbology = report.Symbology,
+            SymbologyFamily = WebscanHtmlParser.MapSymbologyFamily(report.Symbology ?? string.Empty).ToString(),
+            DecodedData = report.Data,
+            Gtin14 = ExtractIdentityGtin(report),
+            SourceImagePath = report.SourceImagePath,
+            SourceImageProvenance = report.SourceImageProvenance.ToString(),
+            QualityParameters = report.QualityParameters.Select(p => new NativeQualityParameter
+            {
+                Number = p.Number, Name = p.Name, MeasuredValue = p.MeasuredValue,
+                GradeDisplay = p.GradeDisplay, SecondaryValue = p.SecondaryValue, Result = p.Result,
+            }).ToArray(),
+            DataFormatCheck = report.DataFormatCheck,
+        };
 
     internal static WebscanHtmlCompositeReport Failure(
         string rawHtml,
@@ -346,6 +427,34 @@ public sealed class WebscanHtmlCompositeReport
             ParseSucceeded = false,
             ParseError = error,
         };
+}
+
+/// <summary>
+/// Canonical name for a Webscan export containing independent native reports.
+/// The older WebscanHtmlCompositeReport type remains as a compatibility
+/// boundary for callers that persisted that type name.
+/// </summary>
+public sealed class WebscanHtmlMultiSymbolReport
+{
+    private readonly WebscanHtmlCompositeReport _inner;
+    private WebscanHtmlMultiSymbolReport(WebscanHtmlCompositeReport inner) => _inner = inner;
+
+    internal static WebscanHtmlMultiSymbolReport From(WebscanHtmlCompositeReport report)
+        => new(report);
+
+    public string SourceFilePath => _inner.SourceFilePath;
+    public string RawHtml => _inner.RawHtml;
+    public bool ParseSucceeded => _inner.ParseSucceeded;
+    public string? ParseError => _inner.ParseError;
+    public IReadOnlyList<WebscanHtmlReport> SymbolReports => _inner.SymbolReports;
+    public WebscanHtmlReport? LinearReport => _inner.LinearReport;
+    public WebscanHtmlReport? TwoDReport => _inner.TwoDReport;
+
+    public MultiSymbolQualification Qualify(string? rfidGtin14)
+        => _inner.Qualify(rfidGtin14);
+
+    public VerificationRecord ToVerificationRecord()
+        => _inner.ToVerificationRecord();
 }
 
 public enum WebscanImageProvenance

@@ -27,9 +27,10 @@ public static partial class WebscanHtmlParser
         => ParseInternal(rawHtml, sourcePath, 1);
 
     /// <summary>
-    /// Parses a Webscan export containing exactly one linear and one 2D symbol
-    /// report. The reports are kept separate until they are combined into the
-    /// existing multi-mode VerificationRecord shape.
+    /// Parses a Webscan export containing two or more independent symbol reports.
+    /// The native reports remain separate and retain their ordinal/image
+    /// provenance. Exactly one linear plus one supported 2D report is projected
+    /// into the legacy dual-symbology fields.
     /// </summary>
     public static WebscanHtmlCompositeReport ParseComposite(
         string rawHtml,
@@ -41,11 +42,11 @@ public static partial class WebscanHtmlParser
         try
         {
             MatchCollection headers = SymbolReportHeaderRegex().Matches(rawHtml);
-            if (headers.Count != 2)
+            if (headers.Count < 2)
                 return WebscanHtmlCompositeReport.Failure(
                     rawHtml,
                     sourcePath,
-                    "Webscan composite must contain exactly two symbol reports.");
+                    "Webscan multi-symbol report must contain at least two symbol reports.");
 
             int firstStart = headers[0].Index;
             string sharedHeader = rawHtml[..firstStart];
@@ -75,25 +76,20 @@ public static partial class WebscanHtmlParser
                 return WebscanHtmlCompositeReport.Failure(rawHtml, sourcePath, error);
             }
 
-            WebscanHtmlReport? linear = reports.SingleOrDefault(
-                r => MapSymbologyFamily(r.Symbology ?? string.Empty) == SymbologyFamily.Linear1D);
-            WebscanHtmlReport? twoD = reports.SingleOrDefault(
+            WebscanHtmlReport[] linearReports = reports.Where(
+                r => MapSymbologyFamily(r.Symbology ?? string.Empty) == SymbologyFamily.Linear1D).ToArray();
+            WebscanHtmlReport[] twoDReports = reports.Where(
                 r => r.Symbology is not null &&
                      MapSymbologyFamily(r.Symbology) is
-                         SymbologyFamily.DataMatrix or SymbologyFamily.QRCode);
-            if (linear is null || twoD is null)
-                return WebscanHtmlCompositeReport.Failure(
-                    rawHtml,
-                    sourcePath,
-                    "Webscan composite must contain exactly one supported linear symbol and one supported 2D symbol.");
-
+                         SymbologyFamily.DataMatrix or SymbologyFamily.QRCode).ToArray();
             return new WebscanHtmlCompositeReport
             {
                 SourceFilePath = sourcePath,
                 RawHtml = rawHtml,
                 ParseSucceeded = true,
-                LinearReport = linear,
-                TwoDReport = twoD,
+                SymbolReports = reports,
+                LinearReport = linearReports[0],
+                TwoDReport = twoDReports[0],
             };
         }
         catch (Exception ex)
@@ -101,6 +97,16 @@ public static partial class WebscanHtmlParser
             return WebscanHtmlCompositeReport.Failure(rawHtml, sourcePath, ex.Message);
         }
     }
+
+    /// <summary>
+    /// Canonical name for importing a Webscan multi-symbol export. The legacy
+    /// ParseComposite entry point remains for serialized callers and older
+    /// integrations; it does not imply a GS1 Composite Component.
+    /// </summary>
+    public static WebscanHtmlMultiSymbolReport ParseMultiSymbol(
+        string rawHtml,
+        string sourcePath)
+        => WebscanHtmlMultiSymbolReport.From(ParseComposite(rawHtml, sourcePath));
 
     private static WebscanHtmlReport ParseInternal(
         string rawHtml,

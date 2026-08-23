@@ -539,7 +539,7 @@ public sealed record class VerificationRecord
     public string? RfidMismatchDetail { get; init; }
 
     /// <summary>
-    /// For a composite linear-plus-2D scan, the normalized GTIN agreement
+    /// For a dual-symbology linear-plus-2D scan, the normalized GTIN agreement
     /// between the two native barcode reports: "Pass", "Fail", or "Incomplete".
     /// </summary>
     public string? BarcodeSymbolAgreement { get; init; }
@@ -547,23 +547,28 @@ public sealed record class VerificationRecord
     /// <summary>Detail for BarcodeSymbolAgreement, preserving missing/invalid GTIN evidence.</summary>
     public string? BarcodeSymbolAgreementDetail { get; init; }
 
-    /// <summary>Normalized linear GTIN-14 used for composite comparisons.</summary>
+    /// <summary>Normalized linear GTIN-14 used for dual-symbology comparisons.</summary>
     public string? LinearGtin14 { get; init; }
 
-    /// <summary>Whether the RFID GTIN matched the linear GTIN in a composite scan.</summary>
+    /// <summary>Whether the RFID GTIN matched the linear GTIN in a dual-symbology scan.</summary>
     public bool? RfidLinearGtin14Matches { get; init; }
 
     /// <summary>
-    /// Composite RFID scope: "Both", "2D only", "Linear only", or "Neither".
+    /// Dual-symbology RFID scope: "Both", "2D only", "Linear only", or "Neither".
     /// </summary>
     public string? RfidMatchScope { get; init; }
 
     /// <summary>
-    /// Hard composite outcome for one linear-plus-2D Webscan event. This is
+    /// Hard dual-symbology outcome for one linear-plus-2D Webscan event. This is
     /// separate from RfidStatus so NoTag/Skipped remains truthful while the
     /// composite can still fail its required checks.
     /// </summary>
     public string? CompositeOverallStatus { get; init; }
+
+    /// <summary>All native Webscan reports in a multi-symbol import; never truncated.</summary>
+    public IReadOnlyList<NativeWebscanReportSummary> MultiSymbolReports { get; init; } = [];
+    public string? MultiSymbolQualificationStatus { get; init; }
+    public IReadOnlyList<string> MultiSymbolQualificationReasons { get; init; } = [];
 
     /// <summary>Duration of the RFID scan window in milliseconds.</summary>
     public int? RfidScanWindowMs { get; init; }
@@ -788,14 +793,16 @@ public sealed record class VerificationRecord
     /// both under separate sub-headers: "2D Symbol" and "Linear Symbol (EAN/UPC)".
     /// </summary>
     public DataFormatCheckResult? LinearDataFormatCheck { get; init; }
-    /// <summary>Native quality rows from the linear member of a composite Webscan export.</summary>
+    /// <summary>Native quality rows from the linear member of a dual-symbology Webscan export.</summary>
     public IReadOnlyList<NativeQualityParameter> LinearQualityParameters { get; init; } = [];
-    /// <summary>True when the normalized linear GTIN equals the 2D GTIN in a composite import.</summary>
+    /// <summary>True when the normalized linear GTIN equals the 2D GTIN in a dual-symbology import.</summary>
     public bool? LinearTwoDMatch { get; init; }
     /// <summary>Human-readable detail for the independent linear-to-2D comparison.</summary>
     public string? LinearTwoDComparisonDetail { get; init; }
     /// <summary>Marks a record created from one linear and one 2D native report.</summary>
     public bool IsWebscanComposite { get; init; }
+    /// <summary>Canonical terminology for the two-symbol Webscan projection.</summary>
+    public bool IsDualSymbologyReport => IsWebscanComposite;
 
     /// <summary>
     /// True when the correlated verifier HTML is a standalone EAN/UPC report,
@@ -825,7 +832,7 @@ public sealed record class VerificationRecord
     public bool Is2D => !Is1D && SymbologyFamily != SymbologyFamily.Unknown;
 }
 
-/// <summary>Report-native quality row retained for composite Webscan imports.</summary>
+/// <summary>Report-native quality row retained for multi-symbol Webscan imports.</summary>
 public sealed class NativeQualityParameter
 {
     public string Number { get; init; } = string.Empty;
@@ -834,4 +841,17 @@ public sealed class NativeQualityParameter
     public string? GradeDisplay { get; init; }
     public string? SecondaryValue { get; init; }
     public string? Result { get; init; }
+}
+
+public sealed class NativeWebscanReportSummary
+{
+    public int Ordinal { get; init; }
+    public string? Symbology { get; init; }
+    public string? SymbologyFamily { get; init; }
+    public string? DecodedData { get; init; }
+    public string? Gtin14 { get; init; }
+    public string? SourceImagePath { get; init; }
+    public string? SourceImageProvenance { get; init; }
+    public IReadOnlyList<NativeQualityParameter> QualityParameters { get; init; } = [];
+    public DataFormatCheckResult? DataFormatCheck { get; init; }
 }

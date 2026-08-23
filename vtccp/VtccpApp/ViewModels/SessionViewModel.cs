@@ -1481,7 +1481,7 @@ public sealed class SessionViewModel : ViewModelBase
             VccsDigitalLinkValidation = veriWedgeValidation,
         };
 
-        // A Webscan composite has two native barcode reports but one RFID
+        // A dual-symbology Webscan report has two native barcode reports but one RFID
         // inventory window. Compare normalized GTINs without changing either
         // native decoded value.
         bool isComposite = !string.IsNullOrWhiteSpace(record.LinearSymbology);
@@ -1546,6 +1546,46 @@ public sealed class SessionViewModel : ViewModelBase
         // Preserve scanner participation even when the scan window returns no
         // result. Report presentation must not infer it from RfidStatus alone.
         record = record with { RfidReaderConnected = rfidReaderConnected };
+
+        // Multi-symbol imports are qualified only after all native reports and
+        // the one RFID result are available. This deliberately does not turn a
+        // partial or ambiguous identity set into a normal PASS.
+        if (record.MultiSymbolReports.Count > 2)
+        {
+            string? rfidGtin = rfidResult?.RfidGtin14;
+            string[] knownGtins = record.MultiSymbolReports
+                .Where(s => s.Gtin14 is not null)
+                .Select(s => s.Gtin14!)
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+            var reasons = new List<string>();
+            if (record.MultiSymbolReports.Any(s => s.SymbologyFamily == SymbologyFamily.Unknown.ToString()))
+                reasons.Add("unsupported symbols are present");
+            if (record.MultiSymbolReports.Any(s => s.Gtin14 is null))
+                reasons.Add("one or more symbols are missing GTIN-14 identity");
+            if (knownGtins.Length > 1)
+                reasons.Add($"GTIN mismatch: {string.Join(", ", knownGtins)}");
+            if (rfidGtin is null)
+                reasons.Add("RFID GTIN unavailable");
+            else if (knownGtins.Length == 1 && rfidGtin != knownGtins[0])
+                reasons.Add($"RFID GTIN mismatch: RFID {rfidGtin}, symbols {knownGtins[0]}");
+
+            MultiSymbolQualificationStatus qualificationStatus =
+                knownGtins.Length == 1 && rfidGtin == knownGtins[0] &&
+                reasons.Count == 0
+                    ? MultiSymbolQualificationStatus.Qualified
+                    : knownGtins.Length > 1 ||
+                      (rfidGtin is not null && knownGtins.Length == 1 && rfidGtin != knownGtins[0])
+                        ? MultiSymbolQualificationStatus.Rejected
+                        : MultiSymbolQualificationStatus.Unverified;
+            if (reasons.Count == 0)
+                reasons.Add("all recognized symbol identities agree with RFID EPC");
+            record = record with
+            {
+                MultiSymbolQualificationStatus = qualificationStatus.ToString(),
+                MultiSymbolQualificationReasons = reasons,
+            };
+        }
 
         if (rfidResult is not null)
         {

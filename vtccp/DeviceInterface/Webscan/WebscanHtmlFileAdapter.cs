@@ -118,12 +118,12 @@ public sealed class WebscanHtmlFileAdapter : IDisposable
         if (rawHtml.Contains("Symbol 2 Verification Report",
                 StringComparison.OrdinalIgnoreCase))
         {
-            WebscanHtmlCompositeReport composite =
-                WebscanHtmlParser.ParseComposite(rawHtml, fullPath);
-            if (!composite.ParseSucceeded)
+            WebscanHtmlMultiSymbolReport multiSymbol =
+                WebscanHtmlParser.ParseMultiSymbol(rawHtml, fullPath);
+            if (!multiSymbol.ParseSucceeded)
                 throw new InvalidDataException(
-                    composite.ParseError ?? "Webscan composite HTML parse failed.");
-            record = composite.ToVerificationRecord();
+                    multiSymbol.ParseError ?? "Webscan multi-symbol HTML parse failed.");
+            record = multiSymbol.ToVerificationRecord();
         }
         else
         {

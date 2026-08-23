@@ -101,13 +101,13 @@ public sealed class WebscanHtmlParserTests
     }
 
     [Fact]
-    public void ConcatenatedLinearAndTwoDReports_ImportAsOneCompositeByFamily()
+    public void ConcatenatedLinearAndTwoDReports_ImportAsOneDualSymbologyReportByFamily()
     {
         string linearPath = GetUpcaReportPath();
         string twoDPath = GetQrExportWithoutAverageGradePath();
         string raw = File.ReadAllText(linearPath) + File.ReadAllText(twoDPath);
 
-        WebscanHtmlCompositeReport composite = WebscanHtmlParser.ParseComposite(raw, twoDPath);
+        WebscanHtmlMultiSymbolReport composite = WebscanHtmlParser.ParseMultiSymbol(raw, twoDPath);
 
         Assert.True(composite.ParseSucceeded, composite.ParseError);
         Assert.Equal(SymbologyFamily.Linear1D,
@@ -149,14 +149,14 @@ public sealed class WebscanHtmlParserTests
     }
 
     [Fact]
-    public void TwoSymbolWebscanHtml_ProducesOneCompositeWithSeparateNativeReports()
+    public void TwoSymbolWebscanHtml_ProducesOneDualSymbologyRecordWithSeparateNativeReports()
     {
         string sourcePath = GetAttachedReportPath(
             "Webscan_Report--26-08-22_21_53_29_1787450204733.html");
 
         string rawHtml = File.ReadAllText(sourcePath);
-        WebscanHtmlCompositeReport composite =
-            WebscanHtmlParser.ParseComposite(rawHtml, sourcePath);
+        WebscanHtmlMultiSymbolReport composite =
+            WebscanHtmlParser.ParseMultiSymbol(rawHtml, sourcePath);
 
         Assert.True(composite.ParseSucceeded, composite.ParseError);
         Assert.Equal("UPCA", composite.LinearReport?.Symbology);
@@ -202,9 +202,39 @@ public sealed class WebscanHtmlParserTests
             RfidMatchScope = "Both",
             CompositeOverallStatus = "Pass",
         });
-        Assert.Contains("COMPOSITE VERIFIED", reportHtml);
+        Assert.Contains("MULTI-SYMBOL VERIFIED", reportHtml);
         Assert.Contains("Barcode Symbol Agreement", reportHtml);
         Assert.Contains("EPC GTIN matches both barcode symbols", reportHtml);
+    }
+
+    [Fact]
+    public void ThreeSymbolWebscanHtml_PreservesEveryNativeReportAndDoesNotInventQualification()
+    {
+        string linearPath = GetUpcaReportPath();
+        string qrPath = GetQrExportWithoutAverageGradePath();
+        string raw = File.ReadAllText(linearPath) + File.ReadAllText(qrPath) +
+                     File.ReadAllText(qrPath);
+
+        WebscanHtmlMultiSymbolReport report =
+            WebscanHtmlParser.ParseMultiSymbol(raw, qrPath);
+
+        Assert.True(report.ParseSucceeded, report.ParseError);
+        Assert.Equal(3, report.SymbolReports.Count);
+        Assert.All(report.SymbolReports, symbol =>
+        {
+            Assert.True(symbol.ParseSucceeded);
+            Assert.NotEmpty(symbol.QualityParameters);
+            Assert.NotNull(symbol.SourceImageProvenance);
+        });
+
+        MultiSymbolQualification qualification = report.Qualify("00000000000000");
+        Assert.Equal(MultiSymbolQualificationStatus.Rejected, qualification.Status);
+        Assert.Contains(qualification.Reasons, reason =>
+            reason.Contains("RFID GTIN mismatch", StringComparison.Ordinal));
+
+        VerificationRecord record = report.ToVerificationRecord();
+        Assert.Equal(3, record.MultiSymbolReports.Count);
+        Assert.Equal(3, record.MultiSymbolReports[2].Ordinal);
     }
 
     [Fact]
