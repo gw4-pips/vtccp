@@ -3154,6 +3154,10 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **Assistant:** Inspected the export and source without changing code. The app watches/imports only the Webscan HTML; the three JPGs are sibling image assets referenced by that HTML, while the Webscan PDF, VCCS PDF, and XLSX are outputs. The current code selects the first 2D report, which is why it chose the nonmatching DataMatrix; the second DataMatrix matches the UPC-A identity.
 
+**User:** Asked for an explicit per-trigger file-delivery description, how the files become accessible, whether the app pulls the HTML and same-event JPGs while ignoring PDFs, and the practical value/cost of also processing the Webscan PDF in a standalone Windows app.
+
+**Assistant:** Explained that the Windows app watches the configured Webscan folder for HTML creation/change events, reads the stable HTML, resolves its referenced/derived sibling images, and ignores Webscan PDFs, VW PDFs, and XLSX files. Explained that PDF processing would add timing, file-lock, matching, parser/dependency, memory, and result-latency complexity while mainly providing independent audit/layout confirmation rather than authoritative structured data.
+
 **User:** Asked to confirm three-symbol qualification against a real Webscan export by adding a captured fixture with sibling images and extending the Webscan parser tests without changing qualification policy.
 
 **Assistant:** Added a three-symbol Webscan HTML fixture with three sibling JPEGs, expanded parser coverage for native fields, image association, quality tables, Data Format Check results, and qualified/rejected identity reasons, and fixed the existing decoded-data property typo that blocked compilation. The focused three-symbol test passed; the broader Webscan suite retains two pre-existing failures.
