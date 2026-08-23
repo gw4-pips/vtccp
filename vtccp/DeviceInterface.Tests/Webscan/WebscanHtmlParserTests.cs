@@ -210,31 +210,81 @@ public sealed class WebscanHtmlParserTests
     [Fact]
     public void ThreeSymbolWebscanHtml_PreservesEveryNativeReportAndDoesNotInventQualification()
     {
-        string linearPath = GetUpcaReportPath();
-        string qrPath = GetQrExportWithoutAverageGradePath();
-        string raw = File.ReadAllText(linearPath) + File.ReadAllText(qrPath) +
-                     File.ReadAllText(qrPath);
+        string sourcePath = GetThreeSymbolReportPath();
+        string raw = File.ReadAllText(sourcePath);
 
         WebscanHtmlMultiSymbolReport report =
-            WebscanHtmlParser.ParseMultiSymbol(raw, qrPath);
+            WebscanHtmlParser.ParseMultiSymbol(raw, sourcePath);
 
         Assert.True(report.ParseSucceeded, report.ParseError);
         Assert.Equal(3, report.SymbolReports.Count);
+        Assert.Equal(
+            ["UPCA", "GS1 DataMatrix", "UPCA"],
+            report.SymbolReports.Select(symbol => symbol.Symbology));
+        Assert.Equal(
+            ["696114704288", "<F1>0100696114704288" +
+             "2172803282010", "696114704288"],
+            report.SymbolReports.Select(symbol => symbol.Data));
+        Assert.Equal(
+            ["ANSI/ISO", "ISO15415:2011", "ANSI/ISO"],
+            report.SymbolReports.Select(symbol => symbol.Standard));
+        Assert.Equal(["A (3.6)", "A (4.0)", "A (3.6)"],
+            report.SymbolReports.Select(symbol => symbol.OverallGradeDisplay));
         Assert.All(report.SymbolReports, symbol =>
         {
-            Assert.True(symbol.ParseSucceeded);
-            Assert.NotEmpty(symbol.QualityParameters);
-            Assert.NotNull(symbol.SourceImageProvenance);
+            Assert.Equal("Sat 22-Aug-2026 09:53:29 PM", symbol.VerifiedDisplay);
+            Assert.Equal("3.03.74", symbol.SoftwareVersion);
+            Assert.Equal("TC-829-0213-021", symbol.DeviceSerial);
+            Assert.Equal("GW4", symbol.VerifiedBy);
         });
+        Assert.Equal([9, 19, 9],
+            report.SymbolReports.Select(symbol => symbol.QualityParameters.Count));
+        Assert.All(report.SymbolReports, symbol =>
+        {
+            Assert.True(symbol.ParseSucceeded, symbol.ParseError);
+            Assert.Equal(OverallPassFail.Pass, symbol.DataFormatCheck?.Overall);
+            Assert.Equal("GS1 Application Data Format", symbol.DataFormatCheck?.Standard);
+            Assert.NotEmpty(symbol.DataFormatCheck?.Rows ?? []);
+            Assert.Equal(WebscanImageProvenance.SiblingExport, symbol.SourceImageProvenance);
+            Assert.Equal("image/jpeg", symbol.SourceImageMimeType);
+            Assert.False(string.IsNullOrWhiteSpace(symbol.SourceImageBase64));
+        });
+        Assert.EndsWith(".Image1.jpg", report.SymbolReports[0].SourceImagePath);
+        Assert.EndsWith(".Image2.jpg", report.SymbolReports[1].SourceImagePath);
+        Assert.EndsWith(".Image3.jpg", report.SymbolReports[2].SourceImagePath);
+        Assert.NotEqual(
+            report.SymbolReports[0].SourceImageBase64,
+            report.SymbolReports[1].SourceImageBase64);
 
-        MultiSymbolQualification qualification = report.Qualify("00000000000000");
-        Assert.Equal(MultiSymbolQualificationStatus.Rejected, qualification.Status);
-        Assert.Contains(qualification.Reasons, reason =>
-            reason.Contains("RFID GTIN mismatch", StringComparison.Ordinal));
+        MultiSymbolQualification qualification = report.Qualify("00696114704288");
+        Assert.Equal(MultiSymbolQualificationStatus.Qualified, qualification.Status);
+        Assert.Equal([1, 2, 3], qualification.MatchingSymbols);
+        Assert.Empty(qualification.MismatchingSymbols);
+        Assert.Contains("all recognized symbol identities agree with RFID EPC",
+            qualification.Reasons);
+
+        MultiSymbolQualification rejected = report.Qualify("00000000000000");
+        Assert.Equal(MultiSymbolQualificationStatus.Rejected, rejected.Status);
+        Assert.Equal([], rejected.MatchingSymbols);
+        Assert.Equal([1, 2, 3], rejected.MismatchingSymbols);
+        Assert.Contains(rejected.Reasons, reason =>
+            reason == "RFID GTIN mismatch: RFID 00000000000000, symbols 00696114704288");
 
         VerificationRecord record = report.ToVerificationRecord();
         Assert.Equal(3, record.MultiSymbolReports.Count);
-        Assert.Equal(3, record.MultiSymbolReports[2].Ordinal);
+        Assert.Equal([1, 2, 3],
+            record.MultiSymbolReports.Select(summary => summary.Ordinal));
+        Assert.Equal(["UPCA", "GS1 DataMatrix", "UPCA"],
+            record.MultiSymbolReports.Select(summary => summary.Symbology));
+        Assert.Equal([9, 19, 9],
+            record.MultiSymbolReports.Select(summary => summary.QualityParameters.Count));
+        Assert.All(record.MultiSymbolReports, summary =>
+        {
+            Assert.Equal(OverallPassFail.Pass, summary.DataFormatCheck?.Overall);
+            Assert.NotEmpty(summary.DataFormatCheck?.Rows ?? []);
+            Assert.Equal("SiblingExport", summary.SourceImageProvenance);
+            Assert.False(string.IsNullOrWhiteSpace(summary.SourceImagePath));
+        });
     }
 
     [Fact]
@@ -559,6 +609,10 @@ public sealed class WebscanHtmlParserTests
     private static string GetUpcaReportPath()
         => GetAttachedAssetPath(
             "UPCA-26-08-22_20_47_49-696114704318_1787446139035.html");
+
+    private static string GetThreeSymbolReportPath()
+        => GetAttachedAssetPath(
+            "Webscan_Report--26-08-22_21_53_29_three-symbol_1787450204733.html");
 
     private static string GetAttachedReportPath(string fileName)
         => GetAttachedAssetPath(fileName);
