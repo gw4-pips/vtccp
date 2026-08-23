@@ -3108,3 +3108,5 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Approved implementing the zero-number-system UPC-E path only.
 
 **Assistant:** Added shared linear GTIN normalization for EAN-8, UPC-A, EAN-13, and zero-number-system UPC-E. UPC-E now expands through all GS1 branches, validates the expanded UPC-A check digit, and feeds the resulting GTIN-14 into the existing GS1 parser and RFID comparison flows without changing native report values. Added branch and rejection tests, bumped the app to 1.5.83 and report format to v1.5.58. Focused tests passed 61/61; the Windows app build succeeded; the full suite passed 226/227 with the same unrelated `height: 11in` PDF CSS baseline failure.
+
+**Assistant:** Confirmed the final zero-only expansion commit is pushed and synchronized: local, tracking, and GitHub `origin/main` all equal `0c9baf1ae452bebdd7c25019a10220ace0ea5d4e`; the working tree is clean.
