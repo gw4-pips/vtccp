@@ -105,7 +105,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1",
+            "TruCheck Barcode Image — GS1 DataMatrix",
             report,
             StringComparison.Ordinal);
         Assert.Contains("AI (01) GTIN-14", report, StringComparison.Ordinal);
@@ -408,7 +408,7 @@ public sealed class VccsHtmlReportGeneratorTests
                 report,
                 "<tbody>\\s*<tr data-vccs-symbol-group=\"true\">",
                 RegexOptions.CultureInvariant).Cast<Match>());
-        Assert.Contains("Data Format Check (DFC) &#x2014; GS1 Element String", report,
+        Assert.Contains("TruCheck Barcode Image — EAN-13", report,
             StringComparison.Ordinal);
         Assert.Contains("5901234123457", report, StringComparison.Ordinal);
         Assert.Contains("ISO 15416:2024", report, StringComparison.Ordinal);
@@ -422,6 +422,49 @@ public sealed class VccsHtmlReportGeneratorTests
             StringComparison.Ordinal);
         Assert.Contains("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
         Assert.Contains("VeriWedge GS1 Parser", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_ThreeSymbolReportUsesIdenticalNonSplittableDfcShells()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlSymbology = "GS1 DataMatrix",
+            HtmlDecodedData = "01095060001343522172803288707",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "three-symbol-report.html",
+            MultiSymbolReports =
+            [
+                new NativeWebscanReportSummary
+                {
+                    Ordinal = 1, Symbology = "GS1 DataMatrix",
+                    DecodedData = "01095060001343522172803288707",
+                },
+                new NativeWebscanReportSummary
+                {
+                    Ordinal = 2, Symbology = "EAN-13",
+                    DecodedData = "5901234123457",
+                },
+                new NativeWebscanReportSummary
+                {
+                    Ordinal = 3, Symbology = "Code 128",
+                    DecodedData = "ABC123",
+                },
+            ],
+        });
+
+        Assert.Equal(3, Regex.Matches(report, "class=\"barcode-detail-section report-block\"",
+            RegexOptions.CultureInvariant).Count);
+        Assert.Equal(3, Regex.Matches(report,
+            "class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"",
+            RegexOptions.CultureInvariant).Count);
+        Assert.DoesNotContain("class=\"barcode-dual-header\"", report, StringComparison.Ordinal);
+        Assert.Contains(".barcode-detail-section {\n    break-inside: avoid;",
+            report, StringComparison.Ordinal);
+        Assert.Contains("<div class=\"fr\"></div>", report, StringComparison.Ordinal);
+        Assert.Contains(".footer .fr::after { content: \"Page \" counter(page) \" of \" counter(pages); }",
+            report, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -679,7 +722,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "Data Format Check (DFC) &#x2014; GS1 Digital Link",
+            "TruCheck Barcode Image — QR Code",
             report,
             StringComparison.Ordinal);
         Assert.DoesNotContain("Verifier DFC", report, StringComparison.Ordinal);
@@ -752,7 +795,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "Data Format Check (DFC) &#x2014; GS1 Element String",
+            "TruCheck Barcode Image — GS1 DataMatrix",
             report,
             StringComparison.Ordinal);
         Assert.Contains("<table class=\"dfc-dual-table\">", report, StringComparison.Ordinal);
@@ -778,7 +821,6 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("break-inside: avoid", report, StringComparison.Ordinal);
         Assert.Contains("page-break-inside: avoid", report, StringComparison.Ordinal);
         Assert.Contains("padding: 0.25in 0.4in 0.5in 0.4in", report, StringComparison.Ordinal);
-        Assert.Contains("grid-template-columns: 19.48% 80.52%", report, StringComparison.Ordinal);
         Assert.Contains(".barcode-image-column {\n    width: 19.48%", report, StringComparison.Ordinal);
         Assert.Contains(".barcode-dfc-column {\n    width: 80.52%", report, StringComparison.Ordinal);
         Assert.Contains(".dfc-dual-table col.dual-left-field  { width: 14%; }", report,
@@ -800,7 +842,12 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.DoesNotContain("Native TruCheck Data Format Check", report,
             StringComparison.Ordinal);
         Assert.Contains("min-height: 11in", report, StringComparison.Ordinal);
-        Assert.Contains("margin-top: auto", report, StringComparison.Ordinal);
+        Assert.Contains(
+            "position: fixed; left: 0.4in; right: 0.4in; bottom: 0.18in;",
+            report, StringComparison.Ordinal);
+        Assert.Contains(
+            "content: \"Page \" counter(page) \" of \" counter(pages);",
+            report, StringComparison.Ordinal);
         Assert.DoesNotContain("Verification Command &amp; Control System (VCCS)",
             report,
             StringComparison.Ordinal);
@@ -887,7 +934,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            ".dfc-dual-table td:nth-child(5),\n   .dfc-dual-table td:nth-child(6) {\n     white-space: nowrap;\n     overflow-wrap: normal;\n     word-break: normal;",
+            ".dfc-dual-table td:nth-child(5),\n   .dfc-dual-table td:nth-child(6) {\n     white-space: nowrap;\n     overflow: hidden;\n     text-overflow: clip;",
             report,
             StringComparison.Ordinal);
         Assert.Contains("Webscan TruCheck GS1 Parser", report, StringComparison.Ordinal);
@@ -999,7 +1046,7 @@ public sealed class VccsHtmlReportGeneratorTests
 
         Assert.Contains("width: 8.5in; background: white;", report,
             StringComparison.Ordinal);
-        Assert.DoesNotContain("height: 11in", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("\n    height: 11in;", report, StringComparison.Ordinal);
         Assert.Contains(
             ".report-section:not(.report-section--splittable),\n  .report-block:not(.report-block--splittable) {\n    break-inside: avoid;\n    page-break-inside: avoid;",
             report,
@@ -1009,7 +1056,8 @@ public sealed class VccsHtmlReportGeneratorTests
             StringComparison.Ordinal);
         Assert.Contains("<div class=\"report-section report-section-rfid\">", report,
             StringComparison.Ordinal);
-        Assert.Contains("<div class=\"barcode-detail-section\">", report, StringComparison.Ordinal);
+        Assert.Contains("<div class=\"barcode-detail-section report-block\">", report,
+            StringComparison.Ordinal);
         Assert.DoesNotContain("<tbody>\n          \n        </tbody>", report,
             StringComparison.Ordinal);
     }
@@ -1061,7 +1109,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            ".dfc-dual-table td:nth-child(5),\n   .dfc-dual-table td:nth-child(6) {\n     white-space: nowrap;\n     overflow-wrap: normal;\n     word-break: normal;",
+            ".dfc-dual-table td:nth-child(5),\n   .dfc-dual-table td:nth-child(6) {\n     white-space: nowrap;\n     overflow: hidden;\n     text-overflow: clip;",
             report,
             StringComparison.Ordinal);
     }

@@ -27,7 +27,7 @@
     {{SLOT_SYMBOL_ROWS}}   — one or two <tr> rows for the summary table tbody
     {{SLOT_GRADE_ROWS}}    — one or two <tr> rows for the grades table tbody
     {{SLOT_RFID_TABLE}}    — complete RFID table for active reader outcomes, or empty
-    {{SLOT_BARCODE_DETAIL}} — combined TruCheck barcode image + Data Format Check
+    SLOT_BARCODE_DETAIL — combined TruCheck barcode image + Data Format Check
 -->
 <html lang="en">
 <head>
@@ -136,20 +136,6 @@
     overflow: hidden;
   }
   .trucheck-barcode-hdr .trucheck-header-title { font-weight: bold; }
-  .trucheck-barcode-hdr.barcode-dual-header {
-    /* Keep the barcode image at its former 1.50in physical width.  The
-       recovered 0.20in page width therefore belongs entirely to DFC. */
-    display: grid; grid-template-columns: 19.48% 80.52%; padding: 0;
-  }
-  .barcode-dual-header .barcode-header-image-title {
-    padding-left: 6pt; font-weight: bold;
-  }
-  .barcode-dual-header .barcode-header-dfc-title {
-    min-width: 0; overflow: hidden; white-space: nowrap; font-weight: bold;
-  }
-  .barcode-dual-header .detail-separator {
-    padding: 0 4pt 0 0;
-  }
   /* Inline annotation appended to a section sub-header — inherits banner colour */
   .sec-note { font-size: 7.5pt; font-weight: normal; }
   .sec-sub-hdr-gap { margin-top: 6pt; }
@@ -265,10 +251,17 @@
 
   /* ── TRUCHECK BARCODE IMAGE + DATA FORMAT CHECK ─────── */
   .barcode-detail-header .detail-separator { padding: 0 4pt; }
+  .barcode-detail-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin: 0;
+  }
   .barcode-detail-grid {
     width: 100%; border-collapse: collapse; table-layout: fixed;
     border: 2px solid #1a3a6b; border-top: none;
     min-height: 86pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
   .barcode-image-column {
     width: 19.48%; padding: 8pt; vertical-align: middle; text-align: left;
@@ -358,9 +351,9 @@
     background: #e8eef5; border-bottom: 1px solid #aaa;
     padding: 2pt 3pt; text-align: left; font-size: 7.5pt;
   }
-  .dfc-dual-table td {
-    border-bottom: 1px solid #aaa; padding: 1.75pt 3pt;
-    vertical-align: top; line-height: 1.05;
+   .dfc-dual-table td {
+     height: 14pt; border-bottom: 1px solid #aaa; padding: 1.75pt 3pt;
+     vertical-align: middle; line-height: 1.05;
   }
    .dfc-dual-table th:nth-child(1),
    .dfc-dual-table th:nth-child(5) {
@@ -378,6 +371,8 @@
    .dfc-dual-table td:nth-child(5),
    .dfc-dual-table td:nth-child(6) {
      white-space: nowrap;
+     overflow: hidden;
+     text-overflow: clip;
      overflow-wrap: normal;
      word-break: normal;
    }
@@ -428,8 +423,8 @@
   }
    .dfc-dual-table td:nth-child(6).parser-element-string-data,
    .dfc-dual-table td:nth-child(6).parser-uri-data {
-     line-height: 1.35; overflow-wrap: anywhere; word-break: normal;
-     white-space: normal; line-height: 1.35;
+     font-size: 6.5pt; line-height: 1.05; overflow: hidden;
+     overflow-wrap: normal; word-break: normal; white-space: nowrap;
    }
   .dfc-accordion-section {
     break-inside: avoid; page-break-inside: avoid;
@@ -460,15 +455,19 @@
    .dfc-table thead { display: table-header-group; }
 
   /* ── FOOTER ──────────────────────────────────────────── */
-  /* .page is a Letter-height flex column, so the footer stays at its bottom
-     edge for short reports without overlaying content in longer reports. */
+  /* The footer is fixed so Chromium repeats it at the bottom of each printed
+     page instead of leaving the single DOM footer on the final page only. */
   .footer {
-    border-top: 1px solid #ccc; padding-top: 4pt; margin-top: auto;
+    position: fixed; left: 0.4in; right: 0.4in; bottom: 0.18in;
+    border-top: 1px solid #ccc; padding-top: 4pt;
     display: flex; justify-content: space-between;
     font-size: 7pt; color: #6c757d;
   }
   .footer .fl { font-weight: bold; color: #222; }
   .footer .fl span { font-weight: normal; color: #6c757d; }
+  .footer .fr { margin-left: auto; text-align: right; white-space: nowrap; }
+  .footer .fr::after { content: "Page " counter(page) " of " counter(pages); }
+  .content { padding-bottom: 0.28in; }
 
   @media print {
     body { background: white; padding: 0; }
@@ -593,6 +592,7 @@
       <span>&nbsp;&#x2014;&nbsp; App {{APP_VERSION}}</span>
       <span>&nbsp;&#x2014;&nbsp; Generated {{FOOTER_GENERATED}}</span>
     </div>
+    <div class="fr"></div>
   </div>
 
 </div><!-- /page -->

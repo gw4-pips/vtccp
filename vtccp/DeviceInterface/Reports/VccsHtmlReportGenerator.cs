@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.62";
+    public const string ReportVersion = "v1.5.63";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -640,7 +640,7 @@ public static class VccsHtmlReportGenerator
                     StringComparison.Ordinal);
             string image = symbol.SourceImageBase64 ?? string.Empty;
             string mime = symbol.SourceImageMimeType ?? "image/jpeg";
-            sb.Append("    <div class=\"barcode-detail-section report-block--splittable\">\n");
+            sb.Append("    <div class=\"barcode-detail-section report-block\">\n");
             sb.Append($"      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image — {H(symbol.Symbology ?? "Symbol")}</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em></span></div>\n");
             sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
             sb.Append("        <td class=\"barcode-image-column\">\n");
@@ -677,11 +677,9 @@ public static class VccsHtmlReportGenerator
             : null;
 
         var sb = new StringBuilder();
-        sb.Append("    <div class=\"barcode-detail-section\">\n");
+        sb.Append("    <div class=\"barcode-detail-section report-block\">\n");
         sb.Append(hasHtml
-            ? useParserComparisonLayout
-                ? $"      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header barcode-dual-header\">{BuildVeriWedgeDfcHeader(r)}</div>\n"
-                : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image <span class=\"detail-separator\">|</span> Data Format Check &#x2014; GS1</span></div>\n"
+            ? $"      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image — {H(r.HtmlSymbology ?? r.Symbology ?? "Symbol")}</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em></span></div>\n"
             : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">Barcode Verification Capture Unavailable</span><span class=\"sec-note\"> &#x2014; <em>No correlated DMST HTML report</em></span></div>\n");
         sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
         sb.Append("        <td class=\"barcode-image-column\">\n");
@@ -736,21 +734,6 @@ public static class VccsHtmlReportGenerator
             DataFormatCheck = r.HtmlDataFormatCheck,
         });
         return symbols;
-    }
-
-    private static string BuildVeriWedgeDfcHeader(VerificationRecord r)
-    {
-        DigitalLinkValidationResult? validation = r.VccsDigitalLinkValidation;
-        string algorithm = string.Equals(
-            validation?.Source,
-            DigitalLinkValidationResult.VccsElementStringSource,
-            StringComparison.Ordinal)
-            ? "Element String"
-            : "Digital Link";
-
-        return "<span class=\"barcode-header-image-title\">TruCheck Barcode Image</span>" +
-               "<span class=\"barcode-header-dfc-title\"><span class=\"detail-separator\">|</span> " +
-               $"Data Format Check (DFC) &#x2014; GS1 {algorithm}</span>";
     }
 
     private static bool IsWebscanRecord(VerificationRecord record)
