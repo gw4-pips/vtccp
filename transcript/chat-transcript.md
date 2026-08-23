@@ -3170,6 +3170,10 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **Assistant:** Implemented the working policy. Three-or-more native reports now retain per-symbol grade/image/DFC data, prefer the identity-matching 2D report instead of the first 2D by source order, allow qualification when at least one linear and one 2D symbol match RFID, show independently colored symbol result rows, render an asterisked qualified badge and explanation, use Lighting/Notes with widened geometry, and permit DFC tables to flow with repeated table headers. Preserved the established one-/two-symbol renderer path and bumped the application version to 1.5.89/report format to v1.5.62. Focused build/tests passed; full focused suite still has two unrelated pre-existing fixture/assertion failures (concatenated fixture parser and a min-height substring assertion).
 
+**User:** Reported that the new build had not been pushed and requested that Build, Push, and Confirm become the canonical delivery process.
+
+**Assistant:** Confirmed the local build had been auto-committed but not published, pushed commit `83fe64d`, then added `scripts/build-push-confirm.sh` and documented the canonical gate. The gate builds the Windows-targeted app, requires a clean committed tree, pushes the exact HEAD, fetches GitHub, and verifies the remote SHA and application version. It completed successfully for commit `c53b319`, with GitHub confirmed at application version `1.5.89`.
+
 **User:** Asked to confirm three-symbol qualification against a real Webscan export by adding a captured fixture with sibling images and extending the Webscan parser tests without changing qualification policy.
 
 **Assistant:** Added a three-symbol Webscan HTML fixture with three sibling JPEGs, expanded parser coverage for native fields, image association, quality tables, Data Format Check results, and qualified/rejected identity reasons, and fixed the existing decoded-data property typo that blocked compilation. The focused three-symbol test passed; the broader Webscan suite retains two pre-existing failures.
