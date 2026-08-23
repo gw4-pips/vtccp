@@ -3088,3 +3088,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Expressed frustration that the completed version had not been pushed without a reminder.
 
 **Assistant:** Attempted the push, encountered GitHub authentication failure, then used the configured workspace credential without exposing it. Version 1.5.79 and report v1.5.55 were pushed successfully; `origin/main` and local `HEAD` now both equal `d7b67001f00e7b90ca664250859643b901436ce0`. The unrelated uncommitted mockup-generated file was not included.
+
+**User:** Confirmed the required protocol: commit, push, confirm.
+
+**Assistant:** Recorded “Commit, Push, Confirm” as a project rule. Going forward, completed code changes will be committed, pushed to the primary GitHub `origin/main`, verified by remote SHA, and explicitly confirmed without waiting for a reminder. The current report change already follows that protocol.

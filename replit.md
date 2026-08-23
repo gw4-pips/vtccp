@@ -141,6 +141,8 @@ dotnet run --project TestHarness/TestHarness.csproj -c Release
 
 - **Always bump the app version on every code-change commit**: increment `VtccpApp.csproj <Version>` (patch digit) on every commit that changes any C# code. Never commit a code change without a version bump. This is non-negotiable.
 
+- **Commit, Push, Confirm protocol**: after completing any requested code change, commit it, push the commit to the primary GitHub `origin/main`, then verify the remote commit SHA and explicitly confirm the result to the user. Do not wait for a reminder.
+
 - **Always bump the report version whenever the report format changes**: the canonical VCCS RFID Validation Report is the HTML-based v23 format (`dist/vccs-pdf-preview-v23.html`). Its footer version string (e.g. "v1.4.11") must be incremented any time the report layout, content, or logic changes. The report version and the app version are separate numbers — both must be maintained.
 
 - **The canonical VCCS RFID report is v23 HTML rendered silently to PDF**: the generator produces v23 HTML (`dist/vccs-pdf-preview-v23.html` is the design reference), then converts it to a PDF automatically using WebView2 (Edge, primary) with a seamless silent fallback to bundled `wkhtmltopdf.exe`. The user never sees the HTML and takes no manual step — a `.pdf` file is the only output. QuestPDF (`PdfReportGenerator.cs`) has been archived and must not be extended or resurrected. Do not ask the user to open HTML and print.
