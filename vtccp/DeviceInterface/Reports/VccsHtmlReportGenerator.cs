@@ -27,8 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.64";
-    internal const int MaxRenderedSymbolGroups = 2;
+    public const string ReportVersion = "v1.5.65";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -142,7 +141,9 @@ public static class VccsHtmlReportGenerator
             .Replace("{{REPORT_NAME}}",         reportName)
             .Replace("{{REPORT_DATETIME}}",     reportDateTime)
             .Replace("{{GRADE_COL_6_TITLE}}",    "Lighting/Notes")
+            .Replace("{{GRADE_COL_4_TITLE}}",    GetApertureColumnTitle(r))
             .Replace("{{SLOT_GRADE_ROWS}}",     BuildGradeRows(r))
+            .Replace("{{SLOT_GRADE_WARNINGS}}", BuildGradeWarnings(r))
             .Replace("{{RFID_ADJ}}",            rfidAdj)
             .Replace("{{RFID_SECTION_NOTE}}",   IsRfidReaderInactive(r)
                 ? " (No data: reader not activated)."
@@ -194,31 +195,15 @@ public static class VccsHtmlReportGenerator
         if (!HasCorrelatedFilesystemHtml(r))
             return UnavailableSymbolRow(r);
 
-        bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
-        bool multiSymbolMode = r.IsDualSymbologyReport || r.MultiSymbolReports.Count > 0;
-        int renderedGroups = 0;
+        IReadOnlyList<NativeWebscanReportSummary> symbols = GetCanonicalSymbols(r);
         var sb = new StringBuilder();
-        if (multiSymbolMode && r.MultiSymbolReports.Count > 0)
+        for (int index = 0; index < symbols.Count; index++)
         {
-            foreach (NativeWebscanReportSummary symbol in r.MultiSymbolReports.OrderBy(s => s.Ordinal))
-                AppendSymbolRow(sb, symbol.Symbology ?? "\u2014", symbol.DecodedData);
-            renderedGroups = r.MultiSymbolReports.Count;
-        }
-        else if (r.IsDualSymbologyReport)
-        {
-            // Compatibility projection for records created before the native
-            // report collection was added: dual-symbology remains 2D first.
-            AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData);
-            renderedGroups++;
-        }
-        if (multiMode && renderedGroups < MaxRenderedSymbolGroups)
-        {
-            AppendSymbolRow(sb, r.LinearSymbology!, r.LinearDecodedData);
-            renderedGroups++;
-        }
-        if (renderedGroups < MaxRenderedSymbolGroups)
-        {
-            AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData);
+            NativeWebscanReportSummary symbol = symbols[index];
+            AppendSymbolRow(
+                sb,
+                GetDisplaySymbology(symbol, index, symbols.Count),
+                symbol.DecodedData);
         }
         return sb.ToString();
     }
@@ -235,6 +220,46 @@ public static class VccsHtmlReportGenerator
         sb.Append($"            <td style=\"font-size:8pt;\">{H(symb)}</td>\n");
         sb.Append($"            <td colspan=\"2\" style=\"font-family:Consolas,monospace;\">{H(encoded ?? "\u2014")}</td>\n");
         sb.Append($"          </tr>\n");
+    }
+
+    /// <summary>
+    /// The native Webscan sequence is the report-wide source of truth. Every
+    /// symbol-bearing panel consumes this projection so grade, RFID, and parser
+    /// rows cannot independently change the user's visible order.
+    /// </summary>
+    private static IReadOnlyList<NativeWebscanReportSummary> GetCanonicalSymbols(
+        VerificationRecord r)
+    {
+        if (r.MultiSymbolReports.Count > 0)
+            return r.MultiSymbolReports.OrderBy(symbol => symbol.Ordinal).ToArray();
+
+        return BuildLegacySymbolSummaries(r);
+    }
+
+    private static string GetDisplaySymbology(
+        NativeWebscanReportSummary symbol,
+        int index,
+        int symbolCount)
+    {
+        string symbology = symbol.Symbology ?? "\u2014";
+        return symbolCount > 1 ? $"#{index + 1} \u2013 {symbology}" : symbology;
+    }
+
+    private static string GetApertureColumnTitle(VerificationRecord r)
+    {
+        string? unit = GetCanonicalSymbols(r)
+            .Select(symbol => symbol.ApertureUnit)
+            .FirstOrDefault(value => string.Equals(value, "mil", StringComparison.OrdinalIgnoreCase) ||
+                                     string.Equals(value, "mm", StringComparison.OrdinalIgnoreCase))
+            ?? r.HtmlApertureUnit
+            // Historic Webscan reports publish only the "Aperture" heading.
+            // Their numeric aperture values are mils, so retain that unit until
+            // a report-provided setting explicitly supplies mil or mm.
+            ?? "mil";
+        return string.Equals(unit, "mil", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(unit, "mm", StringComparison.OrdinalIgnoreCase)
+            ? $"Aperture ({unit.ToLowerInvariant()})"
+            : "Aperture";
     }
 
     private static string BuildApplicationSettingsInline(VerificationRecord r)
@@ -279,32 +304,41 @@ public static class VccsHtmlReportGenerator
 
         var sb = new StringBuilder();
 
-        if (r.MultiSymbolReports.Count > 0)
+        IReadOnlyList<NativeWebscanReportSummary> symbols = GetCanonicalSymbols(r);
+        for (int index = 0; index < symbols.Count; index++)
         {
-            foreach (NativeWebscanReportSummary symbol in r.MultiSymbolReports)
-            {
-                AppendGradeRow(sb, symbol.Symbology, symbol.Standard,
-                    symbol.OverallGradeDisplay, symbol.ApertureDisplay,
-                    symbol.WavelengthDisplay,
-                    IsLinearFamily(symbol.SymbologyFamily) ? symbol.Notes : symbol.Lighting,
-                    symbol.FormalGrade);
-            }
-            return sb.ToString();
+            NativeWebscanReportSummary symbol = symbols[index];
+            AppendGradeRow(
+                sb,
+                GetDisplaySymbology(symbol, index, symbols.Count),
+                symbol.Standard,
+                symbol.OverallGradeDisplay,
+                symbol.ApertureDisplay,
+                symbol.WavelengthDisplay,
+                IsLinearFamily(symbol.SymbologyFamily) ? symbol.Notes : symbol.Lighting,
+                symbol.FormalGrade);
         }
+        return sb.ToString();
+    }
 
-        bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
-        if (multiMode)
-        {
-            AppendGradeRow(sb, r.LinearSymbology!,
-                r.HtmlLinearStandard, r.HtmlLinearGradeDisplay,
-                r.HtmlLinearAperture, r.HtmlLinearWavelength,
-                r.HtmlLinearLighting, r.HtmlLinearFormalGrade);
-        }
-        AppendGradeRow(sb, r.HtmlSymbology, r.HtmlStandard,
-            r.HtmlOverallGradeDisplay, r.HtmlAperture, r.HtmlWavelength,
-            IsLinear15416Report(r) ? r.HtmlNotes : r.HtmlLighting,
-            r.HtmlFormalGrade);
+    private static string BuildGradeWarnings(VerificationRecord r)
+    {
+        if (!HasCorrelatedFilesystemHtml(r))
+            return string.Empty;
 
+        var warnings = GetCanonicalSymbols(r)
+            .Select(symbol => IsLinearFamily(symbol.SymbologyFamily) ? symbol.Notes : symbol.Lighting)
+            .Select(SplitGradeWarning)
+            .Where(note => !string.IsNullOrWhiteSpace(note.Warning))
+            .Select(note => note.Warning!)
+            .ToArray();
+        if (warnings.Length == 0)
+            return string.Empty;
+
+        var sb = new StringBuilder("        <div class=\"grades-warning-notes\">\n");
+        foreach (string warning in warnings)
+            sb.Append($"          <div>*{H(warning)}</div>\n");
+        sb.Append("        </div>\n");
         return sb.ToString();
     }
 
@@ -339,13 +373,33 @@ public static class VccsHtmlReportGenerator
 
         sb.Append($"          <tr>\n");
         sb.Append($"            <td>{Display(symb)}</td>\n");
-        sb.Append($"            <td>{Display(standard)}</td>\n");
+        GradeNotes notes = SplitGradeWarning(lighting);
+        string standardDisplay = Display(standard) + (notes.Warning is null ? string.Empty : "*");
+        sb.Append($"            <td>{standardDisplay}</td>\n");
         sb.Append($"            <td>{Display(grade)}</td>\n");
         sb.Append($"            <td>{Display(aperture)}</td>\n");
         sb.Append($"            <td>{Display(wavelength)}</td>\n");
-        sb.Append($"            <td>{Display(lighting)}</td>\n");
+        sb.Append($"            <td>{Display(notes.Display)}</td>\n");
         sb.Append($"            <td>{Display(formal)}</td>\n");
         sb.Append($"          </tr>\n");
+    }
+
+    private sealed record GradeNotes(string? Display, string? Warning);
+
+    private static GradeNotes SplitGradeWarning(string? notes)
+    {
+        if (string.IsNullOrWhiteSpace(notes))
+            return new GradeNotes(notes, null);
+
+        int warningStart = notes.IndexOf("Warning:", StringComparison.OrdinalIgnoreCase);
+        if (warningStart < 0)
+            return new GradeNotes(notes, null);
+
+        string display = notes[..warningStart].Trim().TrimEnd(';', '|', '-', ' ');
+        string warning = notes[warningStart..].Trim();
+        return new GradeNotes(
+            string.IsNullOrWhiteSpace(display) ? null : display,
+            string.IsNullOrWhiteSpace(warning) ? null : warning);
     }
 
     private static bool IsRfidReaderInactive(VerificationRecord r)
@@ -486,12 +540,64 @@ public static class VccsHtmlReportGenerator
             ? "RFID Cross-Validation Result"
             : "RFID Validation Result";
 
-        void ResultRow(string label, string value, string? resultClass = null)
+        void ResultRow(
+            string label,
+            string value,
+            string? resultClass = null,
+            string? additionalClass = null)
         {
-            sb.Append($"          <tr class=\"{resultClass ?? rowCls}\">\n");
+            string rowClasses = resultClass ?? rowCls;
+            if (!string.IsNullOrWhiteSpace(additionalClass))
+                rowClasses += $" {additionalClass}";
+            sb.Append($"          <tr class=\"{rowClasses}\">\n");
             sb.Append($"            <td class=\"rfid-result-label\">{H(label)}</td>\n");
             sb.Append($"            <td>{value}</td>\n");
             sb.Append($"          </tr>\n");
+        }
+
+        IReadOnlyList<NativeWebscanReportSummary> canonicalSymbols = GetCanonicalSymbols(r);
+        if (canonicalSymbols.Count > 1)
+        {
+            for (int index = 0; index < canonicalSymbols.Count; index++)
+            {
+                NativeWebscanReportSummary symbol = canonicalSymbols[index];
+                bool hasComparableGtin = !string.IsNullOrWhiteSpace(r.RfidGtin14) &&
+                                         !string.IsNullOrWhiteSpace(symbol.Gtin14);
+                bool isPrimarySymbol = IsPrimarySymbol(r, symbol);
+                bool matches = hasComparableGtin
+                    ? symbol.Gtin14 == r.RfidGtin14
+                    : IsLinearFamily(symbol.SymbologyFamily)
+                        ? r.RfidLinearGtin14Matches == true
+                        : isPrimarySymbol && r.RfidMatchScope is "Both" or "2D only";
+                string symbolResultClass = hasComparableGtin
+                    ? matches ? "row-result-pass" : "row-result-fail"
+                    : matches ? "row-result-pass"
+                    : rowCls;
+                string symbolName = GetDisplaySymbology(symbol, index, canonicalSymbols.Count);
+
+                ResultRow(
+                    $"{symbolName} {resultLabel}",
+                    BuildMultiSymbolRfidResult(r, symbol, matches),
+                    symbolResultClass,
+                    "rfid-symbol-result");
+            }
+
+            if (canonicalSymbols.Any(symbol => IsLinearFamily(symbol.SymbologyFamily)) ||
+                !string.IsNullOrWhiteSpace(r.BarcodeSymbolAgreement))
+            {
+                ResultRow(
+                    "Barcode Symbol Agreement",
+                    r.BarcodeSymbolAgreement switch
+                    {
+                        "Pass" => $"Pass &#x2014; GTIN-14 {H(r.LinearGtin14 ?? "\u2014")}",
+                        "Fail" => $"Fail &#x2014; {H(r.BarcodeSymbolAgreementDetail ?? "GTIN mismatch")}",
+                        "Incomplete" =>
+                            $"FAIL / INCOMPLETE &#x2014; {H(r.BarcodeSymbolAgreementDetail ?? "GTIN unavailable")}",
+                        var s => H(s ?? "\u2014"),
+                    });
+            }
+
+            return sb.ToString();
         }
 
         if (multiMode)
@@ -595,6 +701,47 @@ public static class VccsHtmlReportGenerator
         return sb.ToString();
     }
 
+    private static string BuildMultiSymbolRfidResult(
+        VerificationRecord record,
+        NativeWebscanReportSummary symbol,
+        bool matches)
+    {
+        if (record.RfidStatus == "NoTag")
+            return "No Tag Detected";
+        if (record.RfidStatus is not ("Pass" or "Fail"))
+            return H(record.RfidStatus ?? "\u2014");
+        if ((!string.IsNullOrWhiteSpace(record.RfidGtin14) &&
+             !string.IsNullOrWhiteSpace(symbol.Gtin14)) ||
+            matches)
+        {
+            if (!matches)
+                return "Fail &#x2014; EPC GTIN does not match this symbol";
+        }
+        else
+        {
+            return $"{H(record.RfidStatus)} &#x2014; EPC or barcode GTIN unavailable";
+        }
+
+        if (IsLinearFamily(symbol.SymbologyFamily))
+            return "Pass &#x2014; EPC GTIN matches linear and 2D GTIN";
+
+        bool isPrimary2D = IsPrimarySymbol(record, symbol);
+        if (isPrimary2D && record.RfidMatchScope == "Both")
+            return "Pass &#x2014; EPC GTIN matches both barcode symbols and Serial Number";
+        if (isPrimary2D)
+            return "Pass &#x2014; EPC data matches 2D GTIN and Serial Number";
+
+        return "Pass &#x2014; EPC GTIN matches this symbol";
+    }
+
+    private static bool IsPrimarySymbol(
+        VerificationRecord record,
+        NativeWebscanReportSummary symbol)
+        => string.Equals(symbol.Symbology, record.HtmlSymbology,
+               StringComparison.OrdinalIgnoreCase) &&
+           string.Equals(symbol.DecodedData, record.HtmlDecodedData,
+               StringComparison.Ordinal);
+
     private static string BuildBarcodeDetailSection(VerificationRecord r)
     {
         // Preserve the accepted parser-panel baseline for standalone and
@@ -603,15 +750,10 @@ public static class VccsHtmlReportGenerator
         if (r.MultiSymbolReports.Count <= 2)
             return BuildLegacyBarcodeDetailSection(r);
 
-        bool hasHtml       = HasCorrelatedFilesystemHtml(r);
-        bool veriWedgeValidationUsed = IsVeriWedgeValidationUsed(r);
-
+        bool hasHtml = HasCorrelatedFilesystemHtml(r);
         var sb = new StringBuilder();
-        IReadOnlyList<NativeWebscanReportSummary> symbols = r.MultiSymbolReports.Count > 0
-            ? r.MultiSymbolReports
-            : BuildLegacySymbolSummaries(r);
+        IReadOnlyList<NativeWebscanReportSummary> symbols = GetCanonicalSymbols(r);
         NativeWebscanReportSummary? parserOwner = symbols
-            .OrderBy(s => s.Ordinal)
             .FirstOrDefault(s => !IsLinearFamily(s.SymbologyFamily));
         parserOwner ??= symbols.FirstOrDefault();
         foreach (NativeWebscanReportSummary symbol in symbols)
@@ -621,7 +763,12 @@ public static class VccsHtmlReportGenerator
             string image = symbol.SourceImageBase64 ?? string.Empty;
             string mime = symbol.SourceImageMimeType ?? "image/jpeg";
             sb.Append("    <div class=\"barcode-detail-section report-block\">\n");
-            sb.Append($"      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image — {H(symbol.Symbology ?? "Symbol")}</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em></span></div>\n");
+            AppendBarcodeDetailHeader(
+                sb,
+                GetParserHeaderSuffix(
+                    symbol.Symbology,
+                    symbol.SymbologyFamily,
+                    symbol.DecodedData));
             sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
             sb.Append("        <td class=\"barcode-image-column\">\n");
             if (hasHtml && !string.IsNullOrWhiteSpace(image))
@@ -629,14 +776,23 @@ public static class VccsHtmlReportGenerator
             else
                 sb.Append($"          <div class=\"img-placeholder\">[{(hasHtml ? "BARCODE IMAGE NOT AVAILABLE" : "BARCODE IMAGE UNAVAILABLE — NO CORRELATED DMST HTML")}]</div>\n");
             sb.Append("        </td>\n        <td class=\"barcode-dfc-column\">\n");
-            if (veriWedgeValidationUsed && isPrimary)
-                AppendElementStringDualValidation(sb, r, symbol.DataFormatCheck,
-                    r.VccsDigitalLinkValidation,
-                    BuildNativeDigitalLinkSupportNote(r, symbol.DataFormatCheck, r.VccsDigitalLinkValidation));
-            else
+            VerificationRecord symbolRecord = r with
             {
-                AppendVendorDataFormatCheck(sb, symbol.DataFormatCheck, hasHtml);
-            }
+                DecodedData = symbol.DecodedData,
+                HtmlDecodedData = symbol.DecodedData,
+            };
+            DigitalLinkValidationResult? symbolValidation = isPrimary
+                ? r.VccsDigitalLinkValidation
+                : null;
+            string? nativeSupportNote = isPrimary
+                ? BuildNativeDigitalLinkSupportNote(r, symbol.DataFormatCheck, symbolValidation)
+                : null;
+            AppendElementStringDualValidation(
+                sb,
+                symbolRecord,
+                symbol.DataFormatCheck,
+                symbolValidation,
+                nativeSupportNote);
             sb.Append("        </td>\n      </tr></tbody></table>\n    </div>\n");
         }
         return sb.ToString();
@@ -658,9 +814,19 @@ public static class VccsHtmlReportGenerator
 
         var sb = new StringBuilder();
         sb.Append("    <div class=\"barcode-detail-section report-block\">\n");
-        sb.Append(hasHtml
-            ? $"      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">TruCheck Barcode Image — {H(r.HtmlSymbology ?? r.Symbology ?? "Symbol")}</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em></span></div>\n"
-            : "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">Barcode Verification Capture Unavailable</span><span class=\"sec-note\"> &#x2014; <em>No correlated DMST HTML report</em></span></div>\n");
+        if (hasHtml)
+        {
+            AppendBarcodeDetailHeader(
+                sb,
+                GetParserHeaderSuffix(
+                    r.HtmlSymbology ?? r.Symbology,
+                    r.SymbologyFamily.ToString(),
+                    r.HtmlDecodedData ?? r.DecodedData));
+        }
+        else
+        {
+            sb.Append("      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\"><span class=\"trucheck-header-title\">Barcode Verification Capture Unavailable</span><span class=\"sec-note\"> &#x2014; <em>No correlated DMST HTML report</em></span></div>\n");
+        }
         sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
         sb.Append("        <td class=\"barcode-image-column\">\n");
         if (hasHtml && !string.IsNullOrWhiteSpace(img2D))
@@ -688,6 +854,41 @@ public static class VccsHtmlReportGenerator
         return sb.ToString();
     }
 
+    private static void AppendBarcodeDetailHeader(StringBuilder sb, string suffix)
+        => sb.Append(
+            "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\">" +
+            "<span class=\"trucheck-header-title\">TruCheck Barcode Image</span>" +
+            $"<span class=\"sec-note\"> | <em>Data Format Check (DFC)</em> &#x2014; {H(suffix)}</span>" +
+            "</div>\n");
+
+    private static string GetParserHeaderSuffix(
+        string? symbology,
+        string? symbologyFamily,
+        string? decodedData)
+    {
+        if (Uri.TryCreate(decodedData, UriKind.Absolute, out Uri? uri) &&
+            (uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
+             uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
+        {
+            return "Digital Link";
+        }
+
+        string compact = (symbology ?? string.Empty)
+            .Replace(" ", string.Empty, StringComparison.Ordinal)
+            .Replace("-", string.Empty, StringComparison.Ordinal)
+            .Replace("_", string.Empty, StringComparison.Ordinal)
+            .Replace("/", string.Empty, StringComparison.Ordinal);
+        if (compact.Equals("UPCA", StringComparison.OrdinalIgnoreCase) ||
+            compact.Equals("UPCE", StringComparison.OrdinalIgnoreCase) ||
+            compact.Equals("EAN8", StringComparison.OrdinalIgnoreCase) ||
+            compact.Equals("EAN13", StringComparison.OrdinalIgnoreCase))
+        {
+            return "GS1 GTIN";
+        }
+
+        return "GS1 Element String";
+    }
+
     private static IReadOnlyList<NativeWebscanReportSummary> BuildLegacySymbolSummaries(
         VerificationRecord r)
     {
@@ -707,6 +908,7 @@ public static class VccsHtmlReportGenerator
             Symbology = r.HtmlSymbology, SymbologyFamily = r.SymbologyFamily.ToString(),
             DecodedData = r.HtmlDecodedData, OverallGradeDisplay = r.HtmlOverallGradeDisplay,
             Standard = r.HtmlStandard, ApertureDisplay = r.HtmlAperture,
+                ApertureUnit = r.HtmlApertureUnit,
             WavelengthDisplay = r.HtmlWavelength, Lighting = r.HtmlLighting,
             Notes = r.HtmlNotes, FormalGrade = r.HtmlFormalGrade,
             SourceImageBase64 = r.HtmlBarcodeImageBase64,

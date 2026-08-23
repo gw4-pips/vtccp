@@ -234,6 +234,11 @@ public sealed record class VerificationRecord
     public string? HtmlOverallGradeDisplay { get; init; }
     /// <summary>e.g. "16" (verbatim from HTML)</summary>
     public string? HtmlAperture { get; init; }
+    /// <summary>
+    /// Unit published by the native verifier's Aperture column header
+    /// (for example, "mil" or "mm").
+    /// </summary>
+    public string? HtmlApertureUnit { get; init; }
     /// <summary>e.g. "660" (verbatim from HTML)</summary>
     public string? HtmlWavelength { get; init; }
     /// <summary>e.g. "45Q" (verbatim from HTML)</summary>
@@ -857,6 +862,7 @@ public sealed class NativeWebscanReportSummary
     public string? Standard { get; init; }
     public string? OverallGradeDisplay { get; init; }
     public string? ApertureDisplay { get; init; }
+    public string? ApertureUnit { get; init; }
     public string? WavelengthDisplay { get; init; }
     public string? Lighting { get; init; }
     public string? Notes { get; init; }

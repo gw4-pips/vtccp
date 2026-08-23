@@ -25,7 +25,7 @@
 
   SLOT list (replaced with generated HTML blocks):
     {{SLOT_SYMBOL_ROWS}}   — one or two <tr> rows for the summary table tbody
-    {{SLOT_GRADE_ROWS}}    — one or two <tr> rows for the grades table tbody
+    SLOT_GRADE_ROWS        — one or more <tr> rows for the grades table tbody
     {{SLOT_RFID_TABLE}}    — complete RFID table for active reader outcomes, or empty
     SLOT_BARCODE_DETAIL — combined TruCheck barcode image + Data Format Check
 -->
@@ -222,6 +222,10 @@
   }
   .grades-table td:last-child { border-right: none; }
   .grades-table tr:not(:last-child) td { border-bottom: 1px solid #aaa; }
+  .grades-warning-notes {
+    margin: 4pt 0 0; font-size: 7.5pt; line-height: 1.15;
+  }
+  .grades-warning-notes div + div { margin-top: 2pt; }
 
   /* ── RFID TABLE ──────────────────────────────────────── */
   .rfid-table {
@@ -239,6 +243,7 @@
   }
   .rfid-table .lbl-col { width: 178pt; }
   .rfid-table .rfid-result-label { white-space: nowrap; }
+  .rfid-table .rfid-symbol-result td { font-size: 8pt; }
   /* The fixed Field column holds its original width; every bit of the wider
      page is consequently available to the Value column. */
   .row-hi          td { background: #f0f7ff; }
@@ -396,8 +401,8 @@
   .dfc-dual-table .dual-check {
     font-weight: bold; white-space: nowrap;
   }
-  .dfc-dual-table .dual-overall td {
-    border-bottom: none; padding-top: 3pt; padding-bottom: 3pt;
+   .dfc-dual-table .dual-overall td {
+     border-top: 1px solid #aaa; border-bottom: none; padding-top: 3pt; padding-bottom: 3pt;
     font-weight: bold; white-space: nowrap;
   }
   .dfc-dual-table .dual-subhead th {
@@ -560,7 +565,7 @@
             <th>Symbology</th>
             <th>Standard</th>
             <th>Grade</th>
-            <th>Aperture (mil)</th>
+            <th>{{GRADE_COL_4_TITLE}}</th>
             <th>Wavelength (nm)</th>
             <th>Lighting/Notes</th>
             <th>Formal Grade</th>
@@ -570,6 +575,7 @@
           {{SLOT_GRADE_ROWS}}
         </tbody>
         </table>
+        {{SLOT_GRADE_WARNINGS}}
       </div>
     </div>
 

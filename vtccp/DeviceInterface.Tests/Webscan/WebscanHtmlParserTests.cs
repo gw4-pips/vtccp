@@ -141,12 +141,14 @@ public sealed class WebscanHtmlParserTests
         Assert.True(report.ParseSucceeded, report.ParseError);
         Assert.Equal("ANSI/ISO", report.Standard);
         Assert.Equal("0.1/06/660", report.FormalGrade);
+        Assert.Null(report.ApertureUnit);
         Assert.Equal("ISO15416:2016", report.Notes);
         Assert.Null(report.Lighting);
         Assert.Equal("ISO15416:2016", record.HtmlNotes);
-        Assert.Contains("<th>Notes</th>", html, StringComparison.Ordinal);
+        Assert.Contains("<th>Lighting/Notes</th>", html, StringComparison.Ordinal);
+        Assert.Contains("<th>Aperture (mil)</th>", html, StringComparison.Ordinal);
         Assert.Contains("ISO15416:2016", html, StringComparison.Ordinal);
-        Assert.DoesNotContain("<th>Lighting</th>", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<th>Notes</th>", html, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -105,7 +105,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "TruCheck Barcode Image — GS1 DataMatrix",
+            "TruCheck Barcode Image</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em> &#x2014; GS1 Element String",
             report,
             StringComparison.Ordinal);
         Assert.Contains("AI (01) GTIN-14", report, StringComparison.Ordinal);
@@ -408,7 +408,7 @@ public sealed class VccsHtmlReportGeneratorTests
                 report,
                 "<tbody>\\s*<tr data-vccs-symbol-group=\"true\">",
                 RegexOptions.CultureInvariant).Cast<Match>());
-        Assert.Contains("TruCheck Barcode Image — EAN-13", report,
+        Assert.Contains("TruCheck Barcode Image</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em> &#x2014; GS1 GTIN", report,
             StringComparison.Ordinal);
         Assert.Contains("5901234123457", report, StringComparison.Ordinal);
         Assert.Contains("ISO 15416:2024", report, StringComparison.Ordinal);
@@ -473,14 +473,100 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.DoesNotContain("Multi-Symbol Qualification", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Additional native symbols remain listed", report,
             StringComparison.Ordinal);
-        int firstSection = report.IndexOf("TruCheck Barcode Image — GS1 DataMatrix",
+        Assert.Equal(3, Regex.Matches(report, "<table class=\"dfc-dual-table\">",
+            RegexOptions.CultureInvariant).Count);
+        Assert.Equal(3, Regex.Matches(
+            report,
+            Regex.Escape("TruCheck Barcode Image</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em> &#x2014; "),
+            RegexOptions.CultureInvariant).Count);
+        Assert.Contains("GS1 GTIN", report, StringComparison.Ordinal);
+        Assert.Contains("GS1 Element String", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_MultiSymbolReportUsesOneNativeOrderAndCompleteGradeWarningPresentation()
+    {
+        const string gtin = "00696114704288";
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            HtmlSymbology = "GS1 DataMatrix",
+            HtmlDecodedData = "(01)00696114704288(21)72803282010",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "source-order-report.html",
+            HtmlVerifiedString = "Sun 23-Aug-2026 11:24:40 AM",
+            RfidReaderConnected = true,
+            RfidStatus = "Pass",
+            RfidGtin14 = gtin,
+            RfidLinearGtin14Matches = true,
+            RfidMatchScope = "Both",
+            MultiSymbolReports =
+            [
+                new NativeWebscanReportSummary
+                {
+                    Ordinal = 2,
+                    Symbology = "GS1 DataMatrix",
+                    SymbologyFamily = SymbologyFamily.DataMatrix.ToString(),
+                    DecodedData = "(01)00696114704288(21)72803282010",
+                    Gtin14 = gtin,
+                    Standard = "ISO15415:2011",
+                    ApertureDisplay = "06",
+                    ApertureUnit = "mm",
+                },
+                new NativeWebscanReportSummary
+                {
+                    Ordinal = 3,
+                    Symbology = "UPCA",
+                    SymbologyFamily = SymbologyFamily.Linear1D.ToString(),
+                    DecodedData = "696114704288",
+                    Gtin14 = gtin,
+                    Standard = "ISO15416:2016",
+                    ApertureDisplay = "06",
+                    ApertureUnit = "mm",
+                    Notes = "Warning: Symbol Magnification is less than 80%",
+                },
+                new NativeWebscanReportSummary
+                {
+                    Ordinal = 1,
+                    Symbology = "GS1 DataMatrix",
+                    SymbologyFamily = SymbologyFamily.DataMatrix.ToString(),
+                    DecodedData = "(01)00000000000000(21)72803282010",
+                    Gtin14 = "00000000000000",
+                    Standard = "ISO15415:2011",
+                    ApertureDisplay = "06",
+                    ApertureUnit = "mm",
+                },
+            ],
+        });
+
+        int summaryFirst = report.IndexOf(">#1 \u2013 GS1 DataMatrix</td>", StringComparison.Ordinal);
+        int summarySecond = report.IndexOf(">#2 \u2013 GS1 DataMatrix</td>", StringComparison.Ordinal);
+        int summaryThird = report.IndexOf(">#3 \u2013 UPCA</td>", StringComparison.Ordinal);
+        Assert.True(summaryFirst >= 0 && summarySecond > summaryFirst && summaryThird > summarySecond);
+        Assert.Contains("<th>Aperture (mm)</th>", report, StringComparison.Ordinal);
+        Assert.Contains(">ISO15416:2016*</td>", report, StringComparison.Ordinal);
+        Assert.Contains("*Warning: Symbol Magnification is less than 80%", report,
             StringComparison.Ordinal);
-        int secondSection = report.IndexOf("TruCheck Barcode Image — EAN-13",
+        Assert.Equal(3, Regex.Matches(report, "<table class=\"dfc-dual-table\">",
+            RegexOptions.CultureInvariant).Count);
+        Assert.Contains(
+            "#1 \u2013 GS1 DataMatrix RFID Validation Result",
+            report,
             StringComparison.Ordinal);
-        int parserPanel = report.IndexOf("DataMan TruCheck GS1 Parser",
+        Assert.Contains(
+            "#2 \u2013 GS1 DataMatrix RFID Validation Result",
+            report,
             StringComparison.Ordinal);
-        Assert.True(firstSection >= 0 && secondSection > firstSection &&
-                    parserPanel > firstSection && parserPanel < secondSection);
+        Assert.Contains(
+            "#3 \u2013 UPCA RFID Validation Result",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(".rfid-table .rfid-symbol-result td { font-size: 8pt; }",
+            report, StringComparison.Ordinal);
+        Assert.Contains(
+            ".dfc-dual-table .dual-overall td {\n     border-top: 1px solid #aaa;",
+            report,
+            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -738,7 +824,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "TruCheck Barcode Image — QR Code",
+            "TruCheck Barcode Image</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em> &#x2014; Digital Link",
             report,
             StringComparison.Ordinal);
         Assert.DoesNotContain("Verifier DFC", report, StringComparison.Ordinal);
@@ -811,7 +897,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(
-            "TruCheck Barcode Image — GS1 DataMatrix",
+            "TruCheck Barcode Image</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em> &#x2014; GS1 Element String",
             report,
             StringComparison.Ordinal);
         Assert.Contains("<table class=\"dfc-dual-table\">", report, StringComparison.Ordinal);
@@ -1520,12 +1606,11 @@ public sealed class VccsHtmlReportGeneratorTests
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.Equal(2, VccsHtmlReportGenerator.MaxRenderedSymbolGroups);
         Assert.Contains("data-vccs-symbol-group=\"true\"", report, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Generate_CompositeRendersTwoDBeforeLinear()
+    public void Generate_CompositeUsesItsCanonicalLegacySymbolProjection()
     {
         var record = new VerificationRecord
         {
@@ -1544,14 +1629,14 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         int twoDIndex = report.IndexOf(
-            ">GS1 DataMatrix</td>",
+            ">#2 \u2013 GS1 DataMatrix</td>",
             StringComparison.Ordinal);
         int linearIndex = report.IndexOf(
-            ">UPCA</td>",
+            ">#1 \u2013 UPCA</td>",
             StringComparison.Ordinal);
 
-        Assert.True(twoDIndex >= 0);
-        Assert.True(linearIndex > twoDIndex);
+        Assert.True(linearIndex >= 0);
+        Assert.True(twoDIndex > linearIndex);
     }
 
     [Fact]
@@ -1639,7 +1724,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            "<span class=\"trucheck-header-title\">TruCheck Barcode Image ",
+            "<span class=\"trucheck-header-title\">TruCheck Barcode Image</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em> &#x2014;",
             report,
             StringComparison.Ordinal);
     }

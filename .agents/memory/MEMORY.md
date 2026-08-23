@@ -55,3 +55,4 @@
 - [Multi-symbol RFID qualification](multi-symbol-rfid-qualification.md) — three-plus symbols qualify when RFID matches at least one linear and one 2D identity; extras remain independently reported
 - [Parser panel assignment](parser-panel-assignment.md) — assign dual parser evidence by explicit native report identity, not record-level primary fields
 - [Report template slot tokens](report-template-slot-tokens.md) — replacement tokens must occur only once in live HTML, never in comments that string replacement also expands
+- [Native Webscan report order](native-webscan-report-order.md) — preserve the verifier's source sequence across summary, grades, RFID, and DFC/parser sections

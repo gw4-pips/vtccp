@@ -270,6 +270,7 @@ public static partial class WebscanHtmlParser
                 Standard = gradeRow?.Cells[0],
                 OverallGradeDisplay = gradeRow?.Cells[1],
                 ApertureDisplay = gradeRow?.Cells.ElementAtOrDefault(2),
+                ApertureUnit = ExtractApertureUnit(rawHtml),
                 Aperture = ParseInt(gradeRow?.Cells.ElementAtOrDefault(2)),
                 WavelengthDisplay = gradeRow?.Cells.ElementAtOrDefault(3),
                 Wavelength = ParseInt(gradeRow?.Cells.ElementAtOrDefault(3)),
@@ -316,6 +317,15 @@ public static partial class WebscanHtmlParser
             compact.Equals("EAN13", StringComparison.OrdinalIgnoreCase))
             return SymbologyFamily.Linear1D;
         return SymbologyFamily.Unknown;
+    }
+
+    private static string? ExtractApertureUnit(string rawHtml)
+    {
+        Match match = Regex.Match(
+            HtmlText(rawHtml),
+            @"\bAperture\s*\(\s*(mil|mm)\s*\)",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        return match.Success ? match.Groups[1].Value.ToLowerInvariant() : null;
     }
 
     public static ImagePolarity MapImagePolarity(string? value)

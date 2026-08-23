@@ -39,6 +39,7 @@ public sealed class WebscanHtmlReport
     public string? Standard { get; init; }
     public string? OverallGradeDisplay { get; init; }
     public string? ApertureDisplay { get; init; }
+    public string? ApertureUnit { get; init; }
     public int? Aperture { get; init; }
     public string? WavelengthDisplay { get; init; }
     public int? Wavelength { get; init; }
@@ -163,6 +164,7 @@ public sealed class WebscanHtmlReport
             HtmlStandard = Standard,
             HtmlOverallGradeDisplay = OverallGradeDisplay,
             HtmlAperture = ApertureDisplay,
+            HtmlApertureUnit = ApertureUnit,
             HtmlWavelength = WavelengthDisplay,
             HtmlLighting = Lighting,
             HtmlFormalGrade = FormalGrade,
@@ -426,6 +428,7 @@ public class WebscanHtmlCompositeReport
             Standard = report.Standard,
             OverallGradeDisplay = report.OverallGradeDisplay,
             ApertureDisplay = report.ApertureDisplay,
+            ApertureUnit = report.ApertureUnit,
             WavelengthDisplay = report.WavelengthDisplay,
             Lighting = report.Lighting,
             Notes = report.Notes,

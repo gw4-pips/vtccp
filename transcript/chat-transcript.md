@@ -3199,3 +3199,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Attached a new PDF, Webscan HTML report, and reference image with further corrections, then noted that the message was sent prematurely and asked the assistant to await additional comments.
 
 **Assistant:** Acknowledged the premature message and confirmed that no changes would be made until the user finished providing comments.
+
+**User:** Requested a correction pass for the VCCS multi-symbol report: preserve the Webscan source order throughout the report, render full per-symbol grade/RFID/parser detail, tighten the grade and DFC layouts, and bump the application version.
+
+**Assistant:** Implemented a single native-order projection across the barcode summary, grades, RFID results, and barcode image/DFC/parser panels; added dynamic aperture units, consolidated Lighting/Notes warnings beneath the grade table, made all DFC panels consistent, and updated the application to v1.5.93/report format to v1.5.65. Focused generator/parser tests passed 54/54 and the Windows-targeted desktop build passed with zero errors. The Linux workspace could not visually render the Windows-only WebView2/wkhtmltopdf PDF path.
