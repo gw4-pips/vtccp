@@ -3080,3 +3080,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked to remove the bottom-right “Verification Command & Control System” notation, anchor the footer at the bottom of the defined page, remove the misleading unavailable verifier-DFC row from the dual parser layout, and wrap the GS1 Digital Link URI like the GS1 Element String.
 
 **Assistant:** Updated the VCCS report template and generator. The footer now occupies the bottom of the Letter-height report page and no longer has the bottom-right notation. When the native DFC table is absent in the dual parser layout, its side stays blank with the existing overall state rather than showing a fabricated “Verifier DFC” unavailable row. Digital Link URIs now explicitly wrap in the VeriWedge Data column. Bumped the report to v1.5.55 and the app to v1.5.79. Source and diff checks passed; Linux .NET validation remains blocked by the existing missing NPOI and OfficeOpenXml references.
+
+**User:** Asked whether app version 1.5.79 had been pushed.
+
+**Assistant:** Confirmed that version 1.5.79 is present in local commit `0bcc42b`, but the primary GitHub `origin/main` remains at `d16e9d4`; therefore version 1.5.79 has not been pushed.
