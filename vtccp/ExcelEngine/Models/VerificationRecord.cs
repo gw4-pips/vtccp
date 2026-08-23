@@ -852,6 +852,15 @@ public sealed class NativeWebscanReportSummary
     public string? Gtin14 { get; init; }
     public string? SourceImagePath { get; init; }
     public string? SourceImageProvenance { get; init; }
+    public string? SourceImageBase64 { get; init; }
+    public string? SourceImageMimeType { get; init; }
+    public string? Standard { get; init; }
+    public string? OverallGradeDisplay { get; init; }
+    public string? ApertureDisplay { get; init; }
+    public string? WavelengthDisplay { get; init; }
+    public string? Lighting { get; init; }
+    public string? Notes { get; init; }
+    public string? FormalGrade { get; init; }
     public IReadOnlyList<NativeQualityParameter> QualityParameters { get; init; } = [];
     public DataFormatCheckResult? DataFormatCheck { get; init; }
 }

@@ -51,3 +51,4 @@
 - [VCCS report normal-flow sizing](vccs-report-normal-flow-sizing.md) — physical page height constraints can strand the footer on a blank PDF page; let the report grow naturally
 - [Standalone linear GS1 verifier behavior](standalone-linear-gs1.md) — EAN/UPC uses the normal GS1 parser policy; preserve native non-14-digit GTIN and separate check digit
 - [Webscan composite imports](webscan-composite.md) — one linear + one 2D report becomes one record; one RFID scan compares against both GTINs and overall fails on either mismatch
+- [Multi-symbol RFID qualification](multi-symbol-rfid-qualification.md) — three-plus symbols qualify when RFID matches at least one linear and one 2D identity; extras remain independently reported

@@ -1559,27 +1559,47 @@ public sealed class SessionViewModel : ViewModelBase
                 .Distinct(StringComparer.Ordinal)
                 .ToArray();
             var reasons = new List<string>();
+            bool hasLinearSymbol = record.MultiSymbolReports.Any(
+                s => s.SymbologyFamily == SymbologyFamily.Linear1D.ToString());
+            bool hasTwoDSymbol = record.MultiSymbolReports.Any(
+                s => s.SymbologyFamily != SymbologyFamily.Linear1D.ToString() &&
+                     s.SymbologyFamily != SymbologyFamily.Unknown.ToString());
+            bool linearMatches = linearGtin14 is not null && rfidGtin == linearGtin14;
+            bool anyTwoDMatches = rfidGtin is not null &&
+                record.MultiSymbolReports.Any(s =>
+                    s.SymbologyFamily != SymbologyFamily.Linear1D.ToString() &&
+                    s.SymbologyFamily != SymbologyFamily.Unknown.ToString() &&
+                    s.Gtin14 == rfidGtin);
             if (record.MultiSymbolReports.Any(s => s.SymbologyFamily == SymbologyFamily.Unknown.ToString()))
                 reasons.Add("unsupported symbols are present");
             if (record.MultiSymbolReports.Any(s => s.Gtin14 is null))
                 reasons.Add("one or more symbols are missing GTIN-14 identity");
             if (knownGtins.Length > 1)
-                reasons.Add($"GTIN mismatch: {string.Join(", ", knownGtins)}");
+                reasons.Add($"additional symbol identity differs: {string.Join(", ", knownGtins)}");
             if (rfidGtin is null)
                 reasons.Add("RFID GTIN unavailable");
             else if (knownGtins.Length == 1 && rfidGtin != knownGtins[0])
                 reasons.Add($"RFID GTIN mismatch: RFID {rfidGtin}, symbols {knownGtins[0]}");
+            else if (knownGtins.Length > 1 && !anyTwoDMatches)
+                reasons.Add($"RFID GTIN {rfidGtin} matches no 2D symbol");
 
             MultiSymbolQualificationStatus qualificationStatus =
-                knownGtins.Length == 1 && rfidGtin == knownGtins[0] &&
-                reasons.Count == 0
+                rfidResult?.Status == RfidValidationStatus.Pass &&
+                hasLinearSymbol && hasTwoDSymbol && linearMatches && anyTwoDMatches &&
+                record.MultiSymbolReports.All(s =>
+                    s.SymbologyFamily != SymbologyFamily.Unknown.ToString() &&
+                    s.Gtin14 is not null)
                     ? MultiSymbolQualificationStatus.Qualified
                     : knownGtins.Length > 1 ||
-                      (rfidGtin is not null && knownGtins.Length == 1 && rfidGtin != knownGtins[0])
+                      (rfidGtin is not null && !linearMatches && !anyTwoDMatches)
                         ? MultiSymbolQualificationStatus.Rejected
                         : MultiSymbolQualificationStatus.Unverified;
-            if (reasons.Count == 0)
-                reasons.Add("all recognized symbol identities agree with RFID EPC");
+            if (qualificationStatus == MultiSymbolQualificationStatus.Qualified)
+            {
+                reasons.Add(linearMatches && anyTwoDMatches && knownGtins.Length > 1
+                    ? "RFID matches at least one linear and one 2D symbol; additional symbol identity retained as non-qualifying evidence"
+                    : "all recognized symbol identities agree with RFID EPC");
+            }
             record = record with
             {
                 MultiSymbolQualificationStatus = qualificationStatus.ToString(),

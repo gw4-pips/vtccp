@@ -348,7 +348,20 @@ public class WebscanHtmlCompositeReport
             throw new InvalidOperationException(
                 ParseError ?? "Webscan multi-symbol report did not parse.");
 
-        WebscanHtmlReport primaryReport = TwoDReport ?? SymbolReports[0];
+        string? linearIdentity = LinearReport is null
+            ? null
+            : ExtractIdentityGtin(LinearReport);
+        // For multi-2D exports, prefer the unique 2D report whose identity agrees
+        // with the linear symbol. This is an identity decision, not a source-order
+        // decision; source order remains preserved in MultiSymbolReports.
+        WebscanHtmlReport primaryReport =
+            (linearIdentity is not null
+                ? SymbolReports.Where(report =>
+                    WebscanHtmlParser.MapSymbologyFamily(report.Symbology ?? string.Empty) != SymbologyFamily.Linear1D &&
+                    ExtractIdentityGtin(report) == linearIdentity).FirstOrDefault()
+                : null)
+            ?? TwoDReport
+            ?? SymbolReports[0];
         VerificationRecord primary = primaryReport.ToVerificationRecord();
         VerificationRecord? linear = LinearReport?.ToVerificationRecord();
         bool isDualSymbology = LinearReport is not null && TwoDReport is not null &&
@@ -408,6 +421,15 @@ public class WebscanHtmlCompositeReport
             Gtin14 = ExtractIdentityGtin(report),
             SourceImagePath = report.SourceImagePath,
             SourceImageProvenance = report.SourceImageProvenance.ToString(),
+            SourceImageBase64 = report.SourceImageBase64,
+            SourceImageMimeType = report.SourceImageMimeType,
+            Standard = report.Standard,
+            OverallGradeDisplay = report.OverallGradeDisplay,
+            ApertureDisplay = report.ApertureDisplay,
+            WavelengthDisplay = report.WavelengthDisplay,
+            Lighting = report.Lighting,
+            Notes = report.Notes,
+            FormalGrade = report.FormalGrade,
             QualityParameters = report.QualityParameters.Select(p => new NativeQualityParameter
             {
                 Number = p.Number, Name = p.Name, MeasuredValue = p.MeasuredValue,
