@@ -3150,6 +3150,10 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 
 **Assistant:** Corrected the multi-symbol mapping to use `VerificationRecord.DecodedData`. The Windows-targeted build then succeeded with zero errors, and the fix was committed and pushed as `ddd81dd`.
 
+**User:** Supplied a real three-symbol Webscan export and asked to raise the hardcoded RFID reader power from 13 to 20, identify which files the VW app receives, explain why the app selected the wrong GS1 DataMatrix, and discuss matching/three-segment handling before making further changes.
+
+**Assistant:** Inspected the export and source without changing code. The app watches/imports only the Webscan HTML; the three JPGs are sibling image assets referenced by that HTML, while the Webscan PDF, VCCS PDF, and XLSX are outputs. The current code selects the first 2D report, which is why it chose the nonmatching DataMatrix; the second DataMatrix matches the UPC-A identity.
+
 **User:** Asked to confirm three-symbol qualification against a real Webscan export by adding a captured fixture with sibling images and extending the Webscan parser tests without changing qualification policy.
 
 **Assistant:** Added a three-symbol Webscan HTML fixture with three sibling JPEGs, expanded parser coverage for native fields, image association, quality tables, Data Format Check results, and qualified/rejected identity reasons, and fixed the existing decoded-data property typo that blocked compilation. The focused three-symbol test passed; the broader Webscan suite retains two pre-existing failures.
