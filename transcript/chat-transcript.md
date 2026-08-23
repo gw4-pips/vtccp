@@ -3145,3 +3145,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Chose 2D-first ordering for composite reports because the 2D symbol carries the structured GTIN-plus identity most tightly associated with RFID, while preserving linear-only behavior.
 
 **Assistant:** Changed composite report generation to render the 2D symbol above the linear symbol, added a regression test, bumped the app to 1.5.86 and report format to v1.5.60, and verified the focused composite/parser tests and Windows-targeted build.
+
+**User:** Reported Windows build errors stating that `VerificationRecord` did not contain a definition for `Data`, followed by cascading missing metadata-file errors.
+
+**Assistant:** Corrected the multi-symbol mapping to use `VerificationRecord.DecodedData`. The Windows-targeted build then succeeded with zero errors, and the fix was committed and pushed as `ddd81dd`.
