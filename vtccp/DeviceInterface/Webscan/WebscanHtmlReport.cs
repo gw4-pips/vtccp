@@ -380,7 +380,7 @@ public class WebscanHtmlCompositeReport
                 RfidValidator.ExtractAi01(primary.DecodedData) is { } twoDGtin &&
                 linearGtin == twoDGtin,
             BarcodeSymbolAgreementDetail =
-                $"2D GTIN-14: {RfidValidator.ExtractAi01(primary.Data) ?? "missing"}; " +
+                $"2D GTIN-14: {RfidValidator.ExtractAi01(primary.DecodedData) ?? "missing"}; " +
                 $"linear GTIN-14: {(linear is null ? "missing" : RfidValidator.NormalizeLinearGtin14(linear.Symbology, linear.DecodedData) ?? "missing")}",
             HtmlLinearStandard = linear?.HtmlStandard,
             HtmlLinearGradeDisplay = linear?.HtmlOverallGradeDisplay,
