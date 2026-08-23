@@ -3,6 +3,7 @@ using DeviceInterface.Reports;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
 using ExcelEngine.Writer;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace DeviceInterface.Tests.Reports;
@@ -360,6 +361,67 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.DoesNotContain("TRANSPORT_DATA", report, StringComparison.Ordinal);
         Assert.DoesNotContain("TRANSPORT_STANDARD", report, StringComparison.Ordinal);
         Assert.DoesNotContain("4/A", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_StandaloneEan13_UsesTheDefaultGs1ParserComparison()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "EAN-13",
+            SymbologyFamily = SymbologyFamily.Linear1D,
+            IsStandaloneLinear = true,
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "ean13-verifier-output.html",
+            HtmlVerifiedString = "Thu 15-Jan-2026 10:30:45 AM",
+            HtmlSymbology = "EAN-13",
+            HtmlDecodedData = "5901234123457",
+            HtmlStandard = "ISO 15416:2024",
+            HtmlOverallGradeDisplay = "4.0 (A)",
+            HtmlAperture = "06",
+            HtmlWavelength = "660",
+            HtmlLighting = "Diffuse",
+            HtmlFormalGrade = "A/06/660/Diffuse",
+            HtmlDataFormatCheck = new DataFormatCheckResult
+            {
+                Overall = OverallPassFail.Pass,
+                Standard = "GS1 Application Data Format",
+                Rows =
+                [
+                    new() { Name = "GTIN", Data = "590123412345", Check = "PASS" },
+                    new() { Name = "Check Digit", Data = "7", Check = "PASS" },
+                ],
+            },
+            VeriWedgeValidationUsed = true,
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Source = DigitalLinkValidationResult.VccsElementStringSource,
+                Detail = "Parser state must not create a 2D comparison panel for EAN-13.",
+            },
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Single(
+            Regex.Matches(
+                report,
+                "<tbody>\\s*<tr data-vccs-symbol-group=\"true\">",
+                RegexOptions.CultureInvariant).Cast<Match>());
+        Assert.Contains("Data Format Check (DFC) &#x2014; GS1 Element String", report,
+            StringComparison.Ordinal);
+        Assert.Contains("5901234123457", report, StringComparison.Ordinal);
+        Assert.Contains("ISO 15416:2024", report, StringComparison.Ordinal);
+        Assert.Contains("4.0 (A)", report, StringComparison.Ordinal);
+        Assert.Contains("A/06/660/Diffuse", report, StringComparison.Ordinal);
+        Assert.Contains("590123412345", report, StringComparison.Ordinal);
+        Assert.Contains("Check Digit", report, StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "[DATA FORMAT CHECK UNAVAILABLE — NOT PRESENT IN TRUCHECK HTML]",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains("DataMan TruCheck GS1 Parser", report, StringComparison.Ordinal);
+        Assert.Contains("VeriWedge GS1 Parser", report, StringComparison.Ordinal);
     }
 
     [Fact]

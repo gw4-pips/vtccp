@@ -250,6 +250,7 @@ public static class DmstReportValidator
             EncodedCharacters     = encodedCharacters,
 
             // Linear symbol (multi-mode): null for single-mode scans.
+            IsStandaloneLinear      = html.IsStandaloneLinear,
             LinearSymbology       = linearSymbology,
             LinearDecodedData     = linearDecodedData,
             LinearOverallGrade    = linearOverallGrade,
@@ -490,76 +491,6 @@ public static class DmstReportValidator
             Overall  = checkOk ? OverallPassFail.Pass : OverallPassFail.Fail,
             Standard = "GS1 Application Data Format",
             Rows     = rows,
-        };
-    }
-
-    /// <summary>
-    /// Builds a <see cref="DataFormatCheckResult"/> carrying a GTIN row and a
-    /// check-digit validation row for EAN/UPC symbologies.
-    ///
-    /// The GS1 check-digit algorithm (Luhn-mod-10 with alternating weights 1/3)
-    /// is inlined here to avoid a dependency on OcrEngine from DeviceInterface.
-    ///
-    /// Returns null when <paramref name="decodedData"/> is absent or is not a
-    /// digit-only string of the expected length for the stated symbology.
-    /// </summary>
-    internal static DataFormatCheckResult? BuildLinearDataFormatCheck(
-        string? decodedData,
-        string? symbology)
-    {
-        if (string.IsNullOrWhiteSpace(decodedData)) return null;
-
-        // Strip any whitespace; the decoded data must be all-numeric.
-        string digits = decodedData.Trim();
-        if (!digits.All(char.IsDigit)) return null;
-
-        string sym = symbology?.Trim() ?? string.Empty;
-
-        // UPC-E: compressed 6-digit format — check digit must be validated against the
-        // expanded UPC-A equivalent, which requires a non-trivial expansion algorithm.
-        // Mark N/A until expansion is implemented rather than silently reporting wrong results.
-        if (sym.Equals("UPC-E", StringComparison.OrdinalIgnoreCase))
-        {
-            return new DataFormatCheckResult
-            {
-                Overall  = OverallPassFail.NotApplicable,
-                Standard = "GS1 Linear",
-                Rows     = [new() { Name = "GTIN", Data = digits, Check = "\u2014" }],
-            };
-        }
-
-        int expectedLen = sym switch
-        {
-            "EAN-13" => 13,
-            "UPC-A"  => 12,
-            "EAN-8"  => 8,
-            _        => 0,
-        };
-
-        if (expectedLen == 0 || digits.Length != expectedLen)
-        {
-            // Unknown symbology or unexpected length — emit a bare GTIN row with no check.
-            return new DataFormatCheckResult
-            {
-                Overall  = OverallPassFail.NotApplicable,
-                Standard = "GS1 Linear",
-                Rows     = [new() { Name = "GTIN", Data = digits, Check = "\u2014" }],
-            };
-        }
-
-        bool checkOk     = ValidateGs1CheckDigit(digits);
-        string checkData = digits[^1].ToString();
-        string checkPass = checkOk ? "PASS" : "FAIL";
-
-        return new DataFormatCheckResult
-        {
-            Overall  = checkOk ? OverallPassFail.Pass : OverallPassFail.Fail,
-            Standard = "GS1 Linear",
-            Rows     =
-            [
-                new() { Name = "GTIN",      Data = digits[..^1], Check = checkPass },
-                new() { Name = "Chk Digit", Data = checkData,    Check = checkPass },
-            ],
         };
     }
 

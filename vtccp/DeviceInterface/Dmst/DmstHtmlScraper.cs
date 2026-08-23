@@ -703,6 +703,22 @@ public sealed class DmstHtmlScraper : IDisposable
                 return decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : null;
             }
 
+            // The verifier's literal summary symbol is the only permitted source
+            // for standalone-linear classification. A matching EAN/UPC value
+            // elsewhere in a mixed report (including a DFC cell) is not enough.
+            string? htmlSymbology = GetAny("Symbology", "Symbol Type");
+            bool has2DCharacteristics =
+                !string.IsNullOrWhiteSpace(GetAny(
+                    "QR Size",
+                    "Matrix Size",
+                    "Error Correction Level",
+                    "Data Mask Pattern",
+                    "ECI",
+                    "Data Codewords",
+                    "Error Correction Budget",
+                    "Total Codewords",
+                    "Encoded characters"));
+
             // ── Step 2b: DM matrix size normalisation ─────────────────────────
             //
             // QR HTML uses label "QR Size"     → value "29x29" (clean, no suffix).
@@ -768,6 +784,11 @@ public sealed class DmstHtmlScraper : IDisposable
             int linearSymbIdx = cells.FindIndex(
                 c => KnownLinearSymbologies.Contains(c, StringComparer.OrdinalIgnoreCase));
             bool isMultiMode = linearSymbIdx >= 0 && allGradeDisplays.Count >= 2;
+            bool isStandaloneLinear =
+                htmlSymbology is not null &&
+                KnownLinearSymbologies.Contains(htmlSymbology, StringComparer.OrdinalIgnoreCase) &&
+                allGradeDisplays.Count == 1 &&
+                !has2DCharacteristics;
 
             // Shared helper: parse letter and numeric from "D.D (L)" string.
             static (string Letter, decimal Numeric) ParseGradeDisplay(string display)
@@ -1083,7 +1104,7 @@ public sealed class DmstHtmlScraper : IDisposable
                 HtmlWavelength          = htmlWavelength,
                 HtmlLighting            = htmlLighting,
                 HtmlFormalGrade         = htmlFormalGrade,
-                HtmlSymbology           = GetAny("Symbology", "Symbol Type"),
+                HtmlSymbology           = htmlSymbology,
                 HtmlDecodedData          = GetAny("Data", "Encoded Data", "Decoded Data"),
                 HtmlApplicationStandard = Get("Application Standard"),
                 HtmlLinearStandard      = htmlLinearStandard,
@@ -1130,6 +1151,7 @@ public sealed class DmstHtmlScraper : IDisposable
 
                 // ── Multi-mode linear symbol ───────────────────────────────────
                 IsMultiMode              = isMultiMode,
+                IsStandaloneLinear       = isStandaloneLinear,
                 LinearSymbology          = linearSymbology,
                 LinearDecodedData        = linearDecodedData,
                 LinearOverallGrade       = linearOverallGrade,

@@ -750,3 +750,27 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Confirmed that task #207 is for their real-device validation and asked for an explanation of the acceptance criteria for EAN/UPC, DM, GS1DM, QR, and GS1QR, noting that GS1QR may not have enough evidence yet.
 
 **Assistant [2026-08-22]:** Explained that task #207 is cancelled rather than completed, while #206 is the merged code change. Distinguished a valid importable verifier report from a passing verification result. Identified that Webscan currently applies 2D-specific UEC/SC/DECODE requirements to every symbology, that Webscan EAN/UPC mapping is not defined, that DataMan has only partial multi-mode EAN/UPC support, and that GS1QR needs a real report with native application-format evidence before its policy can be defined. Recommended preserving print grade, native Data Format outcome, and missing fields as separate source-backed states.
+
+---
+
+**User [2026-08-22]:** Clarified that Webscan and DataMan TruCheck treat EAN/UPC like any other GS1 symbology: a non-14-digit GTIN is acceptable, the check digit is reported separately, and the GS1 Barcode Syntax Engine reports a valid GTIN.
+
+**Assistant [2026-08-22]:** Added standalone EAN/UPC parser-shape and native-DFC regression coverage, preserving literal GTIN and check-digit rows without local recomputation. Tightened standalone evidence classification and confirmed the Windows-targeted release build plus nine focused tests.
+
+---
+
+**User [2026-08-22]:** Asked whether anything should be pushed before the first UPC-A verification.
+
+**Assistant [2026-08-22]:** Confirmed that the v1.5.80 parser/report changes and native-DFC fixture coverage are the code to push before the UPC-A verification; no fabricated live-capture evidence should be pushed.
+
+---
+
+**User [2026-08-22]:** Asked what it meant to suppress the GS1 parser-comparison layout when unrelated parser state is present.
+
+**Assistant [2026-08-22]:** Explained that the proposed suppression would have hidden parser state for a standalone linear scan, while noting that it did not delete that state.
+
+---
+
+**User [2026-08-22]:** Corrected that there should be no substantive report-format or parser-behavior difference for a GTIN-only linear scan; the normal two-parser rule remains the default.
+
+**Assistant [2026-08-22]:** Removed the special parser-comparison suppression and restored the normal GS1 two-parser behavior for standalone EAN/UPC reports. Native verifier DFC rows remain literal, including non-14-digit GTIN and separately reported check-digit values.

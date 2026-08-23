@@ -6,7 +6,7 @@ using Xunit;
 
 /// <summary>
 /// Fixture-driven tests for the Webscan TruCheck HTML multi-mode parser path and
-/// for the GS1 check-digit validator used in LinearDataFormatCheck construction.
+/// standalone EAN/UPC report classification.
 ///
 /// Fixtures are synthetic minimal HTML documents whose cell sequences match
 /// the expected Webscan TruCheck multi-mode layout:
@@ -82,6 +82,50 @@ public sealed class DmstHtmlParserTests
         </table>
         </body></html>
         """;
+
+    // Synthetic parser-shape fixture only. It is deliberately not represented as
+    // a captured DMST or Webscan report; live USB verifier evidence remains a
+    // separate validation requirement.
+    private static string StandaloneLinearHtml(
+        string symbology,
+        string? decodedData,
+        string? standard = "ISO 15416:2024",
+        string? grade = "4.0 (A)",
+        string? aperture = "06",
+        string? wavelength = "660",
+        string? lighting = "Diffuse",
+        string? formalGrade = "A/06/660/Diffuse")
+        => $$"""
+            <html><body>
+            <p>Verified: Thu 15-Jan-2026 10:30:45 AM</p>
+            <table>
+              <tr><td>Symbology</td><td>{{symbology}}</td></tr>
+              <tr><td>Data</td><td>{{decodedData}}</td></tr>
+            </table>
+            <table>
+              <tr><td>Standard</td><td>Grade</td><td>Aperture</td><td>Wavelength</td><td>Lighting</td><td>Formal Grade</td></tr>
+              <tr><td>Formal Grade</td><td>{{standard}}</td><td>{{grade}}</td><td>{{aperture}}</td><td>{{wavelength}}</td><td>{{lighting}}</td><td>{{formalGrade}}</td></tr>
+            </table>
+            </body></html>
+            """;
+
+    private static string StandaloneLinearHtmlWithVerifierDfc(
+        string symbology,
+        string decodedData,
+        string gtinWithoutCheckDigit,
+        string checkDigit)
+        => StandaloneLinearHtml(symbology, decodedData).Replace(
+            "</body>",
+            $$"""
+              <table>
+                <tr><th colspan="3">Data Format Check</th></tr>
+                <tr><th colspan="3">GS1 Application Data Format: PASS</th></tr>
+                <tr><td>GTIN</td><td>{{gtinWithoutCheckDigit}}</td><td>PASS</td></tr>
+                <tr><td>Check Digit</td><td>{{checkDigit}}</td><td>PASS</td></tr>
+              </table>
+              </body>
+              """,
+            StringComparison.Ordinal);
 
     // ── Single-mode 2D fixture — no linear symbology cell ───────────────────────
     //
@@ -256,6 +300,120 @@ public sealed class DmstHtmlParserTests
         Assert.Null(report.LinearOverallGrade);
     }
 
+    // ══ ParseHtml — standalone EAN/UPC parser-shape coverage ══════════════════
+
+    [Theory]
+    [InlineData("EAN-13", "5901234123457")]
+    [InlineData("UPC-A", "012345678905")]
+    [InlineData("EAN-8", "40170725")]
+    [InlineData("UPC-E", "01234565")]
+    public void ParseHtml_StandaloneLinear_PreservesOneLiteralVerifierRow(
+        string symbology,
+        string decodedData)
+    {
+        var report = DmstHtmlScraper.ParseHtml(
+            StandaloneLinearHtml(symbology, decodedData), FixturePath);
+
+        Assert.True(report.ParseSucceeded);
+        Assert.True(report.IsStandaloneLinear);
+        Assert.False(report.IsMultiMode);
+        Assert.Equal(symbology, report.HtmlSymbology);
+        Assert.Equal(decodedData, report.HtmlDecodedData);
+        Assert.Equal("ISO 15416:2024", report.HtmlStandard);
+        Assert.Equal("4.0 (A)", report.HtmlOverallGradeDisplay);
+        Assert.Equal("06", report.HtmlAperture);
+        Assert.Equal("660", report.HtmlWavelength);
+        Assert.Equal("Diffuse", report.HtmlLighting);
+        Assert.Equal("A/06/660/Diffuse", report.HtmlFormalGrade);
+        Assert.Equal("A", report.OverallGrade);
+        Assert.Null(report.LinearSymbology);
+        Assert.Null(report.LinearOverallGrade);
+        Assert.Null(report.MatrixSize);
+        Assert.Null(report.ScrapedDataFormatCheck);
+    }
+
+    [Fact]
+    public void ParseHtml_StandaloneLinear_MissingVerifierFieldsRemainAbsent()
+    {
+        var report = DmstHtmlScraper.ParseHtml(
+            StandaloneLinearHtml(
+                "UPC-A",
+                decodedData: null,
+                wavelength: null,
+                formalGrade: null),
+            FixturePath);
+
+        Assert.True(report.IsStandaloneLinear);
+        Assert.Null(report.HtmlDecodedData);
+        Assert.Null(report.HtmlWavelength);
+        Assert.Null(report.HtmlFormalGrade);
+        Assert.Null(report.ScrapedDataFormatCheck);
+    }
+
+    [Fact]
+    public void ParseHtml_StandaloneLinear_UnexpectedDecodedLengthRemainsLiteralAndUnchecked()
+    {
+        const string unexpectedLength = "590123412345";
+        var report = DmstHtmlScraper.ParseHtml(
+            StandaloneLinearHtml("EAN-13", unexpectedLength), FixturePath);
+
+        Assert.True(report.IsStandaloneLinear);
+        Assert.Equal(unexpectedLength, report.HtmlDecodedData);
+        Assert.Null(report.ScrapedDataFormatCheck);
+    }
+
+    [Fact]
+    public void ParseHtml_StandaloneLinear_PreservesVerifierGtinAndCheckDigitRows()
+    {
+        var report = DmstHtmlScraper.ParseHtml(
+            StandaloneLinearHtmlWithVerifierDfc(
+                "EAN-13",
+                "5901234123457",
+                gtinWithoutCheckDigit: "590123412345",
+                checkDigit: "7"),
+            FixturePath);
+
+        DataFormatCheckResult dfc = Assert.IsType<DataFormatCheckResult>(
+            report.ScrapedDataFormatCheck);
+        Assert.Equal(OverallPassFail.Pass, dfc.Overall);
+        Assert.Collection(
+            dfc.Rows,
+            row =>
+            {
+                Assert.Equal("GTIN", row.Name);
+                Assert.Equal("590123412345", row.Data);
+                Assert.Equal("PASS", row.Check);
+            },
+            row =>
+            {
+                Assert.Equal("Check Digit", row.Name);
+                Assert.Equal("7", row.Data);
+                Assert.Equal("PASS", row.Check);
+            });
+    }
+
+    [Fact]
+    public void ParseHtml_StandaloneLinear_Rejects2dCharacteristicsEvenWithOneLinearGrade()
+    {
+        string mixedHtml = StandaloneLinearHtml("EAN-13", "5901234123457").Replace(
+            "</body>",
+            """
+              <table>
+                <tr><td>Matrix Size</td><td>22x22 (Data: 20x20)</td></tr>
+                <tr><td>Error Correction Level</td><td>M</td></tr>
+              </table>
+              </body>
+              """,
+            StringComparison.Ordinal);
+
+        var report = DmstHtmlScraper.ParseHtml(mixedHtml, FixturePath);
+
+        Assert.False(report.IsStandaloneLinear);
+        Assert.Equal("EAN-13", report.HtmlSymbology);
+        Assert.Equal("22x22", report.MatrixSize);
+        Assert.Equal("M", report.ECLevel);
+    }
+
     // ══ ParseHtml — single-mode 2D ══════════════════════════════════════════════
 
     [Fact]
@@ -272,102 +430,6 @@ public sealed class DmstHtmlParserTests
         var report = DmstHtmlScraper.ParseHtml(SingleMode2DHtml, FixturePath);
 
         Assert.Equal("A", report.OverallGrade);
-    }
-
-    // ══ BuildLinearDataFormatCheck ═══════════════════════════════════════════════
-
-    [Fact]
-    public void BuildLinearDfc_ValidEan13_ReturnsPass()
-    {
-        // 5901234123457 — valid EAN-13 check digit 7
-        var result = DmstReportValidator.BuildLinearDataFormatCheck(
-            "5901234123457", "EAN-13");
-
-        Assert.NotNull(result);
-        Assert.Equal(OverallPassFail.Pass, result.Overall);
-        Assert.Equal(2, result.Rows.Count);
-        Assert.Equal("PASS", result.Rows[0].Check);  // GTIN row
-        Assert.Equal("PASS", result.Rows[1].Check);  // Chk Digit row
-        Assert.Equal("7", result.Rows[1].Data);       // check digit value
-    }
-
-    [Fact]
-    public void BuildLinearDfc_InvalidEan13CheckDigit_ReturnsFail()
-    {
-        // 5901234123458 — wrong check digit (should be 7)
-        var result = DmstReportValidator.BuildLinearDataFormatCheck(
-            "5901234123458", "EAN-13");
-
-        Assert.NotNull(result);
-        Assert.Equal(OverallPassFail.Fail, result.Overall);
-        Assert.Equal("FAIL", result.Rows[0].Check);
-        Assert.Equal("FAIL", result.Rows[1].Check);
-    }
-
-    [Fact]
-    public void BuildLinearDfc_ValidUpcA_ReturnsPass()
-    {
-        // 012345678905 — valid UPC-A check digit 5
-        var result = DmstReportValidator.BuildLinearDataFormatCheck(
-            "012345678905", "UPC-A");
-
-        Assert.NotNull(result);
-        Assert.Equal(OverallPassFail.Pass, result.Overall);
-        Assert.Equal(2, result.Rows.Count);
-        Assert.Equal("PASS", result.Rows[1].Check);
-    }
-
-    [Fact]
-    public void BuildLinearDfc_ValidEan8_ReturnsPass()
-    {
-        // 40170725 — valid EAN-8 check digit 5
-        var result = DmstReportValidator.BuildLinearDataFormatCheck(
-            "40170725", "EAN-8");
-
-        Assert.NotNull(result);
-        Assert.Equal(OverallPassFail.Pass, result.Overall);
-        Assert.Equal("5", result.Rows[1].Data);
-    }
-
-    [Fact]
-    public void BuildLinearDfc_UpcE_ReturnsNotApplicable()
-    {
-        // UPC-E check digit requires UPC-A expansion — must not run the standard
-        // EAN/UPC check and risk a false FAIL. Must return N/A.
-        var result = DmstReportValidator.BuildLinearDataFormatCheck(
-            "01234565", "UPC-E");
-
-        Assert.NotNull(result);
-        Assert.Equal(OverallPassFail.NotApplicable, result.Overall);
-        Assert.Single(result.Rows);
-        Assert.Equal("\u2014", result.Rows[0].Check);
-    }
-
-    [Fact]
-    public void BuildLinearDfc_NullData_ReturnsNull()
-    {
-        var result = DmstReportValidator.BuildLinearDataFormatCheck(null, "EAN-13");
-
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public void BuildLinearDfc_EmptyData_ReturnsNull()
-    {
-        var result = DmstReportValidator.BuildLinearDataFormatCheck("   ", "EAN-13");
-
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public void BuildLinearDfc_WrongLength_ReturnsNotApplicable()
-    {
-        // 12 digits provided for EAN-13 (expects 13) — unknown-length fallback.
-        var result = DmstReportValidator.BuildLinearDataFormatCheck(
-            "590123412345", "EAN-13");
-
-        Assert.NotNull(result);
-        Assert.Equal(OverallPassFail.NotApplicable, result.Overall);
     }
 
     [Fact]
@@ -693,6 +755,47 @@ public sealed class DmstHtmlParserTests
     }
 
     [Fact]
+    public void MergeAndValidate_StandaloneLinear_LeavesMissingVerifierDfcUnavailable()
+    {
+        var localOnlyDfc = new DataFormatCheckResult
+        {
+            Overall = OverallPassFail.Pass,
+            Standard = "LOCAL CHECK",
+            Rows = [new DataFormatCheckRow { Name = "GTIN", Data = "5901234123457", Check = "PASS" }],
+        };
+        var html = new DmstHtmlReport
+        {
+            ParseSucceeded = true,
+            SourceFilePath = FixturePath,
+            HtmlSourceFileName = Path.GetFileName(FixturePath),
+            IsStandaloneLinear = true,
+            HtmlSymbology = "EAN-13",
+            HtmlDecodedData = "5901234123457",
+            HtmlStandard = "ISO 15416:2024",
+            HtmlOverallGradeDisplay = "4.0 (A)",
+            HtmlAperture = "06",
+            HtmlWavelength = "660",
+            HtmlLighting = "Diffuse",
+            HtmlFormalGrade = "A/06/660/Diffuse",
+        };
+
+        VerificationRecord merged = DmstReportValidator.MergeAndValidate(
+            new VerificationRecord
+            {
+                Symbology = "EAN-13",
+                DataFormatCheck = localOnlyDfc,
+            },
+            html);
+
+        Assert.True(merged.IsStandaloneLinear);
+        Assert.Equal("EAN-13", merged.HtmlSymbology);
+        Assert.Equal("5901234123457", merged.HtmlDecodedData);
+        Assert.Null(merged.DataFormatCheck);
+        Assert.Null(merged.HtmlDataFormatCheck);
+        Assert.Null(merged.LinearDataFormatCheck);
+    }
+
+    [Fact]
     public void MergeAndValidate_PreservesLiteralHtmlDataFormatCheckRows()
     {
         var scraped = new DataFormatCheckResult
@@ -896,36 +999,6 @@ public sealed class DmstHtmlParserTests
         var merged = DmstReportValidator.MergeAndValidate(record, html);
 
         Assert.Equal(2.5m, merged.LinearOverallGrade?.NumericGrade);
-    }
-
-    // ══ GS1 check-digit boundary cases ══════════════════════════════════════════
-
-    [Theory]
-    [InlineData("5901234123457", true)]   // valid EAN-13
-    [InlineData("5901234123458", false)]  // wrong check digit
-    [InlineData("012345678905",  true)]   // valid UPC-A
-    [InlineData("012345678904",  false)]  // wrong check digit
-    [InlineData("40170725",      true)]   // valid EAN-8
-    [InlineData("40170724",      false)]  // wrong check digit
-    public void ValidateGs1CheckDigit_KnownValues(string digits, bool expected)
-    {
-        // Access via the internal helper through BuildLinearDataFormatCheck —
-        // pass a symbology that matches the digit length so the check is reached.
-        string sym = digits.Length switch
-        {
-            13 => "EAN-13",
-            12 => "UPC-A",
-            8  => "EAN-8",
-            _  => "EAN-13"
-        };
-
-        var result = DmstReportValidator.BuildLinearDataFormatCheck(digits, sym);
-
-        // When expected is valid → Pass; invalid → Fail
-        Assert.NotNull(result);
-        Assert.Equal(
-            expected ? OverallPassFail.Pass : OverallPassFail.Fail,
-            result.Overall);
     }
 
     [Fact]

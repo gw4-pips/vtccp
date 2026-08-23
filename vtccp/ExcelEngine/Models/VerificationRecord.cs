@@ -758,6 +758,13 @@ public sealed record class VerificationRecord
     /// </summary>
     public DataFormatCheckResult? LinearDataFormatCheck { get; init; }
 
+    /// <summary>
+    /// True when the correlated verifier HTML is a standalone EAN/UPC report,
+    /// not a multi-mode linear-plus-2D report. The report must contain exactly
+    /// one literal linear symbol row and one literal ISO/IEC 15416 grade row.
+    /// </summary>
+    public bool IsStandaloneLinear { get; init; }
+
     // ─── Helper Properties ────────────────────────────────────────────────────
 
     /// <summary>

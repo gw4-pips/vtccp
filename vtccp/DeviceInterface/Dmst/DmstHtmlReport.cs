@@ -155,6 +155,13 @@ public sealed class DmstHtmlReport
     public bool IsMultiMode { get; init; }
 
     /// <summary>
+    /// True when the report contains one standalone EAN/UPC symbol and one
+    /// verifier grade row. This is separate from <see cref="IsMultiMode"/> so
+    /// callers do not have to infer a linear-only report from missing 2D fields.
+    /// </summary>
+    public bool IsStandaloneLinear { get; init; }
+
+    /// <summary>
     /// Symbology name of the linear symbol: "EAN-13", "EAN-8", "UPC-A", or "UPC-E".
     /// Taken directly from the matching symbology cell in the HTML.
     /// </summary>
