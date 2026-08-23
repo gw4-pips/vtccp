@@ -60,6 +60,45 @@ public sealed class WebscanHtmlParserTests
     }
 
     [Fact]
+    public void ControlledTc829UpcaHtml_ImportsNativeLinearReport()
+    {
+        string sourcePath = GetUpcaReportPath();
+
+        WebscanHtmlReport report = WebscanHtmlParser.ParseFile(sourcePath);
+        VerificationRecord record = report.ToVerificationRecord();
+
+        Assert.True(report.ParseSucceeded, report.ParseError);
+        Assert.Equal("Sat 22-Aug-2026 08:47:49 PM", report.VerifiedDisplay);
+        Assert.Equal("696114704318", report.Data);
+        Assert.Equal("UPCA", report.Symbology);
+        Assert.Equal("ANSI/ISO", report.Standard);
+        Assert.Equal("A (3.5)", report.OverallGradeDisplay);
+        Assert.Equal("06", report.ApertureDisplay);
+        Assert.Equal("660", report.WavelengthDisplay);
+        Assert.Null(report.Lighting);
+        Assert.Equal("3.5/06/660", report.FormalGrade);
+        Assert.Equal(9, report.QualityParameters.Count);
+        Assert.Contains(report.QualityParameters,
+            parameter => parameter.Name == "Symbol Contrast (SC)");
+        Assert.Contains(report.QualityParameters,
+            parameter => parameter.Name == "Decodability (DEC)");
+        Assert.NotNull(report.DataFormatCheck);
+        Assert.Equal(OverallPassFail.Pass, report.DataFormatCheck!.Overall);
+        Assert.Equal("GS1 Application Data Format", report.DataFormatCheck.Standard);
+        Assert.Equal(WebscanImageProvenance.SiblingExport, report.SourceImageProvenance);
+        Assert.Equal(
+            "UPCA-26-08-22_20_47_49-696114704318Image1_1787446139035.jpg",
+            Path.GetFileName(report.SourceImagePath));
+
+        Assert.Equal(SymbologyFamily.Linear1D, record.SymbologyFamily);
+        Assert.Equal("UPCA", record.Symbology);
+        Assert.Equal(3.5m, record.OverallGrade?.NumericGrade);
+        Assert.Equal(GradeLetterValue.A, record.OverallGrade?.LetterGrade);
+        Assert.Same(report.DataFormatCheck, record.DataFormatCheck);
+        Assert.Equal("SiblingExport", record.HtmlBarcodeImageProvenance);
+    }
+
+    [Fact]
     public async Task FileAdapter_ImportsWithoutChangingSourceArtifacts()
     {
         string sourcePath = GetControlledReportPath();
@@ -341,6 +380,10 @@ public sealed class WebscanHtmlParserTests
     private static string GetQrExportWithoutAverageGradePath()
         => GetAttachedAssetPath(
             "QR-26-08-22_18_58_42-https___srk.my2dir.com_01_00696114704318_1787439623070.html");
+
+    private static string GetUpcaReportPath()
+        => GetAttachedAssetPath(
+            "UPCA-26-08-22_20_47_49-696114704318_1787446139035.html");
 
     private static string GetAttachedAssetPath(string fileName)
     {

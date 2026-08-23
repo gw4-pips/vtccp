@@ -46,16 +46,19 @@ public static partial class WebscanHtmlParser
             DateTime? verifiedDateTime = ParseVerifiedDate(verified);
             string? software = FindHeaderValue(rawHtml, "Software Version");
             string? serial = FindHeaderValue(rawHtml, "Serial Number");
+            string? symbology = Get(values, "Symbology");
+            bool isLinear = symbology is not null &&
+                MapSymbologyFamily(symbology) == SymbologyFamily.Linear1D;
 
             Row? gradeRow = rows.FirstOrDefault(r =>
-                r.Cells.Count >= 6 &&
+                r.Cells.Count >= 5 &&
                 IsGradeStandard(r.Cells[0]) &&
                 IsGradeDisplay(r.Cells[1]) &&
                 int.TryParse(r.Cells[2], NumberStyles.Integer, Invariant, out _) &&
                 int.TryParse(r.Cells[3], NumberStyles.Integer, Invariant, out _));
 
             var quality = rows
-                .Where(r => r.Cells.Count >= 6 &&
+                .Where(r => r.Cells.Count >= 5 &&
                             Regex.IsMatch(r.Cells[0], @"^\d+[a-z]?\.$",
                                 RegexOptions.IgnoreCase) &&
                             !string.IsNullOrWhiteSpace(r.Cells[1]))
@@ -65,7 +68,6 @@ public static partial class WebscanHtmlParser
                 .ToArray();
 
             string? data = Get(values, "Data");
-            string? symbology = Get(values, "Symbology");
             string? validationError = ValidateRequiredStructure(
                 verifiedDateTime,
                 software,
@@ -107,8 +109,8 @@ public static partial class WebscanHtmlParser
                 Aperture = ParseInt(gradeRow?.Cells.ElementAtOrDefault(2)),
                 WavelengthDisplay = gradeRow?.Cells.ElementAtOrDefault(3),
                 Wavelength = ParseInt(gradeRow?.Cells.ElementAtOrDefault(3)),
-                Lighting = gradeRow?.Cells.ElementAtOrDefault(4),
-                FormalGrade = gradeRow?.Cells.ElementAtOrDefault(5),
+                Lighting = isLinear ? null : gradeRow?.Cells.ElementAtOrDefault(4),
+                FormalGrade = gradeRow?.Cells.ElementAtOrDefault(isLinear ? 4 : 5),
                 MatrixSize = Get(values, "Matrix Size"),
                 HorizontalBWGDisplay = Get(values, "Horizontal BWG"),
                 HorizontalBWG = ParseDecimal(Get(values, "Horizontal BWG"), true),
@@ -142,6 +144,12 @@ public static partial class WebscanHtmlParser
             return SymbologyFamily.DataMatrix;
         if (symbology.Contains("QR", StringComparison.OrdinalIgnoreCase))
             return SymbologyFamily.QRCode;
+        string compact = Regex.Replace(symbology, @"[\s\-_/]", string.Empty);
+        if (compact.Equals("UPCA", StringComparison.OrdinalIgnoreCase) ||
+            compact.Equals("UPCE", StringComparison.OrdinalIgnoreCase) ||
+            compact.Equals("EAN8", StringComparison.OrdinalIgnoreCase) ||
+            compact.Equals("EAN13", StringComparison.OrdinalIgnoreCase))
+            return SymbologyFamily.Linear1D;
         return SymbologyFamily.Unknown;
     }
 
@@ -173,8 +181,11 @@ public static partial class WebscanHtmlParser
     {
         string? measured = NullIfEmpty(row.Cells.ElementAtOrDefault(2));
         string? gradeDisplay = NullIfEmpty(row.Cells.ElementAtOrDefault(3));
-        string? secondary = NullIfEmpty(row.Cells.ElementAtOrDefault(4));
-        string? result = NullIfEmpty(row.Cells.ElementAtOrDefault(5));
+        bool hasSecondaryValue = row.Cells.Count >= 6;
+        string? secondary = hasSecondaryValue
+            ? NullIfEmpty(row.Cells.ElementAtOrDefault(4))
+            : null;
+        string? result = NullIfEmpty(row.Cells.ElementAtOrDefault(hasSecondaryValue ? 5 : 4));
 
         return new WebscanQualityParameter
         {
@@ -207,6 +218,13 @@ public static partial class WebscanHtmlParser
         if (string.IsNullOrWhiteSpace(symbology)) missing.Add("summary Symbology");
         if (gradeRow is null) missing.Add("Verification Grades row");
         if (quality.Count == 0) missing.Add("ISO quality-parameter rows");
+
+        bool isLinear = symbology is not null &&
+            MapSymbologyFamily(symbology) == SymbologyFamily.Linear1D;
+        if (isLinear)
+            return missing.Count == 0
+                ? null
+                : "Incomplete Webscan TruCheck report: missing " + string.Join(", ", missing) + ".";
 
         // The report-level Verification Grades row is the Webscan-provided
         // overall grade. Some valid QR exports do not include a separate
@@ -397,6 +415,22 @@ public static partial class WebscanHtmlParser
             foreach (string extension in extensions)
                 yield return prefix + ".Image1" + suffix + extension;
         }
+
+        // TC-829 linear exports append a numeric export id after the report
+        // stem, while the sibling image inserts Image1 before that suffix:
+        //   UPCA-...-696114704318_1787446139035.html
+        //   UPCA-...-696114704318Image1_1787446139035.jpg
+        Match timestampedStem = Regex.Match(
+            stem,
+            @"^(?<prefix>.+)_(?<id>\d{10,})$",
+            RegexOptions.CultureInvariant);
+        if (timestampedStem.Success)
+        {
+            string prefix = timestampedStem.Groups["prefix"].Value;
+            string id = timestampedStem.Groups["id"].Value;
+            foreach (string extension in extensions)
+                yield return prefix + "Image1_" + id + extension;
+        }
     }
 
     private static bool TryReadImage(string path, out string mimeType, out string base64)
@@ -560,7 +594,9 @@ public static partial class WebscanHtmlParser
             : null;
 
     private static bool IsGradeStandard(string value)
-        => value.Contains("15415", StringComparison.OrdinalIgnoreCase);
+        => value.Contains("15415", StringComparison.OrdinalIgnoreCase) ||
+           value.Contains("15416", StringComparison.OrdinalIgnoreCase) ||
+           value.Contains("ANSI/ISO", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsGradeDisplay(string value)
         => GradeRegex().IsMatch(value.Trim());
