@@ -89,7 +89,11 @@ public sealed class RfidValidatorTests
     [InlineData("EAN13", "0696114704318", "00696114704318")]
     [InlineData("EAN-13", "0696114704318", "00696114704318")]
     [InlineData("EAN8", "96385074", "00000096385074")]
+    [InlineData("UPC-E", "04252605", "00042000005265")]
     [InlineData("UPC-E", "04252614", "00042100005264")]
+    [InlineData("UPC-E", "04252635", "00042500000265")]
+    [InlineData("UPC-E", "04252641", "00042520000061")]
+    [InlineData("UPC-E", "04252658", "00042526000058")]
     public void NormalizeLinearGtin14_UsesRequiredPadding(
         string symbology,
         string decodedData,
