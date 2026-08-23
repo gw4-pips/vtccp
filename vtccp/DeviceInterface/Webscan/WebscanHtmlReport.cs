@@ -197,6 +197,67 @@ public sealed class WebscanHtmlReport
     }
 }
 
+/// <summary>
+/// One Webscan HTML export containing the two reports that belong to one
+/// multi-symbol verification event.
+/// </summary>
+public sealed class WebscanHtmlCompositeReport
+{
+    public string SourceFilePath { get; init; } = string.Empty;
+    public string RawHtml { get; init; } = string.Empty;
+    public bool ParseSucceeded { get; init; }
+    public string? ParseError { get; init; }
+    public WebscanHtmlReport? LinearReport { get; init; }
+    public WebscanHtmlReport? TwoDReport { get; init; }
+
+    public VerificationRecord ToVerificationRecord()
+    {
+        if (!ParseSucceeded || LinearReport is null || TwoDReport is null)
+            throw new InvalidOperationException(
+                ParseError ?? "Webscan composite report did not parse.");
+
+        VerificationRecord twoD = TwoDReport.ToVerificationRecord();
+        VerificationRecord linear = LinearReport.ToVerificationRecord();
+
+        return twoD with
+        {
+            LinearSymbology = linear.Symbology,
+            LinearDecodedData = linear.DecodedData,
+            LinearOverallGrade = linear.OverallGrade,
+            LinearFormalGrade = linear.FormalGrade,
+            LinearAperture = linear.Aperture,
+            LinearWavelength = linear.Wavelength,
+            LinearLighting = linear.Lighting,
+            LinearStandard = linear.Standard,
+            LinearJpegImageBase64 = linear.HtmlBarcodeImageBase64,
+            LinearDataFormatCheck = linear.HtmlDataFormatCheck,
+            HtmlLinearStandard = linear.HtmlStandard,
+            HtmlLinearGradeDisplay = linear.HtmlOverallGradeDisplay,
+            HtmlLinearAperture = linear.HtmlAperture,
+            HtmlLinearWavelength = linear.HtmlWavelength,
+            // The linear Webscan summary's sixth cell is Notes; the legacy
+            // multi-mode report slot is named HtmlLinearLighting.
+            HtmlLinearLighting = linear.HtmlNotes ?? linear.HtmlLighting,
+            HtmlLinearFormalGrade = linear.HtmlFormalGrade,
+            IsStandaloneLinear = false,
+            DataSourceExceptions =
+                $"{twoD.DataSourceExceptions}; Webscan composite: one linear + one 2D report",
+        };
+    }
+
+    internal static WebscanHtmlCompositeReport Failure(
+        string rawHtml,
+        string sourcePath,
+        string error)
+        => new()
+        {
+            SourceFilePath = sourcePath,
+            RawHtml = rawHtml,
+            ParseSucceeded = false,
+            ParseError = error,
+        };
+}
+
 public enum WebscanImageProvenance
 {
     None,

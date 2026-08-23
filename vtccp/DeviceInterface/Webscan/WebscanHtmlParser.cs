@@ -24,6 +24,88 @@ public static partial class WebscanHtmlParser
     }
 
     public static WebscanHtmlReport Parse(string rawHtml, string sourcePath)
+        => ParseInternal(rawHtml, sourcePath, 1);
+
+    /// <summary>
+    /// Parses a Webscan export containing exactly one linear and one 2D symbol
+    /// report. The reports are kept separate until they are combined into the
+    /// existing multi-mode VerificationRecord shape.
+    /// </summary>
+    public static WebscanHtmlCompositeReport ParseComposite(
+        string rawHtml,
+        string sourcePath)
+    {
+        if (rawHtml is null) throw new ArgumentNullException(nameof(rawHtml));
+        if (sourcePath is null) throw new ArgumentNullException(nameof(sourcePath));
+
+        try
+        {
+            MatchCollection headers = SymbolReportHeaderRegex().Matches(rawHtml);
+            if (headers.Count != 2)
+                return WebscanHtmlCompositeReport.Failure(
+                    rawHtml,
+                    sourcePath,
+                    "Webscan composite must contain exactly two symbol reports.");
+
+            int firstStart = headers[0].Index;
+            string sharedHeader = rawHtml[..firstStart];
+            var reports = new List<WebscanHtmlReport>(headers.Count);
+            for (int index = 0; index < headers.Count; index++)
+            {
+                int start = headers[index].Index;
+                int length = index + 1 < headers.Count
+                    ? headers[index + 1].Index - start
+                    : rawHtml.Length - start;
+                string segment = rawHtml.Substring(start, length);
+                // The shared Webscan header contains the timestamp, software
+                // version, and serial number; prepend it so the normal
+                // single-report parser remains the canonical field mapper.
+                reports.Add(ParseInternal(
+                    sharedHeader + segment,
+                    sourcePath,
+                    index + 1));
+            }
+
+            if (reports.Any(r => !r.ParseSucceeded))
+            {
+                string error = string.Join(
+                    " | ",
+                    reports.Select((r, i) =>
+                        $"Symbol {i + 1}: {r.ParseError ?? "parse failed"}"));
+                return WebscanHtmlCompositeReport.Failure(rawHtml, sourcePath, error);
+            }
+
+            WebscanHtmlReport? linear = reports.SingleOrDefault(
+                r => MapSymbologyFamily(r.Symbology ?? string.Empty) == SymbologyFamily.Linear1D);
+            WebscanHtmlReport? twoD = reports.SingleOrDefault(
+                r => r.Symbology is not null &&
+                     MapSymbologyFamily(r.Symbology) is
+                         SymbologyFamily.DataMatrix or SymbologyFamily.QRCode);
+            if (linear is null || twoD is null)
+                return WebscanHtmlCompositeReport.Failure(
+                    rawHtml,
+                    sourcePath,
+                    "Webscan composite must contain exactly one supported linear symbol and one supported 2D symbol.");
+
+            return new WebscanHtmlCompositeReport
+            {
+                SourceFilePath = sourcePath,
+                RawHtml = rawHtml,
+                ParseSucceeded = true,
+                LinearReport = linear,
+                TwoDReport = twoD,
+            };
+        }
+        catch (Exception ex)
+        {
+            return WebscanHtmlCompositeReport.Failure(rawHtml, sourcePath, ex.Message);
+        }
+    }
+
+    private static WebscanHtmlReport ParseInternal(
+        string rawHtml,
+        string sourcePath,
+        int imageOrdinal)
     {
         if (rawHtml is null) throw new ArgumentNullException(nameof(rawHtml));
         if (sourcePath is null) throw new ArgumentNullException(nameof(sourcePath));
@@ -31,7 +113,9 @@ public static partial class WebscanHtmlParser
         try
         {
             var text = HtmlText(rawHtml);
-            if (!text.Contains("Webscan TruCheck", StringComparison.OrdinalIgnoreCase))
+            if (!text.Contains("Webscan TruCheck", StringComparison.OrdinalIgnoreCase) &&
+                !text.Contains("Symbol Verification Report",
+                    StringComparison.OrdinalIgnoreCase))
                 return Failure(rawHtml, sourcePath, "Webscan TruCheck title was not found.");
 
             var rows = ExtractRows(rawHtml);
@@ -81,7 +165,7 @@ public static partial class WebscanHtmlParser
 
             (string? imagePath, WebscanImageProvenance imageProvenance,
                 string? imageMimeType, string? imageBase64) =
-                ResolveSourceImage(rawHtml, sourcePath);
+                ResolveSourceImage(rawHtml, sourcePath, imageOrdinal);
             DataFormatCheckResult? dataFormatCheck = ExtractDataFormatCheck(rawHtml);
 
             return new WebscanHtmlReport
@@ -295,7 +379,10 @@ public static partial class WebscanHtmlParser
     }
 
     private static (string? Path, WebscanImageProvenance Provenance,
-        string? MimeType, string? Base64) ResolveSourceImage(string html, string sourcePath)
+        string? MimeType, string? Base64) ResolveSourceImage(
+        string html,
+        string sourcePath,
+        int imageOrdinal)
     {
         string directory = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? string.Empty;
         string? imageReference = FindImageReference(html);
@@ -308,7 +395,7 @@ public static partial class WebscanHtmlParser
                     mimeType, base64);
         }
 
-        foreach (string candidate in SiblingImageCandidates(sourcePath))
+        foreach (string candidate in SiblingImageCandidates(sourcePath, imageOrdinal))
         {
             if (TryResolveReportLocalImagePath(directory, candidate, out string localCandidate) &&
                 TryReadImage(localCandidate, out string mimeType, out string base64))
@@ -395,14 +482,16 @@ public static partial class WebscanHtmlParser
         return false;
     }
 
-    private static IEnumerable<string> SiblingImageCandidates(string sourcePath)
+    private static IEnumerable<string> SiblingImageCandidates(
+        string sourcePath,
+        int imageOrdinal)
     {
         string directory = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? string.Empty;
         string stem = Path.GetFileNameWithoutExtension(sourcePath);
         string[] extensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"];
 
         foreach (string extension in extensions)
-            yield return stem + ".Image1" + extension;
+            yield return stem + $".Image{imageOrdinal}" + extension;
 
         // Webscan sanitizes the HTML export name differently from the image
         // export. For example:
@@ -414,7 +503,7 @@ public static partial class WebscanHtmlParser
             string prefix = stem[..separator];
             string suffix = stem[(separator + 1)..]; // includes the underscore
             foreach (string extension in extensions)
-                yield return prefix + ".Image1" + suffix + extension;
+                yield return prefix + $".Image{imageOrdinal}" + suffix + extension;
         }
 
         // TC-829 linear exports append a numeric export id after the report
@@ -430,7 +519,7 @@ public static partial class WebscanHtmlParser
             string prefix = timestampedStem.Groups["prefix"].Value;
             string id = timestampedStem.Groups["id"].Value;
             foreach (string extension in extensions)
-                yield return prefix + "Image1_" + id + extension;
+                yield return prefix + $"Image{imageOrdinal}_" + id + extension;
         }
     }
 
@@ -682,6 +771,10 @@ public static partial class WebscanHtmlParser
     [GeneratedRegex(@"<h2\b[^>]*>(?<body>.*?)</h2\s*>",
         RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex HeaderRegex();
+
+    [GeneratedRegex(@"<h1\b[^>]*>\s*Symbol\s+(?<number>\d+)\s+Verification\s+Report\s*</h1\s*>",
+        RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex SymbolReportHeaderRegex();
 
     [GeneratedRegex(@"(?<letter>[A-F])\s*\((?<numeric>\d+(?:\.\d+)?)\)",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]

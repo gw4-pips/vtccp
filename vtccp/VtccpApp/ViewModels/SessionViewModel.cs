@@ -1481,6 +1481,48 @@ public sealed class SessionViewModel : ViewModelBase
             VccsDigitalLinkValidation = veriWedgeValidation,
         };
 
+        // A Webscan composite has two native barcode reports but one RFID
+        // inventory window. Compare normalized GTINs without changing either
+        // native decoded value.
+        bool isComposite = !string.IsNullOrWhiteSpace(record.LinearSymbology);
+        string? twoDGtin14 = isComposite
+            ? RfidValidator.ExtractAi01(record.HtmlDecodedData ?? record.DecodedData)
+            : null;
+        string? linearGtin14 = isComposite
+            ? RfidValidator.NormalizeLinearGtin14(
+                record.LinearSymbology,
+                record.LinearDecodedData)
+            : null;
+        string? barcodeAgreement = null;
+        string? barcodeAgreementDetail = null;
+        if (isComposite)
+        {
+            if (twoDGtin14 is null || linearGtin14 is null)
+            {
+                barcodeAgreement = "Incomplete";
+                barcodeAgreementDetail =
+                    $"2D GTIN-14: {twoDGtin14 ?? "missing"}; " +
+                    $"linear GTIN-14: {linearGtin14 ?? "missing"}";
+            }
+            else if (twoDGtin14 == linearGtin14)
+            {
+                barcodeAgreement = "Pass";
+                barcodeAgreementDetail = $"GTIN-14: {twoDGtin14}";
+            }
+            else
+            {
+                barcodeAgreement = "Fail";
+                barcodeAgreementDetail =
+                    $"2D GTIN-14: {twoDGtin14}; linear GTIN-14: {linearGtin14}";
+            }
+            record = record with
+            {
+                LinearGtin14 = linearGtin14,
+                BarcodeSymbolAgreement = barcodeAgreement,
+                BarcodeSymbolAgreementDetail = barcodeAgreementDetail,
+            };
+        }
+
         // ── RFID cross-validation (awaited before Excel write) ────────────────
         // Awaiting here means the RFID result lands in the same Excel row as the
         // barcode grade — no row-update pass needed later.
@@ -1512,22 +1554,57 @@ public sealed class SessionViewModel : ViewModelBase
             // for the PDF provenance annotation, e.g. "From GCP prefix table as of 2026-05-03".
             string? gcpTableDate = _gcpValidator?.DataDate?.ToString("yyyy-MM-dd");
 
+            bool? rfidLinearMatches = isComposite && rfidResult.RfidGtin14 is not null &&
+                linearGtin14 is not null
+                    ? rfidResult.RfidGtin14 == linearGtin14
+                    : null;
+            string? rfidScope = isComposite && rfidResult.RfidGtin14 is not null
+                ? (rfidResult.Gtin14Matches, rfidLinearMatches) switch
+                {
+                    (true, true) => "Both",
+                    (true, false) => "2D only",
+                    (false, true) => "Linear only",
+                    _ => "Neither",
+                }
+                : null;
+            string? rfidDetail = rfidResult.MismatchDetail;
+            if (isComposite && rfidResult.RfidGtin14 is not null &&
+                rfidLinearMatches == false)
+            {
+                string linearMismatch =
+                    $"GTIN14:RFID={rfidResult.RfidGtin14},Linear={linearGtin14 ?? "missing"}";
+                rfidDetail = string.IsNullOrWhiteSpace(rfidDetail)
+                    ? linearMismatch
+                    : rfidDetail + ";" + linearMismatch;
+            }
+            bool compositePass = !isComposite ||
+                barcodeAgreement == "Pass" &&
+                rfidScope == "Both" &&
+                rfidResult.Status == RfidValidationStatus.Pass;
             record = record with
             {
-                RfidStatus         = rfidResult.Status.ToString(),
+                RfidStatus         = isComposite && !compositePass
+                    && rfidResult.Status == RfidValidationStatus.Pass
+                        ? RfidValidationStatus.Fail.ToString()
+                        : rfidResult.Status.ToString(),
                 RfidEpcHex         = rfidResult.SelectedRead?.EpcHex,
                 RfidEpcTagUri      = BuildEpcTagUri(rfidResult.ParsedEpc),
                 RfidGtin14         = rfidResult.RfidGtin14,
                 RfidSerial         = rfidResult.RfidSerial,
                 RfidTid            = rfidResult.SelectedRead?.Tid,
                 RfidTagLockStatus  = rfidResult.SelectedRead?.LockStatus,
-                RfidMismatchDetail = rfidResult.MismatchDetail,
+                RfidMismatchDetail = rfidDetail,
                 RfidScanWindowMs   = rfidResult.ScanWindowMs,
                 RfidGcpValid       = rfidResult.GcpValid,
                 RfidGcpStatus      = rfidResult.GcpStatus.ToString(),
                 RfidGcpLength      = GcpValidator.GetEncodedGcpLength(rfidResult.ParsedEpc),
                 RfidGcpRegisteredLength = rfidResult.GcpRegisteredLength,
                 RfidGcpTableDate   = gcpTableDate,
+                RfidLinearGtin14Matches = rfidLinearMatches,
+                RfidMatchScope = rfidScope,
+                CompositeOverallStatus = isComposite
+                    ? (compositePass ? "Pass" : "Fail")
+                    : null,
             };
 
             // Update the RFID result line in the display.
@@ -1539,6 +1616,14 @@ public sealed class SessionViewModel : ViewModelBase
                 RfidValidationStatus.ParseError           => "RFID ⚠  Parse error",
                 RfidValidationStatus.MultipleTagsDetected => "RFID ⚠  Multiple tags detected",
                 _                                         => null,
+            };
+        }
+        else if (isComposite)
+        {
+            record = record with
+            {
+                CompositeOverallStatus = "Fail",
+                RfidMatchScope = "Neither",
             };
         }
 

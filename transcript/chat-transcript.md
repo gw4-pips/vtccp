@@ -3118,3 +3118,15 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Approved a small unpushed layout fix after reviewing the attached multi-parser image: extend the vertical divider to the end of the section frame and normalize the horizontal row-line appearance on both sides.
 
 **Assistant:** Moved the divider stroke from per-row pseudo-elements to one continuous stroke on the containing DFC cell, so it reaches the frame bottom without affecting collapsed horizontal borders. Updated the matching regression assertion; the divider-specific report tests pass. No commit or push was performed.
+
+**User:** Supplied a Webscan HTML export containing two complete symbol reports—UPC-A and GS1 DataMatrix—and reported a duplicate-key import failure.
+
+**Assistant:** Confirmed that the file contains two independent report sections with separate quality tables and sibling images. The duplicate `Symbol Contrast (SC)` error came from flattening both sections into one dictionary; the correct fix was to preserve report boundaries rather than discard duplicate rows.
+
+**User:** Chose one composite multi-symbol record, with RFID validated against the 2D symbol while also checking that the linear GTIN, 2D GTIN, and RFID GTIN agree. Chose one RFID scan, exactly one linear plus one 2D report, clear rejection for malformed symbol pairs, separate checks with an overall hard FAIL, and FAIL/INCOMPLETE when 2D AI (01) is missing.
+
+**Assistant:** Implemented composite Webscan parsing, family-based linear/2D pairing, Image1/Image2 association, native report preservation, one-window RFID comparison against both normalized GTINs, separate barcode/RFID outcomes, and composite overall status. Added regression coverage for the supplied two-symbol capture and bumped the app version to 1.5.85. Focused tests passed 12/12; the Windows-targeted build succeeded; the full suite passed 228/229 with the existing unrelated `height: 11in` PDF CSS baseline assertion.
+
+**User:** Confirmed that one RFID scan supplies all needed data and may match both symbols, one symbol, or neither.
+
+**Assistant:** Preserved the one-scan design and exposed the RFID match scope as Both, 2D only, Linear only, or Neither while retaining the native evidence and hard-failing the composite when the required checks do not all pass.

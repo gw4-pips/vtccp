@@ -65,15 +65,21 @@ public static class VccsHtmlReportGenerator
             : H(r.CompanyName ?? "Company Logo");
 
         // ── badge ─────────────────────────────────────────────────────────
-        (string badgeCls, string badgeTxt) = r.RfidStatus switch
+        string? overallStatus = r.CompositeOverallStatus ?? r.RfidStatus;
+        (string badgeCls, string badgeTxt) = r.CompositeOverallStatus switch
         {
-            "Pass"                 => ("badge-pass", "&#x2713; RFID MATCHED"),
-            "Fail"                 => ("badge-fail", "&#x2717; RFID MISMATCH"),
-            "NoTag"                => ("badge-warn", "&#x26a0; NO RFID TAG DETECTED"),
-            "MultipleTagsDetected" => ("badge-warn", "&#x26a0; MULTIPLE TAGS"),
-            "Skipped"              => ("badge-warn", "&#x2014; RFID SKIPPED"),
-            null or ""             => ("badge-warn", "&#x2014; NO RFID DATA"),
-            var s                  => ("badge-warn", H(s.ToUpperInvariant())),
+            "Pass" => ("badge-pass", "&#x2713; COMPOSITE VERIFIED"),
+            "Fail" => ("badge-fail", "&#x2717; COMPOSITE FAILED"),
+            _ => overallStatus switch
+            {
+                "Pass"                 => ("badge-pass", "&#x2713; RFID MATCHED"),
+                "Fail"                 => ("badge-fail", "&#x2717; RFID MISMATCH"),
+                "NoTag"                => ("badge-warn", "&#x26a0; NO RFID TAG DETECTED"),
+                "MultipleTagsDetected" => ("badge-warn", "&#x26a0; MULTIPLE TAGS"),
+                "Skipped"              => ("badge-warn", "&#x2014; RFID SKIPPED"),
+                null or ""             => ("badge-warn", "&#x2014; NO RFID DATA"),
+                var s                  => ("badge-warn", H(s.ToUpperInvariant())),
+            },
         };
 
         // ── section ① title ───────────────────────────────────────────────
@@ -428,7 +434,7 @@ public static class VccsHtmlReportGenerator
         sb.Append($"          </tr>\n");
 
         // Result row(s) — coloured by pass/fail/warn
-        string rowCls = r.RfidStatus switch
+        string rowCls = (r.CompositeOverallStatus ?? r.RfidStatus) switch
         {
             "Pass" => "row-result-pass",
             "Fail" => "row-result-fail",
@@ -453,8 +459,16 @@ public static class VccsHtmlReportGenerator
         {
             string linVal = r.RfidStatus switch
             {
-                "Pass" => "Pass &#x2014; EPC data matches barcode GTIN",
-                "Fail" => "Fail &#x2014; GTIN mismatch",
+                "Pass" when r.RfidLinearGtin14Matches == true =>
+                    "Pass &#x2014; EPC GTIN matches linear and 2D GTIN",
+                "Pass" when r.RfidLinearGtin14Matches == false =>
+                    "Fail &#x2014; EPC GTIN does not match linear GTIN",
+                "Fail" when r.RfidLinearGtin14Matches == true =>
+                    "Pass &#x2014; EPC GTIN matches linear GTIN",
+                "Fail" when r.RfidLinearGtin14Matches == false =>
+                    "Fail &#x2014; EPC GTIN does not match linear GTIN",
+                "Pass" => "Pass &#x2014; EPC data matches 2D GTIN",
+                "Fail" => "Fail &#x2014; EPC GTIN mismatch",
                 "NoTag" => "No Tag Detected",
                 var s  => H(s ?? "\u2014"),
             };
@@ -463,12 +477,30 @@ public static class VccsHtmlReportGenerator
             string twoDSym = string.IsNullOrWhiteSpace(r.Symbology) ? "2D" : r.Symbology;
             string twoDVal = r.RfidStatus switch
             {
-                "Pass" => "Pass &#x2014; EPC data matches barcode GTIN and Serial Number",
+                "Pass" when r.RfidMatchScope == "Both" =>
+                    "Pass &#x2014; EPC GTIN matches both barcode symbols and Serial Number",
+                "Pass" => "Pass &#x2014; EPC data matches 2D GTIN and Serial Number",
+                "Fail" when r.RfidMatchScope == "2D only" =>
+                    "Pass &#x2014; EPC GTIN matches 2D; linear symbol differs",
+                "Fail" when r.RfidMatchScope == "Linear only" =>
+                    "Fail &#x2014; EPC GTIN matches linear; 2D symbol differs",
+                "Fail" when r.RfidMatchScope == "Neither" =>
+                    "Fail &#x2014; EPC GTIN matches neither barcode symbol",
                 "Fail" => BuildMismatch2DLabel(r.RfidMismatchDetail),
                 "NoTag" => "No Tag Detected",
                 var s  => H(s ?? "\u2014"),
             };
             ResultRow($"{twoDSym} {resultLabel}", twoDVal);
+            ResultRow(
+                "Barcode Symbol Agreement",
+                r.BarcodeSymbolAgreement switch
+                {
+                    "Pass" => $"Pass &#x2014; GTIN-14 {H(r.LinearGtin14 ?? "\u2014")}",
+                    "Fail" => $"Fail &#x2014; {H(r.BarcodeSymbolAgreementDetail ?? "GTIN mismatch")}",
+                    "Incomplete" =>
+                        $"FAIL / INCOMPLETE &#x2014; {H(r.BarcodeSymbolAgreementDetail ?? "GTIN unavailable")}",
+                    var s => H(s ?? "\u2014"),
+                });
         }
         else
         {

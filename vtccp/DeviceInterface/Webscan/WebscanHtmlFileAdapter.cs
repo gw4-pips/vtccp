@@ -114,14 +114,29 @@ public sealed class WebscanHtmlFileAdapter : IDisposable
 
         string fullPath = Path.GetFullPath(sourcePath);
         string rawHtml = await ReadStableTextAsync(fullPath, cancellationToken);
-        WebscanHtmlReport report = WebscanHtmlParser.Parse(rawHtml, fullPath);
-        if (!report.ParseSucceeded)
-            throw new InvalidDataException(report.ParseError ?? "Webscan HTML parse failed.");
+        VerificationRecord record;
+        if (rawHtml.Contains("Symbol 2 Verification Report",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            WebscanHtmlCompositeReport composite =
+                WebscanHtmlParser.ParseComposite(rawHtml, fullPath);
+            if (!composite.ParseSucceeded)
+                throw new InvalidDataException(
+                    composite.ParseError ?? "Webscan composite HTML parse failed.");
+            record = composite.ToVerificationRecord();
+        }
+        else
+        {
+            WebscanHtmlReport report = WebscanHtmlParser.Parse(rawHtml, fullPath);
+            if (!report.ParseSucceeded)
+                throw new InvalidDataException(
+                    report.ParseError ?? "Webscan HTML parse failed.");
+            record = report.ToVerificationRecord();
+        }
         cancellationToken.ThrowIfCancellationRequested();
 
         // The source HTML and image remain untouched. Keep the raw input inside
         // the report during parsing so callers can archive it if required.
-        VerificationRecord record = report.ToVerificationRecord();
         cancellationToken.ThrowIfCancellationRequested();
         RaiseRecordParsed(record);
         return record;

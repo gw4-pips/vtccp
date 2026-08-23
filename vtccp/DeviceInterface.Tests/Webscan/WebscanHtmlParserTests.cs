@@ -1,6 +1,7 @@
 namespace DeviceInterface.Tests.Webscan;
 
 using DeviceInterface.Reports;
+using DeviceInterface.Rfid;
 using DeviceInterface.Validation;
 using DeviceInterface.Webscan;
 using ExcelEngine.Models;
@@ -118,6 +119,65 @@ public sealed class WebscanHtmlParserTests
         Assert.Contains("<th>Notes</th>", html, StringComparison.Ordinal);
         Assert.Contains("ISO15416:2016", html, StringComparison.Ordinal);
         Assert.DoesNotContain("<th>Lighting</th>", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TwoSymbolWebscanHtml_ProducesOneCompositeWithSeparateNativeReports()
+    {
+        string sourcePath = GetAttachedReportPath(
+            "Webscan_Report--26-08-22_21_53_29_1787450204733.html");
+
+        string rawHtml = File.ReadAllText(sourcePath);
+        WebscanHtmlCompositeReport composite =
+            WebscanHtmlParser.ParseComposite(rawHtml, sourcePath);
+
+        Assert.True(composite.ParseSucceeded, composite.ParseError);
+        Assert.Equal("UPCA", composite.LinearReport?.Symbology);
+        Assert.Equal("696114704288", composite.LinearReport?.Data);
+        Assert.Equal("GS1 DataMatrix", composite.TwoDReport?.Symbology);
+        Assert.StartsWith("<F1>0100696114704288",
+            composite.TwoDReport?.Data ?? string.Empty);
+        Assert.EndsWith("Image1_1787450204733.jpg",
+            composite.LinearReport?.SourceImagePath ?? string.Empty);
+        Assert.EndsWith("Image2_1787450204733.jpg",
+            composite.TwoDReport?.SourceImagePath ?? string.Empty);
+        Assert.Equal(9, composite.LinearReport?.QualityParameters.Count);
+        Assert.Equal(19, composite.TwoDReport?.QualityParameters.Count);
+
+        VerificationRecord record = composite.ToVerificationRecord();
+        Assert.Equal("UPCA", record.LinearSymbology);
+        Assert.Equal("696114704288", record.LinearDecodedData);
+        Assert.Equal("GS1 DataMatrix", record.Symbology);
+        Assert.Equal("00696114704288", RfidValidator.ExtractAi01(record.DecodedData));
+        Assert.Equal(
+            composite.LinearReport?.DataFormatCheck,
+            record.LinearDataFormatCheck);
+        Assert.Equal(
+            composite.LinearReport?.Standard,
+            record.HtmlLinearStandard);
+        Assert.Equal(
+            composite.LinearReport?.OverallGradeDisplay,
+            record.HtmlLinearGradeDisplay);
+        Assert.Equal(
+            composite.LinearReport?.Notes,
+            record.HtmlLinearLighting);
+        Assert.NotEqual(
+            composite.LinearReport?.SourceImageBase64,
+            composite.TwoDReport?.SourceImageBase64);
+
+        string reportHtml = VccsHtmlReportGenerator.Generate(record with
+        {
+            BarcodeSymbolAgreement = "Pass",
+            BarcodeSymbolAgreementDetail = "GTIN-14: 00696114704288",
+            LinearGtin14 = "00696114704288",
+            RfidStatus = "Pass",
+            RfidLinearGtin14Matches = true,
+            RfidMatchScope = "Both",
+            CompositeOverallStatus = "Pass",
+        });
+        Assert.Contains("COMPOSITE VERIFIED", reportHtml);
+        Assert.Contains("Barcode Symbol Agreement", reportHtml);
+        Assert.Contains("EPC GTIN matches both barcode symbols", reportHtml);
     }
 
     [Fact]

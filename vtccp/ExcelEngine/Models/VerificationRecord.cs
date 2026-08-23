@@ -538,6 +538,33 @@ public sealed record class VerificationRecord
     /// </summary>
     public string? RfidMismatchDetail { get; init; }
 
+    /// <summary>
+    /// For a composite linear-plus-2D scan, the normalized GTIN agreement
+    /// between the two native barcode reports: "Pass", "Fail", or "Incomplete".
+    /// </summary>
+    public string? BarcodeSymbolAgreement { get; init; }
+
+    /// <summary>Detail for BarcodeSymbolAgreement, preserving missing/invalid GTIN evidence.</summary>
+    public string? BarcodeSymbolAgreementDetail { get; init; }
+
+    /// <summary>Normalized linear GTIN-14 used for composite comparisons.</summary>
+    public string? LinearGtin14 { get; init; }
+
+    /// <summary>Whether the RFID GTIN matched the linear GTIN in a composite scan.</summary>
+    public bool? RfidLinearGtin14Matches { get; init; }
+
+    /// <summary>
+    /// Composite RFID scope: "Both", "2D only", "Linear only", or "Neither".
+    /// </summary>
+    public string? RfidMatchScope { get; init; }
+
+    /// <summary>
+    /// Hard composite outcome for one linear-plus-2D Webscan event. This is
+    /// separate from RfidStatus so NoTag/Skipped remains truthful while the
+    /// composite can still fail its required checks.
+    /// </summary>
+    public string? CompositeOverallStatus { get; init; }
+
     /// <summary>Duration of the RFID scan window in milliseconds.</summary>
     public int? RfidScanWindowMs { get; init; }
 
