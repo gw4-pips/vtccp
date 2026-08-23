@@ -7,4 +7,6 @@ Treat a Webscan export containing exactly one linear report and one 2D report as
 
 **Why:** Webscan embeds independent report tables in one file, so flattening rows causes duplicate quality keys and mixing evidence. One physical item should not receive two RFID inventory windows.
 
-**How to apply:** Keep the 2D symbol as the primary record for the existing RFID path, populate the existing linear multi-mode fields from the linear report, and keep the individual comparison outcomes visible.
+**How to apply:** Keep the 2D symbol as the primary record for the existing RFID path, populate the existing linear multi-mode fields from the linear report, render 2D before linear in composite reports, and keep the individual comparison outcomes visible. Standalone report ordering is unchanged.
+
+**Presentation decision:** In a composite report, 2D is the upper symbol group and linear is below it. The 2D symbol carries the structured GTIN-plus identity most tightly associated with RFID; linear remains the corroborating POS representation.

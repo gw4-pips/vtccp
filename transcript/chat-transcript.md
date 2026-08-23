@@ -3134,3 +3134,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Said good morning and provided the local timestamp 23AUG26-0627 EDT.
 
 **Assistant:** Returned a good-morning greeting and acknowledged that the composite Webscan task is merged with no further action needed from that task.
+
+**User:** Asked whether the VW app determines which composite symbol appears first.
+
+**Assistant:** Clarified that the VW-generated report previously rendered the linear symbol first because its report builder wrote the linear field before the 2D field; the Webscan Symbol 1/Symbol 2 order did not control that layout.
+
+**User:** Chose 2D-first ordering for composite reports because the 2D symbol carries the structured GTIN-plus identity most tightly associated with RFID, while preserving linear-only behavior.
+
+**Assistant:** Changed composite report generation to render the 2D symbol above the linear symbol, added a regression test, bumped the app to 1.5.86 and report format to v1.5.60, and verified the focused composite/parser tests and Windows-targeted build.

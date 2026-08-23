@@ -1472,6 +1472,7 @@ public sealed class VccsHtmlReportGeneratorTests
             LinearDecodedData = "696114704288",
             HtmlSymbology = "GS1 DataMatrix",
             HtmlDecodedData = "]d20106961147042882",
+            IsWebscanComposite = true,
             CompositeOverallStatus = "Pass",
             HtmlSourceFileName = "composite.html",
             HtmlVerifiedString = "Sun 23-Aug-2026 06:27:00 AM",
@@ -1481,10 +1482,10 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         int twoDIndex = report.IndexOf(
-            "<td style=\"font-size:8pt;\">GS1 DataMatrix</td>",
+            ">GS1 DataMatrix</td>",
             StringComparison.Ordinal);
         int linearIndex = report.IndexOf(
-            "<td style=\"font-size:8pt;\">UPCA</td>",
+            ">UPCA</td>",
             StringComparison.Ordinal);
 
         Assert.True(twoDIndex >= 0);

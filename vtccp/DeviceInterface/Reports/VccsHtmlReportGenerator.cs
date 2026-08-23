@@ -175,7 +175,7 @@ public static class VccsHtmlReportGenerator
             return UnavailableSymbolRow(r);
 
         bool multiMode = !string.IsNullOrWhiteSpace(r.LinearSymbology);
-        bool compositeMode = !string.IsNullOrWhiteSpace(r.CompositeOverallStatus);
+        bool compositeMode = r.IsWebscanComposite;
         int renderedGroups = 0;
         var sb = new StringBuilder();
         if (compositeMode && renderedGroups < MaxRenderedSymbolGroups)
