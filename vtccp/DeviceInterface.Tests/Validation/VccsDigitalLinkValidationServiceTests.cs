@@ -92,6 +92,8 @@ public sealed class VccsDigitalLinkValidationServiceTests
     [Theory]
     [InlineData("UPCA", "696114704318", "(01)00696114704318")]
     [InlineData("EAN-13", "0696114704318", "(01)00696114704318")]
+    [InlineData("EAN-8", "96385074", "(01)00000096385074")]
+    [InlineData("UPC-E", "04252614", "(01)00042100005264")]
     public void BuildLinearElementString_UsesOnlySupportedNativeLinearForms(
         string symbology,
         string decodedData,
@@ -104,8 +106,8 @@ public sealed class VccsDigitalLinkValidationServiceTests
     }
 
     [Theory]
-    [InlineData("EAN-8", "12345670")]
-    [InlineData("UPC-E", "01234565")]
+    [InlineData("UPC-E", "14252614")]
+    [InlineData("UPC-E", "04252615")]
     [InlineData("UPC-A", "696114704318+12")]
     public void BuildLinearElementString_LeavesUnconfirmedFormsUnchanged(
         string symbology,

@@ -1,5 +1,6 @@
 using DeviceInterface.Rfid.Gcp;
 using DeviceInterface.Rfid.Models;
+using DeviceInterface.Validation;
 using ExcelEngine.Models;
 
 namespace DeviceInterface.Rfid;
@@ -178,30 +179,14 @@ public sealed class RfidValidator
     }
 
     /// <summary>
-    /// Converts only standalone UPC-A and EAN-13 payloads to GTIN-14.
-    /// UPC-A requires two leading zeroes; EAN-13 requires one. EAN-8,
-    /// UPC-E, and values containing add-ons are deliberately not normalized.
+    /// Converts supported standalone retail linear payloads to GTIN-14.
+    /// UPC-A requires two leading zeroes; EAN-13 one; EAN-8 six. UPC-E is
+    /// expanded using the GS1 zero-number-system rules before padding.
     /// </summary>
     public static string? NormalizeLinearGtin14(
         string? symbology,
         string? decodedData)
-    {
-        string symbol = new string((symbology ?? string.Empty)
-            .Where(char.IsLetterOrDigit)
-            .ToArray())
-            .ToUpperInvariant();
-        string data = decodedData?.Trim() ?? string.Empty;
-
-        if (data.Length == 0 || data.Any(ch => !char.IsDigit(ch)))
-            return null;
-
-        return symbol switch
-        {
-            "UPCA" when data.Length == 12 => "00" + data,
-            "EAN13" when data.Length == 13 => "0" + data,
-            _ => null,
-        };
-    }
+        => LinearGtinNormalizer.NormalizeToGtin14(symbology, decodedData);
 
     /// <summary>
     /// Extract AI (21) serial number from a decoded barcode data string.
