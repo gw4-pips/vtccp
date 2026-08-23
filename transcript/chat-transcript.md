@@ -3114,3 +3114,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked to investigate why a connected RFID reader was reported as not activated, and to rename the linear ANSI/ISO report summary cell from Lighting to Notes with the literal HTML value such as ISO15416:2016.
 
 **Assistant:** Changed RFID participation to use the reader's direct connection state, preserved Webscan linear Notes separately from Lighting, rendered Notes for ISO 15416/ANSI-ISO linear reports, added attached EAN-8 regression coverage, and bumped the app to 1.5.84 and report format to v1.5.59. Focused tests passed; the full suite passed 227/228 with the existing height: 11in assertion; the Windows-targeted build succeeded after restoring the any runtime pack.
+
+**User:** Approved a small unpushed layout fix after reviewing the attached multi-parser image: extend the vertical divider to the end of the section frame and normalize the horizontal row-line appearance on both sides.
+
+**Assistant:** Moved the divider stroke from per-row pseudo-elements to one continuous stroke on the containing DFC cell, so it reaches the frame bottom without affecting collapsed horizontal borders. Updated the matching regression assertion; the divider-specific report tests pass. No commit or push was performed.

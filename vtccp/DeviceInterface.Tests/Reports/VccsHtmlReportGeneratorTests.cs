@@ -1047,8 +1047,9 @@ public sealed class VccsHtmlReportGeneratorTests
             VeriWedgeValidationUsed = true,
         });
 
-        Assert.Contains("left: 28%;", report, StringComparison.Ordinal);
-        Assert.Contains(".dfc-dual-table .dual-divider::before", report, StringComparison.Ordinal);
+        Assert.Contains("left: calc(41.56% - 1px);", report, StringComparison.Ordinal);
+        Assert.Contains(".barcode-dfc-column::after", report, StringComparison.Ordinal);
+        Assert.Contains("content: none;", report, StringComparison.Ordinal);
         Assert.DoesNotContain("border-left: 2px solid #1a3a6b;\n     padding: 0 !important;",
             report,
             StringComparison.Ordinal);
