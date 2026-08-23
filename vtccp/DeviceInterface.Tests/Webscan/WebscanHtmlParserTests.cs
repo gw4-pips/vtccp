@@ -100,6 +100,27 @@ public sealed class WebscanHtmlParserTests
     }
 
     [Fact]
+    public void ControlledTc829Ean8Html_PreservesLinearNotesAndUsesNotesColumn()
+    {
+        string sourcePath = GetAttachedReportPath(
+            "EAN8-26-08-22_21_24_41-00671583_1787448450248.html");
+
+        WebscanHtmlReport report = WebscanHtmlParser.ParseFile(sourcePath);
+        VerificationRecord record = report.ToVerificationRecord();
+        string html = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.True(report.ParseSucceeded, report.ParseError);
+        Assert.Equal("ANSI/ISO", report.Standard);
+        Assert.Equal("0.1/06/660", report.FormalGrade);
+        Assert.Equal("ISO15416:2016", report.Notes);
+        Assert.Null(report.Lighting);
+        Assert.Equal("ISO15416:2016", record.HtmlNotes);
+        Assert.Contains("<th>Notes</th>", html, StringComparison.Ordinal);
+        Assert.Contains("ISO15416:2016", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<th>Lighting</th>", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ControlledTc829UpcaHtml_RendersDualGs1ParserAndMatchedRfidResult()
     {
         string sourcePath = GetUpcaReportPath();
@@ -421,6 +442,9 @@ public sealed class WebscanHtmlParserTests
     private static string GetUpcaReportPath()
         => GetAttachedAssetPath(
             "UPCA-26-08-22_20_47_49-696114704318_1787446139035.html");
+
+    private static string GetAttachedReportPath(string fileName)
+        => GetAttachedAssetPath(fileName);
 
     private static string GetAttachedAssetPath(string fileName)
     {

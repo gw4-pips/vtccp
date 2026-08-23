@@ -3110,3 +3110,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **Assistant:** Added shared linear GTIN normalization for EAN-8, UPC-A, EAN-13, and zero-number-system UPC-E. UPC-E now expands through all GS1 branches, validates the expanded UPC-A check digit, and feeds the resulting GTIN-14 into the existing GS1 parser and RFID comparison flows without changing native report values. Added branch and rejection tests, bumped the app to 1.5.83 and report format to v1.5.58. Focused tests passed 61/61; the Windows app build succeeded; the full suite passed 226/227 with the same unrelated `height: 11in` PDF CSS baseline failure.
 
 **Assistant:** Confirmed the final zero-only expansion commit is pushed and synchronized: local, tracking, and GitHub `origin/main` all equal `0c9baf1ae452bebdd7c25019a10220ace0ea5d4e`; the working tree is clean.
+
+**User:** Asked to investigate why a connected RFID reader was reported as not activated, and to rename the linear ANSI/ISO report summary cell from Lighting to Notes with the literal HTML value such as ISO15416:2016.
+
+**Assistant:** Changed RFID participation to use the reader's direct connection state, preserved Webscan linear Notes separately from Lighting, rendered Notes for ISO 15416/ANSI-ISO linear reports, added attached EAN-8 regression coverage, and bumped the app to 1.5.84 and report format to v1.5.59. Focused tests passed; the full suite passed 227/228 with the existing height: 11in assertion; the Windows-targeted build succeeded after restoring the any runtime pack.

@@ -238,6 +238,8 @@ public sealed record class VerificationRecord
     public string? HtmlWavelength { get; init; }
     /// <summary>e.g. "45Q" (verbatim from HTML)</summary>
     public string? HtmlLighting { get; init; }
+    /// <summary>Linear verifier note such as "ISO15416:2016" (verbatim from HTML).</summary>
+    public string? HtmlNotes { get; init; }
     /// <summary>e.g. "4.0/16/660/45Q" (verbatim from HTML)</summary>
     public string? HtmlFormalGrade { get; init; }
 

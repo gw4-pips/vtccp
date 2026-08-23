@@ -110,6 +110,7 @@ public static partial class WebscanHtmlParser
                 WavelengthDisplay = gradeRow?.Cells.ElementAtOrDefault(3),
                 Wavelength = ParseInt(gradeRow?.Cells.ElementAtOrDefault(3)),
                 Lighting = isLinear ? null : gradeRow?.Cells.ElementAtOrDefault(4),
+                Notes = isLinear ? gradeRow?.Cells.ElementAtOrDefault(5) : null,
                 FormalGrade = gradeRow?.Cells.ElementAtOrDefault(isLinear ? 4 : 5),
                 MatrixSize = Get(values, "Matrix Size"),
                 HorizontalBWGDisplay = Get(values, "Horizontal BWG"),

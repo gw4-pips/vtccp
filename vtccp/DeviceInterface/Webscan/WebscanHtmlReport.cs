@@ -41,6 +41,7 @@ public sealed class WebscanHtmlReport
     public string? WavelengthDisplay { get; init; }
     public int? Wavelength { get; init; }
     public string? Lighting { get; init; }
+    public string? Notes { get; init; }
     public string? FormalGrade { get; init; }
 
     // General Characteristics — values remain as displayed where the record
@@ -121,6 +122,7 @@ public sealed class WebscanHtmlReport
             Aperture = Aperture,
             Wavelength = Wavelength,
             Lighting = Lighting,
+            HtmlNotes = Notes,
             Standard = Standard,
             MatrixSize = MatrixSize,
             HorizontalBWG = HorizontalBWG,

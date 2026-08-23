@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.58";
+    public const string ReportVersion = "v1.5.59";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -96,6 +96,7 @@ public static class VccsHtmlReportGenerator
         // preserve the HTML Verified: string exactly as displayed by the device.
         string reportDateTime = H(GetSourceDateTimeText(r));
         bool isWebscan = IsWebscanRecord(r);
+        bool linearGradeNotes = IsLinear15416Report(r);
         string headerVersionLabel = isWebscan ? "Software" : "Firmware";
         string? headerVersion = isWebscan ? r.SoftwareVersion : r.FirmwareVersion;
 
@@ -114,6 +115,7 @@ public static class VccsHtmlReportGenerator
             .Replace("{{SLOT_SYMBOL_ROWS}}",    BuildSymbolRows(r))
             .Replace("{{REPORT_NAME}}",         reportName)
             .Replace("{{REPORT_DATETIME}}",     reportDateTime)
+            .Replace("{{GRADE_COL_6_TITLE}}",    linearGradeNotes ? "Notes" : "Lighting")
             .Replace("{{SLOT_GRADE_ROWS}}",     BuildGradeRows(r))
             .Replace("{{RFID_ADJ}}",            rfidAdj)
             .Replace("{{RFID_SECTION_NOTE}}",   IsRfidReaderInactive(r)
@@ -258,11 +260,23 @@ public static class VccsHtmlReportGenerator
                 r.HtmlOverallGradeDisplay,
                 r.HtmlAperture,
                 r.HtmlWavelength,
-                r.HtmlLighting,
+                IsLinear15416Report(r) ? r.HtmlNotes : r.HtmlLighting,
                 r.HtmlFormalGrade);
         }
 
         return sb.ToString();
+    }
+
+    private static bool IsLinear15416Report(VerificationRecord r)
+    {
+        if (!r.Is1D)
+            return false;
+
+        string? standard = r.HtmlStandard ?? r.Standard ?? r.ApplicationStandard ??
+                           r.ApplicationStandardSetting;
+        return standard is not null &&
+            (standard.Contains("15416", StringComparison.OrdinalIgnoreCase) ||
+             standard.Equals("ANSI/ISO", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string UnavailableGradeRow()
