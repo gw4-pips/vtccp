@@ -3185,3 +3185,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Requested that every DFC section use one consistent shell, avoid detached continuation headers, keep row geometry consistent, and place a fixed bottom footer with right-justified page numbering.
 
 **Assistant:** Unified the multi-symbol DFC section shell, prevented section splitting, normalized DFC row sizing and overflow, added a repeated fixed footer with page numbering markup, removed a duplicate HTML slot token that was expanding every section twice, added three-symbol regression coverage, and pushed commit 90ab291 with remote application version 1.5.91. The focused report suite passed 51 tests; the full suite still has two unrelated pre-existing Webscan fixture/assertion failures.
+
+**User:** Reviewed the v1.5.63/app v1.5.91 PDF and reported that the first DM still lacks the dual parser block, the qualification explanation should not be in the verification summary, and page numbering renders as 0 of 0.
+
+**Assistant:** Confirmed from the rendered PDF that the first DM keeps only native DFC, the second DM receives the dual parser, and UPC receives native DFC. The shell/pagination change did not correct parser-to-symbol assignment; Chromium PDF CSS counters also render as 0 of 0 because the print renderer does not provide page totals through counter(page)/counter(pages).
