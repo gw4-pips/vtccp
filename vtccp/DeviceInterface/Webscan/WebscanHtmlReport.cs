@@ -1,5 +1,7 @@
 namespace DeviceInterface.Webscan;
 
+using DeviceInterface.Rfid;
+using System.Text.RegularExpressions;
 using ExcelEngine.Models;
 
 /// <summary>
@@ -168,12 +170,83 @@ public sealed class WebscanHtmlReport
             HtmlBarcodeImageProvenance = SourceImageProvenance.ToString(),
             HtmlBarcodeImageMimeType = SourceImageMimeType,
             HtmlDataFormatCheck = DataFormatCheck,
+            HtmlQualityParameters = QualityParameters.Select(p => new NativeQualityParameter
+            {
+                Number = p.Number, Name = p.Name, MeasuredValue = p.MeasuredValue,
+                GradeDisplay = p.GradeDisplay, SecondaryValue = p.SecondaryValue, Result = p.Result,
+            }).ToArray(),
             DataSourceExceptions =
                 "Webscan:USB HTML export; values are literal report fields" +
                 (DataFormatCheck is not null
                     ? "; DataFormatCheck:Webscan HTML native table"
                     : string.Empty),
         };
+    }
+
+    internal VerificationRecord ToCompositePrimaryRecord(WebscanHtmlReport linear)
+    {
+        VerificationRecord primary = ToVerificationRecord();
+        string? linearGtin = NormalizeLinearGtin(linear.Symbology, linear.Data);
+        string? twoDGtin = ExtractGtin14(Data);
+        bool? match = linearGtin is not null && twoDGtin is not null
+            ? linearGtin == twoDGtin
+            : null;
+
+        var linearGrade = WebscanHtmlParser.ParseGrade(linear.OverallGradeDisplay);
+        return primary with
+        {
+            IsWebscanComposite = true,
+            LinearSymbology = linear.Symbology,
+            LinearDecodedData = linear.Data,
+            LinearOverallGrade = linearGrade,
+            LinearFormalGrade = linear.FormalGrade,
+            LinearAperture = linear.Aperture,
+            LinearWavelength = linear.Wavelength,
+            LinearLighting = linear.Lighting,
+            LinearStandard = linear.Standard,
+            LinearJpegImageBase64 = linear.SourceImageBase64,
+            LinearDataFormatCheck = linear.DataFormatCheck,
+            LinearQualityParameters = linear.QualityParameters.Select(p => new NativeQualityParameter
+            {
+                Number = p.Number, Name = p.Name, MeasuredValue = p.MeasuredValue,
+                GradeDisplay = p.GradeDisplay, SecondaryValue = p.SecondaryValue, Result = p.Result,
+            }).ToArray(),
+            HtmlLinearStandard = linear.Standard,
+            HtmlLinearGradeDisplay = linear.OverallGradeDisplay,
+            HtmlLinearAperture = linear.ApertureDisplay,
+            HtmlLinearWavelength = linear.WavelengthDisplay,
+            HtmlLinearLighting = linear.Lighting,
+            HtmlLinearFormalGrade = linear.FormalGrade,
+            LinearTwoDMatch = match,
+            LinearTwoDComparisonDetail = match is true
+                ? $"GTIN-14 {linearGtin} matches 2D"
+                : match is false
+                    ? $"GTIN-14 mismatch: linear {linearGtin ?? "unavailable"}, 2D {twoDGtin ?? "unavailable"}"
+                    : "GTIN-14 comparison unavailable",
+            DataSourceExceptions = primary.DataSourceExceptions + "; Webscan composite: linear + 2D native reports",
+        };
+    }
+
+    private static string? ExtractGtin14(string? data)
+    {
+        if (string.IsNullOrWhiteSpace(data)) return null;
+        Match ai = Regex.Match(data, @"(?:^|[/\x1d|])01/?(\d{14})(?:[/\x1d|]|$)");
+        if (!ai.Success)
+            ai = Regex.Match(data, @"(?:^|[^0-9])01(\d{14})(?:[^0-9]|$)");
+        return ai.Success ? ai.Groups[1].Value : null;
+    }
+
+    private static string? NormalizeLinearGtin(string? symbology, string? data)
+    {
+        if (string.IsNullOrWhiteSpace(data)) return null;
+        string digits = new(data.Where(char.IsDigit).ToArray());
+        if (symbology?.Contains("UPC", StringComparison.OrdinalIgnoreCase) == true &&
+            digits.Length == 12) return "00" + digits;
+        if (symbology?.Contains("EAN-13", StringComparison.OrdinalIgnoreCase) == true &&
+            digits.Length == 13) return "0" + digits;
+        if (symbology?.Contains("EAN-8", StringComparison.OrdinalIgnoreCase) == true &&
+            digits.Length == 8) return "000000" + digits;
+        return digits.Length == 14 ? digits : null;
     }
 
     private static WebscanQualityParameter? Find(
@@ -221,6 +294,7 @@ public sealed class WebscanHtmlCompositeReport
 
         return twoD with
         {
+            IsWebscanComposite = true,
             LinearSymbology = linear.Symbology,
             LinearDecodedData = linear.DecodedData,
             LinearOverallGrade = linear.OverallGrade,
@@ -231,6 +305,22 @@ public sealed class WebscanHtmlCompositeReport
             LinearStandard = linear.Standard,
             LinearJpegImageBase64 = linear.HtmlBarcodeImageBase64,
             LinearDataFormatCheck = linear.HtmlDataFormatCheck,
+            LinearQualityParameters = linear.HtmlQualityParameters,
+            HtmlQualityParameters = twoD.HtmlQualityParameters,
+            LinearGtin14 = RfidValidator.NormalizeLinearGtin14(
+                linear.Symbology, linear.DecodedData),
+            LinearTwoDMatch = RfidValidator.NormalizeLinearGtin14(
+                                  linear.Symbology, linear.DecodedData) is { } linearGtin &&
+                              RfidValidator.ExtractAi01(twoD.DecodedData) is { } twoDGtin &&
+                              linearGtin == twoDGtin,
+            BarcodeSymbolAgreement =
+                RfidValidator.NormalizeLinearGtin14(linear.Symbology, linear.DecodedData) is { } lg &&
+                RfidValidator.ExtractAi01(twoD.DecodedData) is { } dg
+                    ? lg == dg ? "Pass" : "Fail"
+                    : "Incomplete",
+            BarcodeSymbolAgreementDetail =
+                $"2D GTIN-14: {RfidValidator.ExtractAi01(twoD.DecodedData) ?? "missing"}; " +
+                $"linear GTIN-14: {RfidValidator.NormalizeLinearGtin14(linear.Symbology, linear.DecodedData) ?? "missing"}",
             HtmlLinearStandard = linear.HtmlStandard,
             HtmlLinearGradeDisplay = linear.HtmlOverallGradeDisplay,
             HtmlLinearAperture = linear.HtmlAperture,

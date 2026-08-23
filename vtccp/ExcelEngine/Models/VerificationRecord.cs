@@ -705,6 +705,8 @@ public sealed record class VerificationRecord
     public string? HtmlBarcodeImageProvenance { get; init; }
     /// <summary>Media type of the correlated barcode image, when available.</summary>
     public string? HtmlBarcodeImageMimeType { get; init; }
+    /// <summary>All native quality rows from the primary (2D) Webscan report.</summary>
+    public IReadOnlyList<NativeQualityParameter> HtmlQualityParameters { get; init; } = [];
 
     /// <summary>
     /// Data Format Check table scraped verbatim from the correlated HTML artifact.
@@ -786,6 +788,14 @@ public sealed record class VerificationRecord
     /// both under separate sub-headers: "2D Symbol" and "Linear Symbol (EAN/UPC)".
     /// </summary>
     public DataFormatCheckResult? LinearDataFormatCheck { get; init; }
+    /// <summary>Native quality rows from the linear member of a composite Webscan export.</summary>
+    public IReadOnlyList<NativeQualityParameter> LinearQualityParameters { get; init; } = [];
+    /// <summary>True when the normalized linear GTIN equals the 2D GTIN in a composite import.</summary>
+    public bool? LinearTwoDMatch { get; init; }
+    /// <summary>Human-readable detail for the independent linear-to-2D comparison.</summary>
+    public string? LinearTwoDComparisonDetail { get; init; }
+    /// <summary>Marks a record created from one linear and one 2D native report.</summary>
+    public bool IsWebscanComposite { get; init; }
 
     /// <summary>
     /// True when the correlated verifier HTML is a standalone EAN/UPC report,
@@ -813,4 +823,15 @@ public sealed record class VerificationRecord
 
     public bool Is1D => SymbologyFamily == SymbologyFamily.Linear1D;
     public bool Is2D => !Is1D && SymbologyFamily != SymbologyFamily.Unknown;
+}
+
+/// <summary>Report-native quality row retained for composite Webscan imports.</summary>
+public sealed class NativeQualityParameter
+{
+    public string Number { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public string? MeasuredValue { get; init; }
+    public string? GradeDisplay { get; init; }
+    public string? SecondaryValue { get; init; }
+    public string? Result { get; init; }
 }

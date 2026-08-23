@@ -457,6 +457,17 @@ public static class VccsHtmlReportGenerator
 
         if (multiMode)
         {
+            if (r.IsWebscanComposite)
+            {
+                string pairCls = r.LinearTwoDMatch switch
+                {
+                    true => "Pass &#x2014; normalized GTIN matches 2D",
+                    false => "Fail &#x2014; normalized GTIN mismatch",
+                    _ => "Unavailable &#x2014; GTIN could not be normalized",
+                };
+                ResultRow($"{r.LinearSymbology} to {r.Symbology} Barcode Comparison", pairCls);
+            }
+
             string linVal = r.RfidStatus switch
             {
                 "Pass" when r.RfidLinearGtin14Matches == true =>
@@ -472,7 +483,8 @@ public static class VccsHtmlReportGenerator
                 "NoTag" => "No Tag Detected",
                 var s  => H(s ?? "\u2014"),
             };
-            ResultRow($"{r.LinearSymbology} {resultLabel}", linVal);
+            if (!r.IsWebscanComposite)
+                ResultRow($"{r.LinearSymbology} {resultLabel}", linVal);
 
             string twoDSym = string.IsNullOrWhiteSpace(r.Symbology) ? "2D" : r.Symbology;
             string twoDVal = r.RfidStatus switch
@@ -558,6 +570,10 @@ public static class VccsHtmlReportGenerator
                 ? "        <div class=\"img-placeholder\">[BARCODE IMAGE NOT EMBEDDED IN CORRELATED TRUCHECK HTML]</div>\n"
                 : "        <div class=\"img-placeholder\">[BARCODE IMAGE UNAVAILABLE — NO CORRELATED DMST HTML]</div>\n");
         }
+        if (multiMode && !string.IsNullOrWhiteSpace(r.LinearJpegImageBase64))
+        {
+            sb.Append($"          <img class=\"barcode-image\" src=\"data:image/jpeg;base64,{r.LinearJpegImageBase64}\" alt=\"{H(r.LinearSymbology)} Image\"/>\n");
+        }
 
         sb.Append("        </td>\n");
         sb.Append("        <td class=\"barcode-dfc-column\">\n");
@@ -574,6 +590,11 @@ public static class VccsHtmlReportGenerator
         else
         {
             AppendVendorDataFormatCheck(sb, htmlDfc, hasHtml);
+            if (r.LinearDataFormatCheck is { } linearDfc)
+            {
+                sb.Append($"          <div class=\"sec-note\" style=\"margin:6pt 0 3pt 0;\"><strong>Native TruCheck Data Format Check — {H(r.LinearSymbology ?? "Linear Symbol")}</strong></div>\n");
+                AppendVendorDataFormatCheck(sb, linearDfc, hasHtml);
+            }
         }
 
         sb.Append("        </td>\n");

@@ -101,6 +101,33 @@ public sealed class WebscanHtmlParserTests
     }
 
     [Fact]
+    public void ConcatenatedLinearAndTwoDReports_ImportAsOneCompositeByFamily()
+    {
+        string linearPath = GetUpcaReportPath();
+        string twoDPath = GetQrExportWithoutAverageGradePath();
+        string raw = File.ReadAllText(linearPath) + File.ReadAllText(twoDPath);
+
+        WebscanHtmlCompositeReport composite = WebscanHtmlParser.ParseComposite(raw, twoDPath);
+
+        Assert.True(composite.ParseSucceeded, composite.ParseError);
+        Assert.Equal(SymbologyFamily.Linear1D,
+            WebscanHtmlParser.MapSymbologyFamily(composite.LinearReport!.Symbology!));
+        Assert.Equal(SymbologyFamily.QRCode,
+            WebscanHtmlParser.MapSymbologyFamily(composite.TwoDReport!.Symbology!));
+
+        VerificationRecord record = composite.ToVerificationRecord();
+        Assert.True(record.IsWebscanComposite);
+        Assert.Equal("UPCA", record.LinearSymbology);
+        Assert.Equal("QR", record.Symbology);
+        Assert.Equal("696114704318", record.LinearDecodedData);
+        Assert.NotEmpty(record.LinearQualityParameters);
+        Assert.NotNull(record.LinearDataFormatCheck);
+        Assert.NotNull(record.HtmlDataFormatCheck);
+        Assert.NotEqual(record.LinearJpegImageBase64, record.HtmlBarcodeImageBase64);
+        Assert.True(record.LinearTwoDMatch);
+    }
+
+    [Fact]
     public void ControlledTc829Ean8Html_PreservesLinearNotesAndUsesNotesColumn()
     {
         string sourcePath = GetAttachedReportPath(

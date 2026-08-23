@@ -1607,6 +1607,21 @@ public sealed class SessionViewModel : ViewModelBase
                     : null,
             };
 
+            // A two-symbol Webscan import has an independent barcode-to-barcode
+            // comparison. Keep the RFID scan as one window, but make either
+            // comparison part of the composite outcome.
+            if (record.IsWebscanComposite && record.LinearTwoDMatch is false)
+            {
+                record = record with
+                {
+                    RfidStatus = "Fail",
+                    RfidMismatchDetail =
+                        string.IsNullOrWhiteSpace(rfidResult.MismatchDetail)
+                            ? record.LinearTwoDComparisonDetail
+                            : $"{record.LinearTwoDComparisonDetail}; {rfidResult.MismatchDetail}",
+                };
+            }
+
             // Update the RFID result line in the display.
             RfidResultLine = rfidResult.Status switch
             {
