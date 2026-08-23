@@ -27,7 +27,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.63";
+    public const string ReportVersion = "v1.5.64";
     internal const int MaxRenderedSymbolGroups = 2;
 
     // ── Template ────────────────────────────────────────────────────────────
@@ -135,7 +135,7 @@ public static class VccsHtmlReportGenerator
             .Replace("{{HDR_VERSION}}",         H(headerVersion ?? "\u2014"))
             .Replace("{{HDR_BADGE_CLASS}}",     badgeCls)
             .Replace("{{HDR_BADGE_TEXT}}",      badgeTxt)
-            .Replace("{{QUALIFICATION_NOTE}}",  BuildQualificationNote(r))
+            .Replace("{{QUALIFICATION_NOTE}}",  string.Empty)
             .Replace("{{SECTION1_TITLE}}",      section1Title)
             .Replace("{{APP_SETTINGS_INLINE}}", BuildApplicationSettingsInline(r))
             .Replace("{{SLOT_SYMBOL_ROWS}}",    BuildSymbolRows(r))
@@ -219,17 +219,6 @@ public static class VccsHtmlReportGenerator
         if (renderedGroups < MaxRenderedSymbolGroups)
         {
             AppendSymbolRow(sb, r.HtmlSymbology ?? "\u2014", r.HtmlDecodedData);
-        }
-        if (r.MultiSymbolReports.Count > 2)
-        {
-            string status = r.MultiSymbolQualificationStatus ?? "Unverified";
-            string reasons = r.MultiSymbolQualificationReasons.Count == 0
-                ? "RFID identity comparison pending"
-                : string.Join("; ", r.MultiSymbolQualificationReasons);
-            sb.Append($"          <tr data-vccs-multi-symbol-qualification=\"true\">\n");
-            sb.Append($"            <td style=\"font-size:8pt;\">Multi-Symbol Qualification</td>\n");
-            sb.Append($"            <td colspan=\"2\">{H(status)} — {H(reasons)}</td>\n");
-            sb.Append($"          </tr>\n");
         }
         return sb.ToString();
     }
@@ -322,17 +311,6 @@ public static class VccsHtmlReportGenerator
     private static bool IsLinearFamily(string? family)
         => string.Equals(family, SymbologyFamily.Linear1D.ToString(),
             StringComparison.OrdinalIgnoreCase);
-
-    private static string BuildQualificationNote(VerificationRecord r)
-    {
-        if (r.MultiSymbolReports.Count <= 2 ||
-            !r.MultiSymbolQualificationReasons.Any(reason =>
-                reason.Contains("at least one linear", StringComparison.OrdinalIgnoreCase)))
-            return string.Empty;
-
-        return "* RFID agrees with at least one linear and one 2D symbol. " +
-               "Additional native symbols remain listed and are reported independently.";
-    }
 
     private static bool IsLinear15416Report(VerificationRecord r)
     {
@@ -632,12 +610,14 @@ public static class VccsHtmlReportGenerator
         IReadOnlyList<NativeWebscanReportSummary> symbols = r.MultiSymbolReports.Count > 0
             ? r.MultiSymbolReports
             : BuildLegacySymbolSummaries(r);
+        NativeWebscanReportSummary? parserOwner = symbols
+            .OrderBy(s => s.Ordinal)
+            .FirstOrDefault(s => !IsLinearFamily(s.SymbologyFamily));
+        parserOwner ??= symbols.FirstOrDefault();
         foreach (NativeWebscanReportSummary symbol in symbols)
         {
-            bool isPrimary = string.Equals(symbol.Symbology, r.HtmlSymbology,
-                StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(symbol.DecodedData, r.HtmlDecodedData,
-                    StringComparison.Ordinal);
+            bool isPrimary = parserOwner is not null &&
+                ReferenceEquals(symbol, parserOwner);
             string image = symbol.SourceImageBase64 ?? string.Empty;
             string mime = symbol.SourceImageMimeType ?? "image/jpeg";
             sb.Append("    <div class=\"barcode-detail-section report-block\">\n");

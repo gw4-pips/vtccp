@@ -14,6 +14,9 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ExcelEngine.Models;
 using Microsoft.Web.WebView2.Core;
+using PdfSharp.Drawing;
+using PdfSharp.Pdf;
+using PdfSharp.Pdf.IO;
 
 namespace DeviceInterface.Reports;
 
@@ -82,6 +85,7 @@ public static class VccsPdfRenderer
                 {
                     await Task.Run(() => RenderWithWebView2(tmpHtml, pdfPath), ct)
                               .ConfigureAwait(false);
+                    AddPageNumbers(pdfPath);
                     Debug.WriteLine($"[VCCS-PDF] Rendered via WebView2: {pdfPath}");
                     return;
                 }
@@ -97,12 +101,36 @@ public static class VccsPdfRenderer
             }
 
             await RenderWithWkhtmltopdfAsync(tmpHtml, pdfPath, ct).ConfigureAwait(false);
+            AddPageNumbers(pdfPath);
             Debug.WriteLine($"[VCCS-PDF] Rendered via wkhtmltopdf: {pdfPath}");
         }
         finally
         {
             try { File.Delete(tmpHtml); } catch { /* temp cleanup is best-effort */ }
         }
+    }
+
+    private static void AddPageNumbers(string pdfPath)
+    {
+        using PdfDocument document = PdfReader.Open(pdfPath, PdfDocumentOpenMode.Modify);
+        int pageCount = document.PageCount;
+        XFont font = new("Arial", 7);
+        XBrush brush = XBrushes.Gray;
+
+        for (int index = 0; index < pageCount; index++)
+        {
+            PdfPage page = document.Pages[index];
+            using XGraphics graphics = XGraphics.FromPdfPage(page, XGraphicsPdfPageOptions.Append);
+            string label = $"Page {index + 1} of {pageCount}";
+            graphics.DrawString(
+                label,
+                font,
+                brush,
+                new XRect(0, page.Height.Point - 22, page.Width.Point - 29, 12),
+                XStringFormats.BottomRight);
+        }
+
+        document.Save(pdfPath);
     }
 
     // ── WebView2 path ──────────────────────────────────────────────────────

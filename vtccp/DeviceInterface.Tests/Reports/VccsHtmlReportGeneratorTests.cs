@@ -452,6 +452,12 @@ public sealed class VccsHtmlReportGeneratorTests
                     DecodedData = "ABC123",
                 },
             ],
+            VeriWedgeValidationUsed = true,
+            VccsDigitalLinkValidation = new DigitalLinkValidationResult
+            {
+                Status = DigitalLinkValidationStatus.Valid,
+                Source = DigitalLinkValidationResult.VccsElementStringSource,
+            },
         });
 
         Assert.Equal(3, Regex.Matches(report, "class=\"barcode-detail-section report-block\"",
@@ -463,8 +469,18 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains(".barcode-detail-section {\n    break-inside: avoid;",
             report, StringComparison.Ordinal);
         Assert.Contains("<div class=\"fr\"></div>", report, StringComparison.Ordinal);
-        Assert.Contains(".footer .fr::after { content: \"Page \" counter(page) \" of \" counter(pages); }",
-            report, StringComparison.Ordinal);
+        Assert.DoesNotContain("counter(page)", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Multi-Symbol Qualification", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Additional native symbols remain listed", report,
+            StringComparison.Ordinal);
+        int firstSection = report.IndexOf("TruCheck Barcode Image — GS1 DataMatrix",
+            StringComparison.Ordinal);
+        int secondSection = report.IndexOf("TruCheck Barcode Image — EAN-13",
+            StringComparison.Ordinal);
+        int parserPanel = report.IndexOf("DataMan TruCheck GS1 Parser",
+            StringComparison.Ordinal);
+        Assert.True(firstSection >= 0 && secondSection > firstSection &&
+                    parserPanel > firstSection && parserPanel < secondSection);
     }
 
     [Fact]
@@ -845,9 +861,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains(
             "position: fixed; left: 0.4in; right: 0.4in; bottom: 0.18in;",
             report, StringComparison.Ordinal);
-        Assert.Contains(
-            "content: \"Page \" counter(page) \" of \" counter(pages);",
-            report, StringComparison.Ordinal);
+        Assert.DoesNotContain("counter(page)", report, StringComparison.Ordinal);
         Assert.DoesNotContain("Verification Command &amp; Control System (VCCS)",
             report,
             StringComparison.Ordinal);
