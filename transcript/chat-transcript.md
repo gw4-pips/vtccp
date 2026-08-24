@@ -3221,3 +3221,5 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Reported that the multi-symbol parser header had become materially corrupted and clarified the canonical format: `TruCheck Barcode Image | Data Format Check (DFC) — <suffix>`, with only the suffix changing. Requested centered `Symbol #1`, `Symbol #2`, and `Symbol #3` labels above the corresponding parser-section images.
 
 **Assistant:** Restored the fixed parser header title, moved symbol enumeration out of the header, added centered symbol labels above each multi-symbol image with approximately 0.05 inches of spacing, updated stale regression expectations, bumped the application to v1.5.95, and verified the report suite (52/52) plus the Windows-targeted Release build (0 errors).
+
+**Assistant:** Committed the correction as `1380406`; GitHub’s live `main` branch confirmed the full SHA `13804066fe8b62cc431fdaaa9fa5f76541b2cd06`.
