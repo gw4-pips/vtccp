@@ -3215,3 +3215,5 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **Assistant:** Verified the report generator and GS1 routing suites (79/79) and the captured-export parser regression (1/1). The broader parser class retains one unrelated fixture failure because its two expected embedded sidecar images are both absent.
 
 **Assistant:** Restored the existing Tesseract dependency asset, built the Windows-targeted Release project successfully, and completed a focused code review with no correctness or security findings. Bumped the application version to 1.5.94 and prepared the verified patch for canonical delivery.
+
+**Assistant:** Committed the verified patch as `89bc2f1` and the project hook pushed it to GitHub. GitHub’s live `main` branch was queried directly and confirmed at the exact full SHA `89bc2f1d8857a57fbc0fde2315c8a7e23fbc9ba4`, with application version 1.5.94.
