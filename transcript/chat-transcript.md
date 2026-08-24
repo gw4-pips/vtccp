@@ -3223,3 +3223,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **Assistant:** Restored the fixed parser header title, moved symbol enumeration out of the header, added centered symbol labels above each multi-symbol image with approximately 0.05 inches of spacing, updated stale regression expectations, bumped the application to v1.5.95, and verified the report suite (52/52) plus the Windows-targeted Release build (0 errors).
 
 **Assistant:** Committed the correction as `1380406`; GitHub’s live `main` branch confirmed the full SHA `13804066fe8b62cc431fdaaa9fa5f76541b2cd06`.
+
+**User:** Requested clearer generalized RFID validation wording: identify the mismatching symbol’s GTIN, identify all matching GTIN ordinals and the matching S/N ordinal, describe linear/2D GTIN matches explicitly, and include the contributing ordinals in Barcode Symbol Agreement.
+
+**Assistant:** Updated the multi-symbol RFID result text to use explicit `(#N) GTIN` and `(#N) S/N` references, pluralized paired GTIN statements consistently, preserved `(#2 & #3)` for Barcode Symbol Agreement, added regression assertions for the exact wording, bumped the application to v1.5.96, and verified report tests (52/52) plus the Windows-targeted Release build (0 errors).

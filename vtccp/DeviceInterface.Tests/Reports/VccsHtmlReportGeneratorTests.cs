@@ -567,15 +567,15 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            "Fail &#x2014; EPC GTIN does not match this symbol (#1)",
+            "Fail &#x2014; EPC GTIN does not match (#1) GTIN",
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            "Pass &#x2014; EPC GTIN matches both barcode symbols (#2 & #3) and Serial Number (#2)",
+            "Pass &#x2014; EPC GTIN matches (#2) and (#3) GTINs; EPC Serial Number matches (#2) S/N",
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            "Pass &#x2014; EPC GTIN matches linear (#3) and 2D GTIN (#2)",
+            "Pass &#x2014; EPC GTIN matches linear (#3) and 2D (#2) GTINs",
             report,
             StringComparison.Ordinal);
         Assert.Contains(

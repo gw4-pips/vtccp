@@ -718,7 +718,7 @@ public static class VccsHtmlReportGenerator
             matches)
         {
             if (!matches)
-                return $"Fail &#x2014; EPC GTIN does not match this symbol ({GetSymbolReference(symbol)})";
+                return $"Fail &#x2014; EPC GTIN does not match ({GetSymbolReference(symbol)}) GTIN";
         }
         else
         {
@@ -732,29 +732,26 @@ public static class VccsHtmlReportGenerator
                     string.Equals(candidate.Gtin14, matchingGtin, StringComparison.Ordinal))
                     .ToArray()
                 : [];
-        string matchingReferences = GetSymbolReferences(matchingSymbols);
         if (IsLinearFamily(symbol.SymbologyFamily))
         {
             string matchingTwoDReferences = GetSymbolReferences(matchingSymbols
                 .Where(candidate => !IsLinearFamily(candidate.SymbologyFamily)));
             return string.IsNullOrWhiteSpace(matchingTwoDReferences)
-                ? $"Pass &#x2014; EPC GTIN matches linear ({GetSymbolReference(symbol)})"
-                : $"Pass &#x2014; EPC GTIN matches linear ({GetSymbolReference(symbol)}) and 2D GTIN ({matchingTwoDReferences})";
+                ? $"Pass &#x2014; EPC GTIN matches linear ({GetSymbolReference(symbol)}) GTIN"
+                : $"Pass &#x2014; EPC GTIN matches linear ({GetSymbolReference(symbol)}) and 2D ({matchingTwoDReferences}) GTINs";
         }
 
         bool isPrimary2D = IsPrimarySymbol(record, symbol);
         if (isPrimary2D && record.RfidMatchScope == "Both" &&
             matchingSymbols.Count > 1)
         {
-            string barcodeNoun = matchingSymbols.Count == 2
-                ? "both barcode symbols"
-                : "barcode symbols";
-            return $"Pass &#x2014; EPC GTIN matches {barcodeNoun} ({matchingReferences}) and Serial Number ({GetSymbolReference(symbol)})";
+            string matchingReferencesWithAnd = GetIndividualSymbolReferences(matchingSymbols);
+            return $"Pass &#x2014; EPC GTIN matches {matchingReferencesWithAnd} GTINs; EPC Serial Number matches ({GetSymbolReference(symbol)}) S/N";
         }
         if (isPrimary2D)
-            return $"Pass &#x2014; EPC data matches 2D GTIN ({GetSymbolReference(symbol)}) and Serial Number ({GetSymbolReference(symbol)})";
+            return $"Pass &#x2014; EPC GTIN matches ({GetSymbolReference(symbol)}) GTIN; EPC Serial Number matches ({GetSymbolReference(symbol)}) S/N";
 
-        return $"Pass &#x2014; EPC GTIN matches this symbol ({GetSymbolReference(symbol)})";
+        return $"Pass &#x2014; EPC GTIN matches ({GetSymbolReference(symbol)}) GTIN";
     }
 
     private static bool IsPrimarySymbol(
@@ -984,6 +981,12 @@ public static class VccsHtmlReportGenerator
         => string.Join(" & ", symbols
             .OrderBy(symbol => symbol.Ordinal)
             .Select(GetSymbolReference));
+
+    private static string GetIndividualSymbolReferences(
+        IEnumerable<NativeWebscanReportSummary> symbols)
+        => string.Join(" and ", symbols
+            .OrderBy(symbol => symbol.Ordinal)
+            .Select(symbol => $"({GetSymbolReference(symbol)})"));
 
     private enum ParserPayloadKind
     {
