@@ -477,7 +477,7 @@ public sealed class VccsHtmlReportGeneratorTests
             RegexOptions.CultureInvariant).Count);
         Assert.Equal(3, Regex.Matches(
             report,
-            "TruCheck Barcode \\(#",
+            "<span class=\"trucheck-header-title\">TruCheck Barcode Image</span><span class=\"sec-note\"> \\| <em>Data Format Check \\(DFC\\)</em> &#x2014; ",
             RegexOptions.CultureInvariant).Count);
         Assert.Contains("GS1 GTIN", report, StringComparison.Ordinal);
         Assert.Contains("GS1 Element String", report, StringComparison.Ordinal);
@@ -582,10 +582,25 @@ public sealed class VccsHtmlReportGeneratorTests
             "Pass &#x2014; GTIN-14 00696114704288 (#2 &amp; #3)",
             report,
             StringComparison.Ordinal);
-        Assert.Contains(
-            "TruCheck Barcode (#2 &amp; #3)",
+        Assert.Equal(3, Regex.Matches(
             report,
+            "<span class=\"trucheck-header-title\">TruCheck Barcode Image</span><span class=\"sec-note\"> \\| <em>Data Format Check \\(DFC\\)</em> &#x2014; ",
+            RegexOptions.CultureInvariant).Count);
+        Assert.DoesNotContain("TruCheck Barcode (#", report, StringComparison.Ordinal);
+        Assert.Equal(3, Regex.Matches(
+            report,
+            "<div class=\"barcode-image-symbol-label\">Symbol #\\d+</div>",
+            RegexOptions.CultureInvariant).Count);
+        int symbolOne = report.IndexOf(
+            "<div class=\"barcode-image-symbol-label\">Symbol #1</div>",
             StringComparison.Ordinal);
+        int symbolTwo = report.IndexOf(
+            "<div class=\"barcode-image-symbol-label\">Symbol #2</div>",
+            StringComparison.Ordinal);
+        int symbolThree = report.IndexOf(
+            "<div class=\"barcode-image-symbol-label\">Symbol #3</div>",
+            StringComparison.Ordinal);
+        Assert.True(symbolOne >= 0 && symbolTwo > symbolOne && symbolThree > symbolTwo);
         Assert.DoesNotContain(
             "[DIGITAL LINK URI NOT AVAILABLE]",
             report,

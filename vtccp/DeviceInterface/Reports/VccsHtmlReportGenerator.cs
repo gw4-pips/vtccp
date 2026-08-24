@@ -786,14 +786,15 @@ public static class VccsHtmlReportGenerator
                 GetParserHeaderSuffix(
                     symbol.Symbology,
                     symbol.SymbologyFamily,
-                    symbol.DecodedData),
-                $"TruCheck Barcode ({GetBarcodeSymbolReferences(symbol, symbols)})");
+                    symbol.DecodedData));
             sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
             sb.Append("        <td class=\"barcode-image-column\">\n");
+            sb.Append($"          <div class=\"barcode-image-stack\"><div class=\"barcode-image-symbol-label\">Symbol #{symbol.Ordinal}</div>\n");
             if (hasHtml && !string.IsNullOrWhiteSpace(image))
                 sb.Append($"          <img class=\"barcode-image\" src=\"data:{mime};base64,{image}\" alt=\"{H(symbol.Symbology)} Image\"/>\n");
             else
                 sb.Append($"          <div class=\"img-placeholder\">[{(hasHtml ? "BARCODE IMAGE NOT AVAILABLE" : "BARCODE IMAGE UNAVAILABLE — NO CORRELATED DMST HTML")}]</div>\n");
+            sb.Append("          </div>\n");
             sb.Append("        </td>\n        <td class=\"barcode-dfc-column\">\n");
             VerificationRecord symbolRecord = r with
             {

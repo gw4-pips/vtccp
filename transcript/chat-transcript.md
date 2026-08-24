@@ -3217,3 +3217,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **Assistant:** Restored the existing Tesseract dependency asset, built the Windows-targeted Release project successfully, and completed a focused code review with no correctness or security findings. Bumped the application version to 1.5.94 and prepared the verified patch for canonical delivery.
 
 **Assistant:** Committed the verified patch as `89bc2f1` and the project hook pushed it to GitHub. GitHub’s live `main` branch was queried directly and confirmed at the exact full SHA `89bc2f1d8857a57fbc0fde2315c8a7e23fbc9ba4`, with application version 1.5.94.
+
+**User:** Reported that the multi-symbol parser header had become materially corrupted and clarified the canonical format: `TruCheck Barcode Image | Data Format Check (DFC) — <suffix>`, with only the suffix changing. Requested centered `Symbol #1`, `Symbol #2`, and `Symbol #3` labels above the corresponding parser-section images.
+
+**Assistant:** Restored the fixed parser header title, moved symbol enumeration out of the header, added centered symbol labels above each multi-symbol image with approximately 0.05 inches of spacing, updated stale regression expectations, bumped the application to v1.5.95, and verified the report suite (52/52) plus the Windows-targeted Release build (0 errors).
