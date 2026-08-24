@@ -90,6 +90,34 @@ public sealed class VccsDigitalLinkValidationServiceTests
     }
 
     [Theory]
+    [InlineData(
+        "GS1 DataMatrix",
+        "<F1>01006961147042882172803282010",
+        DigitalLinkValidationResult.VccsElementStringSource)]
+    [InlineData(
+        "UPCA",
+        "696114704288",
+        DigitalLinkValidationResult.VccsElementStringSource)]
+    [InlineData(
+        "QR Code",
+        "https://id.gs1.org/01/00696114704288/21/72803282010",
+        DigitalLinkValidationResult.VccsSource)]
+    public void ValidateBarcodePayload_RoutesEachNativeSyntaxWithoutTreatingItAsDigitalLink(
+        string symbology,
+        string decodedData,
+        string expectedSource)
+    {
+        DigitalLinkValidationResult result =
+            VccsDigitalLinkValidationService.ValidateBarcodePayload(
+                symbology,
+                decodedData,
+                new AcceptingEngine());
+
+        Assert.Equal(DigitalLinkValidationStatus.Valid, result.Status);
+        Assert.Equal(expectedSource, result.Source);
+    }
+
+    [Theory]
     [InlineData("UPCA", "696114704318", "(01)00696114704318")]
     [InlineData("EAN-13", "0696114704318", "(01)00696114704318")]
     [InlineData("EAN-8", "96385074", "(01)00000096385074")]

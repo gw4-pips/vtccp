@@ -1453,32 +1453,41 @@ public sealed class SessionViewModel : ViewModelBase
         TruCheckValidationAssessment truCheck =
             RfidValidator.AssessTruCheckValidation(record);
         string? gs1Input = record.HtmlDecodedData ?? record.DecodedData;
-        DigitalLinkValidationResult? veriWedgeValidation =
-            VccsDigitalLinkValidationService.Validate(gs1Input);
-        if (veriWedgeValidation.Status == DigitalLinkValidationStatus.NotApplicable &&
-            VccsDigitalLinkValidationService.BuildLinearElementString(
+        DigitalLinkValidationResult veriWedgeValidation =
+            VccsDigitalLinkValidationService.ValidateBarcodePayload(
                 record.HtmlSymbology ?? record.Symbology,
-                gs1Input) is { } linearElementString)
-        {
-            veriWedgeValidation =
-                VccsDigitalLinkValidationService.ValidateElementString(linearElementString);
-        }
-        if (veriWedgeValidation.Status == DigitalLinkValidationStatus.NotApplicable &&
-            VccsDigitalLinkValidationService.LooksLikeGs1ElementString(gs1Input))
-        {
-            veriWedgeValidation =
-                VccsDigitalLinkValidationService.ValidateElementString(gs1Input);
-        }
-        bool veriWedgeParserUsed = veriWedgeValidation.Status is
-            DigitalLinkValidationStatus.Valid or
-            DigitalLinkValidationStatus.Invalid or
-            DigitalLinkValidationStatus.Unavailable;
+                gs1Input);
+        IReadOnlyList<NativeWebscanReportSummary> parserValidatedSymbols =
+            record.MultiSymbolReports.Select(symbol => symbol with
+            {
+                VccsParserValidation =
+                    VccsDigitalLinkValidationService.ValidateBarcodePayload(
+                        symbol.Symbology,
+                        symbol.DecodedData),
+            }).ToArray();
+        DigitalLinkValidationResult? primarySymbolValidation = parserValidatedSymbols
+            .FirstOrDefault(symbol =>
+                string.Equals(symbol.Symbology, record.HtmlSymbology ?? record.Symbology,
+                    StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(symbol.DecodedData, gs1Input, StringComparison.Ordinal))
+            ?.VccsParserValidation;
+        if (primarySymbolValidation is not null)
+            veriWedgeValidation = primarySymbolValidation;
+
+        bool veriWedgeParserUsed = parserValidatedSymbols
+            .Select(symbol => symbol.VccsParserValidation)
+            .Append(veriWedgeValidation)
+            .Any(validation => validation?.Status is
+                DigitalLinkValidationStatus.Valid or
+                DigitalLinkValidationStatus.Invalid or
+                DigitalLinkValidationStatus.Unavailable);
         record = record with
         {
             TruCheckValidationUsable = truCheck.Usable,
             TruCheckValidationFailed = truCheck.Failed,
             VeriWedgeValidationUsed = veriWedgeParserUsed,
             VccsDigitalLinkValidation = veriWedgeValidation,
+            MultiSymbolReports = parserValidatedSymbols,
         };
 
         // A dual-symbology Webscan report has two native barcode reports but one RFID

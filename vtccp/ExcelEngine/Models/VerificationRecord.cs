@@ -848,7 +848,7 @@ public sealed class NativeQualityParameter
     public string? Result { get; init; }
 }
 
-public sealed class NativeWebscanReportSummary
+public sealed record class NativeWebscanReportSummary
 {
     public int Ordinal { get; init; }
     public string? Symbology { get; init; }
@@ -869,4 +869,10 @@ public sealed class NativeWebscanReportSummary
     public string? FormalGrade { get; init; }
     public IReadOnlyList<NativeQualityParameter> QualityParameters { get; init; } = [];
     public DataFormatCheckResult? DataFormatCheck { get; init; }
+    /// <summary>
+    /// VCCS GS1 parser result calculated from this native symbol's own payload.
+    /// It is separate from the Webscan Data Format Check evidence and prevents a
+    /// multi-symbol report from applying one symbol's parser result to another.
+    /// </summary>
+    public DigitalLinkValidationResult? VccsParserValidation { get; init; }
 }

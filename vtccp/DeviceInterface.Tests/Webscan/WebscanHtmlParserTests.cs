@@ -291,6 +291,35 @@ public sealed class WebscanHtmlParserTests
     }
 
     [Fact]
+    public void CapturedThreeSymbolWebscanHtml_PreservesNotesAndPayloadTypesInNativeOrder()
+    {
+        string sourcePath = GetAttachedReportPath(
+            "Webscan_Report-CU26E02-26-08-23_18_18_08_1787524137408.html");
+
+        WebscanHtmlMultiSymbolReport report =
+            WebscanHtmlParser.ParseMultiSymbol(File.ReadAllText(sourcePath), sourcePath);
+
+        Assert.True(report.ParseSucceeded, report.ParseError);
+        Assert.Equal(
+            ["GS1 DataMatrix", "GS1 DataMatrix", "UPCA"],
+            report.SymbolReports.Select(symbol => symbol.Symbology));
+        Assert.All(report.SymbolReports.Take(2), symbol =>
+            Assert.StartsWith("<F1>", symbol.Data ?? string.Empty));
+        Assert.Equal("696114704288", report.SymbolReports[2].Data);
+        Assert.Equal("ANSI/ISO", report.SymbolReports[2].Standard);
+        Assert.Contains("ISO15416:2016", report.SymbolReports[2].Notes);
+        Assert.Contains("Warning: Symbol Magnification is less than 80%",
+            report.SymbolReports[2].Notes);
+
+        VerificationRecord record = report.ToVerificationRecord();
+        Assert.Equal([1, 2, 3],
+            record.MultiSymbolReports.Select(symbol => symbol.Ordinal));
+        Assert.Equal(
+            ["GS1 DataMatrix", "GS1 DataMatrix", "UPCA"],
+            record.MultiSymbolReports.Select(symbol => symbol.Symbology));
+    }
+
+    [Fact]
     public void ControlledTc829UpcaHtml_RendersDualGs1ParserAndMatchedRfidResult()
     {
         string sourcePath = GetUpcaReportPath();

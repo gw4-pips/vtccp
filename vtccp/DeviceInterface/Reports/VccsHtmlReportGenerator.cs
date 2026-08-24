@@ -16,6 +16,7 @@ using System.Text;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using ExcelEngine.Models;
+using DeviceInterface.Validation;
 
 namespace DeviceInterface.Reports;
 
@@ -27,7 +28,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.65";
+    public const string ReportVersion = "v1.5.66";
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -374,12 +375,13 @@ public static class VccsHtmlReportGenerator
         sb.Append($"          <tr>\n");
         sb.Append($"            <td>{Display(symb)}</td>\n");
         GradeNotes notes = SplitGradeWarning(lighting);
-        string standardDisplay = Display(standard) + (notes.Warning is null ? string.Empty : "*");
+        string standardDisplay = Display(standard);
+        string notesDisplay = Display(notes.Display) + (notes.Warning is null ? string.Empty : "*");
         sb.Append($"            <td>{standardDisplay}</td>\n");
         sb.Append($"            <td>{Display(grade)}</td>\n");
         sb.Append($"            <td>{Display(aperture)}</td>\n");
         sb.Append($"            <td>{Display(wavelength)}</td>\n");
-        sb.Append($"            <td>{Display(notes.Display)}</td>\n");
+        sb.Append($"            <td>{notesDisplay}</td>\n");
         sb.Append($"            <td>{Display(formal)}</td>\n");
         sb.Append($"          </tr>\n");
     }
@@ -577,7 +579,7 @@ public static class VccsHtmlReportGenerator
 
                 ResultRow(
                     $"{symbolName} {resultLabel}",
-                    BuildMultiSymbolRfidResult(r, symbol, matches),
+                    BuildMultiSymbolRfidResult(r, symbol, canonicalSymbols, matches),
                     symbolResultClass,
                     "rfid-symbol-result");
             }
@@ -589,7 +591,7 @@ public static class VccsHtmlReportGenerator
                     "Barcode Symbol Agreement",
                     r.BarcodeSymbolAgreement switch
                     {
-                        "Pass" => $"Pass &#x2014; GTIN-14 {H(r.LinearGtin14 ?? "\u2014")}",
+                        "Pass" => $"Pass &#x2014; GTIN-14 {H(r.LinearGtin14 ?? "\u2014")} {H(GetAgreementSymbolReferences(r, canonicalSymbols))}",
                         "Fail" => $"Fail &#x2014; {H(r.BarcodeSymbolAgreementDetail ?? "GTIN mismatch")}",
                         "Incomplete" =>
                             $"FAIL / INCOMPLETE &#x2014; {H(r.BarcodeSymbolAgreementDetail ?? "GTIN unavailable")}",
@@ -704,6 +706,7 @@ public static class VccsHtmlReportGenerator
     private static string BuildMultiSymbolRfidResult(
         VerificationRecord record,
         NativeWebscanReportSummary symbol,
+        IReadOnlyList<NativeWebscanReportSummary> symbols,
         bool matches)
     {
         if (record.RfidStatus == "NoTag")
@@ -715,23 +718,43 @@ public static class VccsHtmlReportGenerator
             matches)
         {
             if (!matches)
-                return "Fail &#x2014; EPC GTIN does not match this symbol";
+                return $"Fail &#x2014; EPC GTIN does not match this symbol ({GetSymbolReference(symbol)})";
         }
         else
         {
             return $"{H(record.RfidStatus)} &#x2014; EPC or barcode GTIN unavailable";
         }
 
+        string? matchingGtin = record.RfidGtin14 ?? symbol.Gtin14;
+        IReadOnlyList<NativeWebscanReportSummary> matchingSymbols =
+            !string.IsNullOrWhiteSpace(matchingGtin)
+                ? symbols.Where(candidate =>
+                    string.Equals(candidate.Gtin14, matchingGtin, StringComparison.Ordinal))
+                    .ToArray()
+                : [];
+        string matchingReferences = GetSymbolReferences(matchingSymbols);
         if (IsLinearFamily(symbol.SymbologyFamily))
-            return "Pass &#x2014; EPC GTIN matches linear and 2D GTIN";
+        {
+            string matchingTwoDReferences = GetSymbolReferences(matchingSymbols
+                .Where(candidate => !IsLinearFamily(candidate.SymbologyFamily)));
+            return string.IsNullOrWhiteSpace(matchingTwoDReferences)
+                ? $"Pass &#x2014; EPC GTIN matches linear ({GetSymbolReference(symbol)})"
+                : $"Pass &#x2014; EPC GTIN matches linear ({GetSymbolReference(symbol)}) and 2D GTIN ({matchingTwoDReferences})";
+        }
 
         bool isPrimary2D = IsPrimarySymbol(record, symbol);
-        if (isPrimary2D && record.RfidMatchScope == "Both")
-            return "Pass &#x2014; EPC GTIN matches both barcode symbols and Serial Number";
+        if (isPrimary2D && record.RfidMatchScope == "Both" &&
+            matchingSymbols.Count > 1)
+        {
+            string barcodeNoun = matchingSymbols.Count == 2
+                ? "both barcode symbols"
+                : "barcode symbols";
+            return $"Pass &#x2014; EPC GTIN matches {barcodeNoun} ({matchingReferences}) and Serial Number ({GetSymbolReference(symbol)})";
+        }
         if (isPrimary2D)
-            return "Pass &#x2014; EPC data matches 2D GTIN and Serial Number";
+            return $"Pass &#x2014; EPC data matches 2D GTIN ({GetSymbolReference(symbol)}) and Serial Number ({GetSymbolReference(symbol)})";
 
-        return "Pass &#x2014; EPC GTIN matches this symbol";
+        return $"Pass &#x2014; EPC GTIN matches this symbol ({GetSymbolReference(symbol)})";
     }
 
     private static bool IsPrimarySymbol(
@@ -753,13 +776,8 @@ public static class VccsHtmlReportGenerator
         bool hasHtml = HasCorrelatedFilesystemHtml(r);
         var sb = new StringBuilder();
         IReadOnlyList<NativeWebscanReportSummary> symbols = GetCanonicalSymbols(r);
-        NativeWebscanReportSummary? parserOwner = symbols
-            .FirstOrDefault(s => !IsLinearFamily(s.SymbologyFamily));
-        parserOwner ??= symbols.FirstOrDefault();
         foreach (NativeWebscanReportSummary symbol in symbols)
         {
-            bool isPrimary = parserOwner is not null &&
-                ReferenceEquals(symbol, parserOwner);
             string image = symbol.SourceImageBase64 ?? string.Empty;
             string mime = symbol.SourceImageMimeType ?? "image/jpeg";
             sb.Append("    <div class=\"barcode-detail-section report-block\">\n");
@@ -768,7 +786,8 @@ public static class VccsHtmlReportGenerator
                 GetParserHeaderSuffix(
                     symbol.Symbology,
                     symbol.SymbologyFamily,
-                    symbol.DecodedData));
+                    symbol.DecodedData),
+                $"TruCheck Barcode ({GetBarcodeSymbolReferences(symbol, symbols)})");
             sb.Append("      <table class=\"barcode-detail-grid\"><tbody><tr>\n");
             sb.Append("        <td class=\"barcode-image-column\">\n");
             if (hasHtml && !string.IsNullOrWhiteSpace(image))
@@ -781,10 +800,8 @@ public static class VccsHtmlReportGenerator
                 DecodedData = symbol.DecodedData,
                 HtmlDecodedData = symbol.DecodedData,
             };
-            DigitalLinkValidationResult? symbolValidation = isPrimary
-                ? r.VccsDigitalLinkValidation
-                : null;
-            string? nativeSupportNote = isPrimary
+            DigitalLinkValidationResult symbolValidation = GetSymbolParserValidation(r, symbol);
+            string? nativeSupportNote = IsHttpDigitalLinkUri(symbol.DecodedData)
                 ? BuildNativeDigitalLinkSupportNote(r, symbol.DataFormatCheck, symbolValidation)
                 : null;
             AppendElementStringDualValidation(
@@ -854,10 +871,13 @@ public static class VccsHtmlReportGenerator
         return sb.ToString();
     }
 
-    private static void AppendBarcodeDetailHeader(StringBuilder sb, string suffix)
+    private static void AppendBarcodeDetailHeader(
+        StringBuilder sb,
+        string suffix,
+        string title = "TruCheck Barcode Image")
         => sb.Append(
             "      <div class=\"sec-sub-hdr trucheck-barcode-hdr barcode-detail-header\">" +
-            "<span class=\"trucheck-header-title\">TruCheck Barcode Image</span>" +
+            $"<span class=\"trucheck-header-title\">{H(title)}</span>" +
             $"<span class=\"sec-note\"> | <em>Data Format Check (DFC)</em> &#x2014; {H(suffix)}</span>" +
             "</div>\n");
 
@@ -866,27 +886,12 @@ public static class VccsHtmlReportGenerator
         string? symbologyFamily,
         string? decodedData)
     {
-        if (Uri.TryCreate(decodedData, UriKind.Absolute, out Uri? uri) &&
-            (uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
-             uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
+        return GetParserPayloadKind(symbology, decodedData) switch
         {
-            return "Digital Link";
-        }
-
-        string compact = (symbology ?? string.Empty)
-            .Replace(" ", string.Empty, StringComparison.Ordinal)
-            .Replace("-", string.Empty, StringComparison.Ordinal)
-            .Replace("_", string.Empty, StringComparison.Ordinal)
-            .Replace("/", string.Empty, StringComparison.Ordinal);
-        if (compact.Equals("UPCA", StringComparison.OrdinalIgnoreCase) ||
-            compact.Equals("UPCE", StringComparison.OrdinalIgnoreCase) ||
-            compact.Equals("EAN8", StringComparison.OrdinalIgnoreCase) ||
-            compact.Equals("EAN13", StringComparison.OrdinalIgnoreCase))
-        {
-            return "GS1 GTIN";
-        }
-
-        return "GS1 Element String";
+            ParserPayloadKind.DigitalLink => "Digital Link",
+            ParserPayloadKind.Gtin => "GS1 GTIN",
+            _ => "GS1 Element String",
+        };
     }
 
     private static IReadOnlyList<NativeWebscanReportSummary> BuildLegacySymbolSummaries(
@@ -926,6 +931,84 @@ public static class VccsHtmlReportGenerator
             validation?.Source,
             DigitalLinkValidationResult.VccsElementStringSource,
             StringComparison.Ordinal);
+
+    private static DigitalLinkValidationResult GetSymbolParserValidation(
+        VerificationRecord record,
+        NativeWebscanReportSummary symbol)
+    {
+        if (symbol.VccsParserValidation is not null)
+            return symbol.VccsParserValidation;
+
+        if (IsPrimarySymbol(record, symbol) && record.VccsDigitalLinkValidation is not null)
+            return record.VccsDigitalLinkValidation;
+
+        // Historic records have one record-level parser result at most. Re-run the
+        // VCCS parser against the literal native payload rather than borrowing that
+        // result or presenting a fabricated Digital Link URI for another symbol.
+        return VccsDigitalLinkValidationService.ValidateBarcodePayload(
+            symbol.Symbology,
+            symbol.DecodedData);
+    }
+
+    private static string GetBarcodeSymbolReferences(
+        NativeWebscanReportSummary symbol,
+        IReadOnlyList<NativeWebscanReportSummary> symbols)
+    {
+        IReadOnlyList<NativeWebscanReportSummary> identityGroup =
+            !string.IsNullOrWhiteSpace(symbol.Gtin14)
+                ? symbols.Where(candidate =>
+                    string.Equals(candidate.Gtin14, symbol.Gtin14, StringComparison.Ordinal)).ToArray()
+                : [];
+        return GetSymbolReferences(identityGroup.Count > 0 ? identityGroup : [symbol]);
+    }
+
+    private static string GetAgreementSymbolReferences(
+        VerificationRecord record,
+        IReadOnlyList<NativeWebscanReportSummary> symbols)
+    {
+        IReadOnlyList<NativeWebscanReportSummary> agreeingSymbols =
+            !string.IsNullOrWhiteSpace(record.LinearGtin14)
+                ? symbols.Where(symbol =>
+                    string.Equals(symbol.Gtin14, record.LinearGtin14, StringComparison.Ordinal)).ToArray()
+                : [];
+        return agreeingSymbols.Count > 0
+            ? $"({GetSymbolReferences(agreeingSymbols)})"
+            : string.Empty;
+    }
+
+    private static string GetSymbolReference(NativeWebscanReportSummary symbol)
+        => $"#{symbol.Ordinal}";
+
+    private static string GetSymbolReferences(IEnumerable<NativeWebscanReportSummary> symbols)
+        => string.Join(" & ", symbols
+            .OrderBy(symbol => symbol.Ordinal)
+            .Select(GetSymbolReference));
+
+    private enum ParserPayloadKind
+    {
+        DigitalLink,
+        Gtin,
+        ElementString,
+    }
+
+    private static ParserPayloadKind GetParserPayloadKind(
+        string? symbology,
+        string? decodedData)
+    {
+        if (IsHttpDigitalLinkUri(decodedData))
+            return ParserPayloadKind.DigitalLink;
+        if (VccsDigitalLinkValidationService.BuildLinearElementString(symbology, decodedData)
+            is not null)
+        {
+            return ParserPayloadKind.Gtin;
+        }
+        return ParserPayloadKind.ElementString;
+    }
+
+    private static bool IsHttpDigitalLinkUri(string? decodedData)
+        => Uri.TryCreate(decodedData, UriKind.Absolute, out Uri? uri) &&
+           (uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
+            uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase));
 
     private static bool IsVeriWedgeValidationUsed(VerificationRecord record)
         // Saved records created before explicit provenance retain their
@@ -1152,9 +1235,11 @@ public static class VccsHtmlReportGenerator
         string detail)
     {
         var rows = new List<Gs1ParserRow>();
-        bool isElementString = IsElementStringValidation(validation);
+        ParserPayloadKind payloadKind = GetParserPayloadKind(
+            record.HtmlSymbology ?? record.Symbology,
+            record.HtmlDecodedData ?? record.DecodedData);
 
-        if (!isElementString)
+        if (payloadKind == ParserPayloadKind.DigitalLink)
         {
             rows.Add(new Gs1ParserRow(
                 "Web URI",

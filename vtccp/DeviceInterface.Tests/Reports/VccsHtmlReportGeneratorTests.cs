@@ -477,7 +477,7 @@ public sealed class VccsHtmlReportGeneratorTests
             RegexOptions.CultureInvariant).Count);
         Assert.Equal(3, Regex.Matches(
             report,
-            Regex.Escape("TruCheck Barcode Image</span><span class=\"sec-note\"> | <em>Data Format Check (DFC)</em> &#x2014; "),
+            "TruCheck Barcode \\(#",
             RegexOptions.CultureInvariant).Count);
         Assert.Contains("GS1 GTIN", report, StringComparison.Ordinal);
         Assert.Contains("GS1 Element String", report, StringComparison.Ordinal);
@@ -498,8 +498,11 @@ public sealed class VccsHtmlReportGeneratorTests
             RfidReaderConnected = true,
             RfidStatus = "Pass",
             RfidGtin14 = gtin,
+            RfidSerial = "72803282010",
             RfidLinearGtin14Matches = true,
             RfidMatchScope = "Both",
+            BarcodeSymbolAgreement = "Pass",
+            LinearGtin14 = gtin,
             MultiSymbolReports =
             [
                 new NativeWebscanReportSummary
@@ -520,10 +523,10 @@ public sealed class VccsHtmlReportGeneratorTests
                     SymbologyFamily = SymbologyFamily.Linear1D.ToString(),
                     DecodedData = "696114704288",
                     Gtin14 = gtin,
-                    Standard = "ISO15416:2016",
+                    Standard = "ANSI/ISO",
                     ApertureDisplay = "06",
                     ApertureUnit = "mm",
-                    Notes = "Warning: Symbol Magnification is less than 80%",
+                    Notes = "ISO15416:2016 Warning: Symbol Magnification is less than 80%",
                 },
                 new NativeWebscanReportSummary
                 {
@@ -544,6 +547,8 @@ public sealed class VccsHtmlReportGeneratorTests
         int summaryThird = report.IndexOf(">#3 \u2013 UPCA</td>", StringComparison.Ordinal);
         Assert.True(summaryFirst >= 0 && summarySecond > summaryFirst && summaryThird > summarySecond);
         Assert.Contains("<th>Aperture (mm)</th>", report, StringComparison.Ordinal);
+        Assert.Contains(">ANSI/ISO</td>", report, StringComparison.Ordinal);
+        Assert.DoesNotContain(">ANSI/ISO*</td>", report, StringComparison.Ordinal);
         Assert.Contains(">ISO15416:2016*</td>", report, StringComparison.Ordinal);
         Assert.Contains("*Warning: Symbol Magnification is less than 80%", report,
             StringComparison.Ordinal);
@@ -559,6 +564,30 @@ public sealed class VccsHtmlReportGeneratorTests
             StringComparison.Ordinal);
         Assert.Contains(
             "#3 \u2013 UPCA RFID Validation Result",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "Fail &#x2014; EPC GTIN does not match this symbol (#1)",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "Pass &#x2014; EPC GTIN matches both barcode symbols (#2 & #3) and Serial Number (#2)",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "Pass &#x2014; EPC GTIN matches linear (#3) and 2D GTIN (#2)",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "Pass &#x2014; GTIN-14 00696114704288 (#2 &amp; #3)",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "TruCheck Barcode (#2 &amp; #3)",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "[DIGITAL LINK URI NOT AVAILABLE]",
             report,
             StringComparison.Ordinal);
         Assert.Contains(".rfid-table .rfid-symbol-result td { font-size: 8pt; }",

@@ -21,6 +21,35 @@ public static class VccsDigitalLinkValidationService
         => Validate(decodedData, new Gs1DigitalLinkSyntaxEngine());
 
     /// <summary>
+    /// Validates a barcode payload according to the syntax the payload actually
+    /// contains: HTTP(S) URI, GS1 Element String, or a supported linear GTIN.
+    /// The returned source identifies the syntax engine path; it does not alter
+    /// the verifier's native data or its Data Format Check evidence.
+    /// </summary>
+    public static DigitalLinkValidationResult ValidateBarcodePayload(
+        string? symbology,
+        string? decodedData)
+        => ValidateBarcodePayload(symbology, decodedData, new Gs1DigitalLinkSyntaxEngine());
+
+    /// <summary>Injectable payload-routing overload used by regression tests.</summary>
+    public static DigitalLinkValidationResult ValidateBarcodePayload(
+        string? symbology,
+        string? decodedData,
+        IGs1DigitalLinkSyntaxEngine engine)
+    {
+        DigitalLinkValidationResult validation = Validate(decodedData, engine);
+        if (validation.Status != DigitalLinkValidationStatus.NotApplicable)
+            return validation;
+
+        if (BuildLinearElementString(symbology, decodedData) is { } linearElementString)
+            return ValidateElementString(linearElementString, engine);
+
+        return LooksLikeGs1ElementString(decodedData)
+            ? ValidateElementString(decodedData, engine)
+            : validation;
+    }
+
+    /// <summary>
     /// Injectable overload used by regression tests. Production callers use the
     /// official GS1 engine through <see cref="Validate(string?)"/>.
     /// </summary>
