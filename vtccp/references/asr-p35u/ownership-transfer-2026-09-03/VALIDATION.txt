@@ -16,3 +16,8 @@ Fresh-laptop hardware validation performed 03 September 2026:
 Authority:
 This is the validated baseline transferred to VTCCP. After receipt, VTCCP is the
 system of record for FlexWedge RFID and the VeriWedge RFID derivative.
+
+Documentation amendment:
+- Complete User Guide added.
+- Complete Administrator and Technical Support Guide added.
+- Transfer manifest updated to include both guides.

@@ -27,6 +27,8 @@
 
 - `OWNERSHIP_TRANSFER.md` — authority and responsibility transfer
 - `TRANSFER_MANIFEST.md` — this inventory
+- `USER_GUIDE.md` — complete operator guide
+- `ADMIN_TECH_SUPPORT_GUIDE.md` — installation, administration, diagnostics, and support guide
 - `README.md` — application overview and operation
 - `LAPTOP_QUICKSTART.md` — clean-machine setup
 - `PROTOCOL-NOTES.md` — P35U integration reference
