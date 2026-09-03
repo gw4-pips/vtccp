@@ -1,0 +1,18 @@
+FORMAL TRANSFER VALIDATION
+Prepared: 03 September 2026
+
+Static validation:
+- main.py, reader.py, decoder.py, injector.py, and config.py compile under Python 3.11.
+- Hardware-independent configuration and preset/TID tests pass.
+
+Fresh-laptop hardware validation performed 03 September 2026:
+- Windows 10, 64-bit Python 3.11 isolated virtual environment
+- AsReader P35U connected over USB VCP on COM4
+- SGTIN-96 EPC inventory and decode successful
+- GTIN-14, serial, RSSI, antenna, and lock status reported
+- Separate TID read successful under the Ghost preset
+- TID displayed in Last Read and Read Log
+
+Authority:
+This is the validated baseline transferred to VTCCP. After receipt, VTCCP is the
+system of record for FlexWedge RFID and the VeriWedge RFID derivative.
