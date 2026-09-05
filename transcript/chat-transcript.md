@@ -3267,3 +3267,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Approved the revised preview and requested production implementation and testing.
 
 **Assistant:** Applied the approved header geometry to the production report, bumped the report to v1.5.71 and app to v1.5.101, added regression coverage, passed all 61 focused report tests, and completed the Windows-targeted Release build with zero errors.
+
+**User:** Asked what size the copyright line was and requested a marginal increase, then explored whether the white VCCS logo characters should become bright yellow.
+
+**Assistant:** Identified the copyright line as 7 pt Arial, recommended 7.5 pt, explained that yellow cannot universally guarantee a white result in every engraving or plate process, and created a non-production pure-yellow comparison.
+
+**User:** Approved increasing the copyright line to 7.5 pt and changing the VCCS logo characters to yellow, then requested proportional targeted testing rather than unrelated regressions.
+
+**Assistant:** Applied the approved 7.5 pt copyright typography and pure-yellow VCCS logo characters to production, with app/report version increments and targeted verification.

@@ -28,7 +28,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.71";
+    public const string ReportVersion = "v1.5.72";
 
     private static (string Title, string Note) GetBarcodeVerificationHeader(
         VerificationRecord record,

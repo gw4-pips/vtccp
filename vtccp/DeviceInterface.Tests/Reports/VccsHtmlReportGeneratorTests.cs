@@ -1445,10 +1445,6 @@ public sealed class VccsHtmlReportGeneratorTests
             ".dfc-dual-table .dual-native-note {\n      margin-top: 2pt; color: #000;",
             report,
             StringComparison.Ordinal);
-        Assert.Contains(
-            ".header-copyright {\n    font-size: 7pt; color: #000;",
-            report,
-            StringComparison.Ordinal);
         Assert.DoesNotContain("Native GS1 Digital Link Compatibility", report, StringComparison.Ordinal);
         Assert.DoesNotContain("compat-unsupported", report, StringComparison.Ordinal);
         Assert.DoesNotContain("native parser compatibility limitation", report, StringComparison.Ordinal);
@@ -1884,6 +1880,20 @@ public sealed class VccsHtmlReportGeneratorTests
             StringComparison.Ordinal);
         Assert.Contains(
             "margin-right: auto;\n    transform: translateX(0.375in);",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_UsesApprovedCopyrightTypeSize()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+        });
+
+        Assert.Contains(
+            ".header-copyright {\n    font-size: 7.5pt; color: #000;",
             report,
             StringComparison.Ordinal);
     }
