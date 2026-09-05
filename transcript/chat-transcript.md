@@ -3243,3 +3243,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Supplied a VeriWedge PDF showing that a long Web URI was clipped instead of wrapping and requested a general report-wide fix rather than a Webscan- or field-specific tweak.
 
 **Assistant:** Replaced clipping behavior with reusable wrapping rules across barcode summaries, verifier grades, RFID fields, native DFC tables, and both parser comparison halves. Added compatibility wrapping for both PDF renderers, updated regressions, and bumped the application to v1.5.99 and report format to v1.5.69.
+
+**User:** Supplied a new report and questioned why it showed both GTIN and serial mismatches. Requested that semantic wrapping at GS1 element boundaries be parked as a future refinement, with Digital Link slash placement left open.
+
+**Assistant:** Confirmed the report correctly showed a mismatch: the QR carried GTIN 00696114704318 and serial 72803288704, while RFID carried GTIN 00696114704288 and serial 72803282009. Parked semantic GS1/Digital Link line breaking as a follow-up without changing the report.
