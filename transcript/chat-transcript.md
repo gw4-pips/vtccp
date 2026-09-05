@@ -3283,3 +3283,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Deferred transport-only PDF support but asked to retain it for close review, and proposed consolidating native verifier reports, VTCCP PDFs, and Excel logs into one configured folder per verifier mode, with granular overrides in VeriWedge settings only when needed.
 
 **Assistant:** Agreed with a default session-evidence-root model: use each verifier's explicitly configured native report directory for monitoring and generated outputs after confirming write access, while preserving optional explicit inbound/outbound overrides and never inferring fallback paths.
+
+**User:** Supplied screenshots showing that DataMan/DMST created the native HTML and VTCCP created the hybrid report and Excel output, but VTCCP displayed “PDF: NOT GENERATED — no correlated DMST HTML” while operating in Manual Trigger mode.
+
+**Assistant:** Identified the immediate cause: strict filesystem provenance correlation requires the incoming record to carry the literal HTML `Verified:` identity, but the Manual Trigger XML record does not populate that identity. The native HTML therefore cannot match even when it arrives in the correct folder; restarting does not help. Push (DMST) mode uses a path that can carry that identity and is the immediate workaround.
