@@ -28,7 +28,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.69";
+    public const string ReportVersion = "v1.5.70";
 
     private static (string Title, string Note) GetBarcodeVerificationHeader(
         VerificationRecord record,
@@ -1230,6 +1230,8 @@ public static class VccsHtmlReportGenerator
             };
             string parserData = parserRow?.IsCanonicalAiString == true
                 ? FormatCanonicalAiForHtml(parserRow.Data)
+                : parserRow?.Field == "Web URI"
+                ? FormatDigitalLinkUriForHtml(parserRow.Data)
                 : H(parserRow?.Data);
             string parserDataClass = parserRow?.IsCanonicalAiString == true
                 ? "dual-data parser-element-string-data"
@@ -1348,9 +1350,56 @@ public static class VccsHtmlReportGenerator
         if (elements.Count == 0) return H(value);
 
         var formatted = new StringBuilder();
-        foreach (Match element in elements)
-            formatted.Append(H(element.Value)).Append("<wbr>");
+        for (int index = 0; index < elements.Count; index++)
+        {
+            if (index > 0) formatted.Append("<wbr>");
+            formatted.Append("<span class=\"gs1-semantic-token\">")
+                     .Append(H(elements[index].Value))
+                     .Append("</span>");
+        }
         return formatted.ToString();
+    }
+
+    private static string FormatDigitalLinkUriForHtml(string value)
+    {
+        int schemeSeparator = value.IndexOf("://", StringComparison.Ordinal);
+        if (schemeSeparator < 0) return H(value);
+
+        int pathStart = value.IndexOf('/', schemeSeparator + 3);
+        if (pathStart < 0) return H(value);
+
+        string authority = value[..pathStart];
+        string pathAndSuffix = value[pathStart..];
+        int suffixStart = pathAndSuffix.IndexOfAny(['?', '#']);
+        string path = suffixStart >= 0 ? pathAndSuffix[..suffixStart] : pathAndSuffix;
+        string suffix = suffixStart >= 0 ? pathAndSuffix[suffixStart..] : string.Empty;
+        string[] segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        if (segments.Length == 0) return H(value);
+
+        var formatted = new StringBuilder();
+        AppendSemanticToken(formatted, authority);
+
+        for (int index = 0; index < segments.Length; index += 2)
+        {
+            string token = "/" + segments[index];
+            if (index + 1 < segments.Length)
+                token += "/" + segments[index + 1];
+            if (index + 2 >= segments.Length)
+                token += suffix;
+
+            formatted.Append("<wbr>");
+            AppendSemanticToken(formatted, token);
+        }
+
+        return formatted.ToString();
+    }
+
+    private static void AppendSemanticToken(StringBuilder target, string value)
+    {
+        target.Append("<span class=\"gs1-semantic-token\">")
+              .Append(H(value))
+              .Append("</span>");
     }
 
     private static string GetGs1AiName(string ai)

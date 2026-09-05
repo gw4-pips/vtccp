@@ -957,7 +957,9 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.DoesNotContain("Verifier DFC", report, StringComparison.Ordinal);
-        Assert.Contains("https://id.gs1.org/01/09506000134352/21/72803288707", report,
+        Assert.Contains(
+            "<span class=\"gs1-semantic-token\">https://id.gs1.org</span><wbr><span class=\"gs1-semantic-token\">/01/09506000134352</span><wbr><span class=\"gs1-semantic-token\">/21/72803288707</span>",
+            report,
             StringComparison.Ordinal);
         Assert.Contains("AI (01) GTIN", report, StringComparison.Ordinal);
         Assert.Contains("AI (21) Serial Number", report, StringComparison.Ordinal);
@@ -973,7 +975,9 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains("GS1 Element String", report, StringComparison.Ordinal);
-        Assert.Contains("(01)09506000134352<wbr>(21)72803288707<wbr>", report,
+        Assert.Contains(
+            "<span class=\"gs1-semantic-token\">(01)09506000134352</span><wbr><span class=\"gs1-semantic-token\">(21)72803288707</span>",
+            report,
             StringComparison.Ordinal);
         Assert.True(
             report.IndexOf(">Web URI<", StringComparison.Ordinal) <
@@ -1083,7 +1087,7 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
-    public void Generate_MultiElementGs1DataMatrixKeepsParserFieldsAndValuesUnwrapped()
+    public void Generate_MultiElementGs1DataMatrixBreaksOnlyBetweenSemanticElements()
     {
         const string elementString =
             "(01)00696114704283(17)260822(10)BATCH-2026-08-22-LONG-LOT-VALUE(21)SERIAL-72803282010";
@@ -1143,7 +1147,7 @@ public sealed class VccsHtmlReportGeneratorTests
         string report = VccsHtmlReportGenerator.Generate(record);
 
         Assert.Contains(elementString, report, StringComparison.Ordinal);
-        Assert.Contains("(01)00696114704283<wbr>(17)260822<wbr>(10)BATCH-2026-08-22-LONG-LOT-VALUE<wbr>(21)SERIAL-72803282010<wbr>",
+        Assert.Contains("<span class=\"gs1-semantic-token\">(01)00696114704283</span><wbr><span class=\"gs1-semantic-token\">(17)260822</span><wbr><span class=\"gs1-semantic-token\">(10)BATCH-2026-08-22-LONG-LOT-VALUE</span><wbr><span class=\"gs1-semantic-token\">(21)SERIAL-72803282010</span>",
             report,
             StringComparison.Ordinal);
         Assert.Contains("AI (10) Batch or Lot Number", report, StringComparison.Ordinal);
@@ -1163,7 +1167,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            ".dfc-dual-table td:nth-child(6).parser-element-string-data,\n   .dfc-dual-table td:nth-child(6).parser-uri-data {\n     font-size: 6.5pt; line-height: 1.05;\n     white-space: normal; overflow: visible;\n     overflow-wrap: anywhere; word-wrap: break-word; word-break: break-word;",
+            ".dfc-dual-table .gs1-semantic-token {\n     display: inline-block;\n     max-width: 100%;",
             report,
             StringComparison.Ordinal);
         Assert.Contains("Webscan TruCheck GS1 Parser", report, StringComparison.Ordinal);
@@ -1338,7 +1342,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            ".dfc-dual-table td:nth-child(6).parser-element-string-data,\n   .dfc-dual-table td:nth-child(6).parser-uri-data {\n     font-size: 6.5pt; line-height: 1.05;\n     white-space: normal; overflow: visible;\n     overflow-wrap: anywhere; word-wrap: break-word; word-break: break-word;",
+            ".dfc-dual-table .gs1-semantic-token {\n     display: inline-block;\n     max-width: 100%;",
             report,
             StringComparison.Ordinal);
     }
