@@ -3279,3 +3279,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Asked why a scan triggered through the DataMan verifier did not produce a VeriWedge PDF and whether it could.
 
 **Assistant:** Traced the live DataMan result path and identified the correlated DMST filesystem HTML requirement as the PDF gate; direct triggering can produce a PDF when that HTML is exported and matched, or a transport-only fallback could be added explicitly.
+
+**User:** Deferred transport-only PDF support but asked to retain it for close review, and proposed consolidating native verifier reports, VTCCP PDFs, and Excel logs into one configured folder per verifier mode, with granular overrides in VeriWedge settings only when needed.
+
+**Assistant:** Agreed with a default session-evidence-root model: use each verifier's explicitly configured native report directory for monitoring and generated outputs after confirming write access, while preserving optional explicit inbound/outbound overrides and never inferring fallback paths.
