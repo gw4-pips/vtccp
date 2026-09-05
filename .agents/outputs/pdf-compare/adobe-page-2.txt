@@ -1,0 +1,79 @@
+QR Quality Parameters
+1. Unused Error Correction (UEC)
+100.0%
+4.0
+A
+PASS
+2. Symbol Contrast (SC)
+Rl/Rd (86/1)
+85%
+4.0
+A
+PASS
+3. Modulation (MOD)
+4.0
+A
+PASS
+4. Axial Nonuniformity (ANU)
+1.8%
+4.0
+A
+PASS
+5. Grid Nonuniformity (GNU)
+0.0%
+4.0
+A
+PASS
+6. Fixed Pattern Damage (FPD)
+4.0
+A
+PASS
+7. Upper Left Pattern (ULP)
+4.0
+A
+PASS
+8. Upper Right Pattern (URP)
+4.0
+A
+PASS
+9. Lower Left Pattern (LLP)
+4.0
+A
+PASS
+10. Horizontal Clock Track (HCT)
+4.0
+A
+PASS
+11. Vertical Clock Track (VCT)
+4.0
+A
+PASS
+12. Alignment Pattern (ALP)
+4.0
+A
+PASS
+13. Version Information Block (VIB)
+-
+PASS
+14. Format Information Block (FIB)
+4.0
+A
+PASS
+15. DECODE
+4.0
+A
+PASS
+16. Print Growth (PG)
+4.0%
+4.0
+A
+PASS
+Data Format Check
+GS1 Application Data Format: FAIL
+Name
+Data
+Check
+<F1> Required at beginning of data
+h
+FAIL
+Error: Application Header is Expected.

@@ -1,0 +1,54 @@
+{
+  "native": {
+    "pages": 2,
+    "metadata": {
+      "format": "PDF 1.4",
+      "title": "",
+      "author": "",
+      "subject": "",
+      "keywords": "",
+      "creator": "",
+      "producer": "HiQPdf 12.0",
+      "creationDate": "",
+      "modDate": "",
+      "trapped": "",
+      "encryption": null
+    },
+    "page_sizes": [
+      [
+        595.0,
+        842.0
+      ],
+      [
+        595.0,
+        842.0
+      ]
+    ]
+  },
+  "adobe": {
+    "pages": 2,
+    "metadata": {
+      "format": "PDF 1.6",
+      "title": "file:///C:/Users/Administrator/Documents/DM%20Reports%20&%20Decoded%20Images/DM475-866D76/CodeQuality/VCCS%20VeriWedge(TM)%20fo",
+      "author": "Administrator",
+      "subject": "",
+      "keywords": "",
+      "creator": "PScript5.dll Version 5.2.2",
+      "producer": "Acrobat Distiller 26.0 (Windows)",
+      "creationDate": "D:20260905183138-04'00'",
+      "modDate": "D:20260905183138-04'00'",
+      "trapped": "",
+      "encryption": null
+    },
+    "page_sizes": [
+      [
+        612.0,
+        792.0
+      ],
+      [
+        612.0,
+        792.0
+      ]
+    ]
+  }
+}

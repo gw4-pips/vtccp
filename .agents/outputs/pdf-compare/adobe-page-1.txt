@@ -1,0 +1,68 @@
+Verification Report
+Unit Serial: 1A2134PP482281
+Verified: Sat 05-Sep-2026 06:21:52(532ms) PM
+Firmware Version: 6.1.16_sr5
+Last Calibrated: 8/5/2026 10:20:42 PM
+Report Summary
+Data
+https://
+srk.my2dir.com/01/00696114704318/21/72803288704
+Symbology
+QR
+Device Name
+DM475-866D76
+Company
+PIPS
+Operator
+GW4
+Batch
+VCCS VeriWedge(TM) for COGNEX DataMan TruCheck
+Custom Note
+DMV-475V-DPM - RFID with QR Code Digital Link
+Verification Grades
+Standard
+Grade
+Aperture
+Wavelength
+Lighting
+Formal Grade
+ISO 15415:2024
+4.0 (A)
+08
+660
+45Q
+4.0/08/660/45Q
+Custom
+Fail (Data Format)
+Image
+General Characteristics
+QR Size
+33x33
+Horizontal BWG
+3%
+Vertical BWG
+3%
+Encoded characters
+55
+Total Codewords
+100
+Data Codewords
+64
+Error Correction Budget
+18
+Errors Corrected
+0
+Error Capacity Used
+0
+Error Correction Level
+M
+Data Mask Pattern
+2
+Image
+Black on white
+Nominal X Dim
+16.6 mil
+Pixels per Module
+28.06
+ECI
+000003

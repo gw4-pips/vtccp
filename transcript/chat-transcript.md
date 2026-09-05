@@ -3291,3 +3291,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Confirmed the current flow is working and clarified the preferred product embodiment: scans should be triggered from DataMan while RFID VeriWedge runs essentially in the background.
 
 **Assistant:** Accepted DataMan-triggered operation as the canonical workflow and recorded that future planning should prioritize unobtrusive background event capture, HTML correlation, RFID acquisition, and report generation; VeriWedge-originated triggering is secondary.
+
+**User:** Supplied a native Cognex PDF from one scan, DMST HTML from the immediately following scan, and an Adobe-generated PDF made from that HTML. Asked what would be required to output a facsimile of the Cognex PDF when DMST cannot export both HTML and native PDF for one scan.
+
+**Assistant:** Visually and structurally compared the files. The native PDF is A4 and identifies HiQPdf 12.0 as its producer; it renders the same HTML report structure with aggressive shrink-to-fit, while Adobe printed the HTML on Letter at a larger scale and split content across two populated pages. Concluded that the preserved DMST HTML is sufficient to generate a close derived facsimile using controlled A4 rendering, calibrated scaling, print backgrounds, and corrected trailing page-break behavior.
