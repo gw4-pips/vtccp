@@ -1,0 +1,139 @@
+.vccs-preview-stage {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+  background: #667085;
+  font-family: Arial, sans-serif;
+}
+
+.vccs-report-page {
+  width: 8.5in;
+  background: #fff;
+  padding: 0.25in 0.4in 0;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.38);
+}
+
+.vccs-header {
+  background: #edf1f7;
+  border-bottom: 2px solid #1a3a6b;
+  padding: 6pt 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.vccs-header-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  min-height: 78pt;
+}
+
+.vccs-logo-box {
+  width: 72pt;
+  min-width: 72pt;
+  padding: 3pt 2pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vccs-logo {
+  display: block;
+  max-height: 65pt;
+  max-width: 68pt;
+  object-fit: contain;
+}
+
+.vccs-header-meta {
+  flex: 0 0 145pt;
+  min-width: 0;
+  padding: 0 8pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2pt;
+  color: #000;
+}
+
+.vccs-header-meta .device {
+  font-size: 9pt;
+  font-weight: 700;
+}
+
+.vccs-header-meta .line {
+  font-size: 8pt;
+}
+
+.vccs-header-title {
+  flex: 0 0 185pt;
+  margin-right: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6pt;
+}
+
+.vccs-header-title h1 {
+  margin: 0;
+  font-size: 10pt;
+  line-height: 1.08;
+  font-weight: 700;
+  color: #1a3a6b;
+}
+
+.vccs-header-title em {
+  font-weight: 700;
+}
+
+.vccs-rfid-badge {
+  display: inline-block;
+  padding: 3pt 10pt;
+  border: 1px solid #155724;
+  background: #d4edda;
+  color: #155724;
+  font-size: 9pt;
+  font-weight: 700;
+}
+
+.vccs-company-box {
+  width: 72pt;
+  min-width: 72pt;
+  padding: 3pt 10pt 3pt 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vccs-company-logo {
+  display: block;
+  max-height: 42pt;
+  max-width: 72pt;
+  object-fit: contain;
+}
+
+.vccs-header-copyright {
+  padding: 2pt 8pt 3pt 10pt;
+  color: #000;
+  font-size: 7pt;
+}
+
+.vccs-header-copyright em {
+  color: #4c5563;
+}
+
+.vccs-proposed .vccs-logo,
+.vccs-proposed .vccs-logo-fallback {
+  max-height: 78pt;
+  max-width: 81.6pt;
+}
+
+.vccs-proposed .vccs-logo-box,
+.vccs-proposed .vccs-header-meta,
+.vccs-proposed .vccs-header-title {
+  transform: translateX(0.15in);
+}
