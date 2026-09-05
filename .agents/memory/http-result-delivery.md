@@ -57,6 +57,21 @@ DMST (browser UI / device config) and DM TC (DataMan TruCheck application) do NO
 
 **Why:** The user confirmed this empirically — "with VTCCP open a scan triggered from within either app lands in VTCCP." This is expected: port 44444 is not held exclusively by any one PC app.
 
+## Preferred operator embodiment
+
+The primary DataMan workflow is operator-triggered from DataMan/TruCheck. RFID
+VeriWedge should run unobtrusively in the background, receive the resulting
+verification event, acquire/correlate RFID evidence, and produce its outputs
+without requiring a second scan trigger from the VeriWedge UI.
+
+**Why:** The operator should remain in the native verifier workflow. VeriWedge is
+the companion validation/reporting layer, not the foreground scan-control surface.
+
+**How to apply:** Prioritize reliable background subscription, evidence correlation,
+RFID acquisition, and output generation for externally triggered DataMan scans.
+Treat VeriWedge-originated Manual Trigger as a secondary diagnostic or convenience
+path, not the canonical user journey.
+
 ## CP software trigger (Path B) — UNRESOLVED
 
 Raw TCP `TRIGGER\r\n` confirmed NOT causing a device scan (HTTP subscriber would have caught it). SDK throws InvalidParameterException for both `TRIGGER` and `TRIGGER 1`. Root cause unknown — may require correct DMCC parameter form or HTTP-channel trigger.

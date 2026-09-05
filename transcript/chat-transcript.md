@@ -3287,3 +3287,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Supplied screenshots showing that DataMan/DMST created the native HTML and VTCCP created the hybrid report and Excel output, but VTCCP displayed “PDF: NOT GENERATED — no correlated DMST HTML” while operating in Manual Trigger mode.
 
 **Assistant:** Identified the immediate cause: strict filesystem provenance correlation requires the incoming record to carry the literal HTML `Verified:` identity, but the Manual Trigger XML record does not populate that identity. The native HTML therefore cannot match even when it arrives in the correct folder; restarting does not help. Push (DMST) mode uses a path that can carry that identity and is the immediate workaround.
+
+**User:** Confirmed the current flow is working and clarified the preferred product embodiment: scans should be triggered from DataMan while RFID VeriWedge runs essentially in the background.
+
+**Assistant:** Accepted DataMan-triggered operation as the canonical workflow and recorded that future planning should prioritize unobtrusive background event capture, HTML correlation, RFID acquisition, and report generation; VeriWedge-originated triggering is secondary.
