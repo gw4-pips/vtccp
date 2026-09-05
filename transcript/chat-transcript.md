@@ -3275,3 +3275,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Approved increasing the copyright line to 7.5 pt and changing the VCCS logo characters to yellow, then requested proportional targeted testing rather than unrelated regressions.
 
 **Assistant:** Applied the approved 7.5 pt copyright typography and pure-yellow VCCS logo characters to production, with app/report version increments and targeted verification.
+
+**User:** Asked why a scan triggered through the DataMan verifier did not produce a VeriWedge PDF and whether it could.
+
+**Assistant:** Traced the live DataMan result path and identified the correlated DMST filesystem HTML requirement as the PDF gate; direct triggering can produce a PDF when that HTML is exported and matched, or a transport-only fallback could be added explicitly.
