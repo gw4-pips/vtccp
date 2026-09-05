@@ -42,6 +42,30 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_RecognizesCognexFromLiveDeviceNameWhenDeviceModelIsMissing()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "QR",
+            DeviceName = "DM475-866D76",
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verification-report.html",
+            HtmlVerifiedString = "Sat 05-Sep-2026 04:15:41 PM",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "COGNEX DataMan TruCheck Barcode Verification Results Summary",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "See associated TruCheck verification report for additional details",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_UncorrelatedReportKeepsExplicitUnavailableHeaderWithoutBrand()
     {
         var record = new VerificationRecord

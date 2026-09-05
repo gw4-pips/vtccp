@@ -28,7 +28,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.67";
+    public const string ReportVersion = "v1.5.68";
 
     private static (string Title, string Note) GetBarcodeVerificationHeader(
         VerificationRecord record,
@@ -44,7 +44,11 @@ public static class VccsHtmlReportGenerator
         string? brand = record.VerifierBrand?.Trim().ToUpperInvariant();
         if (brand is null or "")
         {
-            brand = record.DeviceModel?.StartsWith("DM", StringComparison.OrdinalIgnoreCase) == true
+            bool isDataMan =
+                record.DeviceModel?.StartsWith("DM", StringComparison.OrdinalIgnoreCase) == true ||
+                record.DeviceName?.StartsWith("DM", StringComparison.OrdinalIgnoreCase) == true;
+
+            brand = isDataMan
                 ? "COGNEX"
                 : null;
         }
