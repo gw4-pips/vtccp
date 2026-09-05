@@ -23,3 +23,8 @@ print backgrounds, a wide virtual browser viewport, and calibrated shrink-to-fit
 Neutralize the trailing forced page break to avoid a blank page. Validate layout
 against native samples for QR, DataMatrix, linear, multi-symbol, and unusually
 long reports before treating pagination as production-stable.
+
+The deferred investigation is documented in
+`vtccp/architecture/cognex-pdf-facsimile-investigation.md`. Start with Windows
+Process Monitor because the HiQPdf conversion is likely local to DMST; use wire
+capture afterward to confirm whether any PDF-specific exchange exists.
