@@ -2,9 +2,13 @@ import "./_group.css";
 
 type HeaderProps = {
   proposed?: boolean;
+  yellowCharacters?: boolean;
 };
 
-export function Header({ proposed = false }: HeaderProps) {
+export function Header({
+  proposed = false,
+  yellowCharacters = false,
+}: HeaderProps) {
   return (
     <div className="vccs-preview-stage">
       <div className={`vccs-report-page ${proposed ? "vccs-proposed" : ""}`}>
@@ -13,7 +17,11 @@ export function Header({ proposed = false }: HeaderProps) {
             <div className="vccs-logo-box">
               <img
                 className="vccs-logo"
-                src="/__mockup/images/vccs-header/vccs_logo.png"
+                src={
+                  yellowCharacters
+                    ? "/__mockup/images/vccs-header/vccs_logo_yellow.png"
+                    : "/__mockup/images/vccs-header/vccs_logo.png"
+                }
                 alt="VCCS"
               />
             </div>

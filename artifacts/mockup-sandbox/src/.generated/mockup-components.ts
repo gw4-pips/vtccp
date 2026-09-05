@@ -6,5 +6,6 @@ export const modules: ModuleMap = {
   "./components/mockups/fileformat/FileNameFormatBuilder.tsx": () => import("../components/mockups/fileformat/FileNameFormatBuilder.tsx"),
   "./components/mockups/grading/GradingStandards.tsx": () => import("../components/mockups/grading/GradingStandards.tsx"),
   "./components/mockups/vccs-report-header/Current.tsx": () => import("../components/mockups/vccs-report-header/Current.tsx"),
-  "./components/mockups/vccs-report-header/Proposed.tsx": () => import("../components/mockups/vccs-report-header/Proposed.tsx")
+  "./components/mockups/vccs-report-header/Proposed.tsx": () => import("../components/mockups/vccs-report-header/Proposed.tsx"),
+  "./components/mockups/vccs-report-header/YellowCharacters.tsx": () => import("../components/mockups/vccs-report-header/YellowCharacters.tsx")
 };
