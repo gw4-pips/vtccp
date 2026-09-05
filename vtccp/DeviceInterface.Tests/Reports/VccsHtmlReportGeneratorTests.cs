@@ -1163,7 +1163,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            ".dfc-dual-table td:nth-child(5),\n   .dfc-dual-table td:nth-child(6) {\n     white-space: nowrap;\n     overflow: hidden;\n     text-overflow: clip;",
+            ".dfc-dual-table td:nth-child(6).parser-element-string-data,\n   .dfc-dual-table td:nth-child(6).parser-uri-data {\n     font-size: 6.5pt; line-height: 1.05;\n     white-space: normal; overflow: visible;\n     overflow-wrap: anywhere; word-wrap: break-word; word-break: break-word;",
             report,
             StringComparison.Ordinal);
         Assert.Contains("Webscan TruCheck GS1 Parser", report, StringComparison.Ordinal);
@@ -1338,7 +1338,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            ".dfc-dual-table td:nth-child(5),\n   .dfc-dual-table td:nth-child(6) {\n     white-space: nowrap;\n     overflow: hidden;\n     text-overflow: clip;",
+            ".dfc-dual-table td:nth-child(6).parser-element-string-data,\n   .dfc-dual-table td:nth-child(6).parser-uri-data {\n     font-size: 6.5pt; line-height: 1.05;\n     white-space: normal; overflow: visible;\n     overflow-wrap: anywhere; word-wrap: break-word; word-break: break-word;",
             report,
             StringComparison.Ordinal);
     }
@@ -1536,7 +1536,7 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
         Assert.Contains(
-            ".rfid-table .rfid-result-label { white-space: nowrap;",
+            ".rfid-table .rfid-result-label {\n    white-space: normal; overflow-wrap: anywhere;",
             report,
             StringComparison.Ordinal);
         Assert.Contains(

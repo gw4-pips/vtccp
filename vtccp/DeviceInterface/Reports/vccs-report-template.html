@@ -171,7 +171,11 @@
   .sum-table td {
     border-bottom: 1px solid #aaa;
     padding: 2.5pt 4pt 2pt;
-    white-space: nowrap; overflow: hidden;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+    word-break: break-word;
   }
   /* Multi-element GS1 payloads and correlated filenames can be longer than
      the fixed summary columns.  Let the merged value cells grow vertically
@@ -195,8 +199,11 @@
 
   /* Session-level TruCheck settings: App Std. / DFC / Aperture. */
   .sum-table th.app-settings-hdr {
-    white-space: nowrap;
-    overflow: hidden;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+    word-break: break-word;
   }
   .sum-table th.app-settings-hdr {
     font-size: 8pt;
@@ -213,12 +220,15 @@
   .grades-table th {
     border-bottom: 1px solid #999; border-right: 1px solid #999;
     padding: 3pt 4pt; text-align: center; font-weight: bold; background: white;
+    white-space: normal; overflow-wrap: anywhere;
+    word-wrap: break-word; word-break: break-word;
   }
   .grades-table th:last-child { border-right: none; }
   .grades-table td {
     border-right: 1px solid #aaa;
     padding: 2.5pt 4pt 2pt; text-align: center;
-    white-space: nowrap; overflow: hidden;
+    white-space: normal; overflow: visible;
+    overflow-wrap: anywhere; word-wrap: break-word; word-break: break-word;
   }
   .grades-table td:last-child { border-right: none; }
   .grades-table tr:not(:last-child) td { border-bottom: 1px solid #aaa; }
@@ -239,10 +249,16 @@
   .rfid-table td {
     border-bottom: 1px solid #aaa;
     padding: 2.5pt 4pt 2pt;
+    white-space: normal;
     overflow-wrap: anywhere;
+    word-wrap: break-word;
+    word-break: break-word;
   }
   .rfid-table .lbl-col { width: 178pt; }
-  .rfid-table .rfid-result-label { white-space: nowrap; }
+  .rfid-table .rfid-result-label {
+    white-space: normal; overflow-wrap: anywhere;
+    word-wrap: break-word; word-break: break-word;
+  }
   .rfid-table .rfid-symbol-result td { font-size: 8pt; }
   /* The fixed Field column holds its original width; every bit of the wider
      page is consequently available to the Value column. */
@@ -316,14 +332,18 @@
 
   /* ── DATA FORMAT CHECK ───────────────────────────────── */
   .dfc-table {
-    width: 100%; border-collapse: collapse;
+    width: 100%; border-collapse: collapse; table-layout: fixed;
     border: none; font-size: 8pt;
   }
   .dfc-table th {
     background: #e8eef5; border-bottom: 1px solid #aaa;
     padding: 3pt 4pt; text-align: left;
   }
-  .dfc-table td { border-bottom: 1px solid #aaa; padding: 2.5pt 4pt 2pt; }
+  .dfc-table td {
+    border-bottom: 1px solid #aaa; padding: 2.5pt 4pt 2pt;
+    white-space: normal; overflow-wrap: anywhere;
+    word-wrap: break-word; word-break: break-word;
+  }
   .dfc-table .chk { width: 50pt; font-weight: bold; }
   .dfc-table tr:last-child td { border-bottom: none; }
   .pass-fg { color: #155724; }
@@ -364,29 +384,24 @@
     padding: 2pt 3pt; text-align: left; font-size: 7.5pt;
   }
    .dfc-dual-table td {
-     height: 14pt; border-bottom: 1px solid #aaa; padding: 1.75pt 3pt;
+     min-height: 14pt; border-bottom: 1px solid #aaa; padding: 1.75pt 3pt;
      vertical-align: middle; line-height: 1.05;
+     white-space: normal;
+     overflow: visible;
+     overflow-wrap: anywhere;
+     word-wrap: break-word;
+     word-break: break-word;
   }
    .dfc-dual-table th:nth-child(1),
    .dfc-dual-table th:nth-child(5) {
-     white-space: nowrap;
+     white-space: normal;
+     overflow-wrap: anywhere;
+     word-wrap: break-word;
+     word-break: break-word;
    }
-   /*
-      The VeriWedge parser uses fixed-width columns.  Keep its current Field
-      and Data values on one line; future overflows are handled by an explicit
-      field-name edit rule rather than automatic wrapping.
-   */
    .dfc-dual-table td:nth-child(1),
    .dfc-dual-table td:nth-child(5) {
      min-width: 0;
-   }
-   .dfc-dual-table td:nth-child(5),
-   .dfc-dual-table td:nth-child(6) {
-     white-space: nowrap;
-     overflow: hidden;
-     text-overflow: clip;
-     overflow-wrap: normal;
-     word-break: normal;
    }
    .dfc-dual-table th:nth-child(2),
    .dfc-dual-table td:nth-child(2),
@@ -432,11 +447,14 @@
   }
   .dfc-dual-table .dual-data {
     overflow-wrap: anywhere;
+    word-wrap: break-word;
+    word-break: break-word;
   }
    .dfc-dual-table td:nth-child(6).parser-element-string-data,
    .dfc-dual-table td:nth-child(6).parser-uri-data {
-     font-size: 6.5pt; line-height: 1.05; overflow: hidden;
-     overflow-wrap: normal; word-break: normal; white-space: nowrap;
+     font-size: 6.5pt; line-height: 1.05;
+     white-space: normal; overflow: visible;
+     overflow-wrap: anywhere; word-wrap: break-word; word-break: break-word;
    }
   .dfc-accordion-section {
     break-inside: avoid; page-break-inside: avoid;
