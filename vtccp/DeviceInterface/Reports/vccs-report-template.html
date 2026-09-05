@@ -15,7 +15,7 @@
     {{HDR_VERSION}}        — firmware or software version, depending on the verifier
     {{HDR_BADGE_CLASS}}    — badge-pass / badge-fail / badge-warn
     {{HDR_BADGE_TEXT}}     — e.g. "&#x2713; RFID MATCHED" (raw HTML, not escaped)
-    {{SECTION1_TITLE}}     — "TruCheck Barcode Verification Results Summary" (HTML-escaped)
+    {{SECTION1_TITLE}}     — verifier-specific barcode verification heading (HTML-escaped)
     {{REPORT_NAME}}        — DM TC HTML filename (HTML-escaped)
     {{REPORT_DATETIME}}    — raw "Verified:" string from DM TC HTML header (HTML-escaped)
     {{RFID_ADJ}}           — "EPC" or "UHF"
@@ -523,7 +523,7 @@
     <!-- ① Barcode Verification Results Summary -->
     <div class="report-section report-section-summary">
       <div class="report-block">
-        <div class="sec-hdr barcode-sec-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>See associated TruCheck report for additional details</em></span></div>
+        <div class="sec-hdr barcode-sec-hdr">{{SECTION1_TITLE}}<span class="sec-note"> &#x2014; <em>{{SECTION1_NOTE}}</em></span></div>
         <table class="sum-table">
         <colgroup>
           <!-- Fixed left boundary matches the Grades table.  The recovered page

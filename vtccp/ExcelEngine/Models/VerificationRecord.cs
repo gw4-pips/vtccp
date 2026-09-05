@@ -69,7 +69,7 @@ public sealed record class VerificationRecord
     /// inference from <see cref="DeviceModel"/> or the source PDF metadata.
     ///
     /// Allowed values (match the <c>BrandPatterns</c> table in PdfReportGenerator):
-    ///   "COGNEX", "WEBSCAN", "AXICON", "OMRON/LVS"
+    ///   "COGNEX", "WEBSCAN", "AXICON", "OMRON/LVS", "REA"
     ///
     /// Null for SDK-connected DataMan devices — brand is inferred from DeviceModel instead.
     /// </summary>

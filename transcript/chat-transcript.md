@@ -3227,3 +3227,11 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Requested clearer generalized RFID validation wording: identify the mismatching symbol’s GTIN, identify all matching GTIN ordinals and the matching S/N ordinal, describe linear/2D GTIN matches explicitly, and include the contributing ordinals in Barcode Symbol Agreement.
 
 **Assistant:** Updated the multi-symbol RFID result text to use explicit `(#N) GTIN` and `(#N) S/N` references, pluralized paired GTIN statements consistently, preserved `(#2 & #3)` for Barcode Symbol Agreement, added regression assertions for the exact wording, bumped the application to v1.5.96, and verified report tests (52/52) plus the Windows-targeted Release build (0 errors).
+
+**User:** Assigned the task to restore verifier brands in the first VCCS report header, use the approved manufacturer-specific heading and associated-report wording, preserve explicit unavailable messaging, add regression coverage, and increment the application version.
+
+**Assistant:** Restored provenance-based report headings and associated-report notes for Cognex DataMan, Webscan, Axicon, Omron/LVS, and REA, with neutral unknown-brand and explicit uncorrelated-report fallbacks. Added exact-text regression coverage, bumped the report format to v1.5.67 and the application to v1.5.97, passed all 59 focused report tests, and completed the Windows-targeted Release build with zero errors. The broader DeviceInterface suite passed 246 of 248 tests; its two failures are the same unrelated Webscan fixture/legacy-wording failures that predated this change.
+
+**User:** Supplied the PIPS Axicon pass-through plug-in and its current user manual, explaining that it makes the verifier act as a simple scanner by sending decoded data to the focused screen field while retaining normal verification, with more documentation to follow.
+
+**Assistant:** Acknowledged the plug-in and manual, made no changes, and will wait for the remaining documentation before analyzing or implementing anything.

@@ -10,6 +10,67 @@ namespace DeviceInterface.Tests.Reports;
 
 public sealed class VccsHtmlReportGeneratorTests
 {
+    [Theory]
+    [InlineData(null, "DM475V", "COGNEX DataMan TruCheck Barcode Verification Results Summary", "See associated TruCheck verification report for additional details")]
+    [InlineData("WEBSCAN", null, "WEBSCAN TruCheck Barcode Verification Results Summary", "See associated TruCheck verification report for additional details")]
+    [InlineData("AXICON", null, "AXICON Barcode Verification Results Summary", "See associated AXICON verification report for additional details")]
+    [InlineData("OMRON/LVS", null, "OMRON Barcode Verification Results Summary", "See associated OMRON verification report for additional details")]
+    [InlineData("REA", null, "REA Barcode Verification Results Summary", "See associated REA verification report for additional details")]
+    [InlineData("UNRECOGNIZED", null, "Barcode Verification Results Summary", "See associated verification report for additional details")]
+    public void Generate_SelectsApprovedBarcodeVerificationHeader(
+        string? verifierBrand,
+        string? deviceModel,
+        string expectedTitle,
+        string expectedNote)
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            VerifierBrand = verifierBrand,
+            DeviceModel = deviceModel,
+            HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+            HtmlSourceFileName = "verification-report.html",
+            HtmlVerifiedString = "Sat 05-Sep-2026 12:00:00 PM",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            $"{expectedTitle}<span class=\"sec-note\"> &#x2014; <em>{expectedNote}</em></span>",
+            report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_UncorrelatedReportKeepsExplicitUnavailableHeaderWithoutBrand()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            VerifierBrand = "WEBSCAN",
+            DeviceModel = "DM475V",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains(
+            "[BARCODE VERIFICATION UNAVAILABLE — NO CORRELATED DMST HTML]",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "No correlated verification report is available",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "WEBSCAN TruCheck Barcode Verification Results Summary",
+            report,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "COGNEX DataMan TruCheck Barcode Verification Results Summary",
+            report,
+            StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Generate_PrefersRealDmstFilenameOverHttpPlaceholder()
     {

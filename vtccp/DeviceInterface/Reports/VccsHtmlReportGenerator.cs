@@ -28,7 +28,49 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.66";
+    public const string ReportVersion = "v1.5.67";
+
+    private static (string Title, string Note) GetBarcodeVerificationHeader(
+        VerificationRecord record,
+        bool hasCorrelatedHtml)
+    {
+        if (!hasCorrelatedHtml)
+        {
+            return (
+                "[BARCODE VERIFICATION UNAVAILABLE — NO CORRELATED DMST HTML]",
+                "No correlated verification report is available");
+        }
+
+        string? brand = record.VerifierBrand?.Trim().ToUpperInvariant();
+        if (brand is null or "")
+        {
+            brand = record.DeviceModel?.StartsWith("DM", StringComparison.OrdinalIgnoreCase) == true
+                ? "COGNEX"
+                : null;
+        }
+
+        return brand switch
+        {
+            "COGNEX" => (
+                "COGNEX DataMan TruCheck Barcode Verification Results Summary",
+                "See associated TruCheck verification report for additional details"),
+            "WEBSCAN" => (
+                "WEBSCAN TruCheck Barcode Verification Results Summary",
+                "See associated TruCheck verification report for additional details"),
+            "AXICON" => (
+                "AXICON Barcode Verification Results Summary",
+                "See associated AXICON verification report for additional details"),
+            "OMRON" or "OMRON/LVS" => (
+                "OMRON Barcode Verification Results Summary",
+                "See associated OMRON verification report for additional details"),
+            "REA" => (
+                "REA Barcode Verification Results Summary",
+                "See associated REA verification report for additional details"),
+            _ => (
+                "Barcode Verification Results Summary",
+                "See associated verification report for additional details"),
+        };
+    }
 
     // ── Template ────────────────────────────────────────────────────────────
 
@@ -103,10 +145,7 @@ public static class VccsHtmlReportGenerator
         };
 
         // ── section ① title ───────────────────────────────────────────────
-        // Do not infer a verifier brand or report identity from reader metadata.
-        string section1Title = hasCorrelatedHtml
-            ? "TruCheck Barcode Verification Results Summary"
-            : "[BARCODE VERIFICATION UNAVAILABLE — NO CORRELATED DMST HTML]";
+        var (section1Title, section1Note) = GetBarcodeVerificationHeader(r, hasCorrelatedHtml);
 
         // ── report name ───────────────────────────────────────────────────
         string reportName = hasCorrelatedHtml
@@ -137,6 +176,7 @@ public static class VccsHtmlReportGenerator
             .Replace("{{HDR_BADGE_TEXT}}",      badgeTxt)
             .Replace("{{QUALIFICATION_NOTE}}",  string.Empty)
             .Replace("{{SECTION1_TITLE}}",      section1Title)
+            .Replace("{{SECTION1_NOTE}}",       section1Note)
             .Replace("{{APP_SETTINGS_INLINE}}", BuildApplicationSettingsInline(r))
             .Replace("{{SLOT_SYMBOL_ROWS}}",    BuildSymbolRows(r))
             .Replace("{{REPORT_NAME}}",         reportName)
