@@ -3251,3 +3251,19 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Approved semantic report line breaking and chose to begin Digital Link continuation lines with `/`.
 
 **Assistant:** Implemented semantic keep-together tokens for GS1 Element Strings and Digital Link AI/value path pairs. Element String continuations begin with the next `(AI)`, Digital Link continuations begin with `/`, and oversized individual tokens retain emergency character wrapping.
+
+**User:** Requested a preview with the VCCS logo enlarged by 20%, vertically centered, and the logo plus the next two text blocks shifted right by 0.15 inch.
+
+**Assistant:** Created a side-by-side canvas preview from the production header geometry and assets without changing the production report.
+
+**User:** Asked whether the pale header section remained the same height.
+
+**Assistant:** Clarified that the preview's pale header became slightly taller because the enlarged logo increased the flex row's natural height.
+
+**User:** Chose to keep the taller header and requested that the VCCS RFID VeriWedge title/status block move about 3/8 inch right, shown against the original.
+
+**Assistant:** Updated the proposed canvas preview so the title/status block sits 3/8 inch right of its original position while retaining the larger logo, taller header, 0.15-inch logo/device shifts, and fixed PIPS logo.
+
+**User:** Approved the revised preview and requested production implementation and testing.
+
+**Assistant:** Applied the approved header geometry to the production report, bumped the report to v1.5.71 and app to v1.5.101, added regression coverage, passed all 61 focused report tests, and completed the Windows-targeted Release build with zero errors.

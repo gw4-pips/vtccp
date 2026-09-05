@@ -1861,4 +1861,30 @@ public sealed class VccsHtmlReportGeneratorTests
             report,
             StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Generate_UsesApprovedHeaderLogoScaleAndOffsets()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+        });
+
+        Assert.Contains(
+            ".logo-box img {\n    max-height: 78pt; max-width: 81.6pt; object-fit: contain;\n  }",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".logo-box {\n    width: 72pt; min-width: 72pt;\n    padding: 3pt 0 3pt 10pt;\n    display: flex; flex-direction: column; align-items: center; justify-content: center;\n    transform: translateX(0.15in);",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "display: flex; flex-direction: column; justify-content: center; gap: 2pt;\n    transform: translateX(0.15in);",
+            report,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "margin-right: auto;\n    transform: translateX(0.375in);",
+            report,
+            StringComparison.Ordinal);
+    }
 }

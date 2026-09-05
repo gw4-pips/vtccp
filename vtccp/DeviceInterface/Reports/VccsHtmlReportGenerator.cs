@@ -28,7 +28,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.70";
+    public const string ReportVersion = "v1.5.71";
 
     private static (string Title, string Note) GetBarcodeVerificationHeader(
         VerificationRecord record,
@@ -103,7 +103,7 @@ public static class VccsHtmlReportGenerator
         string? companyB64 = LoadLogoBase64FromPath(r.LogoPath) ?? LoadLogoBase64("pips_logo.png");
 
         string vccsLogoHtml = vccsB64 is not null
-            ? $"<img src=\"data:image/png;base64,{vccsB64}\" style=\"max-height:65pt;max-width:68pt;object-fit:contain;\" alt=\"VCCS\" />"
+            ? $"<img src=\"data:image/png;base64,{vccsB64}\" style=\"max-height:78pt;max-width:81.6pt;object-fit:contain;\" alt=\"VCCS\" />"
             : "<div class=\"logo-name\">VCCS</div><div class=\"logo-sub\">RFID VeriWedge&#x2122; PowerPro</div>";
 
         string companyLogoHtml = companyB64 is not null
