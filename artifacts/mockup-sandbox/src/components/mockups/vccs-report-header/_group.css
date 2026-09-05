@@ -133,7 +133,10 @@
 }
 
 .vccs-proposed .vccs-logo-box,
-.vccs-proposed .vccs-header-meta,
-.vccs-proposed .vccs-header-title {
+.vccs-proposed .vccs-header-meta {
   transform: translateX(0.15in);
+}
+
+.vccs-proposed .vccs-header-title {
+  transform: translateX(0.375in);
 }
