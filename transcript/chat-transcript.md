@@ -3299,3 +3299,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Suggested that reproducing the native Cognex PDF might require scraping the wire while Cognex generates it, then asked to document that possibility as a work item.
 
 **Assistant:** Documented a deferred Cognex PDF facsimile investigation. The work item starts with Windows Process Monitor and DMST installation/configuration inspection, then uses device and loopback capture to confirm whether PDF-specific traffic exists, followed by controlled A4 renderer calibration and cross-symbology validation.
+
+**User:** Supplied Axicon Extras 2.0.17.7 and several `.avp` plug-ins, asking for safe extraction and analysis.
+
+**Assistant:** Extracted the ZIP under `/tmp` and performed static analysis without executing legacy binaries. Confirmed that `.avp` files are 32-bit Windows DLL content-analysis plug-ins and that the loose copies exactly match the ZIP versions. Documented the optional/obsolete analyzers, legacy utilities, safety constraints, and the Scan File Data Extractor and console utility as the strongest controlled integration leads.

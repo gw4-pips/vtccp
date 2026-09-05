@@ -12,6 +12,11 @@ description: Manufacturer identity, software interface, and planned VTCCP integr
   2. **Camera Verifier Software Plugins** page — details TBD (could be COM automation or DLL hook)
 - **Planned VTCCP approach**: AxiconFileAdapter.cs — folder watcher + CSV/XML parser
 - Need from user: what format does the export file use (CSV / XML / text)?
+- Legacy Extras 2.0.17.7 package is statically analyzed in
+  `vtccp/references/axicon/extras-2.0.17.7-analysis.md`. Its `.avp` files are
+  32-bit native content-analysis DLLs, not result files or a direct live API.
+  The included Scan File Data Extractor installer and console utility are the
+  strongest controlled-investigation leads.
 
 ## LVS 9510 (Omron Microscan — NOT Webscan)
 - Manufactured by Microscan, acquired by Omron ~2018; now branded Omron Microscan LVS-9510
@@ -25,4 +30,6 @@ description: Manufacturer identity, software interface, and planned VTCCP integr
 - Both adapters share the same IVerifierResult interface that TruCheck already uses
 - Need from user: does LVS-95XX software have an auto-save/export path setting? What format?
 
-**Why durable:** User has both devices physically in lab and plans to integrate them into VTCCP. Integration gated on user confirming export format from each software.
+**Why durable:** User has both devices physically in lab and plans to integrate
+them into VTCCP. Axicon integration remains gated on confirming the current
+saved-scan/export format; do not load the legacy plug-ins into the .NET 8 app.
