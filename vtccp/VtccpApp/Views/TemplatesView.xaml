@@ -107,6 +107,39 @@
                             <TextBlock Text="DEFAULT OPERATOR ID" Style="{StaticResource FieldLabel}" />
                             <TextBox Text="{Binding OperatorId, UpdateSourceTrigger=PropertyChanged}" />
 
+                             <TextBlock Text="GS1 VERIFICATION DETAILS"
+                                        Style="{StaticResource FieldLabel}" Margin="0,14,0,6" />
+                             <TextBlock Text="PRODUCT" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding ProductName, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="CUSTOMER" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding CustomerName, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="PRINT METHOD" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding PrintMethod, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="BARCODE COUNT" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding BarcodeCount, UpdateSourceTrigger=PropertyChanged,
+                                                      ValidatesOnExceptions=True}" />
+                             <TextBlock Text="SPECIFICATION TABLE" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SpecificationTable, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="VERIFICATION ENVIRONMENT" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding VerificationEnvironment, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="ISSUE DATE" Style="{StaticResource FieldLabel}" />
+                             <DatePicker SelectedDate="{Binding IssueDate, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="ISSUE / VERIFICATION IDENTIFIER" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding IssueIdentifier, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="PLACEMENT RESULT" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding PlacementResult, UpdateSourceTrigger=PropertyChanged}" />
+                             <CheckBox Content="50 mm proximity requirement compliant"
+                                       IsChecked="{Binding Is50mmProximityCompliant, Mode=TwoWay}"
+                                       IsThreeState="True" Margin="0,8,0,0" />
+                             <TextBlock Text="BUSINESS COMMENTS" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding BusinessComments, UpdateSourceTrigger=PropertyChanged}"
+                                      Height="50" TextWrapping="Wrap" AcceptsReturn="True"
+                                      VerticalScrollBarVisibility="Auto" />
+                             <TextBlock Text="EDUCATIONAL COMMENTS" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding EducationalComments, UpdateSourceTrigger=PropertyChanged}"
+                                      Height="50" TextWrapping="Wrap" AcceptsReturn="True"
+                                      VerticalScrollBarVisibility="Auto" />
+
                             <TextBlock Text="BATCH MODE" Style="{StaticResource FieldLabel}" />
                             <ComboBox ItemsSource="{Binding BatchModeOptions}"
                                       SelectedItem="{Binding BatchMode}" />

@@ -15,6 +15,25 @@ public sealed class SessionState
     public string? ProductName { get; set; }
     public string? CustomNote  { get; set; }
 
+    // ── GS1 verification context ──────────────────────────────────────────────
+    // Values are captured before a session starts and apply to its records.
+    // Nullable value types distinguish an omitted assessment from a false/zero result.
+
+    public string? OrganizationName { get; set; }
+    public string? OrganizationAddress { get; set; }
+    public string? TestingAgency { get; set; }
+    public string? CustomerName { get; set; }
+    public string? PrintMethod { get; set; }
+    public int? BarcodeCount { get; set; }
+    public string? SpecificationTable { get; set; }
+    public string? VerificationEnvironment { get; set; }
+    public DateTime? IssueDate { get; set; }
+    public string? IssueIdentifier { get; set; }
+    public string? PlacementResult { get; set; }
+    public bool? Is50mmProximityCompliant { get; set; }
+    public string? BusinessComments { get; set; }
+    public string? EducationalComments { get; set; }
+
     /// <summary>
     /// Controls how Batch/Lot is populated on each written record.
     /// Manual (default) = caller supplies VerificationRecord.BatchNumber.

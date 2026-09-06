@@ -44,6 +44,10 @@
         <!-- ── Setup card ──────────────────────────────────────────── -->
         <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,10">
             <Grid>
+                 <Grid.RowDefinitions>
+                     <RowDefinition Height="Auto" />
+                     <RowDefinition Height="Auto" />
+                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="24" />
@@ -91,6 +95,63 @@
                             Command="{Binding StopCommand}"
                             Padding="16,8" />
                 </StackPanel>
+
+                 <!-- Session-only values: the view model copies these into SessionState
+                      at start. They intentionally do not edit the selected template. -->
+                 <Expander Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="7"
+                           Header="Pre-verification details" Margin="0,14,0,0"
+                           IsEnabled="{Binding IsRunning, Converter={StaticResource InvertBool}}">
+                     <Grid Margin="0,8,0,0">
+                         <Grid.ColumnDefinitions>
+                             <ColumnDefinition Width="*" />
+                             <ColumnDefinition Width="16" />
+                             <ColumnDefinition Width="*" />
+                             <ColumnDefinition Width="16" />
+                             <ColumnDefinition Width="*" />
+                         </Grid.ColumnDefinitions>
+                         <StackPanel Grid.Column="0">
+                             <TextBlock Text="PRODUCT" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionProductName, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="CUSTOMER" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionCustomerName, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="PRINT METHOD" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionPrintMethod, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="BARCODE COUNT" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionBarcodeCount, UpdateSourceTrigger=PropertyChanged,
+                                                      ValidatesOnExceptions=True}" />
+                             <TextBlock Text="SPECIFICATION TABLE" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionSpecificationTable, UpdateSourceTrigger=PropertyChanged}" />
+                         </StackPanel>
+                         <StackPanel Grid.Column="2">
+                             <TextBlock Text="ENVIRONMENT" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionVerificationEnvironment, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="ISSUE DATE" Style="{StaticResource FieldLabel}" />
+                             <DatePicker SelectedDate="{Binding SessionIssueDate, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="ISSUE IDENTIFIER" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionIssueIdentifier, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="PLACEMENT RESULT" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionPlacementResult, UpdateSourceTrigger=PropertyChanged}" />
+                             <CheckBox Content="50 mm proximity compliant"
+                                       IsChecked="{Binding SessionIs50mmProximityCompliant, Mode=TwoWay}"
+                                       IsThreeState="True" Margin="0,8,0,0" />
+                         </StackPanel>
+                         <StackPanel Grid.Column="4">
+                             <TextBlock Text="BUSINESS COMMENTS" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionBusinessComments, UpdateSourceTrigger=PropertyChanged}"
+                                      Height="42" TextWrapping="Wrap" AcceptsReturn="True" />
+                             <TextBlock Text="EDUCATIONAL COMMENTS" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionEducationalComments, UpdateSourceTrigger=PropertyChanged}"
+                                      Height="42" TextWrapping="Wrap" AcceptsReturn="True" />
+                             <TextBlock Text="ORGANIZATION" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionOrganizationName, UpdateSourceTrigger=PropertyChanged}" />
+                             <TextBlock Text="ADDRESS / TESTING AGENCY" Style="{StaticResource FieldLabel}" />
+                             <TextBox Text="{Binding SessionOrganizationAddress, UpdateSourceTrigger=PropertyChanged}"
+                                      Height="34" TextWrapping="Wrap" AcceptsReturn="True" />
+                             <TextBox Text="{Binding SessionTestingAgency, UpdateSourceTrigger=PropertyChanged}"
+                                      Margin="0,4,0,0" />
+                         </StackPanel>
+                     </Grid>
+                 </Expander>
             </Grid>
         </Border>
 
@@ -141,6 +202,11 @@
                              Command="{Binding SetWebscanCommand}"
                              VerticalAlignment="Center"
                              Margin="0,0,10,0" />
+                 <RadioButton Content="Axicon CSV"
+                              IsChecked="{Binding IsAxiconMode, Mode=OneWay}"
+                              Command="{Binding SetAxiconCommand}"
+                              VerticalAlignment="Center"
+                              Margin="0,0,10,0" />
 
                 <!-- Push port hint -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
@@ -442,6 +508,12 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
+                        <TextBlock Text="{Binding AxiconImportError}"
+                                   FontSize="13" TextWrapping="Wrap" VerticalAlignment="Top"
+                                   HorizontalAlignment="Left" Foreground="#C0392B"
+                                   Margin="0,26,0,0"
+                                   Visibility="{Binding HasAxiconImportError,
+                                       Converter={StaticResource BoolToVisibility}}" />
 
                     </Grid>
                 </Border>

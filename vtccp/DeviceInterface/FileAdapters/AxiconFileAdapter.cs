@@ -1,180 +1,282 @@
 namespace DeviceInterface.FileAdapters;
 
 using ExcelEngine.Models;
+using System.Security.Cryptography;
+using System.Text;
 
 /// <summary>
-/// File-export adapter for Axicon 15000-series verifiers (Axicon Auto ID Limited).
-///
-/// Integration path: Axicon 15000 series software writes a result file to a
-/// configurable output folder after each scan (via the Automatic File Naming plugin).
-/// This adapter watches that folder, reads each new file, and fires
-/// <see cref="RecordParsed"/> with a <see cref="VerificationRecord"/> whose
-/// <see cref="VerificationRecord.VerifierBrand"/> is always <c>"AXICON"</c> —
-/// ensuring the PDF Device header row shows the correct brand label rather than "—".
-///
-/// <b>Partial implementation</b>: the Axicon 15000 export file format (CSV / XML /
-/// proprietary text) has not yet been confirmed.  <see cref="ParseFileAsync"/> reads
-/// the raw file content and builds a record using <see cref="BuildRecord"/>; fields
-/// that require format-specific parsing are left null until the format is confirmed
-/// and the parse logic is completed (tracked in a separate task).
-///
-/// Every record returned by <see cref="BuildRecord"/> — and therefore by this adapter —
-/// carries <c>VerifierBrand = "AXICON"</c> regardless of how many fields are populated.
+/// Imports CSV files written by the VTCCP Axicon automatic-export templates.
+/// Source exports are never deleted or modified.
 /// </summary>
 public sealed class AxiconFileAdapter : IDisposable
 {
-    /// <summary>
-    /// All-caps brand label used by this adapter.
-    /// Matches the "Axicon" entry in <c>PdfReportGenerator.BrandPatterns</c>.
-    /// </summary>
     public const string Brand = "AXICON";
-
-    // ── Watch folder ──────────────────────────────────────────────────────────
     private readonly string _watchFolder;
+    private readonly string? _artifactCopyDirectory;
+    private readonly object _lock = new();
+    private readonly HashSet<string> _processing = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _importedHashes = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _acceptingHashes = new(StringComparer.Ordinal);
+    private readonly HashSet<Task> _inFlight = [];
     private FileSystemWatcher? _watcher;
+    private CancellationTokenSource? _lifetimeCts;
+    private bool _accepting;
     private bool _disposed;
 
-    /// <summary>
-    /// Raised each time a new export file is read and converted to a record.
-    /// </summary>
-    public event EventHandler<VerificationRecord>? RecordParsed;
-
-    /// <param name="watchFolder">
-    /// Absolute path to the folder where Axicon 15000 series software writes
-    /// its result files.  Configure this path in the Automatic File Naming plugin.
-    /// </param>
-    public AxiconFileAdapter(string watchFolder)
+    public AxiconFileAdapter(string watchFolder, string? artifactCopyDirectory = null)
     {
         if (string.IsNullOrWhiteSpace(watchFolder))
             throw new ArgumentException("Watch folder path must not be empty.", nameof(watchFolder));
-
-        _watchFolder = watchFolder;
+        _watchFolder = Path.GetFullPath(watchFolder);
+        _artifactCopyDirectory = string.IsNullOrWhiteSpace(artifactCopyDirectory)
+            ? null : Path.GetFullPath(artifactCopyDirectory);
     }
 
-    /// <summary>
-    /// Starts the folder watcher.  Newly created files trigger <see cref="RecordParsed"/>.
-    /// </summary>
+    public event EventHandler<VerificationRecord>? RecordParsed;
+    /// <summary>Raised for watcher imports that cannot be read or parsed.</summary>
+    public event EventHandler<string>? ParseFailed;
+    public string WatchFolder => _watchFolder;
+
     public void Start()
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ThrowIfDisposed();
         Directory.CreateDirectory(_watchFolder);
-
-        _watcher = new FileSystemWatcher(_watchFolder)
+        lock (_lock)
         {
-            // TODO: narrow the filter once the export file extension is confirmed.
-            Filter              = "*.*",
-            NotifyFilter        = NotifyFilters.FileName,
+            if (_watcher is not null) return;
+            _lifetimeCts = new CancellationTokenSource();
+            _accepting = true;
+        }
+        _watcher = new FileSystemWatcher(_watchFolder, "*.csv")
+        {
+            NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size,
             EnableRaisingEvents = true,
         };
-
-        _watcher.Created += OnFileCreated;
-
-        System.Diagnostics.Debug.WriteLine(
-            $"[Axicon] Watching for export files in: {_watchFolder}");
+        _watcher.Created += OnFileChanged;
+        _watcher.Changed += OnFileChanged;
     }
 
-    // ── File arrival ──────────────────────────────────────────────────────────
-
-    private async void OnFileCreated(object sender, FileSystemEventArgs e)
+    /// <summary>Stops new imports and drains/cancels imports already in progress.</summary>
+    public async Task StopAsync()
     {
-        try
+        FileSystemWatcher? watcher;
+        CancellationTokenSource? lifetimeCts;
+        Task[] inFlight;
+        lock (_lock)
         {
-            // Small delay to allow the writing application to finish the file.
-            await Task.Delay(500).ConfigureAwait(false);
-
-            VerificationRecord record = await ParseFileAsync(e.FullPath).ConfigureAwait(false);
-            RecordParsed?.Invoke(this, record);
+            _accepting = false;
+            watcher = _watcher;
+            _watcher = null;
+            lifetimeCts = _lifetimeCts;
+            _lifetimeCts = null;
+            inFlight = _inFlight.ToArray();
         }
-        catch (Exception ex)
+        if (watcher is not null)
         {
-            System.Diagnostics.Debug.WriteLine(
-                $"[Axicon] OnFileCreated error for '{e.Name}': {ex.GetType().Name}: {ex.Message}");
+            watcher.EnableRaisingEvents = false;
+            watcher.Created -= OnFileChanged;
+            watcher.Changed -= OnFileChanged;
+            watcher.Dispose();
         }
+        if (lifetimeCts is not null) await lifetimeCts.CancelAsync().ConfigureAwait(false);
+        try { await Task.WhenAll(inFlight).ConfigureAwait(false); }
+        catch (OperationCanceledException) { }
+        finally { lifetimeCts?.Dispose(); }
     }
 
     /// <summary>
-    /// Reads an Axicon export file and returns a <see cref="VerificationRecord"/>.
-    ///
-    /// Always sets <c>VerifierBrand = <see cref="Brand"/></c> so the PDF Device header
-    /// row shows "AXICON" instead of "—".
-    ///
-    /// <b>TODO</b>: parse Axicon-specific fields (Symbology, DecodedData, grades, etc.)
-    /// once the export file format is confirmed.  Until then, those fields are null
-    /// and <see cref="BuildRecord"/> is called with the raw file text.
+    /// Deterministically imports one completed Axicon CSV. The source file is
+    /// read only; if an archive directory was configured, a byte-for-byte copy
+    /// is made after parsing succeeds.
     /// </summary>
+    public async Task<VerificationRecord> ImportFileAsync(
+        string sourcePath, CancellationToken cancellationToken = default)
+    {
+        ThrowIfDisposed();
+        if (!sourcePath.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Axicon adapter accepts .csv exports only.", nameof(sourcePath));
+
+        string fullPath = Path.GetFullPath(sourcePath);
+        ImportedFile imported = await PrepareImportAsync(fullPath, cancellationToken).ConfigureAwait(false);
+        VerificationRecord record = imported.Record;
+        if (_artifactCopyDirectory is not null)
+        {
+            string archivedPath = await CopyArtifactAsync(
+                imported.Bytes, fullPath, _artifactCopyDirectory, imported.Hash,
+                imported.LastWriteTime, cancellationToken).ConfigureAwait(false);
+            record = record with { SourceArtifactPath = archivedPath };
+        }
+        cancellationToken.ThrowIfCancellationRequested();
+        RecordParsed?.Invoke(this, record);
+        return record;
+    }
+
     internal static async Task<VerificationRecord> ParseFileAsync(string filePath)
-    {
-        string? rawContent = null;
-        DateTime timestamp = File.Exists(filePath)
-            ? File.GetLastWriteTime(filePath)
-            : DateTime.Now;
-
-        try
-        {
-            rawContent = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine(
-                $"[Axicon] ParseFileAsync could not read '{Path.GetFileName(filePath)}': " +
-                $"{ex.GetType().Name}: {ex.Message}");
-        }
-
-        return BuildRecord(rawContent, timestamp);
-    }
+        => await new AxiconFileAdapter(Path.GetDirectoryName(Path.GetFullPath(filePath)) ?? ".")
+            .ImportFileAsync(filePath).ConfigureAwait(false);
 
     /// <summary>
-    /// Constructs a <see cref="VerificationRecord"/> from Axicon export file content.
-    ///
-    /// <b>VerifierBrand is always <c>"AXICON"</c></b> on every record this method
-    /// returns — this is the key guarantee this adapter provides.  All other fields
-    /// are populated when the export format is known; they are null in the interim.
+    /// Compatibility helper retained for callers that only require the brand
+    /// marker. File ingestion always uses <see cref="ImportFileAsync"/>, which
+    /// reports malformed content explicitly rather than returning this fallback.
     /// </summary>
-    /// <param name="rawContent">
-    /// Raw text content of the Axicon result file.  May be <see langword="null"/>
-    /// if the file could not be read; the record is still returned with brand set.
-    /// </param>
-    /// <param name="timestamp">Verification timestamp; defaults to <see cref="DateTime.Now"/>.</param>
-    public static VerificationRecord BuildRecord(
-        string?  rawContent = null,
-        DateTime? timestamp  = null)
+    public static VerificationRecord BuildRecord(string? rawContent = null, DateTime? timestamp = null)
     {
-        // TODO: extract Symbology, DecodedData, grades, standard, aperture, wavelength,
-        // etc. from rawContent once the Axicon 15000 export file format is confirmed.
-        //
-        // Example parse skeleton:
-        //   string? symbology   = ExtractField(rawContent, "Symbology");
-        //   string? decodedData = ExtractField(rawContent, "DecodedData");
-        //   ...
-
-        return new VerificationRecord
-        {
-            // VerifierBrand is always set — this is the fix for the PDF header.
-            VerifierBrand           = Brand,
-
-            // Timestamp: prefer the file's write time; fall back to now.
-            VerificationDateTime    = timestamp ?? DateTime.Now,
-
-            // Symbology is required (non-nullable on the record) — placeholder until parsing.
-            Symbology               = "Unknown",
-
-            // All other fields are null pending format-specific parse implementation.
-            // They will be populated here once the Axicon export format is confirmed.
-        };
+        AxiconAutomaticExportReport report = AxiconAutomaticExportParser.Parse(
+            rawContent ?? string.Empty, string.Empty, timestamp ?? DateTime.Now);
+        return report.ParseSucceeded
+            ? report.ToVerificationRecord()
+            : new VerificationRecord
+            {
+                VerificationDateTime = timestamp ?? DateTime.Now,
+                Symbology = "Unknown",
+                VerifierBrand = Brand,
+            };
     }
 
-    // ── IDisposable ───────────────────────────────────────────────────────────
+    private void OnFileChanged(object sender, FileSystemEventArgs args)
+    {
+        string path = Path.GetFullPath(args.FullPath);
+        Task? task;
+        lock (_lock)
+        {
+            if (!_accepting || _lifetimeCts is null || !_processing.Add(path))
+                return;
+            task = ProcessFileAsync(path, _lifetimeCts.Token);
+            _inFlight.Add(task);
+            _ = task.ContinueWith(done =>
+            {
+                lock (_lock) { _processing.Remove(path); _inFlight.Remove(done); }
+            }, TaskScheduler.Default);
+        }
+    }
 
+    private async Task ProcessFileAsync(string path, CancellationToken cancellationToken)
+    {
+        try
+        {
+            ImportedFile imported = await PrepareImportAsync(path, cancellationToken).ConfigureAwait(false);
+            lock (_lock)
+            {
+                if (_importedHashes.Contains(imported.Hash) || !_acceptingHashes.Add(imported.Hash))
+                    return;
+            }
+            try
+            {
+                VerificationRecord record = imported.Record;
+                if (_artifactCopyDirectory is not null)
+                {
+                    string archivedPath = await CopyArtifactAsync(
+                        imported.Bytes, path, _artifactCopyDirectory, imported.Hash,
+                        imported.LastWriteTime, cancellationToken).ConfigureAwait(false);
+                    record = record with { SourceArtifactPath = archivedPath };
+                }
+                cancellationToken.ThrowIfCancellationRequested();
+                RecordParsed?.Invoke(this, record);
+                lock (_lock) _importedHashes.Add(imported.Hash);
+            }
+            finally
+            {
+                lock (_lock) _acceptingHashes.Remove(imported.Hash);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (Exception ex) { ParseFailed?.Invoke(this, $"{Path.GetFileName(path)}: {ex.Message}"); }
+    }
+
+    private static async Task<ImportedFile> PrepareImportAsync(string path, CancellationToken cancellationToken)
+    {
+        StableFile stable = await ReadStableFileAsync(path, cancellationToken).ConfigureAwait(false);
+        string text = Encoding.UTF8.GetString(stable.Bytes);
+        AxiconAutomaticExportReport report = AxiconAutomaticExportParser.Parse(text, path, stable.LastWriteTime);
+        if (!report.ParseSucceeded)
+            throw new InvalidDataException(report.ParseError ?? "Axicon automatic-export parse failed.");
+        return new ImportedFile(report.ToVerificationRecord(), stable.Bytes,
+            Convert.ToHexString(SHA256.HashData(stable.Bytes)), stable.LastWriteTime);
+    }
+
+    private static async Task<StableFile> ReadStableFileAsync(string path, CancellationToken cancellationToken)
+    {
+        const int attempts = 12;
+        for (int attempt = 0; attempt < attempts; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                FileFingerprint first = GetFingerprint(path);
+                await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete);
+                using var memory = new MemoryStream();
+                await stream.CopyToAsync(memory, cancellationToken).ConfigureAwait(false);
+                byte[] bytes = memory.ToArray();
+                if (bytes.Length == 0) continue;
+                await Task.Delay(250, cancellationToken).ConfigureAwait(false);
+                if (first != GetFingerprint(path)) continue;
+                await Task.Delay(250, cancellationToken).ConfigureAwait(false);
+                if (first == GetFingerprint(path))
+                    return new StableFile(bytes, new DateTime(first.LastWriteUtcTicks, DateTimeKind.Utc).ToLocalTime());
+            }
+            catch (IOException) when (attempt < attempts - 1) { }
+            await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+        }
+        throw new IOException($"Axicon export did not remain unchanged for 500ms: {path}");
+    }
+
+    private static async Task<string> CopyArtifactAsync(
+        byte[] bytes,
+        string sourcePath,
+        string directory,
+        string contentHash,
+        DateTime sourceLastWriteTime,
+        CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(directory);
+        string stem = Path.GetFileNameWithoutExtension(sourcePath);
+        string extension = Path.GetExtension(sourcePath);
+        string stamp = sourceLastWriteTime.ToUniversalTime().ToString("yyyyMMddTHHmmssfffffffZ");
+        string target = Path.Combine(directory, $"{stem}.{stamp}.{contentHash[..16]}{extension}");
+        if (File.Exists(target))
+        {
+            if (File.ReadAllBytes(target).AsSpan().SequenceEqual(bytes))
+                return target;
+            throw new IOException($"Refusing to overwrite distinct Axicon artifact: {target}");
+        }
+        string temporary = target + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            await File.WriteAllBytesAsync(temporary, bytes, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                File.Move(temporary, target);
+            }
+            catch (IOException) when (File.Exists(target))
+            {
+                if (File.ReadAllBytes(target).AsSpan().SequenceEqual(bytes))
+                    return target;
+                throw new IOException($"Refusing to overwrite distinct Axicon artifact: {target}");
+            }
+            return target;
+        }
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
+    }
+
+    private static FileFingerprint GetFingerprint(string path)
+    {
+        var info = new FileInfo(path);
+        if (!info.Exists) throw new FileNotFoundException("Axicon export was not found.", path);
+        return new FileFingerprint(info.Length, info.LastWriteTimeUtc.Ticks);
+    }
+    private void ThrowIfDisposed() { if (_disposed) throw new ObjectDisposedException(nameof(AxiconFileAdapter)); }
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
-
-        if (_watcher is not null)
-        {
-            _watcher.EnableRaisingEvents = false;
-            _watcher.Created -= OnFileCreated;
-            _watcher.Dispose();
-        }
+        lock (_lock) { _accepting = false; _lifetimeCts?.Cancel(); }
+        if (_watcher is not null) { _watcher.EnableRaisingEvents = false; _watcher.Created -= OnFileChanged; _watcher.Changed -= OnFileChanged; _watcher.Dispose(); }
+        _lifetimeCts?.Dispose();
     }
+    private readonly record struct FileFingerprint(long Length, long LastWriteUtcTicks);
+    private readonly record struct StableFile(byte[] Bytes, DateTime LastWriteTime);
+    private readonly record struct ImportedFile(
+        VerificationRecord Record, byte[] Bytes, string Hash, DateTime LastWriteTime);
 }

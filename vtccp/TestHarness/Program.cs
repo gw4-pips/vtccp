@@ -2269,6 +2269,18 @@ bool p3aPass = false, p3bPass = false, p3cPass = false,
         {
             JobName           = "QA-Batch-42",
             OperatorId        = "OP-007",
+            ProductName       = "GS1 DataMatrix label",
+            CustomerName      = "Example Customer",
+            PrintMethod       = "Thermal transfer",
+            BarcodeCount      = 2,
+            SpecificationTable = "GS1 General Specifications",
+            VerificationEnvironment = "Laboratory",
+            IssueDate         = new DateTime(2026, 8, 20),
+            IssueIdentifier   = "ISS-42",
+            PlacementResult   = "Pass",
+            Is50mmProximityCompliant = true,
+            BusinessComments  = "Release approved.",
+            EducationalComments = "Keep quiet zone clear.",
             BatchMode         = ExcelEngine.Models.BatchMode.AutoFromGS1,
             OutputFormat      = ExcelEngine.Models.OutputFormat.Xlsx,
             RollIncrementMode = ExcelEngine.Models.RollIncrementMode.Manual,
@@ -2286,13 +2298,25 @@ bool p3aPass = false, p3bPass = false, p3cPass = false,
         bool p3d5 = state.RollIncrementMode == ExcelEngine.Models.RollIncrementMode.Manual;
         bool p3d6 = state.RollStartValue    == 5;
         bool p3d7 = state.OutputDirectory   == fallback;   // null → fallback applied
+        bool p3d9 = state.ProductName == "GS1 DataMatrix label" &&
+                    state.CustomerName == "Example Customer" &&
+                    state.PrintMethod == "Thermal transfer" &&
+                    state.BarcodeCount == 2 &&
+                    state.SpecificationTable == "GS1 General Specifications" &&
+                    state.VerificationEnvironment == "Laboratory" &&
+                    state.IssueDate == new DateTime(2026, 8, 20) &&
+                    state.IssueIdentifier == "ISS-42" &&
+                    state.PlacementResult == "Pass" &&
+                    state.Is50mmProximityCompliant == true &&
+                    state.BusinessComments == "Release approved." &&
+                    state.EducationalComments == "Keep quiet zone clear.";
 
         // Override case: OutputDirectory set on template
         tmpl.OutputDirectory = @"C:\Override";
         ExcelEngine.Models.SessionState state2 = tmpl.ToSessionState(fallback);
         bool p3d8 = state2.OutputDirectory == @"C:\Override";
 
-        p3dPass = p3d1 && p3d2 && p3d3 && p3d4 && p3d5 && p3d6 && p3d7 && p3d8;
+        p3dPass = p3d1 && p3d2 && p3d3 && p3d4 && p3d5 && p3d6 && p3d7 && p3d8 && p3d9;
         Console.WriteLine($"  JobName:       {(p3d1 ? "PASS" : $"FAIL ({state.JobName})")}");
         Console.WriteLine($"  OperatorId:    {(p3d2 ? "PASS" : $"FAIL ({state.OperatorId})")}");
         Console.WriteLine($"  BatchMode:     {(p3d3 ? "PASS" : $"FAIL ({state.BatchMode})")}");
@@ -2301,6 +2325,7 @@ bool p3aPass = false, p3bPass = false, p3cPass = false,
         Console.WriteLine($"  RollStart:     {(p3d6 ? "PASS" : $"FAIL ({state.RollStartValue})")}");
         Console.WriteLine($"  DirFallback:   {(p3d7 ? "PASS" : $"FAIL ({state.OutputDirectory})")}");
         Console.WriteLine($"  DirOverride:   {(p3d8 ? "PASS" : $"FAIL ({state2.OutputDirectory})")}");
+        Console.WriteLine($"  GS1 context:   {(p3d9 ? "PASS" : "FAIL")}");
         Console.WriteLine($"  3-D: {(p3dPass ? "PASS" : "FAIL")}");
     }
     catch (Exception ex)
@@ -2381,11 +2406,15 @@ bool p3aPass = false, p3bPass = false, p3cPass = false,
         // Window dimensions must be sensible
         bool f2 = settings.WindowWidth  >= 800;
         bool f3 = settings.WindowHeight >= 560;
+        bool f4 = settings.OrganizationName is null &&
+                  settings.OrganizationAddress is null &&
+                  settings.TestingAgency is null;
 
-        p3fPass = f1 && f2 && f3;
+        p3fPass = f1 && f2 && f3 && f4;
         Console.WriteLine($"  OutputDir not empty:  {(f1 ? "PASS" : $"FAIL ('{settings.DefaultOutputDirectory}')")}");
         Console.WriteLine($"  WindowWidth  >= 800:  {(f2 ? "PASS" : $"FAIL ({settings.WindowWidth})")}");
         Console.WriteLine($"  WindowHeight >= 560:  {(f3 ? "PASS" : $"FAIL ({settings.WindowHeight})")}");
+        Console.WriteLine($"  Org defaults empty:   {(f4 ? "PASS" : "FAIL")}");
         Console.WriteLine($"  3-F: {(p3fPass ? "PASS" : "FAIL")}");
     }
     catch (Exception ex)

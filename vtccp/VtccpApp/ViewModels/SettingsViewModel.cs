@@ -23,6 +23,26 @@ public sealed class SettingsViewModel : ViewModelBase
         InstallGcpUpdateCommand = new RelayCommand(() => _ = InstallGcpUpdateAsync(), () => !_gcpBusy && IsGcpUpdateAvailable);
     }
 
+    // ── Organization defaults ─────────────────────────────────────────────────
+
+    public string OrganizationName
+    {
+        get => _repo.Settings.OrganizationName ?? string.Empty;
+        set => SetOrganizationDefault(value, v => _repo.Settings.OrganizationName = v, nameof(OrganizationName));
+    }
+
+    public string OrganizationAddress
+    {
+        get => _repo.Settings.OrganizationAddress ?? string.Empty;
+        set => SetOrganizationDefault(value, v => _repo.Settings.OrganizationAddress = v, nameof(OrganizationAddress));
+    }
+
+    public string TestingAgency
+    {
+        get => _repo.Settings.TestingAgency ?? string.Empty;
+        set => SetOrganizationDefault(value, v => _repo.Settings.TestingAgency = v, nameof(TestingAgency));
+    }
+
     // ── Data Sources — GCP prefix table ────────────────────────────────────────
 
     private bool   _gcpBusy;
@@ -256,6 +276,45 @@ public sealed class SettingsViewModel : ViewModelBase
         }
     }
 
+    public bool IsCanonicalPaperA4
+    {
+        get => _repo.Settings.CanonicalReportPaper == global::ConfigEngine.Models.CanonicalReportPaper.A4;
+        set
+        {
+            if (!value || IsCanonicalPaperA4) return;
+            _repo.Settings.CanonicalReportPaper = global::ConfigEngine.Models.CanonicalReportPaper.A4;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsCanonicalPaperLetter));
+            _ = SaveAsync();
+        }
+    }
+
+    public bool IsCanonicalPaperLetter
+    {
+        get => _repo.Settings.CanonicalReportPaper == global::ConfigEngine.Models.CanonicalReportPaper.Letter;
+        set
+        {
+            if (!value || IsCanonicalPaperLetter) return;
+            _repo.Settings.CanonicalReportPaper = global::ConfigEngine.Models.CanonicalReportPaper.Letter;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsCanonicalPaperA4));
+            _ = SaveAsync();
+        }
+    }
+
+    public string AxiconExportDirectory
+    {
+        get => _repo.Settings.AxiconExportDirectory ?? string.Empty;
+        set
+        {
+            string? trimmed = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            if (_repo.Settings.AxiconExportDirectory == trimmed) return;
+            _repo.Settings.AxiconExportDirectory = trimmed;
+            OnPropertyChanged();
+            _ = SaveAsync();
+        }
+    }
+
     // ── Reload ─────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -264,6 +323,9 @@ public sealed class SettingsViewModel : ViewModelBase
     /// </summary>
     public void Reload()
     {
+        OnPropertyChanged(nameof(OrganizationName));
+        OnPropertyChanged(nameof(OrganizationAddress));
+        OnPropertyChanged(nameof(TestingAgency));
         OnPropertyChanged(nameof(GenerateHybridReport));
         OnPropertyChanged(nameof(IsHybridConfigVisible));
         OnPropertyChanged(nameof(IsAlongsideMode));
@@ -271,6 +333,9 @@ public sealed class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(HybridReportOutputDirectory));
         OnPropertyChanged(nameof(IsVccsPdfSeparate));
         OnPropertyChanged(nameof(IsVccsPdfAppendRequested));
+        OnPropertyChanged(nameof(IsCanonicalPaperA4));
+        OnPropertyChanged(nameof(IsCanonicalPaperLetter));
+        OnPropertyChanged(nameof(AxiconExportDirectory));
         OnPropertyChanged(nameof(CurrentGcpTableDate));
         OnPropertyChanged(nameof(CurrentGcpTablePath));
         OnPropertyChanged(nameof(GcpUpdateServiceUrl));
@@ -283,5 +348,13 @@ public sealed class SettingsViewModel : ViewModelBase
     {
         try   { await _repo.SaveSettingsAsync(); }
         catch { /* non-fatal — in-memory state is correct; disk write failed */ }
+    }
+
+    private void SetOrganizationDefault(string value, Action<string?> assign, string propertyName)
+    {
+        string? trimmed = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        assign(trimmed);
+        OnPropertyChanged(propertyName);
+        _ = SaveAsync();
     }
 }

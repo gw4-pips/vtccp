@@ -8,6 +8,7 @@ using ConfigEngine.Models;
 using DeviceInterface;
 using DeviceInterface.Dmcc;
 using DeviceInterface.Dmst;
+using DeviceInterface.FileAdapters;
 using DeviceInterface.Reports;
 using DeviceInterface.Rfid;
 using DeviceInterface.Rfid.Gcp;
@@ -40,7 +41,7 @@ public sealed class SessionViewModel : ViewModelBase
 
     // ── Scan mode ─────────────────────────────────────────────────────────────
 
-    public enum ScanMode { Manual, AutoPoll, Push, Webscan }
+    public enum ScanMode { Manual, AutoPoll, Push, Webscan, Axicon }
 
     // ── Dependencies ──────────────────────────────────────────────────────────
 
@@ -58,6 +59,13 @@ public sealed class SessionViewModel : ViewModelBase
     private int                                         _webscanSessionGeneration;
     private readonly object                             _webscanStateLock = new();
     private readonly WebscanAcceptanceTracker           _webscanAcceptance = new();
+    private AxiconFileAdapter?                          _axiconAdapter;
+    private EventHandler<VerificationRecord>?           _axiconRecordHandler;
+    private EventHandler<string>?                       _axiconParseFailedHandler;
+    private int                                         _axiconSessionGeneration;
+    private readonly object                             _axiconStateLock = new();
+    private readonly WebscanAcceptanceTracker           _axiconAcceptance = new();
+    private SessionState?                               _activeSessionState;
     private readonly System.Threading.SemaphoreSlim    _pushTruCheckSettingsGate = new(1, 1);
     private SessionManager?                             _sessionMgr;
     private System.Threading.CancellationTokenSource? _pollCts;
@@ -93,6 +101,7 @@ public sealed class SessionViewModel : ViewModelBase
     private string  _verifierResultLine = string.Empty;
     private string? _rfidResultLine;
     private string? _webscanImportError;
+    private string? _axiconImportError;
 
     // ── Session output directory ───────────────────────────────────────────────
     // Captured at OnStartAsync so fire-and-forget report generators have the path
@@ -143,6 +152,21 @@ public sealed class SessionViewModel : ViewModelBase
     private string         _operatorOverride = string.Empty;
     private ScanMode       _scanMode         = ScanMode.Push;
     private int            _autoPollIntervalMs = 500;
+    private string _sessionProductName = string.Empty;
+    private string _sessionCustomerName = string.Empty;
+    private string _sessionPrintMethod = string.Empty;
+    private int? _sessionBarcodeCount;
+    private string _sessionSpecificationTable = string.Empty;
+    private string _sessionVerificationEnvironment = string.Empty;
+    private DateTime? _sessionIssueDate;
+    private string _sessionIssueIdentifier = string.Empty;
+    private string _sessionPlacementResult = string.Empty;
+    private bool? _sessionIs50mmProximityCompliant;
+    private string _sessionBusinessComments = string.Empty;
+    private string _sessionEducationalComments = string.Empty;
+    private string _sessionOrganizationName = string.Empty;
+    private string _sessionOrganizationAddress = string.Empty;
+    private string _sessionTestingAgency = string.Empty;
 
     // ── Bindable collections ──────────────────────────────────────────────────
 
@@ -175,7 +199,12 @@ public sealed class SessionViewModel : ViewModelBase
     public JobTemplate? SelectedTemplate
     {
         get => _selectedTemplate;
-        set { Set(ref _selectedTemplate, value); RelayCommand.Refresh(); }
+        set
+        {
+            if (Set(ref _selectedTemplate, value) && !IsRunning)
+                InitializeSessionOnlyValues();
+            RelayCommand.Refresh();
+        }
     }
 
     public string OperatorOverride
@@ -194,6 +223,7 @@ public sealed class SessionViewModel : ViewModelBase
             OnPropertyChanged(nameof(IsAutoPollMode));
             OnPropertyChanged(nameof(IsPushMode));
             OnPropertyChanged(nameof(IsWebscanMode));
+            OnPropertyChanged(nameof(IsAxiconMode));
             OnPropertyChanged(nameof(ShowTriggerButton));
             RelayCommand.Refresh();
         }
@@ -203,6 +233,7 @@ public sealed class SessionViewModel : ViewModelBase
     public bool IsAutoPollMode   => _scanMode == ScanMode.AutoPoll;
     public bool IsPushMode       => _scanMode == ScanMode.Push;
     public bool IsWebscanMode    => _scanMode == ScanMode.Webscan;
+    public bool IsAxiconMode     => _scanMode == ScanMode.Axicon;
 
     /// <summary>True in Manual and Push modes — both support a software trigger.</summary>
     public bool ShowTriggerButton => _scanMode is ScanMode.Manual or ScanMode.Push;
@@ -274,6 +305,30 @@ public sealed class SessionViewModel : ViewModelBase
     }
 
     public bool HasWebscanImportError => !string.IsNullOrWhiteSpace(_webscanImportError);
+    public string? AxiconImportError
+    {
+        get => _axiconImportError;
+        private set { Set(ref _axiconImportError, value); OnPropertyChanged(nameof(HasAxiconImportError)); }
+    }
+    public bool HasAxiconImportError => !string.IsNullOrWhiteSpace(_axiconImportError);
+
+    // Session-only GS1 context. These values are copied to a new SessionState at
+    // start and intentionally never mutate the selected job template.
+    public string SessionProductName { get => _sessionProductName; set => Set(ref _sessionProductName, value); }
+    public string SessionCustomerName { get => _sessionCustomerName; set => Set(ref _sessionCustomerName, value); }
+    public string SessionPrintMethod { get => _sessionPrintMethod; set => Set(ref _sessionPrintMethod, value); }
+    public int? SessionBarcodeCount { get => _sessionBarcodeCount; set => Set(ref _sessionBarcodeCount, value); }
+    public string SessionSpecificationTable { get => _sessionSpecificationTable; set => Set(ref _sessionSpecificationTable, value); }
+    public string SessionVerificationEnvironment { get => _sessionVerificationEnvironment; set => Set(ref _sessionVerificationEnvironment, value); }
+    public DateTime? SessionIssueDate { get => _sessionIssueDate; set => Set(ref _sessionIssueDate, value); }
+    public string SessionIssueIdentifier { get => _sessionIssueIdentifier; set => Set(ref _sessionIssueIdentifier, value); }
+    public string SessionPlacementResult { get => _sessionPlacementResult; set => Set(ref _sessionPlacementResult, value); }
+    public bool? SessionIs50mmProximityCompliant { get => _sessionIs50mmProximityCompliant; set => Set(ref _sessionIs50mmProximityCompliant, value); }
+    public string SessionBusinessComments { get => _sessionBusinessComments; set => Set(ref _sessionBusinessComments, value); }
+    public string SessionEducationalComments { get => _sessionEducationalComments; set => Set(ref _sessionEducationalComments, value); }
+    public string SessionOrganizationName { get => _sessionOrganizationName; set => Set(ref _sessionOrganizationName, value); }
+    public string SessionOrganizationAddress { get => _sessionOrganizationAddress; set => Set(ref _sessionOrganizationAddress, value); }
+    public string SessionTestingAgency { get => _sessionTestingAgency; set => Set(ref _sessionTestingAgency, value); }
 
     /// <summary>True when a scan result is ready to display.</summary>
     public bool HasScanResult => !string.IsNullOrEmpty(_verifierResultLine);
@@ -352,6 +407,7 @@ public sealed class SessionViewModel : ViewModelBase
     public RelayCommand SetAutoPollCommand      { get; }
     public RelayCommand SetPushCommand          { get; }
     public RelayCommand SetWebscanCommand       { get; }
+    public RelayCommand SetAxiconCommand        { get; }
     public RelayCommand ReadSupplementalCommand  { get; }
     public RelayCommand WriteSupplementalCommand { get; }
     public RelayCommand OpenLiveFeedCommand      { get; }
@@ -368,7 +424,7 @@ public sealed class SessionViewModel : ViewModelBase
 
         StartCommand   = new RelayCommand(async () => await OnStartAsync(),
             () => !IsRunning && SelectedTemplate is not null &&
-                  (_scanMode == ScanMode.Webscan || SelectedDevice is not null));
+                  (_scanMode is ScanMode.Webscan or ScanMode.Axicon || SelectedDevice is not null));
         StopCommand    = new RelayCommand(async () => await OnStopAsync(),
             () => IsRunning);
         TriggerCommand = new RelayCommand(async () => await OnTriggerAsync(),
@@ -378,6 +434,7 @@ public sealed class SessionViewModel : ViewModelBase
         SetAutoPollCommand = new RelayCommand(() => SelectScanMode(ScanMode.AutoPoll), () => !IsRunning);
         SetPushCommand     = new RelayCommand(() => SelectScanMode(ScanMode.Push),     () => !IsRunning && IsPushAvailable);
         SetWebscanCommand  = new RelayCommand(() => SelectScanMode(ScanMode.Webscan),  () => !IsRunning);
+        SetAxiconCommand   = new RelayCommand(() => SelectScanMode(ScanMode.Axicon),   () => !IsRunning);
 
         ReadSupplementalCommand  = new RelayCommand(
             async () => await OnReadSupplementalAsync(),
@@ -437,6 +494,7 @@ public sealed class SessionViewModel : ViewModelBase
             ? AvailableTemplates.FirstOrDefault(t => t.Id == currentId)
             : null)
             ?? _repo.DefaultTemplate;
+        InitializeSessionOnlyValues();
 
         // Pre-fill Operator ID with the value typed at the last session start.
         // The user can clear or change it before each session; the new value is
@@ -451,6 +509,26 @@ public sealed class SessionViewModel : ViewModelBase
         {
             RestoreLastScanMode();
         }
+    }
+
+    private void InitializeSessionOnlyValues()
+    {
+        JobTemplate? t = SelectedTemplate;
+        SessionProductName = t?.ProductName ?? string.Empty;
+        SessionCustomerName = t?.CustomerName ?? string.Empty;
+        SessionPrintMethod = t?.PrintMethod ?? string.Empty;
+        SessionBarcodeCount = t?.BarcodeCount;
+        SessionSpecificationTable = t?.SpecificationTable ?? string.Empty;
+        SessionVerificationEnvironment = t?.VerificationEnvironment ?? string.Empty;
+        SessionIssueDate = t?.IssueDate;
+        SessionIssueIdentifier = t?.IssueIdentifier ?? string.Empty;
+        SessionPlacementResult = t?.PlacementResult ?? string.Empty;
+        SessionIs50mmProximityCompliant = t?.Is50mmProximityCompliant;
+        SessionBusinessComments = t?.BusinessComments ?? string.Empty;
+        SessionEducationalComments = t?.EducationalComments ?? string.Empty;
+        SessionOrganizationName = _repo.Settings.OrganizationName ?? string.Empty;
+        SessionOrganizationAddress = _repo.Settings.OrganizationAddress ?? string.Empty;
+        SessionTestingAgency = _repo.Settings.TestingAgency ?? string.Empty;
     }
 
     private void SelectScanMode(ScanMode mode)
@@ -493,7 +571,7 @@ public sealed class SessionViewModel : ViewModelBase
         var selectedTemplate = SelectedTemplate;
         var selectedDevice = SelectedDevice;
         if (selectedTemplate is null ||
-            (_scanMode != ScanMode.Webscan && selectedDevice is null))
+            (_scanMode is not ScanMode.Webscan and not ScanMode.Axicon && selectedDevice is null))
             return;
 
         string outputDir = !string.IsNullOrWhiteSpace(selectedTemplate.OutputDirectory)
@@ -503,6 +581,22 @@ public sealed class SessionViewModel : ViewModelBase
         _sessionId        = DateTime.Now.ToString("yyyyMMdd-HHmmss");
 
         SessionState state = selectedTemplate.ToSessionState(outputDir);
+        state.ProductName = SessionProductName;
+        state.CustomerName = SessionCustomerName;
+        state.PrintMethod = SessionPrintMethod;
+        state.BarcodeCount = SessionBarcodeCount;
+        state.SpecificationTable = SessionSpecificationTable;
+        state.VerificationEnvironment = SessionVerificationEnvironment;
+        state.IssueDate = SessionIssueDate;
+        state.IssueIdentifier = SessionIssueIdentifier;
+        state.PlacementResult = SessionPlacementResult;
+        state.Is50mmProximityCompliant = SessionIs50mmProximityCompliant;
+        state.BusinessComments = SessionBusinessComments;
+        state.EducationalComments = SessionEducationalComments;
+        state.OrganizationName = SessionOrganizationName;
+        state.OrganizationAddress = SessionOrganizationAddress;
+        state.TestingAgency = SessionTestingAgency;
+        _activeSessionState = state;
         if (!string.IsNullOrWhiteSpace(OperatorOverride))
             state.OperatorId = OperatorOverride.Trim();
 
@@ -526,6 +620,12 @@ public sealed class SessionViewModel : ViewModelBase
                 // adapter is started after the Excel session opens below so a
                 // newly-created report can never race a closed record writer.
                 StatusMessage = "Preparing Webscan HTML import…";
+            }
+            else if (_scanMode == ScanMode.Axicon)
+            {
+                if (string.IsNullOrWhiteSpace(_repo.Settings.AxiconExportDirectory))
+                    throw new InvalidOperationException("Set an Axicon automatic-export folder in Settings before starting Axicon mode.");
+                StatusMessage = "Preparing Axicon CSV import…";
             }
             else if (_scanMode == ScanMode.Push)
             {
@@ -620,6 +720,19 @@ public sealed class SessionViewModel : ViewModelBase
                 _webscanHtmlAdapter.Start();
                 System.Diagnostics.Debug.WriteLine(
                     $"[VTCCP-WEBSCAN] HTML watcher started: '{_webscanHtmlAdapter.WatchDirectory}'");
+            }
+            else if (_scanMode == ScanMode.Axicon)
+            {
+                int generation = System.Threading.Interlocked.Increment(ref _axiconSessionGeneration);
+                string archiveDir = Path.Combine(_sessionOutputDir, "Axicon Native Exports");
+                _axiconAdapter = new AxiconFileAdapter(_repo.Settings.AxiconExportDirectory!, archiveDir);
+                _axiconAcceptance.BeginSession(generation);
+                _axiconRecordHandler = (_, record) => OnAxiconRecord(generation, record);
+                _axiconParseFailedHandler = (_, message) => OnAxiconParseFailed(generation, message);
+                _axiconAdapter.RecordParsed += _axiconRecordHandler;
+                _axiconAdapter.ParseFailed += _axiconParseFailedHandler;
+                AxiconImportError = null;
+                _axiconAdapter.Start();
             }
 
             // ── RFID coordinator (optional) ───────────────────────────────────
@@ -735,9 +848,10 @@ public sealed class SessionViewModel : ViewModelBase
                 ScanMode.AutoPoll => $"Auto-Poll ({_autoPollIntervalMs} ms)",
                 ScanMode.Push     => $"Push (DMST) — port {selectedDevice?.DmstListenPort ?? 0}",
                 ScanMode.Webscan  => $"Webscan HTML (USB) — {WebscanHtmlFileAdapter.ConfiguredReportDirectory}",
+                ScanMode.Axicon   => $"Axicon CSV — {_repo.Settings.AxiconExportDirectory}",
                 _                 => "Manual Trigger",
             };
-            string deviceLabel = selectedDevice?.Name ?? "Webscan TruCheck";
+            string deviceLabel = selectedDevice?.Name ?? (_scanMode == ScanMode.Axicon ? "Axicon verifier" : "Webscan TruCheck");
             StatusMessage = $"Session active — {deviceLabel} / {selectedTemplate.Name}  [{modeLabel}]{triggerNote}";
 
             if (_scanMode == ScanMode.AutoPoll)
@@ -762,6 +876,7 @@ public sealed class SessionViewModel : ViewModelBase
             _pushHttpSubscriber = null;
         }
         await QuiesceWebscanAsync();
+        await QuiesceAxiconAsync();
 
         // ── Step 2: drain in-flight AcceptRecordAsync calls (max 2 s) ────────
         // OnPushRecord posts AcceptRecordAsync via fire-and-forget Dispatcher.InvokeAsync.
@@ -1377,6 +1492,45 @@ public sealed class SessionViewModel : ViewModelBase
         });
     }
 
+    private void OnAxiconRecord(int generation, VerificationRecord record)
+    {
+        _axiconAcceptance.TryAdmit(generation, () => IsRunning, async () =>
+        {
+            System.Threading.Interlocked.Increment(ref _pendingAccept);
+            try
+            {
+                await Application.Current.Dispatcher.InvokeAsync(
+                    () => _axiconAcceptance.IsCurrent(generation) && IsRunning
+                        ? AcceptAxiconRecordAsync(record) : Task.CompletedTask).Task.Unwrap();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[VTCCP-AXICON] record acceptance failed: {ex.Message}");
+            }
+            finally { System.Threading.Interlocked.Decrement(ref _pendingAccept); }
+        });
+    }
+
+    private async Task AcceptAxiconRecordAsync(VerificationRecord record)
+    {
+        AxiconImportError = null;
+        await AcceptRecordInnerAsync(record);
+    }
+
+    private void OnAxiconParseFailed(int generation, string message)
+    {
+        if (generation != System.Threading.Volatile.Read(ref _axiconSessionGeneration) || !IsRunning)
+            return;
+        _ = Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            if (generation == System.Threading.Volatile.Read(ref _axiconSessionGeneration) && IsRunning)
+            {
+                AxiconImportError = $"Axicon import failed: {message}";
+                StatusMessage = AxiconImportError;
+            }
+        });
+    }
+
     // ── Shared record acceptance ──────────────────────────────────────────────
 
     /// <summary>
@@ -1758,6 +1912,9 @@ public sealed class SessionViewModel : ViewModelBase
         _history.AddRecord(record);
         _recordCount++; OnPropertyChanged(nameof(RecordCount)); OnPropertyChanged(nameof(WaitingMessage));
 
+        if (string.Equals(record.VerifierBrand, AxiconFileAdapter.Brand, StringComparison.Ordinal))
+            await GenerateCanonicalAxiconReportAsync(record);
+
         // ── Hybrid HTML report (fire-and-forget) ──────────────────────────────
         // Generates a self-contained report combining barcode grades + RFID data.
         // Runs on the thread-pool; failures are silently swallowed so they never
@@ -1857,6 +2014,131 @@ public sealed class SessionViewModel : ViewModelBase
                 : string.Empty;
             string prefix    = savedToDisk ? string.Empty : "⚠ ";
             VerifierResultLine = $"{prefix}Record {RecordCount}: {record.Symbology} — {grade}{num}{ocrSuffix}{pdfSuffix}";
+        }
+    }
+
+    private async Task GenerateCanonicalAxiconReportAsync(VerificationRecord record)
+    {
+        SessionState? state = _activeSessionState;
+        if (state is null || string.IsNullOrWhiteSpace(_sessionOutputDir)) return;
+        string? Field(params string[] names)
+        {
+            if (record.VerifierSourceFields is null) return null;
+            foreach (string name in names)
+                if (record.VerifierSourceFields.TryGetValue(name, out string? value))
+                    return value;
+            return null;
+        }
+        Gs1IsoAssessment Iso(params string[] sourceNames) => new()
+        {
+            LiteralValue = Field(sourceNames),
+            Provenance = "Axicon automatic-export CSV",
+        };
+        Gs1ParameterAssessment Parameter(
+            string requirement, string? complianceSource, string? assessedSource) => new()
+        {
+            NormativeRequirement = requirement,
+            // These are intentionally distinct: plugin status is not promoted to
+            // an assessed measurement, and missing Axicon columns remain missing.
+            ComplianceResult = complianceSource is null ? null : Field(complianceSource),
+            LiteralAssessedValue = assessedSource is null ? null : Field(assessedSource),
+            Provenance = "Axicon automatic-export CSV",
+        };
+        var data = new Gs1ReportData
+        {
+            IssueDate = state.IssueDate?.ToString("d"),
+            TestingAgencyName = state.TestingAgency,
+            TestingAgencyAddress = state.OrganizationAddress,
+            ProductDescription = state.ProductName,
+            BarcodeType = record.Symbology,
+            PrintMethod = state.PrintMethod,
+            NumberOfBarcodesOnProduct = state.BarcodeCount?.ToString(),
+            VerifierDevice = record.DeviceSerial,
+            VerificationSoftwareVersion = record.SoftwareVersion ?? record.FirmwareVersion,
+            LastVerifierCalibrationDate = record.CalibrationDate?.ToString("d"),
+            TestedEnvironments = state.VerificationEnvironment,
+            SymbolSpecificationTable = state.SpecificationTable,
+            PlacementResult = state.PlacementResult,
+            TwoDimensionalProximity = state.Is50mmProximityCompliant switch { true => "Yes", false => "No", _ => null },
+            OverallIsoIecGrade = Field("Overall"),
+            DecodedText = record.DecodedData,
+            BusinessCriticalComments = state.BusinessComments,
+            EducationalComments = state.EducationalComments,
+            IsoStandard = record.Standard,
+            IsoParameters = new Dictionary<string, Gs1IsoAssessment>
+            {
+                ["Overall ISO/IEC grade"] = Iso("Overall"),
+                ["Decode"] = Iso("Decode"),
+                ["Symbol contrast"] = Iso("Symbol Contrast"),
+                ["Rmin (minimum reflectance)"] = Iso("Rmin", "Minimum Reflectance"),
+                ["Rmax (maximum reflectance)"] = Iso("Rmax", "Maximum Reflectance"),
+                ["Edge contrast"] = Iso("Edge Contrast"),
+                ["Modulation"] = Iso("Modulation"),
+                ["Defects"] = Iso("Defects"),
+                ["Decodability"] = Iso("Decodability"),
+                ["Print growth (+/- %) – Process control parameter"] = Iso("Print Growth"),
+                ["Axial nonuniformity"] = Iso("Axial Nonuniformity"),
+                ["Grid nonuniformity"] = Iso("Grid Nonuniformity"),
+                ["Unused Error Correction"] = Iso("Unused Error Correction"),
+                ["Print growth (horizontal)"] = Iso("X Gain", "X-gain", "Horizontal Print Growth"),
+                ["Print growth (vertical)"] = Iso("Y Gain", "Y-gain", "Vertical Print Growth"),
+                ["Fixed pattern damage"] = Iso("Fixed Pattern Damage"),
+                ["• Clock track and solid area regularity³"] = Iso("Clock Track and Solid Area Regularity", "Clock Track"),
+                ["• Quite Zones (QZL1, QZL2)³"] = Iso("Quiet Zones", "Quite Zones"),
+                ["• L1 and L2³"] = Iso("L1 and L2", "L1", "L2"),
+                ["• Format information⁴"] = Iso("Format Information"),
+                ["• Version information⁴"] = Iso("Version Information"),
+            },
+            Gs1Parameters = new Dictionary<string, Gs1ParameterAssessment>
+            {
+                ["Matrix size"] = Parameter("Per applicable GS1 symbol specification table", null, "Matrix Size"),
+                ["X-dimension"] = Parameter("Per applicable GS1 symbol specification table", null, "X Dimension"),
+                ["Data structure¹ (syntax)"] = Parameter("Compliant with GS1 data syntax rules", "Data Structure", "Message"),
+                ["Validity of GS1 Company Prefix"] = Parameter("Valid GS1 Company Prefix", "GS1 Company Prefix", null),
+                ["Human readable"] = Parameter("Per applicable GS1 symbol specification table", "Human Readable", "Message"),
+            },
+            Rfid = new Gs1RfidSupplement { Status = record.RfidStatus, EpcTagUri = record.RfidEpcTagUri,
+                EpcHex = record.RfidEpcHex, Tid = record.RfidTid, Gtin14 = record.RfidGtin14,
+                Serial = record.RfidSerial, Detail = record.RfidMismatchDetail },
+            Provenance = new Gs1ReportProvenance
+            {
+                OrganizationName = state.OrganizationName,
+                JobName = state.JobName,
+                VerifierSource = record.VerifierBrand ?? record.DeviceName,
+                SourceArtifactPath = record.SourceArtifactPath,
+                RfidSource = record.RfidReaderConnected ? "ASR-P35U RFID reader" : "No RFID reader connected",
+            },
+        };
+        bool twoDimensional = record.SymbologyFamily != SymbologyFamily.Linear1D;
+        Gs1ReportValidationResult validation = twoDimensional
+            ? Gs1CanonicalReport.ValidateTwoDimensional(data)
+            : Gs1CanonicalReport.ValidateLinear(data);
+        if (!validation.IsValid)
+        {
+            AxiconImportError = "Axicon canonical report not generated — mandatory data missing: " +
+                string.Join("; ", validation.MissingFields) + ".";
+            StatusMessage = AxiconImportError;
+            return;
+        }
+
+        Gs1PrintProfile paper = _repo.Settings.CanonicalReportPaper == CanonicalReportPaper.Letter
+            ? Gs1PrintProfile.Letter : Gs1PrintProfile.A4;
+        string html = twoDimensional
+            ? Gs1CanonicalReport.GenerateTwoDimensionalHtml(data, paper)
+            : Gs1CanonicalReport.GenerateLinearHtml(data, paper);
+        string stamp = record.VerificationDateTime.ToString("yyyyMMdd-HHmmssfff");
+        string stem = Path.Combine(_sessionOutputDir, $"{stamp}_axicon_gs1_canonical");
+        try
+        {
+            Directory.CreateDirectory(_sessionOutputDir);
+            await File.WriteAllTextAsync(stem + ".html", html);
+            await VccsPdfRenderer.RenderAsync(html, stem + ".pdf", _pollCts?.Token ?? default,
+                printProfile: paper);
+        }
+        catch (Exception ex)
+        {
+            AxiconImportError = $"Axicon canonical HTML written, but PDF generation failed: {ex.Message}";
+            StatusMessage = AxiconImportError;
         }
     }
 
@@ -2113,6 +2395,7 @@ public sealed class SessionViewModel : ViewModelBase
         // Cleanup also serves application-exit and startup-failure paths, which
         // bypass the Stop button's normal drain.
         await QuiesceWebscanAsync();
+        await QuiesceAxiconAsync();
 
         if (_deviceSession is not null)
         {
@@ -2138,6 +2421,7 @@ public sealed class SessionViewModel : ViewModelBase
         _gcpValidator  = null;
         _sessionMgr?.Dispose();
         _sessionMgr = null;
+        _activeSessionState = null;
         _pollCts?.Dispose();
         _pollCts = null;
     }
@@ -2185,6 +2469,34 @@ public sealed class SessionViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine(
                 $"[VTCCP-WEBSCAN] acceptance drain failed: {ex.Message}");
         }
+    }
+
+    private async Task QuiesceAxiconAsync()
+    {
+        AxiconFileAdapter? adapter;
+        EventHandler<VerificationRecord>? recordHandler;
+        EventHandler<string>? parseFailedHandler;
+        Task[] acceptanceTasks;
+        lock (_axiconStateLock)
+        {
+            _axiconSessionGeneration++;
+            adapter = _axiconAdapter;
+            recordHandler = _axiconRecordHandler;
+            parseFailedHandler = _axiconParseFailedHandler;
+            _axiconAdapter = null;
+            _axiconRecordHandler = null;
+            _axiconParseFailedHandler = null;
+        }
+        acceptanceTasks = _axiconAcceptance.InvalidateAndCapture();
+        if (adapter is not null)
+        {
+            if (recordHandler is not null) adapter.RecordParsed -= recordHandler;
+            if (parseFailedHandler is not null) adapter.ParseFailed -= parseFailedHandler;
+            await adapter.StopAsync();
+            adapter.Dispose();
+        }
+        try { await Task.WhenAll(acceptanceTasks); }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[VTCCP-AXICON] acceptance drain failed: {ex.Message}"); }
     }
 
 }

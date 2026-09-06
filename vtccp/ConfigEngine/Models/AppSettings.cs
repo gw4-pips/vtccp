@@ -32,6 +32,13 @@ public enum VccsPdfOutputMode
     AppendWhenVendorPdfAvailable,
 }
 
+/// <summary>Paper size used when printing canonical GS1 reports.</summary>
+public enum CanonicalReportPaper
+{
+    A4,
+    Letter,
+}
+
 /// <summary>
 /// Application-wide preferences persisted alongside device profiles and job templates.
 /// </summary>
@@ -44,6 +51,17 @@ public sealed class AppSettings
 
     /// <summary>Id of the <see cref="JobTemplate"/> selected at last exit, or null.</summary>
     public string? LastJobTemplateId { get; set; }
+
+    // ── Organization defaults ─────────────────────────────────────────────────
+
+    /// <summary>Legal or trading name of the organization performing verification.</summary>
+    public string? OrganizationName { get; set; }
+
+    /// <summary>Postal address of the organization performing verification.</summary>
+    public string? OrganizationAddress { get; set; }
+
+    /// <summary>Name of the testing agency, laboratory, or department.</summary>
+    public string? TestingAgency { get; set; }
 
     // ── Output ────────────────────────────────────────────────────────────────
 
@@ -76,6 +94,13 @@ public sealed class AppSettings
     /// meaning of an existing preference.
     /// </summary>
     public string? LastScanMode { get; set; }
+
+    /// <summary>Folder watched for Axicon automatic-export CSV files.</summary>
+    public string? AxiconExportDirectory { get; set; }
+
+    /// <summary>A4 is the canonical GS1 report default; Letter is opt-in.</summary>
+    public CanonicalReportPaper CanonicalReportPaper { get; set; } =
+        global::ConfigEngine.Models.CanonicalReportPaper.A4;
 
     // ── RFID cross-validation (Phase 0 POC) ──────────────────────────────────
 

@@ -774,3 +774,11 @@ Template layout (vccs-report-template.html): Section ① heading sec-sub-hdr →
 **User [2026-08-22]:** Corrected that there should be no substantive report-format or parser-behavior difference for a GTIN-only linear scan; the normal two-parser rule remains the default.
 
 **Assistant [2026-08-22]:** Removed the special parser-comparison suppression and restored the normal GS1 two-parser behavior for standalone EAN/UPC reports. Native verifier DFC rows remain literal, including non-14-digit GTIN and separately reported check-digit values.
+
+User: There have gotten to so many parts of Command Pilot... I feel like we need a product -- and a name -- that just produces a current GS1 report format for the verifiers we support, even absent RFID integration. What are your thoughts?
+
+Assistant: Recommended separating the focused reporting product from Command Pilot and RFID, with VCCS VeriForm as the strongest name and RFID VeriWedge as an optional enhancement.
+
+User: I like VCCS VeriForm and the other options as well but not ReportBridge. VCCS RFID VeriWedge with VeriForm GS1 Report Template or VCCS VeriForm with GS1 Report Template strike me as the way to frame the 2 offerings. Thoughts?
+
+Assistant: Agreed that VeriForm should stand alone while RFID VeriWedge with VeriForm is the enhanced offering; completed the underlying canonical GS1/Axicon implementation and preserved that product boundary.

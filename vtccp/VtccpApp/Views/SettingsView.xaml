@@ -7,9 +7,10 @@
         <Grid Margin="24" MaxWidth="700" HorizontalAlignment="Left">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />  <!-- header -->
-                <RowDefinition Height="Auto" />  <!-- hybrid report card -->
-                <RowDefinition Height="Auto" />  <!-- VCCS PDF card -->
-                <RowDefinition Height="Auto" />  <!-- data sources card -->
+                    <RowDefinition Height="Auto" />  <!-- organization card -->
+                    <RowDefinition Height="Auto" />  <!-- hybrid report card -->
+                    <RowDefinition Height="Auto" />  <!-- VCCS PDF card -->
+                    <RowDefinition Height="Auto" />  <!-- data sources card -->
             </Grid.RowDefinitions>
 
             <!-- ── Page header ──────────────────────────────────────── -->
@@ -18,8 +19,28 @@
                        Style="{StaticResource SectionHeader}"
                        Margin="0,0,0,16" />
 
-            <!-- ── Hybrid Report card ────────────────────────────────── -->
+            <!-- ── Organization defaults ─────────────────────────────── -->
             <Border Grid.Row="1" Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="ORGANIZATION DEFAULTS"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,0,0,12" />
+                    <TextBlock Text="ORGANIZATION NAME" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding OrganizationName, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Text="ORGANIZATION ADDRESS" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding OrganizationAddress, UpdateSourceTrigger=LostFocus}"
+                             TextWrapping="Wrap" AcceptsReturn="True" MinHeight="42" />
+                    <TextBlock Text="TESTING AGENCY / LABORATORY" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding TestingAgency, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Text="Applied as defaults when a verification session starts; they do not change job-template fields."
+                               FontSize="11" FontStyle="Italic"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap" Margin="0,6,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- ── Hybrid Report card ────────────────────────────────── -->
+            <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0">
                 <StackPanel>
 
                     <!-- Section title -->
@@ -101,7 +122,7 @@
             </Border>
 
             <!-- ── VCCS PDF card ─────────────────────────────────────── -->
-            <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0">
+            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,16,0,0">
                 <StackPanel>
                     <TextBlock Text="VCCS PDF OUTPUT"
                                Style="{StaticResource FieldLabel}"
@@ -133,11 +154,20 @@
                                        Margin="0,2,0,0" />
                         </StackPanel>
                     </RadioButton>
+                    <TextBlock Text="CANONICAL GS1 REPORT PAPER" Style="{StaticResource FieldLabel}" Margin="0,16,0,6" />
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton Content="A4 (default)" IsChecked="{Binding IsCanonicalPaperA4, Mode=TwoWay}" Margin="0,0,16,0" />
+                        <RadioButton Content="Letter" IsChecked="{Binding IsCanonicalPaperLetter, Mode=TwoWay}" />
+                    </StackPanel>
+                    <TextBlock Text="AXICON AUTOMATIC-EXPORT FOLDER" Style="{StaticResource FieldLabel}" Margin="0,12,0,4" />
+                    <TextBox Text="{Binding AxiconExportDirectory, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Text="CSV exports are archived beside the active session outputs when Axicon mode is used."
+                               FontSize="11" FontStyle="Italic" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
                 </StackPanel>
             </Border>
 
             <!-- ── Data Sources card ─────────────────────────────────── -->
-            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,16,0,0">
+            <Border Grid.Row="4" Style="{StaticResource Card}" Margin="0,16,0,0">
                 <StackPanel>
 
                     <TextBlock Text="DATA SOURCES — GCP PREFIX TABLE"

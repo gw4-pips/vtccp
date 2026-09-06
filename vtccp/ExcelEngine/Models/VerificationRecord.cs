@@ -93,6 +93,12 @@ public sealed record class VerificationRecord
     /// DM475V = always "GigE".  DM390/DM395V Coglink = "USB-Ethernet".
     /// </summary>
     public string? ConnectionMedium { get; init; }
+    /// <summary>Original native verifier artifact from which this record was imported.</summary>
+    public string? SourceArtifactPath { get; init; }
+    /// <summary>Explicit native artifact type, distinct from verifier and RFID provenance.</summary>
+    public string? SourceArtifactType { get; init; }
+    /// <summary>Literal verifier-export fields; adapters must not normalise these values.</summary>
+    public IReadOnlyDictionary<string, string>? VerifierSourceFields { get; init; }
 
     // Sensor / imaging metadata — static per device model, captured at ConnectAsync
     /// <summary>Native sensor width in pixels, e.g. 2448. From per-model lookup table.</summary>

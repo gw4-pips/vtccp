@@ -22,6 +22,12 @@
     <ProjectReference Include="..\DeviceInterface\DeviceInterface.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Fixtures\Axicon\**\*.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <!-- The production GS1 smoke tests run only on Windows. Keep the native
        engine and its dictionary beside the test host so that a missing runtime
        becomes a test failure rather than an unobserved deployment problem. -->

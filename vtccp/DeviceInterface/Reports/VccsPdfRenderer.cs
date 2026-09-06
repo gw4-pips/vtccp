@@ -69,7 +69,8 @@ public static class VccsPdfRenderer
     /// Tries WebView2 first; on any failure silently falls back to wkhtmltopdf.
     /// Throws only when BOTH paths fail.
     /// </summary>
-    public static async Task RenderAsync(string html, string pdfPath, CancellationToken ct = default)
+    public static async Task RenderAsync(string html, string pdfPath, CancellationToken ct = default,
+        Gs1PrintProfile? printProfile = null)
     {
         // The HTML is written to a temp file so both engines load it via file://
         // (avoids WebView2 NavigateToString's 2 MB limit and wkhtmltopdf stdin quirks).
@@ -83,7 +84,7 @@ public static class VccsPdfRenderer
             {
                 try
                 {
-                    await Task.Run(() => RenderWithWebView2(tmpHtml, pdfPath), ct)
+                    await Task.Run(() => RenderWithWebView2(tmpHtml, pdfPath, printProfile), ct)
                               .ConfigureAwait(false);
                     AddPageNumbers(pdfPath);
                     Debug.WriteLine($"[VCCS-PDF] Rendered via WebView2: {pdfPath}");
@@ -100,7 +101,7 @@ public static class VccsPdfRenderer
                 Debug.WriteLine("[VCCS-PDF] WebView2 runtime not detected — using wkhtmltopdf");
             }
 
-            await RenderWithWkhtmltopdfAsync(tmpHtml, pdfPath, ct).ConfigureAwait(false);
+            await RenderWithWkhtmltopdfAsync(tmpHtml, pdfPath, ct, printProfile).ConfigureAwait(false);
             AddPageNumbers(pdfPath);
             Debug.WriteLine($"[VCCS-PDF] Rendered via wkhtmltopdf: {pdfPath}");
         }
@@ -154,7 +155,7 @@ public static class VccsPdfRenderer
     /// host window and a manual message pump (no WPF/WinForms dependency —
     /// DeviceInterface targets plain net8.0).
     /// </summary>
-    private static void RenderWithWebView2(string htmlPath, string pdfPath)
+    private static void RenderWithWebView2(string htmlPath, string pdfPath, Gs1PrintProfile? printProfile)
     {
         Exception? failure = null;
 
@@ -192,7 +193,8 @@ public static class VccsPdfRenderer
                 PumpWhile(() => !navDone, TimeSpan.FromSeconds(30));
                 if (failure is not null) throw failure;
 
-                // Letter page, zero margins — the v23 .page div is exactly
+                // Default Letter preserves VCCS output. Canonical GS1 callers may
+                // explicitly select A4; margins remain controlled by their print CSS.
                 // 8.5×11 in with its own internal padding; print CSS handles
                 // backgrounds and hides preview chrome.
                 var settings = env.CreatePrintSettings();
@@ -200,8 +202,8 @@ public static class VccsPdfRenderer
                 settings.MarginBottom = 0;
                 settings.MarginLeft   = 0;
                 settings.MarginRight  = 0;
-                settings.PageWidth    = 8.5;
-                settings.PageHeight   = 11.0;
+                settings.PageWidth    = printProfile == Gs1PrintProfile.A4 ? 8.2677 : 8.5;
+                settings.PageHeight   = printProfile == Gs1PrintProfile.A4 ? 11.6929 : 11.0;
                 settings.ShouldPrintBackgrounds     = true;
                 settings.ShouldPrintHeaderAndFooter = false;
 
@@ -255,7 +257,7 @@ public static class VccsPdfRenderer
     // ── wkhtmltopdf fallback ───────────────────────────────────────────────
 
     private static async Task RenderWithWkhtmltopdfAsync(
-        string htmlPath, string pdfPath, CancellationToken ct)
+        string htmlPath, string pdfPath, CancellationToken ct, Gs1PrintProfile? printProfile)
     {
         string? exeDir = Path.GetDirectoryName(
             System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -272,7 +274,7 @@ public static class VccsPdfRenderer
         {
             FileName  = exePath,
             Arguments =
-                "-q --print-media-type --page-size Letter " +
+                $"-q --print-media-type --page-size {(printProfile == Gs1PrintProfile.A4 ? "A4" : "Letter")} " +
                 "-T 0 -B 0 -L 0 -R 0 --disable-smart-shrinking " +
                 "--enable-local-file-access " +
                 $"\"{htmlPath}\" \"{pdfPath}\"",
