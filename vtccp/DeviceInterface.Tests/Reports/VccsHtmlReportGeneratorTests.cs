@@ -1,5 +1,6 @@
 using DeviceInterface.Dmst;
 using DeviceInterface.Reports;
+using DeviceInterface.Rfid.Models;
 using ExcelEngine.Models;
 using ExcelEngine.Schema;
 using ExcelEngine.Writer;
@@ -1282,6 +1283,39 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.DoesNotContain("captured-webscan-report<script>.html", report, StringComparison.Ordinal);
         Assert.Contains("[UNAVAILABLE — NOT EXPOSED BY READER/SDK]", report,
             StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AcquisitionSnapshot_OverridesConflictingLiveReaderValuesInVeriWedge()
+    {
+        var recordWithCurrentReader = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidReaderConnected = true,
+            RfidStatus = "Pass",
+            RfidReaderManufacturer = "CURRENT-MANUFACTURER",
+            RfidReaderModel = "CURRENT-MODEL",
+            RfidReaderConnection = "COM99",
+            RfidReaderProfile = "CURRENT-PROFILE",
+        };
+        var acquisition = new RfidValidationResult
+        {
+            CaptureDateTime = new DateTime(2026, 9, 7, 9, 10, 11),
+            ReaderManufacturer = "AsReader",
+            ReaderModel = "ASR-P35U",
+            ReaderConnection = "COM4",
+            ReaderProfile = "SCAN-PROFILE",
+        };
+
+        VerificationRecord capturedRecord =
+            acquisition.ApplyReaderProvenance(recordWithCurrentReader);
+        string report = VccsHtmlReportGenerator.Generate(capturedRecord);
+
+        Assert.Contains("AsReader ASR-P35U", report, StringComparison.Ordinal);
+        Assert.Contains("COM4; profile: SCAN-PROFILE", report, StringComparison.Ordinal);
+        Assert.Contains("2026-09-07 09:10:11", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("CURRENT-", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("COM99", report, StringComparison.Ordinal);
     }
 
     [Fact]

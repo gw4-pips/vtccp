@@ -1,3 +1,5 @@
+using ExcelEngine.Models;
+
 namespace DeviceInterface.Rfid.Models;
 
 /// <summary>Outcome of an RFID cross-validation check against barcode data.</summary>
@@ -128,6 +130,26 @@ public sealed record RfidValidationResult
     public string? ReaderSdkVersion { get; init; }
     public string? ReaderConnection { get; init; }
     public string? ReaderProfile { get; init; }
+
+    /// <summary>
+    /// Applies only the immutable acquisition-time reader snapshot to a verification
+    /// record. Existing live/current reader values are deliberately overwritten.
+    /// </summary>
+    public VerificationRecord ApplyReaderProvenance(VerificationRecord record)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        return record with
+        {
+            RfidCaptureDateTime = CaptureDateTime == default ? null : CaptureDateTime,
+            RfidReaderManufacturer = ReaderManufacturer,
+            RfidReaderModel = ReaderModel,
+            RfidReaderDeviceIdentifier = ReaderDeviceIdentifier,
+            RfidReaderFirmwareVersion = ReaderFirmwareVersion,
+            RfidReaderSdkVersion = ReaderSdkVersion,
+            RfidReaderConnection = ReaderConnection,
+            RfidReaderProfile = ReaderProfile,
+        };
+    }
 
     // ── Human-readable summary ──────────────────────────────────────────────────
 

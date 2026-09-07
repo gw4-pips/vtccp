@@ -1711,16 +1711,24 @@ public sealed class SessionViewModel : ViewModelBase
         record = record with
         {
             RfidReaderConnected = rfidReaderConnected,
-            RfidReaderManufacturer = _rfidReader?.Manufacturer,
-            RfidReaderModel = _rfidReader?.Model,
-            RfidReaderDeviceIdentifier = _rfidReader?.DeviceIdentifier,
-            RfidReaderFirmwareVersion = _rfidReader?.FirmwareVersion,
-            RfidReaderSdkVersion = _rfidReader?.SdkVersion,
-            RfidReaderConnection = _rfidReader?.ConnectionName,
-            RfidReaderProfile = _rfidReader?.ReaderProfile,
             RfidAssociatedBarcodeSource = Path.GetFileName(
                 record.SourceArtifactPath ?? record.HtmlSourceFileName),
         };
+        if (rfidResult is null)
+        {
+            // No acquisition snapshot exists. Preserve only the reader state that
+            // is observable now, without presenting it as acquisition provenance.
+            record = record with
+            {
+                RfidReaderManufacturer = _rfidReader?.Manufacturer,
+                RfidReaderModel = _rfidReader?.Model,
+                RfidReaderDeviceIdentifier = _rfidReader?.DeviceIdentifier,
+                RfidReaderFirmwareVersion = _rfidReader?.FirmwareVersion,
+                RfidReaderSdkVersion = _rfidReader?.SdkVersion,
+                RfidReaderConnection = _rfidReader?.ConnectionName,
+                RfidReaderProfile = _rfidReader?.ReaderProfile,
+            };
+        }
 
         // Multi-symbol imports are qualified only after all native reports and
         // the one RFID result are available. This deliberately does not turn a
@@ -1816,6 +1824,7 @@ public sealed class SessionViewModel : ViewModelBase
                 barcodeAgreement == "Pass" &&
                 rfidScope == "Both" &&
                 rfidResult.Status == RfidValidationStatus.Pass;
+            record = rfidResult.ApplyReaderProvenance(record);
             record = record with
             {
                 RfidStatus         = isComposite && !compositePass
@@ -1830,14 +1839,6 @@ public sealed class SessionViewModel : ViewModelBase
                 RfidTagLockStatus  = rfidResult.SelectedRead?.LockStatus,
                 RfidMismatchDetail = rfidDetail,
                 RfidScanWindowMs   = rfidResult.ScanWindowMs,
-                RfidCaptureDateTime = rfidResult.CaptureDateTime,
-                RfidReaderManufacturer = rfidResult.ReaderManufacturer,
-                RfidReaderModel = rfidResult.ReaderModel,
-                RfidReaderDeviceIdentifier = rfidResult.ReaderDeviceIdentifier,
-                RfidReaderFirmwareVersion = rfidResult.ReaderFirmwareVersion,
-                RfidReaderSdkVersion = rfidResult.ReaderSdkVersion,
-                RfidReaderConnection = rfidResult.ReaderConnection,
-                RfidReaderProfile = rfidResult.ReaderProfile,
                 RfidGcpValid       = rfidResult.GcpValid,
                 RfidGcpStatus      = rfidResult.GcpStatus.ToString(),
                 RfidGcpLength      = GcpValidator.GetEncodedGcpLength(rfidResult.ParsedEpc),
