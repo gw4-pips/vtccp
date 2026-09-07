@@ -18,6 +18,18 @@ public interface IEpcReader : IAsyncDisposable
     bool IsConnected { get; }
 
     /// <summary>
+    /// Reader identity exposed for immutable per-scan provenance. Default null
+    /// implementations keep historic and third-party readers source-compatible.
+    /// </summary>
+    string? Manufacturer => null;
+    string? Model => null;
+    string? DeviceIdentifier => null;
+    string? FirmwareVersion => null;
+    string? SdkVersion => null;
+    string? ConnectionName => null;
+    string? ReaderProfile => null;
+
+    /// <summary>
     /// Open the reader on the specified serial port (e.g. "COM3" on Windows, "/dev/ttyUSB0" on Linux).
     /// Throws <see cref="InvalidOperationException"/> if already connected.
     /// Throws <see cref="IOException"/> if the port cannot be opened.

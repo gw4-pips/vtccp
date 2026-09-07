@@ -513,6 +513,21 @@ public sealed record class VerificationRecord
     /// </summary>
     public bool? RfidReaderConnected { get; init; }
 
+    /// <summary>
+    /// Immutable RFID-reader identity and acquisition provenance captured with this
+    /// verification event. Null values mean the reader/SDK did not expose the value;
+    /// report generators must show that honestly rather than infer from current settings.
+    /// </summary>
+    public string? RfidReaderManufacturer { get; init; }
+    public string? RfidReaderModel { get; init; }
+    public string? RfidReaderDeviceIdentifier { get; init; }
+    public string? RfidReaderFirmwareVersion { get; init; }
+    public string? RfidReaderSdkVersion { get; init; }
+    public string? RfidReaderConnection { get; init; }
+    public string? RfidReaderProfile { get; init; }
+    public DateTime? RfidCaptureDateTime { get; init; }
+    public string? RfidAssociatedBarcodeSource { get; init; }
+
     /// <summary>Raw EPC hex string from the selected tag, e.g. "30342A7CC844C7D0F36A0676".</summary>
     public string? RfidEpcHex { get; init; }
 

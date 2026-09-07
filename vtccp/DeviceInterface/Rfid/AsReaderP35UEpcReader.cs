@@ -40,9 +40,18 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
 
     private volatile bool _connected;
     private bool _disposed;
+    private string? _portName;
 
     /// <inheritdoc />
     public bool IsConnected => _connected && _device is not null;
+    public string? Manufacturer => "AsReader";
+    public string? Model => "ASR-P35U";
+    public string? DeviceIdentifier => null;
+    public string? FirmwareVersion => null;
+    public string? SdkVersion => "AsReaderP3xU SDK 1.3.0";
+    public string? ConnectionName => _portName;
+    public string? ReaderProfile =>
+        $"REGION_US; TX power {_txPowerDbm} dBm; antenna 1";
 
     // ── Async serialisation ───────────────────────────────────────────────────
 
@@ -140,6 +149,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
             dev.SetTxPower((uint)_txPowerDbm);
 
             _device    = dev;
+            _portName  = portName;
             _connected = true;
         }
         finally
@@ -160,6 +170,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
                 try { dev.DisConnect(); }     catch { /* best effort */ }
             }
             _device    = null;
+            _portName  = null;
             _connected = false;
             AbortActiveInventory();
         }
@@ -204,6 +215,7 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
 
             // Do not call dev.DisConnect() here — see the SDK race documented above.
             _device = null;
+            _portName = null;
         }
         finally
         {

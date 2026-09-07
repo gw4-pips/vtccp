@@ -70,7 +70,7 @@ public static class VccsPdfRenderer
     /// Throws only when BOTH paths fail.
     /// </summary>
     public static async Task RenderAsync(string html, string pdfPath, CancellationToken ct = default,
-        Gs1PrintProfile? printProfile = null)
+        Gs1PrintProfile? printProfile = null, bool addPageNumbers = true)
     {
         // The HTML is written to a temp file so both engines load it via file://
         // (avoids WebView2 NavigateToString's 2 MB limit and wkhtmltopdf stdin quirks).
@@ -86,7 +86,7 @@ public static class VccsPdfRenderer
                 {
                     await Task.Run(() => RenderWithWebView2(tmpHtml, pdfPath, printProfile), ct)
                               .ConfigureAwait(false);
-                    AddPageNumbers(pdfPath);
+                    if (addPageNumbers) AddPageNumbers(pdfPath);
                     Debug.WriteLine($"[VCCS-PDF] Rendered via WebView2: {pdfPath}");
                     return;
                 }
@@ -102,13 +102,80 @@ public static class VccsPdfRenderer
             }
 
             await RenderWithWkhtmltopdfAsync(tmpHtml, pdfPath, ct, printProfile).ConfigureAwait(false);
-            AddPageNumbers(pdfPath);
+            if (addPageNumbers) AddPageNumbers(pdfPath);
             Debug.WriteLine($"[VCCS-PDF] Rendered via wkhtmltopdf: {pdfPath}");
         }
         finally
         {
             try { File.Delete(tmpHtml); } catch { /* temp cleanup is best-effort */ }
         }
+    }
+
+    /// <summary>
+    /// True when a record contains a real RFID acquisition outcome that warrants
+    /// the independent VeriWedge addendum. A connected reader with NoTag remains
+    /// reportable evidence; a disconnected/skipped reader does not add a page.
+    /// </summary>
+    public static bool HasVeriWedgeEvidence(VerificationRecord record) =>
+        record.RfidReaderConnected != false &&
+        !string.IsNullOrWhiteSpace(record.RfidStatus) &&
+        !string.Equals(record.RfidStatus, "Skipped", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Renders the canonical GS1 document and the established VeriWedge report as
+    /// separate PDFs, then appends the complete VeriWedge page(s). This prevents
+    /// VeriWedge CSS or content from altering the canonical GS1 pages.
+    /// </summary>
+    public static async Task RenderGs1WithVeriWedgeAddendumAsync(
+        string canonicalHtml,
+        VerificationRecord record,
+        string pdfPath,
+        Gs1PrintProfile printProfile,
+        CancellationToken ct = default)
+    {
+        if (!HasVeriWedgeEvidence(record))
+        {
+            await RenderAsync(canonicalHtml, pdfPath, ct, printProfile).ConfigureAwait(false);
+            return;
+        }
+
+        string tempRoot = Path.Combine(Path.GetTempPath(), $"vccs_gs1_{Guid.NewGuid():N}");
+        string canonicalPdf = tempRoot + "_canonical.pdf";
+        string addendumPdf = tempRoot + "_veriwedge.pdf";
+        try
+        {
+            await RenderAsync(canonicalHtml, canonicalPdf, ct, printProfile, addPageNumbers: false)
+                .ConfigureAwait(false);
+
+            string addendumHtml = VccsHtmlReportGenerator.Generate(record);
+            if (printProfile == Gs1PrintProfile.A4)
+            {
+                addendumHtml = addendumHtml.Replace(
+                    "</style>",
+                    "@page { size:A4; margin:0; } .page { width:8.2677in; min-height:11.6929in; }\n</style>",
+                    StringComparison.Ordinal);
+            }
+            await RenderAsync(addendumHtml, addendumPdf, ct, printProfile, addPageNumbers: false)
+                .ConfigureAwait(false);
+
+            MergePdfDocuments(canonicalPdf, addendumPdf, pdfPath);
+            AddPageNumbers(pdfPath);
+        }
+        finally
+        {
+            try { File.Delete(canonicalPdf); } catch { }
+            try { File.Delete(addendumPdf); } catch { }
+        }
+    }
+
+    private static void MergePdfDocuments(string firstPath, string secondPath, string outputPath)
+    {
+        using PdfDocument first = PdfReader.Open(firstPath, PdfDocumentOpenMode.Import);
+        using PdfDocument second = PdfReader.Open(secondPath, PdfDocumentOpenMode.Import);
+        using var merged = new PdfDocument();
+        foreach (PdfPage page in first.Pages) merged.AddPage(page);
+        foreach (PdfPage page in second.Pages) merged.AddPage(page);
+        merged.Save(outputPath);
     }
 
     private static void AddPageNumbers(string pdfPath)

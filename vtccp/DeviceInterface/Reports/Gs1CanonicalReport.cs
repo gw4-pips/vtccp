@@ -12,7 +12,7 @@ namespace DeviceInterface.Reports;
 /// </summary>
 public static class Gs1CanonicalReport
 {
-    public const string ReportVersion = "v1.0.0";
+    public const string ReportVersion = "v1.0.1";
     public const string Release = "Release 26.0, Ratified, Jan 26";
 
     public static Gs1ReportValidationResult Validate(Gs1ReportData report)
@@ -150,16 +150,6 @@ public static class Gs1CanonicalReport
             OverallIsoIecGrade = record.HtmlOverallGradeDisplay ?? record.HtmlLinearGradeDisplay ??
                                  record.OverallGrade?.ToString(),
             IsoStandard = record.HtmlStandard ?? record.HtmlLinearStandard ?? record.Standard,
-            Rfid = new Gs1RfidSupplement
-            {
-                Status = record.RfidStatus,
-                EpcTagUri = record.RfidEpcTagUri,
-                EpcHex = record.RfidEpcHex,
-                Tid = record.RfidTid,
-                Gtin14 = record.RfidGtin14,
-                Serial = record.RfidSerial,
-                Detail = record.RfidMismatchDetail
-            }
         };
 
     private static void Required(string? value, string label, ICollection<string> missing)
@@ -182,16 +172,15 @@ public static class Gs1CanonicalReport
 .page { width:186mm; min-height:273mm; margin:8mm auto; padding:0; background:#fff } h1 { font-size:15pt; margin:0 0 4mm }
 h2 { font-size:12pt; margin:5mm 0 2mm } h3 { font-size:10pt; margin:3mm 0 1mm }
 table { width:100%; border-collapse:collapse; margin:2mm 0 } th,td { border:1px solid #222; padding:1.5mm; vertical-align:top } th { background:#e9e9e9; text-align:left }
-.identity td:first-child { width:43%; font-weight:bold }.warning { border:2px solid #b00020; padding:2mm; color:#b00020; font-weight:bold }.columns{display:grid;grid-template-columns:1fr 1fr;gap:5mm}.small{font-size:8.5pt}.rfid{border:1px solid #555;padding:2mm;margin-top:5mm}.missing{color:#b00020;font-weight:bold}
+.identity td:first-child { width:43%; font-weight:bold }.warning { border:2px solid #b00020; padding:2mm; color:#b00020; font-weight:bold }.columns{display:grid;grid-template-columns:1fr 1fr;gap:5mm}.small{font-size:8.5pt}.missing{color:#b00020;font-weight:bold}
 .technical-page { break-before:page; page-break-before:always; font-size:8pt; line-height:1.08 }
 .technical-page h2 { font-size:10.5pt; margin:2mm 0 1mm }.technical-page h3 { font-size:8.5pt; margin:1.5mm 0 .5mm }
 .technical-page table { margin:1mm 0 }.technical-page th,.technical-page td { padding:.65mm 1mm }
 .technical-page p { margin:1mm 0 }.technical-page .small { font-size:7.2pt }
-.technical-page .rfid { margin-top:2mm; padding:1mm }.technical-page .rfid h2 { margin-top:0 }
 .technical-page .columns { gap:3mm }.provenance td { border:0; padding:.25mm 1mm }
 .letter .technical-page { font-size:7.2pt; line-height:1 }.letter .technical-page h2 { font-size:9.5pt; margin:1.4mm 0 .7mm }
 .letter .technical-page h3 { font-size:7.8pt; margin:1mm 0 .3mm }.letter .technical-page th,.letter .technical-page td { padding:.45mm .8mm }
-.letter .technical-page p { margin:.6mm 0 }.letter .technical-page .small { font-size:6.4pt }.letter .technical-page .rfid { margin-top:1mm; padding:.7mm }
+.letter .technical-page p { margin:.6mm 0 }.letter .technical-page .small { font-size:6.4pt }
 </style></head><body class="{{bodyClass}}"><main class="page">
 """);
         sb.Append("<h1>GS1 barcode verification template for ").Append(kind).Append(" barcodes</h1>");
@@ -224,7 +213,6 @@ table { width:100%; border-collapse:collapse; margin:2mm 0 } th,td { border:1px 
           .Append(Row("Business critical comments", H(r.BusinessCriticalComments))).Append("</table>");
         sb.Append("<section class=\"technical-page\">");
         AppendAnalysis(sb, r, twoDimensional);
-        AppendRfid(sb, r.Rfid);
         AppendProvenance(sb, r.Provenance);
         AppendNotes(sb, twoDimensional);
         return sb.Append("<p class=\"small\">Canonical report version ").Append(ReportVersion)
@@ -254,16 +242,6 @@ table { width:100%; border-collapse:collapse; margin:2mm 0 } th,td { border:1px 
         sb.Append(twoD
             ? "<p class=\"small\">(1) Data structure (syntax) indicates that the barcode is compliant with GS1 data syntax rules defined in the GS1 General Specifications or GS1 Digital Link URI Syntax standard.<br>(2) Educational comments are based on the technical analysis of the barcode. In this comment box the operator comments on what the problem is and how to make the barcode better by explaining the parameter’s meanings.<br>(3) Data Matrix Only, see ISO/IEC 16022<br>(4) QR Code Only, see ISO/IEC 18004</p>"
             : "<p class=\"small\">(1) Data structure (syntax) indicates that the barcode is compliant with GS1 data syntax rules defined in the General Specifications.<br>(2) Educational comments are based on the technical analysis of the barcode. In this comment box the operator comments on what the problem is and how to make the symbol better.</p>");
-    }
-
-    private static void AppendRfid(StringBuilder sb, Gs1RfidSupplement? rfid)
-    {
-        if (rfid is null) return;
-        sb.Append("<section class=\"rfid\"><h2>RFID supplemental information</h2><p>This supplemental section is independent of GS1 and ISO/IEC barcode verification outcomes.</p><table>")
-          .Append(Row("RFID status", H(rfid.Status))).Append(Row("EPC Tag URI", H(rfid.EpcTagUri)))
-          .Append(Row("EPC (hex)", H(rfid.EpcHex))).Append(Row("TID", H(rfid.Tid)))
-          .Append(Row("GTIN-14", H(rfid.Gtin14))).Append(Row("Serial", H(rfid.Serial)))
-          .Append(Row("Detail", H(rfid.Detail))).Append("</table></section>");
     }
 
     private static void AppendProvenance(StringBuilder sb, Gs1ReportProvenance? provenance)
@@ -331,7 +309,6 @@ public sealed class Gs1ReportData
     /// </summary>
     public IReadOnlyDictionary<string, Gs1ParameterAssessment> Gs1Parameters { get; init; } =
         new Dictionary<string, Gs1ParameterAssessment>();
-    public Gs1RfidSupplement? Rfid { get; init; }
     public Gs1ReportProvenance? Provenance { get; init; }
 }
 
@@ -343,17 +320,6 @@ public sealed class Gs1ReportProvenance
     public string? VerifierSource { get; init; }
     public string? SourceArtifactPath { get; init; }
     public string? RfidSource { get; init; }
-}
-
-public sealed class Gs1RfidSupplement
-{
-    public string? Status { get; init; }
-    public string? EpcTagUri { get; init; }
-    public string? EpcHex { get; init; }
-    public string? Tid { get; init; }
-    public string? Gtin14 { get; init; }
-    public string? Serial { get; init; }
-    public string? Detail { get; init; }
 }
 
 public sealed class Gs1ParameterAssessment

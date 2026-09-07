@@ -788,3 +788,9 @@ Assistant: Agreed that VeriForm should stand alone while RFID VeriWedge with Ver
 User: Proposed parking the broader verifier-neutral customer/job UX and first reviewing matched Webscan GS1 report drafts without and with RFID.
 
 Assistant: Generated a two-page A4 GS1 DataMatrix report from captured Webscan TruCheck evidence and a matched three-page version that preserves the canonical report while adding a separate VCCS RFID VeriWedge supplement. Missing setup/job/operator fields are explicitly identified rather than inferred.
+
+---
+
+User: Requested implementation of the accepted Preserve VeriWedge RFID addendum task: keep canonical GS1 pages unchanged, capture immutable RFID reader/acquisition provenance, and append the complete established VeriWedge report instead of an abbreviated RFID table.
+
+Assistant: Implemented acquisition-time ASR-P35U reader provenance, added truthful provenance rows to VeriWedge, removed RFID from canonical GS1 HTML, and changed PDF generation to append the independently rendered full VeriWedge report in the selected A4 or Letter profile. Report/app versions were advanced and focused tests plus the Windows-targeting build passed.

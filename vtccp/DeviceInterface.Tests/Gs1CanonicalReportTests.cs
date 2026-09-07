@@ -27,16 +27,34 @@ public sealed class Gs1CanonicalReportTests
     }
 
     [Fact]
-    public void Two_dimensional_generator_keeps_rfid_supplemental()
+    public void Two_dimensional_generator_keeps_the_canonical_pages_free_of_rfid_content()
     {
-        string html = Gs1TwoDimensionalHtmlReportGenerator.Generate(Complete(
-            new Gs1RfidSupplement { Status = "Fail", EpcTagUri = "urn:epc:tag:sgtin-96:1.2.3" }));
+        string html = Gs1TwoDimensionalHtmlReportGenerator.Generate(Complete());
 
         Assert.Contains("Testing summary of the two-dimensional barcode", html);
         Assert.Contains("Overall ISO/IEC 15415 print quality grade", html);
-        Assert.Contains("RFID supplemental information", html);
-        Assert.Contains("independent of GS1 and ISO/IEC barcode verification outcomes", html);
+        Assert.DoesNotContain("RFID supplemental information", html);
+        Assert.DoesNotContain("EPC Tag URI", html);
         Assert.Contains("@page { size:A4", html);
+    }
+
+    [Theory]
+    [InlineData(true, "Pass", true)]
+    [InlineData(true, "NoTag", true)]
+    [InlineData(true, "Skipped", false)]
+    [InlineData(false, "Pass", false)]
+    [InlineData(null, null, false)]
+    public void VeriWedge_addendum_requires_real_rfid_evidence(
+        bool? connected, string? status, bool expected)
+    {
+        var record = new ExcelEngine.Models.VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidReaderConnected = connected,
+            RfidStatus = status
+        };
+
+        Assert.Equal(expected, VccsPdfRenderer.HasVeriWedgeEvidence(record));
     }
 
     [Fact]
@@ -102,7 +120,6 @@ public sealed class Gs1CanonicalReportTests
     }
 
     private static Gs1ReportData Complete(
-        Gs1RfidSupplement? rfid = null,
         IReadOnlyDictionary<string, Gs1ParameterAssessment>? gs1Parameters = null,
         IReadOnlyDictionary<string, Gs1IsoAssessment>? isoParameters = null) => new()
     {
@@ -113,7 +130,7 @@ public sealed class Gs1CanonicalReportTests
         LastVerifierCalibrationDate = "1 January 2026", SymbolSpecificationTable = "Table 5-1",
         TestedEnvironments = "Retail POS", PlacementResult = "Complies",
         TwoDimensionalProximity = "Yes", OverallIsoIecGrade = "4.0 (A)",
-        DecodedText = "(01)09506000134352", Rfid = rfid,
+        DecodedText = "(01)09506000134352",
         Gs1Parameters = gs1Parameters ?? new Dictionary<string, Gs1ParameterAssessment>(),
         IsoParameters = isoParameters ?? new Dictionary<string, Gs1IsoAssessment>()
     };

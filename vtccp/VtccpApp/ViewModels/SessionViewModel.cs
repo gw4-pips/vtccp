@@ -1708,7 +1708,19 @@ public sealed class SessionViewModel : ViewModelBase
 
         // Preserve scanner participation even when the scan window returns no
         // result. Report presentation must not infer it from RfidStatus alone.
-        record = record with { RfidReaderConnected = rfidReaderConnected };
+        record = record with
+        {
+            RfidReaderConnected = rfidReaderConnected,
+            RfidReaderManufacturer = _rfidReader?.Manufacturer,
+            RfidReaderModel = _rfidReader?.Model,
+            RfidReaderDeviceIdentifier = _rfidReader?.DeviceIdentifier,
+            RfidReaderFirmwareVersion = _rfidReader?.FirmwareVersion,
+            RfidReaderSdkVersion = _rfidReader?.SdkVersion,
+            RfidReaderConnection = _rfidReader?.ConnectionName,
+            RfidReaderProfile = _rfidReader?.ReaderProfile,
+            RfidAssociatedBarcodeSource = Path.GetFileName(
+                record.SourceArtifactPath ?? record.HtmlSourceFileName),
+        };
 
         // Multi-symbol imports are qualified only after all native reports and
         // the one RFID result are available. This deliberately does not turn a
@@ -1818,6 +1830,14 @@ public sealed class SessionViewModel : ViewModelBase
                 RfidTagLockStatus  = rfidResult.SelectedRead?.LockStatus,
                 RfidMismatchDetail = rfidDetail,
                 RfidScanWindowMs   = rfidResult.ScanWindowMs,
+                RfidCaptureDateTime = rfidResult.CaptureDateTime,
+                RfidReaderManufacturer = rfidResult.ReaderManufacturer,
+                RfidReaderModel = rfidResult.ReaderModel,
+                RfidReaderDeviceIdentifier = rfidResult.ReaderDeviceIdentifier,
+                RfidReaderFirmwareVersion = rfidResult.ReaderFirmwareVersion,
+                RfidReaderSdkVersion = rfidResult.ReaderSdkVersion,
+                RfidReaderConnection = rfidResult.ReaderConnection,
+                RfidReaderProfile = rfidResult.ReaderProfile,
                 RfidGcpValid       = rfidResult.GcpValid,
                 RfidGcpStatus      = rfidResult.GcpStatus.ToString(),
                 RfidGcpLength      = GcpValidator.GetEncodedGcpLength(rfidResult.ParsedEpc),
@@ -2097,16 +2117,15 @@ public sealed class SessionViewModel : ViewModelBase
                 ["Validity of GS1 Company Prefix"] = Parameter("Valid GS1 Company Prefix", "GS1 Company Prefix", null),
                 ["Human readable"] = Parameter("Per applicable GS1 symbol specification table", "Human Readable", "Message"),
             },
-            Rfid = new Gs1RfidSupplement { Status = record.RfidStatus, EpcTagUri = record.RfidEpcTagUri,
-                EpcHex = record.RfidEpcHex, Tid = record.RfidTid, Gtin14 = record.RfidGtin14,
-                Serial = record.RfidSerial, Detail = record.RfidMismatchDetail },
             Provenance = new Gs1ReportProvenance
             {
                 OrganizationName = state.OrganizationName,
                 JobName = state.JobName,
                 VerifierSource = record.VerifierBrand ?? record.DeviceName,
                 SourceArtifactPath = record.SourceArtifactPath,
-                RfidSource = record.RfidReaderConnected ? "ASR-P35U RFID reader" : "No RFID reader connected",
+                RfidSource = record.RfidReaderConnected == true
+                    ? "RFID reader snapshot attached"
+                    : "No RFID reader connected",
             },
         };
         bool twoDimensional = record.SymbologyFamily != SymbologyFamily.Linear1D;
@@ -2132,8 +2151,17 @@ public sealed class SessionViewModel : ViewModelBase
         {
             Directory.CreateDirectory(_sessionOutputDir);
             await File.WriteAllTextAsync(stem + ".html", html);
-            await VccsPdfRenderer.RenderAsync(html, stem + ".pdf", _pollCts?.Token ?? default,
-                printProfile: paper);
+            string pdfPath = stem + ".pdf";
+            if (VccsPdfRenderer.HasVeriWedgeEvidence(record))
+            {
+                await VccsPdfRenderer.RenderGs1WithVeriWedgeAddendumAsync(
+                    html, record, pdfPath, paper, _pollCts?.Token ?? default).ConfigureAwait(false);
+            }
+            else
+            {
+                await VccsPdfRenderer.RenderAsync(
+                    html, pdfPath, _pollCts?.Token ?? default, paper).ConfigureAwait(false);
+            }
         }
         catch (Exception ex)
         {

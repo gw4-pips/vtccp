@@ -83,6 +83,7 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
         try
         {
             var timeout = TimeSpan.FromMilliseconds(_settings.ScanWindowMs);
+            DateTime captureDateTime = DateTime.Now;
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
             IReadOnlyList<EpcReadResult> reads;
@@ -153,7 +154,17 @@ public sealed class RfidScanCoordinator : IAsyncDisposable
             }
 
             int elapsed = (int)sw.ElapsedMilliseconds;
-            var result  = _validator.Validate(reads, barcodeRecord, elapsed);
+            var result  = _validator.Validate(reads, barcodeRecord, elapsed) with
+            {
+                CaptureDateTime = captureDateTime,
+                ReaderManufacturer = _reader.Manufacturer,
+                ReaderModel = _reader.Model,
+                ReaderDeviceIdentifier = _reader.DeviceIdentifier,
+                ReaderFirmwareVersion = _reader.FirmwareVersion,
+                ReaderSdkVersion = _reader.SdkVersion,
+                ReaderConnection = _reader.ConnectionName,
+                ReaderProfile = _reader.ReaderProfile,
+            };
 
             if (ValidationCompleted is { } handler)
                 await handler(this, (result, barcodeRecord)).ConfigureAwait(false);

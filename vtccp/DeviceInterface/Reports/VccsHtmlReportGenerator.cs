@@ -28,7 +28,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.72";
+    public const string ReportVersion = "v1.5.73";
 
     private static (string Title, string Note) GetBarcodeVerificationHeader(
         VerificationRecord record,
@@ -470,8 +470,51 @@ public static class VccsHtmlReportGenerator
                "        </thead>\n" +
                "        <tbody>\n" +
                BuildRfidRows(r) +
+               BuildRfidReaderProvenanceRows(r) +
                "        </tbody>\n" +
                "      </table>\n";
+    }
+
+    private static string BuildRfidReaderProvenanceRows(VerificationRecord r)
+    {
+        const string unavailable = "[UNAVAILABLE — NOT EXPOSED BY READER/SDK]";
+        static string Display(string? value) =>
+            H(string.IsNullOrWhiteSpace(value) ? unavailable : value);
+
+        string reader = string.Join(" ", new[]
+        {
+            r.RfidReaderManufacturer,
+            r.RfidReaderModel
+        }.Where(value => !string.IsNullOrWhiteSpace(value)));
+        if (string.IsNullOrWhiteSpace(reader)) reader = unavailable;
+
+        string software =
+            $"Firmware: {Display(r.RfidReaderFirmwareVersion)}; SDK/driver: {Display(r.RfidReaderSdkVersion)}";
+        string connection =
+            $"{Display(r.RfidReaderConnection)}; profile: {Display(r.RfidReaderProfile)}";
+        string capture = r.RfidCaptureDateTime.HasValue
+            ? r.RfidCaptureDateTime.Value.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
+            : unavailable;
+        string window = r.RfidScanWindowMs.HasValue
+            ? $"{r.RfidScanWindowMs.Value} ms"
+            : unavailable;
+
+        var sb = new StringBuilder();
+        void Row(string label, string value)
+        {
+            sb.Append("          <tr class=\"rfid-provenance-row\">\n")
+              .Append($"            <td>{H(label)}</td>\n")
+              .Append($"            <td>{value}</td>\n")
+              .Append("          </tr>\n");
+        }
+
+        Row("RFID Reader",
+            $"{H(reader)}; device ID: {Display(r.RfidReaderDeviceIdentifier)}");
+        Row("Reader Software", software);
+        Row("Connection / Reader Profile", connection);
+        Row("RFID Acquisition",
+            $"{H(capture)}; scan window: {H(window)}; barcode source: {Display(r.RfidAssociatedBarcodeSource)}");
+        return sb.ToString();
     }
 
     private static string BuildRfidRows(VerificationRecord r)

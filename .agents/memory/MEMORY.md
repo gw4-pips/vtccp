@@ -59,3 +59,4 @@
 - [Cognex PDF facsimile](cognex-pdf-facsimile.md) — native PDF is DMST HTML rendered by HiQPdf 12 on A4 with shrink-to-fit; reproduce from preserved HTML, not dual DMST export
 - [VeriForm product boundary](veriform-product-positioning.md) — VeriForm is the standalone current-format report product; RFID VeriWedge is an optional enhanced offering
 - [FlexWedge desktop delivery safety](flexwedge-desktop-delivery-safety.md) — verify the real foreground target before wedge paste; keep program files separate from retained operator data
+- [GS1 RFID addendum boundary](gs1-rfid-addendum-boundary.md) — canonical GS1 pages never contain RFID; append the complete VeriWedge report as an independent PDF document

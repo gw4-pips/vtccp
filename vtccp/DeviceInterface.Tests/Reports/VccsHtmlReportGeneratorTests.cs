@@ -1255,6 +1255,36 @@ public sealed class VccsHtmlReportGeneratorTests
     }
 
     [Fact]
+    public void Generate_RfidReaderProvenance_UsesImmutableSnapshotAndMarksUnavailableValues()
+    {
+        string report = VccsHtmlReportGenerator.Generate(new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidReaderConnected = true,
+            RfidStatus = "Pass",
+            RfidReaderManufacturer = "AsReader",
+            RfidReaderModel = "ASR-P35U",
+            RfidReaderSdkVersion = "AsReaderP3xU SDK 1.3.0",
+            RfidReaderConnection = "COM4",
+            RfidReaderProfile = "REGION_US; TX power 13 dBm; antenna 1",
+            RfidCaptureDateTime = new DateTime(2026, 9, 7, 10, 20, 30),
+            RfidScanWindowMs = 3000,
+            RfidAssociatedBarcodeSource = "captured-webscan-report<script>.html",
+        });
+
+        Assert.Contains("AsReader ASR-P35U", report, StringComparison.Ordinal);
+        Assert.Contains("AsReaderP3xU SDK 1.3.0", report, StringComparison.Ordinal);
+        Assert.Contains("COM4; profile: REGION_US; TX power 13 dBm; antenna 1", report,
+            StringComparison.Ordinal);
+        Assert.Contains("2026-09-07 10:20:30; scan window: 3000 ms", report,
+            StringComparison.Ordinal);
+        Assert.Contains("captured-webscan-report&lt;script&gt;.html", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("captured-webscan-report<script>.html", report, StringComparison.Ordinal);
+        Assert.Contains("[UNAVAILABLE — NOT EXPOSED BY READER/SDK]", report,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Generate_DisconnectedReaderOverridesNoDataStatusAndStaysCompact()
     {
         string report = VccsHtmlReportGenerator.Generate(new VerificationRecord

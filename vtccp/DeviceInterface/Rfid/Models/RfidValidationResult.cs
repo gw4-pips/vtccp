@@ -114,6 +114,21 @@ public sealed record RfidValidationResult
     /// <summary>How long the RFID scan window was open (ms).</summary>
     public int ScanWindowMs { get; init; }
 
+    /// <summary>Local timestamp at which the paired RFID acquisition began.</summary>
+    public DateTime CaptureDateTime { get; init; }
+
+    /// <summary>
+    /// Immutable reader snapshot taken by the coordinator when acquisition starts.
+    /// Values remain null when the reader or manufacturer SDK does not expose them.
+    /// </summary>
+    public string? ReaderManufacturer { get; init; }
+    public string? ReaderModel { get; init; }
+    public string? ReaderDeviceIdentifier { get; init; }
+    public string? ReaderFirmwareVersion { get; init; }
+    public string? ReaderSdkVersion { get; init; }
+    public string? ReaderConnection { get; init; }
+    public string? ReaderProfile { get; init; }
+
     // ── Human-readable summary ──────────────────────────────────────────────────
 
     /// <summary>
