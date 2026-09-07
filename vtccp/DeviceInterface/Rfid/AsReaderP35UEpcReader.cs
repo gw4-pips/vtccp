@@ -41,13 +41,15 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
     private volatile bool _connected;
     private bool _disposed;
     private string? _portName;
+    private string? _deviceIdentifier;
+    private string? _firmwareVersion;
 
     /// <inheritdoc />
     public bool IsConnected => _connected && _device is not null;
     public string? Manufacturer => "AsReader";
     public string? Model => "ASR-P35U";
-    public string? DeviceIdentifier => null;
-    public string? FirmwareVersion => null;
+    public string? DeviceIdentifier => _deviceIdentifier;
+    public string? FirmwareVersion => _firmwareVersion;
     public string? SdkVersion => "AsReaderP3xU SDK 1.3.0";
     public string? ConnectionName => _portName;
     public string? ReaderProfile =>
@@ -148,6 +150,13 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
             dev.SetRegion(Types.RegionType.REGION_US);
             dev.SetTxPower((uint)_txPowerDbm);
 
+            // These are literal values returned by the connected unit. SDK 1.3.0
+            // exposes both queries via ref-string getters; failed, absent, or
+            // malformed responses remain null and retain the report's existing
+            // unavailable wording.
+            _firmwareVersion = ReadIdentityValue(dev.GetFwVersion);
+            _deviceIdentifier = ReadIdentityValue(dev.GetProductSN);
+
             _device    = dev;
             _portName  = portName;
             _connected = true;
@@ -171,6 +180,8 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
             }
             _device    = null;
             _portName  = null;
+            _deviceIdentifier = null;
+            _firmwareVersion = null;
             _connected = false;
             AbortActiveInventory();
         }
@@ -216,6 +227,8 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
             // Do not call dev.DisConnect() here — see the SDK race documented above.
             _device = null;
             _portName = null;
+            _deviceIdentifier = null;
+            _firmwareVersion = null;
         }
         finally
         {
@@ -759,6 +772,22 @@ public sealed class AsReaderP35UEpcReader : IEpcReader
             _inventoryTcs   = null;
         }
     }
+
+    private static string? ReadIdentityValue(FuncRefStringGetter getter)
+    {
+        try
+        {
+            string value = string.Empty;
+            uint returnCode = getter(ref value);
+            return ReaderIdentityValue.FromSdkResponse(returnCode, value);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private delegate uint FuncRefStringGetter(ref string value);
 
     [System.Diagnostics.Conditional("DEBUG")]
     private static void Dbg(string msg) =>
