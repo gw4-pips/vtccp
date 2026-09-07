@@ -782,3 +782,9 @@ Assistant: Recommended separating the focused reporting product from Command Pil
 User: I like VCCS VeriForm and the other options as well but not ReportBridge. VCCS RFID VeriWedge with VeriForm GS1 Report Template or VCCS VeriForm with GS1 Report Template strike me as the way to frame the 2 offerings. Thoughts?
 
 Assistant: Agreed that VeriForm should stand alone while RFID VeriWedge with VeriForm is the enhanced offering; completed the underlying canonical GS1/Axicon implementation and preserved that product boundary.
+
+---
+
+User: Proposed parking the broader verifier-neutral customer/job UX and first reviewing matched Webscan GS1 report drafts without and with RFID.
+
+Assistant: Generated a two-page A4 GS1 DataMatrix report from captured Webscan TruCheck evidence and a matched three-page version that preserves the canonical report while adding a separate VCCS RFID VeriWedge supplement. Missing setup/job/operator fields are explicitly identified rather than inferred.

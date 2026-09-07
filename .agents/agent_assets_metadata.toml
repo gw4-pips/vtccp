@@ -6,114 +6,133 @@ id = "UFGBLDJLhUoYNr8R79bUx"
 uri = "file://dist/DmstPushScript_v1.16.txt"
 type = "text"
 title = "DmstPushScript v1.16 — click Open to view/save"
+logical_id = "2fdd3382-43f9-4bff-bf35-910bca77ab74"
 
 [[outputs]]
 id = "9TL0yME647Zsv0i3BsdWY"
 uri = "file://dist/DmstPushScript_v1.17.txt"
 type = "text"
 title = "DmstPushScript v1.17 — production (no debug)"
+logical_id = "d424178f-d7ad-404e-b7ce-aa1fc002b158"
 
 [[outputs]]
 id = "btznxRcnRgFql4Ry18lYS"
 uri = "file://dist/DmstPushScript_v1.18.txt"
 type = "text"
 title = "DmstPushScript v1.18 — nested trucheck.overall/general + probes"
+logical_id = "91879e1b-767c-4d8e-a390-7eb9e3470a29"
 
 [[outputs]]
 id = "nrQcUSh2JTaEm9vbYuhev"
 uri = "file://dist/DmstPushScript_v1.19.txt"
 type = "text"
 title = "DmstPushScript v1.19 — ISO/MRD fixes + TTR/RTR/Rl/Rd rewires + array probes"
+logical_id = "2f5b1ccb-33d6-42f1-9c20-7caac2a970dd"
 
 [[outputs]]
 id = "pBLJLh6Dc3bVtlV4uSQ-7"
 uri = "file://dist/DmstPushScript_v1.20.txt"
 type = "text"
 title = "DmstPushScript v1.20 — Rl/Rd primitive fix + MatrixSize/codewords/CustomNote wired"
+logical_id = "6bc62466-16e5-480f-82bc-31a3e032f8db"
 
 [[outputs]]
 id = "p-bFxzyQGUPpzl8ZrnDwW"
 uri = "file://dist/DmstPushScript_v1.21.txt"
 type = "text"
 title = "DmstPushScript v1.21 — multi-region (≥32×32 / 2-region rect) probes + ULQZ/URQZ/LLQZ wired"
+logical_id = "45eb37db-ac52-4bca-91e8-986514062704"
 
 [[outputs]]
 id = "QPrRicJTlOt-fEfcVKgvc"
 uri = "file://dist/DmstPushScript_v1.22.txt"
 type = "text"
 title = "DmstPushScript v1.22 — rollback dead per-region wires, pivot probes to r.metrics + r-siblings, rect MatrixSize lookup"
+logical_id = "2ccc89cd-250c-4fea-a090-f019400e0c19"
 
 [[outputs]]
 id = "u7L-3ixawzorsYJ93knZk"
 uri = "file://dist/DmstPushScript_v1.23.txt"
 type = "text"
 title = "DmstPushScript v1.23 — final per-region probe round + Source wired from r.source"
+logical_id = "90f93bcb-4602-4871-af13-b61fa4776b7b"
 
 [[outputs]]
 id = "LpQgylMaDlji6XspC_yQI"
 uri = "file://vccs-report-samples.zip"
 type = "unspecified"
 title = "VCCS Report Samples — 4 HTML layouts + metadata inventory"
+logical_id = "e03cd90d-1913-4979-a7ac-8419df4844de"
 
 [[outputs]]
 id = "KocJHLT3h0_zH8pXX4AfW"
 uri = "file://VTCCP_Description.docx"
 type = "word_document"
 title = "VTCCP — Command Pilot Description"
+logical_id = "9f2bb573-974f-4f22-b3c6-fc907b012dae"
 
 [[outputs]]
 id = "Jc4Ox6gnFqJwYsMt4B_a9"
 uri = "file://references/samples/live-scans/qr_guid_v129_inject.jpg"
 type = "image"
 title = "QR GUID Grade A — v1.29 live scan JPEG (IMAGE.LOAD inject)"
+logical_id = "2bce3030-2af8-4e5a-996d-7d78ced0140d"
 
 [[outputs]]
 id = "G-YIgAw_Y3QV2D9Rgxjsh"
 uri = "file://artifacts/script-viewer/public/vtccp-fix.zip"
 type = "unspecified"
 title = "DataManSdkClient.cs (image fix)"
+logical_id = "2c7914ae-d98c-4d47-88f4-d3bb22b8f318"
 
 [[outputs]]
 id = "zbTxh-6vBvD8WMIGCAydS"
 uri = "file://artifacts/script-viewer/public/Get-DmSettings.zip"
 type = "unspecified"
 title = "Get-DmSettings.ps1 (settings dump script)"
+logical_id = "eec6c84a-8f9a-41f0-a741-90cc6f0cdd19"
 
 [[outputs]]
 id = "oXdSUdAY0DX3eVSaZ8qeR"
 uri = "file://artifacts/script-viewer/public/vtccp-fix2.zip"
 type = "unspecified"
 title = "DataManSdkClient.cs — LIVEIMG.MODE fix"
+logical_id = "da7297e5-7860-43c3-8a00-1916bce1dbcc"
 
 [[outputs]]
 id = "dDOp6uZLlbq6QseovJexN"
 uri = "file://artifacts/script-viewer/public/vtccp-fix3.zip"
 type = "unspecified"
 title = "vtccp-fix3.zip — DataManSdkClient.cs (banner drain fix)"
+logical_id = "bc672aa2-066d-4879-b43c-116cf40ce971"
 
 [[outputs]]
 id = "IvKDqkn2WOsWO5tEU7P9X"
 uri = "file://artifacts/script-viewer/public/vtccp-fix4.zip"
 type = "unspecified"
 title = "vtccp-fix4.zip — DataManSdkClient.cs (full diagnostics)"
+logical_id = "c3bbb290-7f56-4d8c-b1b8-cee5ad1ca749"
 
 [[outputs]]
 id = "gxD5UtVCKfZ-Gkj-lLBgf"
 uri = "file://artifacts/script-viewer/public/vtccp-fix5.zip"
 type = "unspecified"
 title = "vtccp-fix5.zip — DataManSdkClient.cs (SDK-side restore, bypasses port 23)"
+logical_id = "6e6b0f15-4021-4170-838c-62ff52320ea2"
 
 [[outputs]]
 id = "DFGiZnFHoGKCj0-YR-4a3"
 uri = "file://artifacts/script-viewer/public/vtccp-handoff.zip"
 type = "unspecified"
 title = "vtccp-handoff.zip — Problem analysis + all source files"
+logical_id = "b4c98ded-4ff1-4996-a845-662b67eaea62"
 
 [[outputs]]
 id = "KaY3YV29hZ_U_oesabfdt"
 uri = "file://vtccp-synthesis-docs.zip"
 type = "unspecified"
 title = "VTCCP Synthesis Docs — v1.1 (Feature Summary + HTML Report Template)"
+logical_id = "3ddce7c1-025a-48ee-9932-b7e979dd61c5"
 
 [[outputs]]
 id = "Oa79iQz6eRvMiXPLnZVep"
@@ -121,12 +140,14 @@ uri = "file://CPIPM-Project-Outline-v1.0.docx"
 type = "word_document"
 title = "CP Inline — Project Outline v1.0"
 description = "Preliminary project outline for the Command Pilot Inline Production Module, incorporating all engineering feedback. 17 sections including indicator light states, 6-week timeline, trigger architecture, image policy, screen layout wireframe, and open items list."
+logical_id = "7832f709-5da8-4818-82aa-b251fd0872f6"
 
 [[outputs]]
 id = "owqbaKEs_rifKMnSgdjnA"
 uri = "file://.local/outputs/CP-Inline-Sales-Deck.pdf"
 type = "pdf"
 title = "CP Inline Sales Deck.pdf"
+logical_id = "e6107e2d-ce7a-4b24-b8c2-12f37bdd19dd"
 
 [[outputs]]
 id = "CutKuR1mgMtm3h6APQr3Q"
@@ -134,6 +155,7 @@ uri = "file://vtccp/references/CP-Inline-Engineering-Brief-v1.0.docx"
 type = "word_document"
 title = "CP Inline Engineering Brief v1.0 — FINAL"
 description = "Final version: VCCS Command Pilot™ Inline — Engineering Brief for Serview, Inc."
+logical_id = "75c5448c-bcb4-47ee-9710-ba84e84d8fe9"
 
 [[outputs]]
 id = "Pa5oZ4a7Ez_6KwOVny4sA"
@@ -141,6 +163,7 @@ uri = "file://vtccp/references/CPIPM-TableStyle-Sample.docx"
 type = "word_document"
 title = "Table Style Sample — A / B / C row heights"
 description = "A = auto/original. B = 0.30\" min height, text centred. C = 0.40\" min height, text centred. Same font and margins throughout."
+logical_id = "86d2b892-14ae-4f1c-870f-d004e1cc6dc4"
 
 [[outputs]]
 id = "K1wke3liMVxcYO5TSTdaB"
@@ -148,6 +171,7 @@ uri = "file://vtccp/references/CPIPM-Project-Outline-v1.1.docx"
 type = "word_document"
 title = "Command Pilot Inline — Project Outline v1.1"
 description = "Proportional row heights: 0.25\" (1-row), 0.75\" (2-row), 1.00\" (3+ row). Version bumped to 1.1, v1.1 history row added, CP Inline → Command Pilot Inline throughout."
+logical_id = "3f7e5fd4-9e64-42ee-b823-ee054e2b5029"
 
 [[outputs]]
 id = "6th0Tl3Aa6uudWCAcEP1p"
@@ -155,6 +179,7 @@ uri = "file://vtccp/references/CPIPM-Project-Outline-v1.2.docx"
 type = "word_document"
 title = "Command Pilot Inline — Project Outline v1.2"
 description = "Table 1: 1-row cells = 0.25\", 2-row cells = 0.50\". TM fixed in title and first body use. All other tables unchanged from v1.1."
+logical_id = "7ed9096a-2a85-4250-8849-0a115d8c19b4"
 
 [[outputs]]
 id = "P0PIZDwjavSdQxpHdhOib"
@@ -162,6 +187,7 @@ uri = "file://vtccp/references/CPIPM-Project-Outline-v1.3.docx"
 type = "word_document"
 title = "Command Pilot Inline — Project Outline v1.3"
 description = "Title 28pt. Row heights: 0.25\" (1-row), (L×0.25−0.10)\" for L≥2 across all tables. Operator panel caveat in bold red. TM fixed throughout."
+logical_id = "bcacf331-1b5f-4086-8d97-14960bf6b73b"
 
 [[outputs]]
 id = "uTUiWos_5CVaTH7C1-X4R"
@@ -169,6 +195,8 @@ uri = "file://dist/hybrid-report-sample.html"
 type = "text"
 title = "Hybrid Report — MATCHED + MISMATCH preview"
 description = "Exact output of HybridReportGenerator.Generate() with representative data. Shows both RFID MATCHED and MISMATCH scenarios side-by-side. Open in a browser, then Ctrl+P → Save as PDF to test print layout."
+logical_id = "0036b18b-a18c-49bc-a4b3-5c745dfae4bb"
+content_type = "text/html"
 
 [[outputs]]
 id = "O5uQSbD0ibrMGeSkLznj2"
@@ -176,6 +204,8 @@ uri = "file://dist/hybrid-report-sample-v2.html"
 type = "text"
 title = "Hybrid Report v2 — template-based preview"
 description = "Both sample reports: MATCHED (full max config) and MISMATCH. Four-column header, dark navy section headers, verbatim Webscan table structure throughout. Open in browser → Ctrl+P to verify print layout."
+logical_id = "2e824108-c322-4ce9-bcc2-a2a276fff90c"
+content_type = "text/html"
 
 [[outputs]]
 id = "VG_wBRFyL-C1Df-N0vQ-1"
@@ -183,6 +213,8 @@ uri = "file://dist/hybrid-report-sample-v3.html"
 type = "text"
 title = "Hybrid Report v3 — all sections, corrected"
 description = "Both samples. Sections in order: Report Summary · Verification Grades · GradingInfoSection (per-parameter detail, 8 cols) · Image · ISO Quality Parameters · Data Format Check · RFID Validation. Title restored. RFID labels white-space:nowrap, left col 2in."
+logical_id = "bd054001-209c-41ed-8ef0-7daa8e86ab0a"
+content_type = "text/html"
 
 [[outputs]]
 id = "CdLqexrsN_Z9YuNiMxbjo"
@@ -190,6 +222,8 @@ uri = "file://dist/hybrid-report-sample-v4.html"
 type = "text"
 title = "Hybrid Report v4 — correct 2-column layout"
 description = "Image (left) + ISO Quality Parameters (right) side-by-side. Data Format Check (left) + RFID Validation (right) side-by-side. Matches the Webscan PDF layout exactly. Full-width sections: Report Summary, Verification Grades, GradingInfoSection."
+logical_id = "7be16134-0946-431c-a20c-c5391a57b827"
+content_type = "text/html"
 
 [[outputs]]
 id = "aOODAmOUXdHgCwle9bVyE"
@@ -197,6 +231,8 @@ uri = "file://dist/vccs-pdf-preview-v13.html"
 type = "text"
 title = "VCCS PDF Preview v13"
 description = "Current reference layout — v1.4.4. Includes pronounced row lines, navy header print fix, and version number in footer."
+logical_id = "9b38ea24-3dbd-4128-91c4-f875bc01bc90"
+content_type = "text/html"
 
 [[outputs]]
 id = "G21pjUO-VofvBZG4F78Wu"
@@ -204,6 +240,8 @@ uri = "file://dist/vccs-pdf-preview-v14.html"
 type = "text"
 title = "VCCS PDF Preview v14"
 description = "Scan window removed; Application Spec. header + two-line Element/String & Digital/Link values; heavier navy separator above Report Name; Symbology col 80pt; Date/Time label."
+logical_id = "157d634a-73f3-4039-8e79-c5ddbe75630f"
+content_type = "text/html"
 
 [[outputs]]
 id = "2h8mYkvD6zGp2he8bno3y"
@@ -211,6 +249,8 @@ uri = "file://dist/vccs-pdf-preview-v15.html"
 type = "text"
 title = "VCCS PDF Preview v15"
 description = "Report Date/Time label; 1px navy separator; Symbology 76pt / App Spec 88pt; GS1 — | Element/String flex layout."
+logical_id = "91569bc2-21c2-4a3a-b86e-4f8448037841"
+content_type = "text/html"
 
 [[outputs]]
 id = "KfMQRoP6uxdWAah7xqTxc"
@@ -218,6 +258,8 @@ uri = "file://dist/vccs-pdf-preview-v16.html"
 type = "text"
 title = "VCCS PDF Preview v16"
 description = "Section header now includes '— See separate report for details' italic annotation."
+logical_id = "107134c9-7ab9-46d7-bef7-34c4b9927e53"
+content_type = "text/html"
 
 [[outputs]]
 id = "gmQIzDZ7x7ursgSxWkFub"
@@ -225,6 +267,8 @@ uri = "file://dist/vccs-pdf-preview-v17.html"
 type = "text"
 title = "VCCS PDF Preview v17"
 description = "v1.4.5 footer; 'See associated TruCheck report for additional details' on Barcode Summary + Data Format Check; Barcode Image and Data Format Check headers now subdued blue matching barcode section style."
+logical_id = "c69b5712-59b6-4e89-926d-826ff96d233d"
+content_type = "text/html"
 
 [[outputs]]
 id = "arEC3RgGDIr2WBPhCT56E"
@@ -232,6 +276,8 @@ uri = "file://dist/vccs-pdf-preview-v18.html"
 type = "text"
 title = "VCCS PDF Preview v18"
 description = "Blank page fix; EPC Encoding Scheme row; Unknown lock status; Serial Number; RFID Validation Result; secondary result row; v1.4.6"
+logical_id = "7b88eed4-41f9-4172-96da-86ed9f0c4106"
+content_type = "text/html"
 
 [[outputs]]
 id = "mdA9fnDhcjNYmqUU9RuBk"
@@ -239,6 +285,8 @@ uri = "file://dist/vccs-pdf-preview-v19.html"
 type = "text"
 title = "VCCS PDF Preview v19 (clean)"
 description = "Stray text prefix removed — file now opens with <!DOCTYPE html>"
+logical_id = "fdebab56-48b9-4c3d-a449-65bd5fb7630d"
+content_type = "text/html"
 
 [[outputs]]
 id = "qNX-ArVGhroP7iXaFDM9R"
@@ -246,6 +294,8 @@ uri = "file://dist/vccs-pdf-preview-v20.html"
 type = "text"
 title = "VCCS PDF Preview v20"
 description = "PIPS logo; wider Field col (178pt); EAN-13 + GS1 DataMatrix result rows; Aperture (mil) / Wavelength (nm) confirmed; v1.4.8"
+logical_id = "d877faee-6068-42e7-8076-877c08625ed5"
+content_type = "text/html"
 
 [[outputs]]
 id = "7Qvtz-YGDZ-IJ73dpIMIJ"
@@ -253,6 +303,8 @@ uri = "file://dist/vccs-pdf-preview-v21.html"
 type = "text"
 title = "VCCS PDF Preview v21"
 description = "VCCS diamond logo in upper-left; text outside diamond erased; v1.4.9"
+logical_id = "2ca363bb-9562-4597-b9e8-28b5d024edf1"
+content_type = "text/html"
 
 [[outputs]]
 id = "lfHBGo-PLFRfZ0VNSbiHW"
@@ -260,6 +312,8 @@ uri = "file://dist/vccs-pdf-preview-v22.html"
 type = "text"
 title = "VCCS PDF Preview v22"
 description = "PIPS logo fixed (pure-black threshold, letter strokes intact); transparent bg floats on header gray; page clamped to 11in (no page 2); v1.4.10"
+logical_id = "8da931fb-9591-4ea7-b890-c44873682ec9"
+content_type = "text/html"
 
 [[outputs]]
 id = "qkXjpq6nsnp4KMUwSQ9FX"
@@ -267,6 +321,8 @@ uri = "file://dist/vccs-pdf-preview-v23.html"
 type = "text"
 title = "VCCS PDF Preview v23"
 description = "PIPS logo fixed (background:#000 removed — floats on header gray); result phrases reordered to 'EPC data matches barcode GTIN…'; GCP note em dash → en dash; v1.4.11"
+logical_id = "3c5d5386-e2c1-433a-8ee5-46105dd66678"
+content_type = "text/html"
 
 [[outputs]]
 id = "8FkSyX-xVBCZC_DczLhu6"
@@ -274,6 +330,8 @@ uri = "file://push-script-viewer.html"
 type = "text"
 title = "DmstPushScript_v1.js"
 description = "Click 'Select All & Copy', then paste into DMST Script panel."
+logical_id = "f89e5b01-638d-4d87-9222-98d89d3edf42"
+content_type = "text/html"
 
 [[outputs]]
 id = "dNKPIlqhJPff97rmBm9qK"
@@ -281,3 +339,33 @@ uri = "file://push-script-v137-viewer.html"
 type = "text"
 title = "VTCCP Push Script v1.37"
 description = "Click 'Select All & Copy', then paste into DMST → Format Data → Script-Based Formatting → Scripting tab."
+logical_id = "54ce7724-4b65-4417-838a-5828cb322a5d"
+content_type = "text/html"
+
+[[outputs]]
+id = "Ob2czz7lZ0gh3GHQlpuLO"
+uri = "file://.agents/outputs/webscan-gs1-first-pass/webscan-gs1-2d-without-rfid.pdf"
+type = "pdf"
+title = "Webscan GS1 2D — First Pass Without RFID"
+description = "Two-page A4 draft generated from captured Webscan TruCheck GS1 DataMatrix evidence. Unavailable organization and job fields are explicitly marked for input."
+logical_id = "5eb0e9df-67f6-4d17-b33e-e1e05afca296"
+content_hash = "sha256:09e9cf85310affd9729467735a57826ce726dc6dca2dda4acf3bed38cccd1494"
+size = 79613
+mtime_ms = 1788769741693
+storage_uri = "gcs://replit-rams-assets-worf/rams/assets/repl:3e1c7688-a8f7-43a4-a93e-fbbb755e6a82/5eb0e9df-67f6-4d17-b33e-e1e05afca296/47b65fc9-80b9-493f-9883-06affc108dda"
+storage_version_token = "1788769827681487"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "AzeS-k0XWDy72W9eN3D7K"
+uri = "file://.agents/outputs/webscan-gs1-first-pass/webscan-gs1-2d-with-rfid.pdf"
+type = "pdf"
+title = "Webscan GS1 2D — First Pass With RFID"
+description = "The same two-page GS1 report plus a separate third-page VCCS RFID VeriWedge supplement using corresponding captured RFID evidence."
+logical_id = "d9e32bed-dc70-46fa-b460-a409e5e2503f"
+content_hash = "sha256:2eb93e8604c12b488c76b9dd51db2f16f9dcc36d960313a47635bbb036246c67"
+size = 91843
+mtime_ms = 1788769812593
+storage_uri = "gcs://replit-rams-assets-worf/rams/assets/repl:3e1c7688-a8f7-43a4-a93e-fbbb755e6a82/d9e32bed-dc70-46fa-b460-a409e5e2503f/de8e91e1-29fa-4e3c-a954-9e6ff36ebe5c"
+storage_version_token = "1788769828230059"
+content_type = "application/pdf"
