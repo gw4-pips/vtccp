@@ -596,6 +596,12 @@ public sealed class SessionViewModel : ViewModelBase
         state.OrganizationName = SessionOrganizationName;
         state.OrganizationAddress = SessionOrganizationAddress;
         state.TestingAgency = SessionTestingAgency;
+        state.RfidProviderDisplayName = _repo.Settings.RfidProviderDisplayName;
+        state.RfidProviderLegalName = _repo.Settings.RfidProviderLegalName;
+        state.RfidProviderSite = _repo.Settings.RfidProviderSite;
+        state.RfidProviderAddress = _repo.Settings.RfidProviderAddress;
+        state.RfidProviderContact = _repo.Settings.RfidProviderContact;
+        state.RfidProviderLogoPath = _repo.Settings.RfidProviderLogoPath;
         _activeSessionState = state;
         if (!string.IsNullOrWhiteSpace(OperatorOverride))
             state.OperatorId = OperatorOverride.Trim();
@@ -1713,6 +1719,13 @@ public sealed class SessionViewModel : ViewModelBase
             RfidReaderConnected = rfidReaderConnected,
             RfidAssociatedBarcodeSource = Path.GetFileName(
                 record.SourceArtifactPath ?? record.HtmlSourceFileName),
+            RfidProviderDisplayName = _activeSessionState?.RfidProviderDisplayName,
+            RfidProviderLegalName = _activeSessionState?.RfidProviderLegalName,
+            RfidProviderSite = _activeSessionState?.RfidProviderSite,
+            RfidProviderAddress = _activeSessionState?.RfidProviderAddress,
+            RfidProviderContact = _activeSessionState?.RfidProviderContact,
+            RfidProviderLogoPath = _activeSessionState?.RfidProviderLogoPath,
+            RfidReportId = $"RFID-{_sessionId}-{Guid.NewGuid().ToString("N")[..8].ToUpperInvariant()}",
         };
         if (rfidResult is null)
         {

@@ -28,7 +28,7 @@ namespace DeviceInterface.Reports;
 public static class VccsHtmlReportGenerator
 {
     /// <summary>Report format version — bump on ANY layout/content/logic change.</summary>
-    public const string ReportVersion = "v1.5.73";
+    public const string ReportVersion = "v1.5.74";
 
     private static (string Title, string Note) GetBarcodeVerificationHeader(
         VerificationRecord record,
@@ -100,15 +100,15 @@ public static class VccsHtmlReportGenerator
 
         // ── logos ──────────────────────────────────────────────────────────
         string? vccsB64    = LoadLogoBase64("vccs_logo.png");
-        string? companyB64 = LoadLogoBase64FromPath(r.LogoPath) ?? LoadLogoBase64("pips_logo.png");
+        string? companyB64 = LoadLogoBase64FromPath(r.RfidProviderLogoPath);
 
         string vccsLogoHtml = vccsB64 is not null
             ? $"<img src=\"data:image/png;base64,{vccsB64}\" style=\"max-height:78pt;max-width:81.6pt;object-fit:contain;\" alt=\"VCCS\" />"
             : "<div class=\"logo-name\">VCCS</div><div class=\"logo-sub\">RFID VeriWedge&#x2122; PowerPro</div>";
 
         string companyLogoHtml = companyB64 is not null
-            ? $"<img src=\"data:image/png;base64,{companyB64}\" style=\"max-height:48pt;max-width:68pt;object-fit:contain;\" alt=\"{H(r.CompanyName ?? "Company")}\" />"
-            : H(r.CompanyName ?? "Company Logo");
+            ? $"<img src=\"data:image/png;base64,{companyB64}\" style=\"max-height:48pt;max-width:68pt;object-fit:contain;\" alt=\"{H(r.RfidProviderDisplayName ?? "RFID validation provider")}\" />"
+            : "<span class=\"provider-logo-placeholder\">Provider logo<br>not configured</span>";
 
         // ── badge ─────────────────────────────────────────────────────────
         string? overallStatus = r.MultiSymbolQualificationStatus switch
@@ -172,6 +172,7 @@ public static class VccsHtmlReportGenerator
         return _template.Value
             .Replace("{{HDR_VCCS_LOGO}}",      vccsLogoHtml)
             .Replace("{{HDR_COMPANY_LOGO}}",    companyLogoHtml)
+            .Replace("{{SLOT_PROVIDER_PANEL}}",  BuildProviderPanel(r))
             .Replace("{{HDR_DEVICE}}",          H(r.DeviceName ?? "\u2014"))
             .Replace("{{HDR_SERIAL}}",          H(r.DeviceSerial ?? "\u2014"))
             .Replace("{{HDR_VERSION_LABEL}}",   headerVersionLabel)
@@ -198,6 +199,37 @@ public static class VccsHtmlReportGenerator
             .Replace("{{FOOTER_VERSION}}",      ReportVersion)
             .Replace("{{APP_VERSION}}",         GetApplicationVersion())
             .Replace("{{FOOTER_GENERATED}}",    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+    }
+
+    private static string BuildProviderPanel(VerificationRecord r)
+    {
+        const string unavailable = "[UNAVAILABLE — NOT SNAPSHOTTED]";
+        static string Display(string? value) =>
+            H(string.IsNullOrWhiteSpace(value) ? unavailable : value);
+        static string OptionalLine(string label, string? value) =>
+            string.IsNullOrWhiteSpace(value)
+                ? string.Empty
+                : $"<div><span class=\"provider-field-label\">{H(label)}:</span> {H(value)}</div>";
+
+        string capture = r.RfidCaptureDateTime.HasValue
+            ? r.RfidCaptureDateTime.Value.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
+            : unavailable;
+
+        return
+            "<div class=\"provider-identity\">" +
+            "<div class=\"provider-panel-title\">RFID VALIDATION PROVIDER</div>" +
+            $"<div class=\"provider-name\">{Display(r.RfidProviderDisplayName)}</div>" +
+            OptionalLine("Legal name", r.RfidProviderLegalName) +
+            OptionalLine("Site / department", r.RfidProviderSite) +
+            OptionalLine("Address", r.RfidProviderAddress) +
+            OptionalLine("Contact", r.RfidProviderContact) +
+            "</div>" +
+            "<div class=\"provider-report-meta\">" +
+            $"<div><span class=\"provider-field-label\">Operator:</span> {Display(r.OperatorId)}</div>" +
+            $"<div><span class=\"provider-field-label\">Job / session:</span> {Display(r.JobName)}</div>" +
+            $"<div><span class=\"provider-field-label\">Report ID:</span> {Display(r.RfidReportId)}</div>" +
+            $"<div><span class=\"provider-field-label\">RFID captured:</span> {H(capture)}</div>" +
+            "</div>";
     }
 
     private static string GetApplicationVersion()

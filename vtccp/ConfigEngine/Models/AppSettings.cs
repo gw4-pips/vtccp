@@ -63,6 +63,26 @@ public sealed class AppSettings
     /// <summary>Name of the testing agency, laboratory, or department.</summary>
     public string? TestingAgency { get; set; }
 
+    // ── RFID report provider ───────────────────────────────────────────────────
+
+    /// <summary>Trading/display name of the organization issuing RFID validation reports.</summary>
+    public string? RfidProviderDisplayName { get; set; }
+
+    /// <summary>Optional legal name when it differs from the provider display name.</summary>
+    public string? RfidProviderLegalName { get; set; }
+
+    /// <summary>Optional site, laboratory, or department identifying the issuing location.</summary>
+    public string? RfidProviderSite { get; set; }
+
+    /// <summary>Optional postal address for the issuing provider/site.</summary>
+    public string? RfidProviderAddress { get; set; }
+
+    /// <summary>Optional provider contact line, such as a telephone number or shared email.</summary>
+    public string? RfidProviderContact { get; set; }
+
+    /// <summary>Optional path to the logo used in the RFID VeriWedge report header.</summary>
+    public string? RfidProviderLogoPath { get; set; }
+
     // ── Output ────────────────────────────────────────────────────────────────
 
     /// <summary>

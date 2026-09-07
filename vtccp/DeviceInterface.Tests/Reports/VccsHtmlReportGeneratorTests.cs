@@ -11,6 +11,66 @@ namespace DeviceInterface.Tests.Reports;
 
 public sealed class VccsHtmlReportGeneratorTests
 {
+    [Fact]
+    public void Generate_RendersSnapshottedRfidProviderAndReportIdentity()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            OperatorId = "OP-17",
+            JobName = "Inbound 42",
+            RfidProviderDisplayName = "North Lab",
+            RfidProviderLegalName = "Example Holdings Ltd",
+            RfidProviderSite = "London / RFID",
+            RfidProviderAddress = "1 Test Street",
+            RfidProviderContact = "rfid@example.invalid",
+            RfidReportId = "RFID-20260907-ABC12345",
+            RfidCaptureDateTime = new DateTime(2026, 9, 7, 14, 15, 16),
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("RFID VALIDATION PROVIDER", report, StringComparison.Ordinal);
+        Assert.Contains("North Lab", report, StringComparison.Ordinal);
+        Assert.Contains("Example Holdings Ltd", report, StringComparison.Ordinal);
+        Assert.Contains("London / RFID", report, StringComparison.Ordinal);
+        Assert.Contains("OP-17", report, StringComparison.Ordinal);
+        Assert.Contains("Inbound 42", report, StringComparison.Ordinal);
+        Assert.Contains("RFID-20260907-ABC12345", report, StringComparison.Ordinal);
+        Assert.Contains("2026-09-07 14:15:16", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_ProviderPanelEscapesValuesAndCollapsesMissingOptionals()
+    {
+        var record = new VerificationRecord
+        {
+            Symbology = "GS1 DataMatrix",
+            RfidProviderDisplayName = "<Provider & Site>",
+            OperatorId = "\"Operator\"",
+        };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("&lt;Provider &amp; Site&gt;", report, StringComparison.Ordinal);
+        Assert.Contains("&quot;Operator&quot;", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Legal name:</span>", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Site / department:</span>", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Address:</span>", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("Contact:</span>", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Generate_LegacyRecordLabelsProviderIdentityUnavailable()
+    {
+        var record = new VerificationRecord { Symbology = "GS1 DataMatrix" };
+
+        string report = VccsHtmlReportGenerator.Generate(record);
+
+        Assert.Contains("[UNAVAILABLE &#x2014; NOT SNAPSHOTTED]", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("PIPS", report, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Theory]
     [InlineData(null, "DM475V", "COGNEX DataMan TruCheck Barcode Verification Results Summary", "See associated TruCheck verification report for additional details")]
     [InlineData("WEBSCAN", null, "WEBSCAN TruCheck Barcode Verification Results Summary", "See associated TruCheck verification report for additional details")]

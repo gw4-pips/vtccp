@@ -54,6 +54,17 @@ public sealed record class VerificationRecord
     public string? User1 { get; init; }
     public string? User2 { get; init; }
 
+    // Immutable issuer identity for the standalone RFID VeriWedge report.
+    // These values are snapshotted from the active session, never re-read from
+    // current settings when a historical record is rendered.
+    public string? RfidProviderDisplayName { get; init; }
+    public string? RfidProviderLegalName { get; init; }
+    public string? RfidProviderSite { get; init; }
+    public string? RfidProviderAddress { get; init; }
+    public string? RfidProviderContact { get; init; }
+    public string? RfidProviderLogoPath { get; init; }
+    public string? RfidReportId { get; init; }
+
     // Device-supplied identity + connection metadata
     public string? DeviceSerial { get; init; }
     public string? DeviceName { get; init; }

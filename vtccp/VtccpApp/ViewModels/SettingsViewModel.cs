@@ -43,6 +43,44 @@ public sealed class SettingsViewModel : ViewModelBase
         set => SetOrganizationDefault(value, v => _repo.Settings.TestingAgency = v, nameof(TestingAgency));
     }
 
+    // ── RFID report provider ───────────────────────────────────────────────────
+
+    public string RfidProviderDisplayName
+    {
+        get => _repo.Settings.RfidProviderDisplayName ?? string.Empty;
+        set => SetOrganizationDefault(value, v => _repo.Settings.RfidProviderDisplayName = v, nameof(RfidProviderDisplayName));
+    }
+
+    public string RfidProviderLegalName
+    {
+        get => _repo.Settings.RfidProviderLegalName ?? string.Empty;
+        set => SetOrganizationDefault(value, v => _repo.Settings.RfidProviderLegalName = v, nameof(RfidProviderLegalName));
+    }
+
+    public string RfidProviderSite
+    {
+        get => _repo.Settings.RfidProviderSite ?? string.Empty;
+        set => SetOrganizationDefault(value, v => _repo.Settings.RfidProviderSite = v, nameof(RfidProviderSite));
+    }
+
+    public string RfidProviderAddress
+    {
+        get => _repo.Settings.RfidProviderAddress ?? string.Empty;
+        set => SetOrganizationDefault(value, v => _repo.Settings.RfidProviderAddress = v, nameof(RfidProviderAddress));
+    }
+
+    public string RfidProviderContact
+    {
+        get => _repo.Settings.RfidProviderContact ?? string.Empty;
+        set => SetOrganizationDefault(value, v => _repo.Settings.RfidProviderContact = v, nameof(RfidProviderContact));
+    }
+
+    public string RfidProviderLogoPath
+    {
+        get => _repo.Settings.RfidProviderLogoPath ?? string.Empty;
+        set => SetOrganizationDefault(value, v => _repo.Settings.RfidProviderLogoPath = v, nameof(RfidProviderLogoPath));
+    }
+
     // ── Data Sources — GCP prefix table ────────────────────────────────────────
 
     private bool   _gcpBusy;
@@ -326,6 +364,12 @@ public sealed class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(OrganizationName));
         OnPropertyChanged(nameof(OrganizationAddress));
         OnPropertyChanged(nameof(TestingAgency));
+        OnPropertyChanged(nameof(RfidProviderDisplayName));
+        OnPropertyChanged(nameof(RfidProviderLegalName));
+        OnPropertyChanged(nameof(RfidProviderSite));
+        OnPropertyChanged(nameof(RfidProviderAddress));
+        OnPropertyChanged(nameof(RfidProviderContact));
+        OnPropertyChanged(nameof(RfidProviderLogoPath));
         OnPropertyChanged(nameof(GenerateHybridReport));
         OnPropertyChanged(nameof(IsHybridConfigVisible));
         OnPropertyChanged(nameof(IsAlongsideMode));

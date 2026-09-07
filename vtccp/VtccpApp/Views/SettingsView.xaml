@@ -8,6 +8,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />  <!-- header -->
                     <RowDefinition Height="Auto" />  <!-- organization card -->
+                    <RowDefinition Height="Auto" />  <!-- RFID provider card -->
                     <RowDefinition Height="Auto" />  <!-- hybrid report card -->
                     <RowDefinition Height="Auto" />  <!-- VCCS PDF card -->
                     <RowDefinition Height="Auto" />  <!-- data sources card -->
@@ -39,8 +40,34 @@
                 </StackPanel>
             </Border>
 
-            <!-- ── Hybrid Report card ────────────────────────────────── -->
+            <!-- ── RFID report provider ──────────────────────────────── -->
             <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="RFID VALIDATION PROVIDER"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,0,0,12" />
+                    <TextBlock Text="PROVIDER DISPLAY NAME" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding RfidProviderDisplayName, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Text="LEGAL COMPANY NAME (optional)" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding RfidProviderLegalName, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Text="SITE / DEPARTMENT (optional)" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding RfidProviderSite, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Text="ADDRESS (optional)" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding RfidProviderAddress, UpdateSourceTrigger=LostFocus}"
+                             TextWrapping="Wrap" AcceptsReturn="True" MinHeight="42" />
+                    <TextBlock Text="CONTACT LINE (optional)" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding RfidProviderContact, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Text="PROVIDER LOGO FILE (optional)" Style="{StaticResource FieldLabel}" />
+                    <TextBox Text="{Binding RfidProviderLogoPath, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Text="This identity is shown as the issuer of standalone RFID VeriWedge reports. It is separate from the barcode verifier and testing agency."
+                               FontSize="11" FontStyle="Italic"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap" Margin="0,6,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- ── Hybrid Report card ────────────────────────────────── -->
+            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,16,0,0">
                 <StackPanel>
 
                     <!-- Section title -->
@@ -122,7 +149,7 @@
             </Border>
 
             <!-- ── VCCS PDF card ─────────────────────────────────────── -->
-            <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,16,0,0">
+            <Border Grid.Row="4" Style="{StaticResource Card}" Margin="0,16,0,0">
                 <StackPanel>
                     <TextBlock Text="VCCS PDF OUTPUT"
                                Style="{StaticResource FieldLabel}"
@@ -167,7 +194,7 @@
             </Border>
 
             <!-- ── Data Sources card ─────────────────────────────────── -->
-            <Border Grid.Row="4" Style="{StaticResource Card}" Margin="0,16,0,0">
+            <Border Grid.Row="5" Style="{StaticResource Card}" Margin="0,16,0,0">
                 <StackPanel>
 
                     <TextBlock Text="DATA SOURCES — GCP PREFIX TABLE"

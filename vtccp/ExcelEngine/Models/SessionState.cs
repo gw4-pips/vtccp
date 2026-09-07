@@ -22,6 +22,16 @@ public sealed class SessionState
     public string? OrganizationName { get; set; }
     public string? OrganizationAddress { get; set; }
     public string? TestingAgency { get; set; }
+
+    // RFID report provider identity is copied from installation settings when
+    // the session starts. It is intentionally separate from barcode-verification
+    // organization/testing-agency provenance.
+    public string? RfidProviderDisplayName { get; set; }
+    public string? RfidProviderLegalName { get; set; }
+    public string? RfidProviderSite { get; set; }
+    public string? RfidProviderAddress { get; set; }
+    public string? RfidProviderContact { get; set; }
+    public string? RfidProviderLogoPath { get; set; }
     public string? CustomerName { get; set; }
     public string? PrintMethod { get; set; }
     public int? BarcodeCount { get; set; }
