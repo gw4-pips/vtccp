@@ -3311,3 +3311,13 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Assigned the separate ASR 8-port reader, configurable antenna-tub, and bug/status demonstration UX, isolated from the FlexWedge release.
 
 **Assistant:** Built the isolated interactive demo with configurable three-antenna, unverified seven-antenna, and conditional dual-tub profiles; all eight ports and requested states; profile-aware diagnostic evidence; and simulation/hardware-validation disclosures. Verified the focused production build and live preview.
+
+---
+
+**`2026-09-07 — 11:19`**
+
+**User:** Assigned the task to catch GS1 and VeriWedge page-order regressions before release with Windows-native A4 and Letter rendering coverage.
+
+**Assistant:** Added a Windows-native production-renderer regression fixture for canonical-only and canonical-plus-VeriWedge PDFs in A4 and Letter. It verifies canonical and addendum stream preservation, canonical-first ordering, complete page counts, exact page sizes, non-empty pages, and final numbering; added the renderer assets to the test host and bumped VTCCP to 1.5.107. Direct compilation and diff checks pass; full Linux test execution remains blocked by the checkout's missing local NPOI/EPPlus package cache, and native rendering must run on Windows.
+
+---

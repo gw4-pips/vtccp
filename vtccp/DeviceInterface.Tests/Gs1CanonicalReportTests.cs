@@ -1,7 +1,9 @@
 using DeviceInterface.Reports;
 using ExcelEngine.Models;
 using PdfSharp.Pdf;
+using PdfSharp.Pdf.Advanced;
 using PdfSharp.Pdf.IO;
+using System.Text;
 using Xunit;
 
 namespace DeviceInterface.Tests;
@@ -128,6 +130,86 @@ public sealed class Gs1CanonicalReportTests
         Assert.Contains("@page { size:Letter", html);
     }
 
+    [Theory]
+    [InlineData(Gs1PrintProfile.A4, 595.28, 841.89)]
+    [InlineData(Gs1PrintProfile.Letter, 612.0, 792.0)]
+    public async Task Windows_renderer_preserves_canonical_pages_before_complete_veriwedge_addendum(
+        Gs1PrintProfile profile,
+        double expectedWidth,
+        double expectedHeight)
+    {
+        if (!OperatingSystem.IsWindows())
+            return; // WebView2 and the bundled wkhtmltopdf fallback are Windows-only.
+
+        string root = Path.Combine(Path.GetTempPath(), $"gs1-render-regression-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        string canonicalOnlyPath = Path.Combine(root, $"{profile}-canonical-only.pdf");
+        string veriwedgeOnlyPath = Path.Combine(root, $"{profile}-veriwedge-only.pdf");
+        string mergedPath = Path.Combine(root, $"{profile}-canonical-with-veriwedge.pdf");
+        try
+        {
+            VerificationRecord withoutRfid = CanonicalRecord();
+            VerificationRecord withRfid = withoutRfid with
+            {
+                RfidReaderConnected = true,
+                RfidStatus = "Pass",
+                RfidEpcHex = "3034257BF7194E4000000001",
+                RfidEpcTagUri = "urn:epc:tag:sgtin-96:1.0612345.012345.1",
+                RfidTid = "E28068940000502F3D5A1C2B",
+                RfidReaderManufacturer = "AsReader",
+                RfidReaderModel = "ASR-P35U",
+            };
+            string canonicalHtml = Gs1CanonicalReport.GenerateTwoDimensionalHtml(
+                Complete(), profile);
+
+            await VccsPdfRenderer.RenderGs1WithVeriWedgeAddendumAsync(
+                canonicalHtml, withoutRfid, canonicalOnlyPath, profile);
+            await VccsPdfRenderer.RenderAsync(
+                VccsHtmlReportGenerator.Generate(withRfid),
+                veriwedgeOnlyPath,
+                printProfile: profile,
+                addPageNumbers: false);
+            await VccsPdfRenderer.RenderGs1WithVeriWedgeAddendumAsync(
+                canonicalHtml, withRfid, mergedPath, profile);
+
+            using PdfDocument canonicalOnly =
+                PdfReader.Open(canonicalOnlyPath, PdfDocumentOpenMode.Import);
+            using PdfDocument veriwedgeOnly =
+                PdfReader.Open(veriwedgeOnlyPath, PdfDocumentOpenMode.Import);
+            using PdfDocument merged =
+                PdfReader.Open(mergedPath, PdfDocumentOpenMode.Import);
+
+            Assert.Equal(2, canonicalOnly.PageCount);
+            Assert.True(veriwedgeOnly.PageCount > 0);
+            Assert.Equal(
+                canonicalOnly.PageCount + veriwedgeOnly.PageCount,
+                merged.PageCount);
+
+            for (int index = 0; index < canonicalOnly.PageCount; index++)
+            {
+                Assert.Equal(
+                    FirstContentStream(canonicalOnly.Pages[index]),
+                    FirstContentStream(merged.Pages[index]));
+            }
+
+            for (int index = 0; index < veriwedgeOnly.PageCount; index++)
+            {
+                Assert.Equal(
+                    FirstContentStream(veriwedgeOnly.Pages[index]),
+                    FirstContentStream(merged.Pages[canonicalOnly.PageCount + index]));
+            }
+
+            AssertPagesArePrintable(canonicalOnly, expectedWidth, expectedHeight);
+            AssertPagesArePrintable(veriwedgeOnly, expectedWidth, expectedHeight);
+            AssertPagesArePrintable(merged, expectedWidth, expectedHeight);
+            AssertPageNumbering(merged);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     [Fact]
     public void Gs1_compliance_and_technical_values_are_only_the_literal_plugin_evidence()
     {
@@ -197,6 +279,80 @@ public sealed class Gs1CanonicalReportTests
         Gs1Parameters = gs1Parameters ?? new Dictionary<string, Gs1ParameterAssessment>(),
         IsoParameters = isoParameters ?? new Dictionary<string, Gs1IsoAssessment>()
     };
+
+    private static VerificationRecord CanonicalRecord() => new()
+    {
+        VerificationDateTime = new DateTime(2026, 9, 7, 10, 30, 0),
+        Symbology = "GS1 DataMatrix",
+        ProductName = "Windows PDF regression fixture",
+        DeviceName = "DM475V",
+        DeviceModel = "DM475V",
+        DeviceSerial = "FIXTURE-001",
+        FirmwareVersion = "6.1.16",
+        ApplicationStandard = "GS1",
+        HtmlDecodedData = "(01)09506000134352",
+        HtmlOverallGradeDisplay = "4.0 (A)",
+        HtmlStandard = "ISO/IEC 15415",
+        HtmlSourceFileName = "canonical-fixture.html",
+        HtmlVerifiedString = "9/7/2026 10:30:00 AM",
+        HtmlReportProvenance = HtmlReportProvenance.CorrelatedFilesystem,
+        RfidReaderConnected = false,
+        RfidStatus = "Skipped",
+    };
+
+    private static byte[] FirstContentStream(PdfPage page)
+    {
+        Assert.True(page.Contents.Elements.Count > 0, "Page has no PDF content streams.");
+        PdfDictionary content = page.Contents.Elements.GetDictionary(0)
+            ?? throw new InvalidDataException("Page content stream is not a PDF dictionary.");
+        Assert.NotNull(content.Stream);
+        Assert.NotEmpty(content.Stream!.Value);
+        return content.Stream.Value;
+    }
+
+    private static void AssertPagesArePrintable(
+        PdfDocument document,
+        double expectedWidth,
+        double expectedHeight)
+    {
+        for (int index = 0; index < document.PageCount; index++)
+        {
+            PdfPage page = document.Pages[index];
+            Assert.Equal(expectedWidth, page.Width.Point, 1);
+            Assert.Equal(expectedHeight, page.Height.Point, 1);
+
+            int contentBytes = 0;
+            for (int streamIndex = 0; streamIndex < page.Contents.Elements.Count; streamIndex++)
+            {
+                PdfDictionary content = page.Contents.Elements.GetDictionary(streamIndex)
+                    ?? throw new InvalidDataException(
+                        $"Page {index + 1} content stream is not a PDF dictionary.");
+                contentBytes += content.Stream?.Value.Length ?? 0;
+            }
+            Assert.True(contentBytes > 100, $"Page {index + 1} is blank or unexpectedly empty.");
+        }
+    }
+
+    private static void AssertPageNumbering(PdfDocument document)
+    {
+        for (int index = 0; index < document.PageCount; index++)
+        {
+            var content = new StringBuilder();
+            for (int streamIndex = 0; streamIndex < document.Pages[index].Contents.Elements.Count; streamIndex++)
+            {
+                PdfDictionary stream =
+                    document.Pages[index].Contents.Elements.GetDictionary(streamIndex)
+                    ?? throw new InvalidDataException(
+                        $"Page {index + 1} content stream is not a PDF dictionary.");
+                content.Append(Encoding.ASCII.GetString(stream.Stream?.Value ?? []));
+            }
+
+            Assert.Contains(
+                $"Page {index + 1} of {document.PageCount}",
+                content.ToString(),
+                StringComparison.Ordinal);
+        }
+    }
 
     private static void CreateMarkerPdf(string path, params int[] widths)
     {

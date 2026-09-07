@@ -26,6 +26,21 @@
     <Content Include="Fixtures\Axicon\**\*.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- Windows-native PDF regression tests exercise the same WebView2-first,
+         wkhtmltopdf-fallback path as production. Keep the fallback renderer and
+         report logos in the layout expected by VccsPdfRenderer. -->
+    <Content Include="..\DeviceInterface\Resources\wkhtmltopdf.exe">
+      <Link>resources\wkhtmltopdf.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\DeviceInterface\Resources\vccs_logo.png">
+      <Link>resources\vccs_logo.png</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\DeviceInterface\Resources\pips_logo.png">
+      <Link>resources\pips_logo.png</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <!-- The production GS1 smoke tests run only on Windows. Keep the native
