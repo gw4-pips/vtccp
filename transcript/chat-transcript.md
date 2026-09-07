@@ -3307,3 +3307,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Assigned the task to define and build the deployable FlexWedge / VeriWedge RFID release, preserving the practical BAIT and EPC Translator baseline while excluding the separate ASR 8-port tub demonstration.
 
 **Assistant:** Built the standalone FlexWedge 1.0 Windows release with the ASR-P35U path, canonical destination-independent decode/audit result, explicit GCP statuses, configurable output profiles and focused-application delivery, durable session recovery/export, focused VeriWedge comparison, sample configuration, packaging scripts, operator documentation, and regression coverage. The Windows shell build and 12 focused regressions pass; packaging remains gated on the vendor SDK DLL and its approved redistribution rights.
+
+**User:** Assigned the separate ASR 8-port reader, configurable antenna-tub, and bug/status demonstration UX, isolated from the FlexWedge release.
+
+**Assistant:** Built the isolated interactive demo with configurable three-antenna, unverified seven-antenna, and conditional dual-tub profiles; all eight ports and requested states; profile-aware diagnostic evidence; and simulation/hardware-validation disclosures. Verified the focused production build and live preview.
