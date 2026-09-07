@@ -1,4 +1,5 @@
 using DeviceInterface.Reports;
+using Xunit;
 
 namespace DeviceInterface.Tests;
 

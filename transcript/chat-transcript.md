@@ -3303,3 +3303,7 @@ Rewrote HybridReportGenerator.cs (v2.1 final) with the actual Webscan HTML file 
 **User:** Supplied Axicon Extras 2.0.17.7 and several `.avp` plug-ins, asking for safe extraction and analysis.
 
 **Assistant:** Extracted the ZIP under `/tmp` and performed static analysis without executing legacy binaries. Confirmed that `.avp` files are 32-bit Windows DLL content-analysis plug-ins and that the loose copies exactly match the ZIP versions. Documented the optional/obsolete analyzers, legacy utilities, safety constraints, and the Scan File Data Extractor and console utility as the strongest controlled integration leads.
+
+**User:** Assigned the task to define and build the deployable FlexWedge / VeriWedge RFID release, preserving the practical BAIT and EPC Translator baseline while excluding the separate ASR 8-port tub demonstration.
+
+**Assistant:** Built the standalone FlexWedge 1.0 Windows release with the ASR-P35U path, canonical destination-independent decode/audit result, explicit GCP statuses, configurable output profiles and focused-application delivery, durable session recovery/export, focused VeriWedge comparison, sample configuration, packaging scripts, operator documentation, and regression coverage. The Windows shell build and 12 focused regressions pass; packaging remains gated on the vendor SDK DLL and its approved redistribution rights.

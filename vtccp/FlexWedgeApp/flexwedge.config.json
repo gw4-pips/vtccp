@@ -1,0 +1,13 @@
+{
+  "configurationVersion": "1",
+  "readerName": "ASR-P35U",
+  "readerPort": "COM3",
+  "customGcpXmlPath": null,
+  "activeProfile": "GTIN + serial",
+  "outputProfiles": [
+    { "name": "Raw EPC", "prefix": "", "suffix": "", "delimiter": "\t", "appendKey": "None", "fields": [ { "field": "RawEpc", "header": "EPC" } ] },
+    { "name": "GTIN + serial", "prefix": "", "suffix": "", "delimiter": "\t", "appendKey": "Tab", "fields": [ { "field": "Gtin14", "header": "GTIN-14" }, { "field": "Serial", "header": "Serial" } ] },
+    { "name": "Delimited mapped fields", "prefix": "", "suffix": "", "delimiter": "\t", "appendKey": "None", "fields": [ { "field": "RawEpc", "header": "EPC" }, { "field": "Gtin14", "header": "GTIN-14" }, { "field": "Serial", "header": "Serial" } ] },
+    { "name": "Complete decoded result", "prefix": "", "suffix": "", "delimiter": "\t", "appendKey": "None", "fields": [ { "field": "RawEpc", "header": "EPC" }, { "field": "EpcUri", "header": "EPC Tag URI" }, { "field": "Scheme", "header": "Scheme" }, { "field": "Gtin14", "header": "GTIN-14" }, { "field": "Serial", "header": "Serial" }, { "field": "Filter", "header": "Filter" }, { "field": "Partition", "header": "Partition" }, { "field": "CompanyPrefix", "header": "Company Prefix" }, { "field": "ItemReference", "header": "Item Reference" }, { "field": "GcpStatus", "header": "GCP Status" }, { "field": "GcpRegisteredLength", "header": "GCP Registered Length" }, { "field": "Tid", "header": "TID" }, { "field": "LockStatus", "header": "Lock Status" } ] }
+  ]
+}
