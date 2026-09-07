@@ -168,7 +168,7 @@ public static class VccsPdfRenderer
         }
     }
 
-    private static void MergePdfDocuments(string firstPath, string secondPath, string outputPath)
+    internal static void MergePdfDocuments(string firstPath, string secondPath, string outputPath)
     {
         using PdfDocument first = PdfReader.Open(firstPath, PdfDocumentOpenMode.Import);
         using PdfDocument second = PdfReader.Open(secondPath, PdfDocumentOpenMode.Import);

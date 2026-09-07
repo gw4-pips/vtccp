@@ -252,7 +252,6 @@ table { width:100%; border-collapse:collapse; margin:2mm 0 } th,td { border:1px 
           .Append(Row("Job", H(provenance.JobName)))
           .Append(Row("Verifier source", H(provenance.VerifierSource)))
           .Append(Row("Native source artifact", H(provenance.SourceArtifactPath)))
-          .Append(Row("RFID source", H(provenance.RfidSource)))
           .Append("</table></section>");
     }
 
@@ -312,14 +311,13 @@ public sealed class Gs1ReportData
     public Gs1ReportProvenance? Provenance { get; init; }
 }
 
-/// <summary>Keeps organization, job, verifier, RFID, and native artifact origins distinct.</summary>
+/// <summary>Keeps organization, job, verifier, and native artifact origins distinct.</summary>
 public sealed class Gs1ReportProvenance
 {
     public string? OrganizationName { get; init; }
     public string? JobName { get; init; }
     public string? VerifierSource { get; init; }
     public string? SourceArtifactPath { get; init; }
-    public string? RfidSource { get; init; }
 }
 
 public sealed class Gs1ParameterAssessment

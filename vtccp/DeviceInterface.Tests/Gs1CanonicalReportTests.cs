@@ -1,4 +1,7 @@
 using DeviceInterface.Reports;
+using ExcelEngine.Models;
+using PdfSharp.Pdf;
+using PdfSharp.Pdf.IO;
 using Xunit;
 
 namespace DeviceInterface.Tests;
@@ -55,6 +58,66 @@ public sealed class Gs1CanonicalReportTests
         };
 
         Assert.Equal(expected, VccsPdfRenderer.HasVeriWedgeEvidence(record));
+    }
+
+    [Fact]
+    public void Canonical_html_is_identical_with_and_without_rfid_evidence()
+    {
+        var barcodeOnly = new VerificationRecord
+        {
+            VerificationDateTime = new DateTime(2026, 9, 7),
+            Symbology = "GS1 DataMatrix",
+            ProductName = "Product",
+            DeviceModel = "Verifier",
+            HtmlDecodedData = "(01)09506000134352",
+            HtmlOverallGradeDisplay = "4.0 (A)",
+            HtmlStandard = "ISO/IEC 15415",
+        };
+        VerificationRecord withRfid = barcodeOnly with
+        {
+            RfidReaderConnected = true,
+            RfidStatus = "Pass",
+            RfidEpcTagUri = "urn:epc:tag:sgtin-96:1.0612345.012345.1",
+            RfidReaderManufacturer = "AsReader",
+            RfidReaderModel = "ASR-P35U",
+        };
+
+        string withoutRfid = Gs1CanonicalReport.GenerateTwoDimensionalHtml(
+            Gs1CanonicalReport.FromVerificationRecord(barcodeOnly));
+        string withRfidHtml = Gs1CanonicalReport.GenerateTwoDimensionalHtml(
+            Gs1CanonicalReport.FromVerificationRecord(withRfid));
+
+        Assert.Equal(withoutRfid, withRfidHtml);
+        Assert.DoesNotContain("RFID", withRfidHtml, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Pdf_merge_preserves_canonical_pages_before_veriwedge_pages()
+    {
+        string root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        string canonicalPath = root + "-canonical.pdf";
+        string veriwedgePath = root + "-veriwedge.pdf";
+        string mergedPath = root + "-merged.pdf";
+        try
+        {
+            CreateMarkerPdf(canonicalPath, 501, 502);
+            CreateMarkerPdf(veriwedgePath, 601, 602);
+
+            VccsPdfRenderer.MergePdfDocuments(canonicalPath, veriwedgePath, mergedPath);
+
+            using PdfDocument merged = PdfReader.Open(mergedPath, PdfDocumentOpenMode.Import);
+            Assert.Equal(4, merged.PageCount);
+            Assert.Equal(501, merged.Pages[0].Width.Point, 3);
+            Assert.Equal(502, merged.Pages[1].Width.Point, 3);
+            Assert.Equal(601, merged.Pages[2].Width.Point, 3);
+            Assert.Equal(602, merged.Pages[3].Width.Point, 3);
+        }
+        finally
+        {
+            File.Delete(canonicalPath);
+            File.Delete(veriwedgePath);
+            File.Delete(mergedPath);
+        }
     }
 
     [Fact]
@@ -134,4 +197,16 @@ public sealed class Gs1CanonicalReportTests
         Gs1Parameters = gs1Parameters ?? new Dictionary<string, Gs1ParameterAssessment>(),
         IsoParameters = isoParameters ?? new Dictionary<string, Gs1IsoAssessment>()
     };
+
+    private static void CreateMarkerPdf(string path, params int[] widths)
+    {
+        using var document = new PdfDocument();
+        foreach (int width in widths)
+        {
+            PdfPage page = document.AddPage();
+            page.Width = PdfSharp.Drawing.XUnit.FromPoint(width);
+            page.Height = PdfSharp.Drawing.XUnit.FromPoint(700);
+        }
+        document.Save(path);
+    }
 }

@@ -2123,9 +2123,6 @@ public sealed class SessionViewModel : ViewModelBase
                 JobName = state.JobName,
                 VerifierSource = record.VerifierBrand ?? record.DeviceName,
                 SourceArtifactPath = record.SourceArtifactPath,
-                RfidSource = record.RfidReaderConnected == true
-                    ? "RFID reader snapshot attached"
-                    : "No RFID reader connected",
             },
         };
         bool twoDimensional = record.SymbologyFamily != SymbologyFamily.Linear1D;
