@@ -54,3 +54,4 @@ vtccp/**/obj/
 
 # GitHub auto-sync status log (written by .githooks/post-commit)
 .github-sync-status
+.github-push-failed
