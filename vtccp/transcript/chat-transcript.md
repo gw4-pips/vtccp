@@ -794,3 +794,9 @@ Assistant: Generated a two-page A4 GS1 DataMatrix report from captured Webscan T
 User: Requested implementation of the accepted Preserve VeriWedge RFID addendum task: keep canonical GS1 pages unchanged, capture immutable RFID reader/acquisition provenance, and append the complete established VeriWedge report instead of an abbreviated RFID table.
 
 Assistant: Implemented acquisition-time ASR-P35U reader provenance, added truthful provenance rows to VeriWedge, removed RFID from canonical GS1 HTML, and changed PDF generation to append the independently rendered full VeriWedge report in the selected A4 or Letter profile. Report/app versions were advanced and focused tests plus the Windows-targeting build passed.
+
+---
+
+User [2026-09-08]: Requested a configurable RFID validation-provider identity in the standalone VeriWedge report, with one provider/site per installation, and clarified that Axicon linear-only verifiers still use software separate from the 15000-series camera verifier.
+
+Assistant [2026-09-08]: Added separate RFID provider settings, immutable session/record snapshots, provider logo and contact details, per-report operator/job/report ID/capture evidence, and a dedicated report-header panel. Historical records remain explicitly unavailable rather than inheriting current settings.

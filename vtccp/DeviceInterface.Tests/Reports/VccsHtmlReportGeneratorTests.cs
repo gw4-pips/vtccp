@@ -67,9 +67,16 @@ public sealed class VccsHtmlReportGeneratorTests
 
         string report = VccsHtmlReportGenerator.Generate(record);
 
-        Assert.Contains("[UNAVAILABLE &#x2014; NOT SNAPSHOTTED]", report, StringComparison.Ordinal);
+        Assert.Contains("[UNAVAILABLE — NOT SNAPSHOTTED]", report, StringComparison.Ordinal);
         Assert.DoesNotContain("PIPS", report, StringComparison.OrdinalIgnoreCase);
     }
+
+    private static string WithoutEmbeddedImages(string html) =>
+        Regex.Replace(
+            html,
+            "data:image/[^;]+;base64,[^\"]+",
+            "[EMBEDDED IMAGE]",
+            RegexOptions.CultureInvariant);
 
     [Theory]
     [InlineData(null, "DM475V", "COGNEX DataMan TruCheck Barcode Verification Results Summary", "See associated TruCheck verification report for additional details")]
@@ -473,7 +480,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.DoesNotContain("TRANSPORT_DFC_STANDARD", report, StringComparison.Ordinal);
         Assert.DoesNotContain("TRANSPORT_DFC_ROW", report, StringComparison.Ordinal);
         Assert.DoesNotContain("TRANSPORT_IMAGE", report, StringComparison.Ordinal);
-        Assert.DoesNotContain("4/A", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("4/A", WithoutEmbeddedImages(report), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -506,7 +513,7 @@ public sealed class VccsHtmlReportGeneratorTests
         Assert.Contains("4.0/16/660/45Q", report, StringComparison.Ordinal);
         Assert.DoesNotContain("TRANSPORT_DATA", report, StringComparison.Ordinal);
         Assert.DoesNotContain("TRANSPORT_STANDARD", report, StringComparison.Ordinal);
-        Assert.DoesNotContain("4/A", report, StringComparison.Ordinal);
+        Assert.DoesNotContain("4/A", WithoutEmbeddedImages(report), StringComparison.Ordinal);
     }
 
     [Fact]

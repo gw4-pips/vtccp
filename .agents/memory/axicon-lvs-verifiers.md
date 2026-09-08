@@ -6,6 +6,7 @@ description: Manufacturer identity, software interface, and planned VTCCP integr
 ## Axicon 15500 (Axicon Auto ID Limited, Oxfordshire UK)
 - Part of "15000 series linear & 2D verifier" product line
 - Software: Axicon 15000 series v9.1 (March 2026); implements ISO/IEC 15415:2024 + 15416:2025
+- Axicon has **not** unified its verifier software: linear-only verifier families still use separate software from the 15000-series camera software shared for current integration work.
 - USB connected
 - Two automation hooks visible from website:
   1. **Automatic File Naming plugin** — writes result file to a configurable path after each scan
@@ -33,3 +34,7 @@ description: Manufacturer identity, software interface, and planned VTCCP integr
 **Why durable:** User has both devices physically in lab and plans to integrate
 them into VTCCP. Axicon integration remains gated on confirming the current
 saved-scan/export format; do not load the legacy plug-ins into the .NET 8 app.
+
+**How to apply:** Treat evidence, exports, capabilities, and UI from the 15000
+series as specific to that camera-based linear/2D family. Do not project them
+onto Axicon linear-only verifiers without separate proof.
